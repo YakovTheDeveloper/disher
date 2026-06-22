@@ -17,21 +17,18 @@
     --ax-card-radius: 0;
     --ax-accent-w: 0;
     --ax-list-gap: 0;
-    --ax-pad-y: 14px;
-    --ax-pad-x: 16px;
+    --ax-pad-y: var(--space-3);
+    --ax-pad-x: var(--space-4);
     --ax-divider: linear-gradient(90deg,
             transparent 0%,
             color-mix(in srgb, var(--card-text-rest) 14%, transparent) 18%,
             color-mix(in srgb, var(--card-text-rest) 14%, transparent) 82%,
             transparent 100%);
 
-    // Apple-шкала типографики/ритма (как `.ambientSheet`).
-    --analysis-fs-title: 17px;
-    --analysis-fs-detail: 15.5px;
-    --analysis-fs-meta: 13px;
-    --analysis-w-title: 600;
-    --analysis-track-title: -0.012em;
-    --analysis-lh-title: 1.32;
+    // Кегли тела/меты на модульной сетке (`--text-*`), как `.ambientSheet`.
+    // Заголовок — примитив <Heading size="card"> (`--text-lg`, 20px).
+    --analysis-fs-detail: var(--text-base);
+    --analysis-fs-meta: var(--text-sm);
     --analysis-lh-detail: 1.5;
     --analysis-soft-amt: 72%;
     --analysis-faint-amt: 50%;

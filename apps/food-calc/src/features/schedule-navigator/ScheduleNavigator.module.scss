@@ -30,8 +30,8 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 }
 
 // ─── Tab row ───────────────────────────────────────────────────────────────
-// Обёртка под anchor `[data-dv='NavSwitcher']` — раскладку и облик ряда держит
-// ScreenIndicator (.root/.tilesRow) под этим anchor'ом, как на HomePage.
+// Anchor-узел NavSwitcher (несёт `data-nav-align`) — раскладку и облик ряда держит
+// ScreenIndicator (.root/.tilesRow) под ним, как на HomePage (вшитый numerals-left).
 .tabRow {
   position: relative;
   z-index: 1;

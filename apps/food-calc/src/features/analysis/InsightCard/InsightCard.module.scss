@@ -16,30 +16,23 @@
     // должно читаться, а не выцветать как soft. Контексты могут поднять/опустить
     // через `--analysis-body-amt` (дом уже держит soft на 80%).
     --ic-ink-body: color-mix(in srgb, var(--card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    // Заголовок-антиква в navy (как в предложке s_ad537308) — фиксированный синий,
-    // не монохромный ink. Тело/мета остаются монохромными.
-    --ic-title-ink: #1c2566;
     // strength = плотность серого (moderate-дефолт; weak бледнее, clear плотнее).
     --ic-accent: color-mix(in srgb, var(--card-text-rest) 28%, transparent);
     --ic-chip-bg: color-mix(in srgb, var(--card-text-rest) 6%, transparent);
     --ic-radius: var(--radius-md);
-    --ic-chip-radius: 7px;
-    // Укрупнено (2026-06-13, «шрифт слишком маленький»). Размеры/вес/трекинг/
-    // интерлиньяж — переопределяемые сидами `--analysis-*` (дефолты совпадают со
-    // старыми значениями → другие потребители не меняются; дом «Открытия»
-    // задаёт свою Apple-шкалу в `.ambientSheet`, см. Laboratory.module.scss).
-    // Гармоничная композиция 2026-06-21: антиква-заголовок крупнее тела, тело
-    // Onest. Размеры — сиды (дом «Открытия» держит свою Apple-шкалу 17/15.5/13 в
-    // `.ambientSheet`, перекрывает эти fallback'и).
-    --ic-fs-title: var(--analysis-fs-title, 1.1875rem);
-    --ic-fs-detail: var(--analysis-fs-detail, 0.9375rem);
-    --ic-fs-meta: var(--analysis-fs-meta, 0.75rem);
+    --ic-chip-radius: var(--radius-sm);
+    // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
+    // мета 12.8 (`--text-sm`). Сид `--analysis-*` = тот же грид (дом «Открытия»).
+    // Заголовок больше НЕ здесь — рендерится примитивом <Heading size="card">
+    // (`--text-lg`, 20px = Apple Title3, вес 600, монохром; канон Открытий).
+    --ic-fs-detail: var(--analysis-fs-detail, var(--text-base));
+    --ic-fs-meta: var(--analysis-fs-meta, var(--text-sm));
 
     position: relative;
     display: flex;
     align-items: flex-start;
     // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
-    padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+    padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
     border-radius: var(--ax-card-radius, 0px);
     background: var(--ax-card-bg, transparent);
     box-shadow: var(--ax-card-shadow, none);
@@ -50,8 +43,8 @@
         content: '';
         position: absolute;
         left: 0;
-        top: 8px;
-        bottom: 8px;
+        top: var(--space-2);
+        bottom: var(--space-2);
         width: var(--ax-accent-w, 0px);
         border-radius: var(--ic-chip-radius);
         background: var(--ic-accent);
@@ -89,27 +82,18 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: var(--space-1);
 }
 
 .head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
-// Заголовок — антиква (Source Serif), плотный интерлиньяж. Цвет монохромный
-// (`--card-text-rest`), не навигационный navy: живёт по токенам темы.
-.title {
-    margin: 0;
-    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-    font-size: var(--ic-fs-title);
-    font-weight: var(--analysis-w-title, 600);
-    letter-spacing: var(--analysis-track-title, -0.003em);
-    line-height: var(--analysis-lh-title, 1.22);
-    color: var(--ic-title-ink);
-}
+// Заголовок рендерится примитивом <Heading size="card"> (см. InsightCard.tsx) —
+// Onest sans 20px (--text-lg), вес 600, монохром. Здесь его стилей больше нет.
 
 .strength {
     flex-shrink: 0;
@@ -132,8 +116,10 @@
 .evidence {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 2px;
+    // Чипы-доказательства: gap на сетке. Доп. margin-top снят — вертикальный
+    // ритм держит `.text` gap (--space-1). Внутр. падинг чипа 2px намеренно
+    // суб-грид (компактная пилюля, Apple-плотность).
+    gap: var(--space-1);
 }
 
 .chipDay,
@@ -150,38 +136,12 @@
 }
 
 // ── valence (без цвета, F3) ───────────────────────────────────────────────
-// Хорошо/плохо несёт монохромный знак ＋/− у заголовка (дефолт, variant 'sign')
-// ИЛИ тихое слово «синергия»/«осторожно» (variant 'label'). Оттенка нет.
-// Видимостью рулит ancestor `[data-dv='Insight']` (anchor в AnalysisResult /
-// InsightListPanel) — обе ноды рендерятся, CSS выбирает видимую.
+// Хорошо/плохо несёт монохромный знак ＋/− у заголовка. Оттенка нет (баком
+// 2026-06-22 сняты форки 'label'/'plain', 'sign' был живым дефолтом).
 .valenceSign {
-    margin-right: 5px;
+    margin-right: var(--space-1);
     font-weight: 700;
     color: var(--ic-ink-soft);
-}
-
-.valenceLabel {
-    display: none;
-    flex-shrink: 0;
-    font-size: var(--ic-fs-meta);
-    font-weight: 500;
-    line-height: 1;
-    white-space: nowrap;
-    color: var(--ic-ink-faint);
-}
-
-// variant 'label' — знак прячем, слово показываем.
-:global([data-dv='Insight'][data-dv-v='label']) .valenceSign {
-    display: none;
-}
-
-:global([data-dv='Insight'][data-dv-v='label']) .valenceLabel {
-    display: inline-block;
-}
-
-// variant 'plain' — ни знака, ни слова (валентность не показываем).
-:global([data-dv='Insight'][data-dv-v='plain']) .valenceSign {
-    display: none;
 }
 
 // ── действия: «+ к себе» (результат) / шеврон-удаление (сохранённый список) ──
@@ -198,14 +158,14 @@
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 4px;
-    padding: 9px 16px;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+    padding: var(--space-2) var(--space-4); // высоту держит min-height (touch-floor)
     min-height: 40px;
     border: none;
     border-radius: var(--ic-btn-radius);
     background: var(--cta-brand-fill);
-    box-shadow: var(--cta-brand-shadow);
+    box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A: парит только слой над страницей)
     color: var(--cta-brand-ink);
     font-size: var(--ic-fs-meta);
     font-weight: 600;

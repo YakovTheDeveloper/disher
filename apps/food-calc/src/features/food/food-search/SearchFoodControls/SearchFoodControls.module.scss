@@ -76,7 +76,7 @@
     background: var(--seg-thumb, #ffffff);
     color: var(--seg-thumb-text, #0a0a0a);
     font-weight: 600;
-    box-shadow: var(--seg-thumb-shadow, 0 1px 2px rgba(10, 10, 10, 0.1));
+    box-shadow: var(--sys-elevation-action-rest);
 }
 
 // ─── Inlined search input (full-width row, token-driven) ─────────────────────

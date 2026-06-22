@@ -21,6 +21,11 @@
   // экранов здесь, в одном месте, а не в каждом компоненте.
   --sys-inset-md: var(--space-3); // 12px — модалки редактирования (Hypothesis / Dish / Product)
   --sys-inset-lg: var(--space-6); // 24px — drawer «Моя норма»
+  // page — единый боковой gutter «край листа → контент» ВСЕХ Screen-страниц
+  // (канон 2026-06-22: один симметричный 16px, владелец — `.headerOverlap`).
+  // Карточки/заголовки/бары равняются на край контент-бокса листа = этот инсет.
+  // Схлопнул прежний per-widget `--ap-inset` (card-edge vs prose-text рельсы → один).
+  --sys-inset-page: var(--space-4); // 16px
 
   // ─── Typography (modular scale 1.25) ─────────────────────────
   --text-xs: 0.64rem; // 10.2px — badges, micro labels
@@ -64,9 +69,72 @@
   --heading-size-field: 1rem; //    16px — small in-modal field/section label — below drawer
   --heading-size-section: var(--text-3xl); // ~37px — in-page content heading (FoodSchedule day, Product/Dish name)
   --heading-size-masthead: 2rem; // 32px — Apple Large Title шапка слайда HomePage (бывш. Masthead)
+  --heading-size-card: var(--text-lg); // 20px — card/list-item title (Открытия инсайт/гипотеза); ТИХИЙ reading-регистр (вес 600), не display-700. На модульной сетке (Apple Title3)
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px
+
+  // ─── ЯРУС sys · ТИПОГРАФИКА по РОЛИ (CTI: sys · text · роль) ───
+  // 7 семантических ролей, каждая — КОМПОЗИТ (family + size + weight + line-height
+  // + tracking). Источник чисел — предложка /suggestion_5dbbbf43 пресет «сист»
+  // (LOCKED 2026-06-22; ground truth tds/typography-roles-system.md, память
+  // project_typography_anchor_5dbbbf43). Потребляются через mixin `text-role(<роль>)`
+  // (mixin.scss) — role-классы Heading/Text @include его. Swap значения ЗДЕСЬ =
+  // перекраска роли во всём приложении (доказательство системности).
+  //
+  // Размеры — рунги конечной лесенки 13·14·15·16·17·18·20·22·24·26·28·32·38·44 (НЕ
+  // произвольный px). Семейство sans = Onest-led голос (SF Pro на Apple, Onest вне —
+  // совпадает с --heading-font/--font-big-numeric register). Цвет в роль НЕ зашит
+  // (контекстный/темо-зависимый). serif — ОРТОГОНАЛЬНЫЙ голос тихого яруса (см.
+  // Text variant navTabQuiet/sectionLabel), НЕ роль размера. (tokens.scss exempt от token-gate.)
+
+  // голоса-семейства (ref для ролей)
+  --sys-text-family-sans: -apple-system, BlinkMacSystemFont, "Onest", "Golos Text", system-ui, sans-serif;
+  --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // тихий мелкий ярус (voice)
+  --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
+
+  // Display — афиша / активный таб свайп-деки HomePage
+  --sys-text-display-size: 38px;
+  --sys-text-display-weight: 700;
+  --sys-text-display-line: 1.05;
+  --sys-text-display-tracking: -0.022em;
+
+  // Headline — шапка раздела / имя блюда (главный фикс дрейфа: было ≈39 ≈ Display)
+  --sys-text-headline-size: 28px;
+  --sys-text-headline-weight: 700;
+  --sys-text-headline-line: 1.12;
+  --sys-text-headline-tracking: -0.018em;
+
+  // Title — заголовок блока/карточки (база Apple-карточек Открытий; иерархия с Body ВЕСОМ)
+  --sys-text-title-size: 17px;
+  --sys-text-title-weight: 600;
+  --sys-text-title-line: 1.3;
+  --sys-text-title-tracking: -0.012em;
+
+  // Body — текст для чтения (тело = Onest, не Jost)
+  --sys-text-body-size: 16px;
+  --sys-text-body-weight: 500;
+  --sys-text-body-line: 1.5;
+  --sys-text-body-tracking: -0.005em;
+
+  // Label — надпись на интерактиве: кнопка / таб / чип / подпись поля
+  --sys-text-label-size: 14px;
+  --sys-text-label-weight: 600;
+  --sys-text-label-line: 1.2;
+  --sys-text-label-tracking: 0;
+
+  // Caption — самое мелкое вторичное: мета / проценты / сноски
+  --sys-text-caption-size: 13px;
+  --sys-text-caption-weight: 500;
+  --sys-text-caption-line: 1.4;
+  --sys-text-caption-tracking: 0;
+
+  // Mono — две нужды: крупные цифры (циферблат/количество, locked) + табличные (нутриенты).
+  // big делит семейство с --font-big-numeric (Onest 800), tab — Ubuntu Mono. Обе tabular.
+  --sys-text-mono-big-size: 44px;
+  --sys-text-mono-big-weight: 800;
+  --sys-text-mono-big-tracking: -0.01em;
+  --sys-text-mono-tab-size: 13px;
 
   // ─── Border Radius ───────────────────────────────────────────
   --radius-xs: 4px; // progress bars, small pills
@@ -187,7 +255,6 @@
   --cta-brand-fill: linear-gradient(270deg, #fffae0 0%, #fff4bd 100%);
   --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
   --cta-brand-ink: rgba(31, 42, 68, 0.92);
-  --cta-brand-shadow: 0 5px 14px -6px rgba(170, 150, 60, 0.3), 0 2px 5px -2px rgba(170, 150, 60, 0.28);
 
   // ─── ЯРУС ref · ПРИМИТИВЫ цвета (M0 рельсы) ───────────────────
   // Ground truth: tds/elevation-palette-2026.md §4. M0 = объявить как алиасы

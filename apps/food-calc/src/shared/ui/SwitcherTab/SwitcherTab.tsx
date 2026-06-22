@@ -15,7 +15,7 @@ export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 /**
- * SwitcherTab — навигационный таб HomePage-ряда (`ScreenIndicator`): фоновая
+ * SwitcherTab — таб-переключатель экранов HomePage-ряда (`ScreenIndicator`): фоновая
  * картинка-призрак + подпись. Голос подписи берётся ПРЯМО из примитива по
  * состоянию: активный = `<Heading>` (display bold-sans), неактивный = `<Text
  * variant="navTabQuiet">` (тихий serif-указатель). Раскладку ряда (на своей

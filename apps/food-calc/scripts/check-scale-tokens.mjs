@@ -80,6 +80,11 @@ for (const f of filesToCheck) {
   lines.forEach((line, i) => {
     for (const m of line.matchAll(USE_RE)) {
       const name = m[1];
+      // Skip SCSS-interpolated refs — `var(--sys-text-#{$role}-size)`. The token
+      // name is composed at compile time, so the static walk can't resolve it
+      // (the regex captures only the literal prefix `--sys-text-`). The `#`
+      // right after the captured prefix marks the interpolation. Not a real ref.
+      if (line[m.index + m[0].length] === '#') continue;
       if (!known.has(name)) {
         const fam = name.match(new RegExp(`--(${FAM})-`))[1];
         const hint = [...(byFamily[fam] ?? [])].sort().join(', ') || '(none defined)';

@@ -5,15 +5,14 @@
 //
 // Примитив владеет ТОЛЬКО обвязкой: фон, глянец-слой ::before, скругление,
 // overflow, z-index-раскладка + слоты header / content (children) / actions.
-// Характер глянца — DesignBar (anchor `Predlozhka`): pearl (дефолт = база ниже)
-// / satin / glass / frost. Контент консьюмеры наполняют сами.
+// Тон — единый pearl (баком 2026-06-22 сняты форки satin/glass/frost, pearl был
+// живым дефолтом). Контент консьюмеры наполняют сами.
 
 .sheet {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  // pearl-тон (дефолт). satin/glass/frost переопределяют ниже по [data-dv-v].
   // `--sheet-bg` / `--sheet-shadow` — точки переопределения для консьюмера: дом
   // на liquid-glass листе делает секции белыми + лёгкий подъём (см. Laboratory
   // `.ambientSheet`). Дефолт — off-white pearl, без тени.
@@ -41,50 +40,6 @@
   >* {
     position: relative;
     z-index: 1;
-  }
-}
-
-// ─── DesignBar: характер глянца (anchor `Predlozhka`) ──────────────────────
-
-// satin: мягкий верхний сатиновый блик + тёплый off-white тон.
-.sheet[data-dv-v='satin'] {
-  background: #f7f6f3;
-
-  &::before {
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.85) 0%,
-        rgba(255, 255, 255, 0.18) 22%,
-        rgba(255, 255, 255, 0) 50%);
-  }
-}
-
-// glass: глянцевая стеклянная плашка — диагональный световой свайп + узкая
-// световая полоса по верхнему краю. Тон чуть прохладнее.
-.sheet[data-dv-v='glass'] {
-  background: #f4f6f8;
-
-  &::before {
-    background:
-      linear-gradient(125deg,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0) 32%),
-      linear-gradient(180deg,
-        rgba(255, 255, 255, 0.75) 0%,
-        rgba(255, 255, 255, 0) 12%);
-  }
-}
-
-// frost: матовое стекло — полупрозрачная плашка + backdrop-blur размывает
-// тёплый ambient под ней.
-.sheet[data-dv-v='frost'] {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px) saturate(1.1);
-  -webkit-backdrop-filter: blur(12px) saturate(1.1);
-
-  &::before {
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.6) 0%,
-        rgba(255, 255, 255, 0) 30%);
   }
 }
 

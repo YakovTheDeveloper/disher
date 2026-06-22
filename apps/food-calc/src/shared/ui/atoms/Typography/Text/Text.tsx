@@ -2,7 +2,13 @@ import clsx from 'clsx';
 import type { ElementType, HTMLAttributes, ReactNode } from 'react';
 import styles from './Text.module.scss';
 
-/** Body-tier type variants. Grows over time.
+/** Семантические типо-РОЛИ body-яруса (ярус sys · типографика, пресет «сист»
+ *  5dbbbf43; ground truth tds/typography-roles-system.md). Композит family+size+
+ *  weight+lh+tracking из `--sys-text-*` через mixin `text-role()`. Это целевой
+ *  API тела/мелкого яруса; `variant` ниже — голоса (serif-italic + hint). */
+type TextRole = 'body' | 'label' | 'caption';
+
+/** Body-tier «голоса» (ортогональны размерным ролям). Grows over time.
  *  `hint` — calm helper text under a field/title.
  *  `navTabQuiet` — quiet serif-italic «museum-label» pointer: inactive
  *  nav-tabs / breadcrumb-style steps. This primitive is the single source of
@@ -12,10 +18,8 @@ import styles from './Text.module.scss';
  *  <label>). Single source of that look. */
 type TextVariant = 'hint' | 'navTabQuiet' | 'sectionLabel';
 
-type Props = {
+type CommonProps = {
   children: ReactNode;
-  /** Type role. New variants are added in `Text.module.scss`. */
-  variant: TextVariant;
   /**
    * DOM tag — polymorphic. Defaults to `p`. Pass `span` for inline,
    * `button` / `label` / `a` when the text IS an interactive/semantic
@@ -28,17 +32,26 @@ type Props = {
   className?: string;
 } & HTMLAttributes<HTMLElement>;
 
+// Ровно одно из role|variant — обеспечивается типом (discriminated union).
+type Props = CommonProps & ({ role: TextRole; variant?: never } | { variant: TextVariant; role?: never });
+
 /**
  * Text — body-tier typography primitive, sibling of `Heading`. `Heading`
- * owns the italic-serif display voice; `Text` owns everything below it.
- * Every variant stays anchored to the `--text-*` token scale (or a shared
- * voice mixin). Polymorphic via `as` so a crumb-button or a label can carry
- * a variant without an extra wrapper element.
+ * owns the display roles; `Text` owns the body roles (body/label/caption) via
+ * the target `role` API (composite from `--sys-text-*`), плюс «голоса» через
+ * `variant` (serif-italic тихий ярус + hint). Ровно одно из role|variant.
+ * Polymorphic via `as` so a crumb-button or a label can carry a role/variant
+ * without an extra wrapper element.
  */
-const Text = ({ children, variant, as, className, ...rest }: Props) => {
+const Text = ({ children, as, className, ...rest }: Props) => {
   const Tag = as ?? 'p';
+  const { role, variant, ...domProps } = rest as {
+    role?: TextRole;
+    variant?: TextVariant;
+  } & HTMLAttributes<HTMLElement>;
+  const tierClass = role ? styles[role] : variant ? styles[variant] : undefined;
   return (
-    <Tag className={clsx(styles.text, styles[variant], className)} {...rest}>
+    <Tag className={clsx(styles.text, tierClass, className)} {...domProps}>
       {children}
     </Tag>
   );

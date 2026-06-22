@@ -64,7 +64,7 @@
     padding: var(--space-1);
     border-radius: var(--radius-md);
     background: var(--color-white);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--sys-elevation-overlay);
 }
 
 // `.editWrap .editMenuItem` (0,2,0) перебивает DrawerLayout

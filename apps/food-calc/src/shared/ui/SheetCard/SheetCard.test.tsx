@@ -1,15 +1,10 @@
 import { createRef } from 'react';
 import { render, screen, cleanup } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { SheetCard } from './SheetCard';
 
 describe('SheetCard', () => {
-  beforeEach(() => {
-    // Дефолт варианта читается из localStorage (dv:Predlozhka) — чистим, чтобы
-    // тест видел именно дефолт примитива.
-    localStorage.clear();
-  });
   afterEach(cleanup);
 
   it('renders header, content and actions slots', () => {
@@ -34,11 +29,11 @@ describe('SheetCard', () => {
     expect(screen.getByText('тело')).toBeInTheDocument();
   });
 
-  it('defaults to the pearl gloss variant on the shared Predlozhka anchor', () => {
+  it('carries no design-variant scaffolding (pearl tone baked 2026-06-22)', () => {
     render(<SheetCard data-testid="sheet">x</SheetCard>);
     const root = screen.getByTestId('sheet');
-    expect(root).toHaveAttribute('data-dv', 'Predlozhka');
-    expect(root).toHaveAttribute('data-dv-v', 'pearl');
+    expect(root).not.toHaveAttribute('data-dv');
+    expect(root).not.toHaveAttribute('data-dv-v');
   });
 
   it('forwards arbitrary props (data-*, handlers) onto the root', () => {
@@ -52,7 +47,7 @@ describe('SheetCard', () => {
     expect(root).toHaveAttribute('data-state', 'ready');
   });
 
-  it('forwards the ref to the root element (merged with the variant anchor)', () => {
+  it('forwards the ref to the root element', () => {
     const ref = createRef<HTMLDivElement>();
     render(
       <SheetCard ref={ref} data-testid="sheet">

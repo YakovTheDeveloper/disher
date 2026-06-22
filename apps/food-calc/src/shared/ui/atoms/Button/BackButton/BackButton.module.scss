@@ -16,7 +16,7 @@
   border: var(--bar-border, none);
   border-radius: var(--radius-full);
   background: var(--bar-bg, rgba(255, 255, 255, 1));
-  box-shadow: var(--bar-shadow, none);
+  box-shadow: none; // back-кнопка elevation не несёт (var(--bar-shadow,none) всегда резолвился в none)
   backdrop-filter: blur(var(--bar-blur, 0));
   -webkit-backdrop-filter: blur(var(--bar-blur, 0));
   color: var(--back-fg);

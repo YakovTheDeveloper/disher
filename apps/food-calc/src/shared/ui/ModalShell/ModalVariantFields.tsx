@@ -6,11 +6,10 @@ import type { ReactNode } from 'react';
 // flow — still inherits the `--field-*` / `--chip-*` palette and stays in colour
 // with the time/quantity/details steps that follow.
 //
-// Why a separate attribute (not `[data-dv='ModalShell']`): the ambient block
-// (`[data-dv='ModalShell']`) also sets `backdrop-filter`, which establishes a
-// containing block for `position: fixed` descendants and would break the modal's
-// fullscreen expansion. `[data-modal-fields]` carries ONLY the field/chip tokens
-// (see ModalShell.module.scss).
+// Why a separate attribute (not the ModalShell `.wrapper`): the wrapper's ambient
+// also sets `backdrop-filter`, which establishes a containing block for
+// `position: fixed` descendants and would break the modal's fullscreen expansion.
+// `[data-modal-fields]` carries ONLY the field/chip tokens (see ModalShell.module.scss).
 //
 // `display: contents` keeps the box tree byte-identical (SearchFood stays the
 // effective child of ModalByLabel's `.content`), so layout is untouched.

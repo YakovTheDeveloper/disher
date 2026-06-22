@@ -9,13 +9,9 @@ import s from './ActionTile.module.scss';
 // (hint) и точка-маркер (dot), тиры emphasis/active, press-инверсия чернил.
 // Поглощает три живых места: дровер анализа, нижнюю панель поиска, нав-якоря дат.
 //
-// Облик ПОВЕРХНОСТИ не задаётся пропом — он приходит через design-variant attribute
-// на КОНТЕЙНЕРЕ-консумере: `useDesignVariant('ActionTile', ACTION_TILE_VARIANTS)` →
-// `[data-dv='ActionTile'][data-dv-v='grad'|'shadow']`, а потомки-плитки читают облик
-// из этого атрибута (см. ActionTile.module.scss). DesignBar флипает все три места разом.
-
-export const ACTION_TILE_VARIANTS = ['grad', 'shadow'] as const;
-export type ActionTileVariant = (typeof ACTION_TILE_VARIANTS)[number];
+// Облик ПОВЕРХНОСТИ — «мягкая карточка с тенью» (баком 2026-06-22, см.
+// ActionTile.module.scss). Раньше переключался DesignBar'ом ('ActionTile' anchor,
+// форки grad/shadow); форк grad снят, shadow запечён в базу.
 
 type Props = {
   /** Главное слово — верхняя строка. */

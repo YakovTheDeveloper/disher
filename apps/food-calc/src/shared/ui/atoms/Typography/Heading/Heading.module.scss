@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Canonical display heading — ОДИН Onest bold-sans голос (Apple Large Title
 // register). Меняется только `font-size` per `size`; family/weight/style/letter/
 // color — общий канон из tokens.scss (--heading-*). serif-italic ушёл из display
@@ -10,6 +12,24 @@
     letter-spacing: var(--heading-letter);
     line-height: 1.1;
     color: var(--color-ink);
+}
+
+// ── РОЛИ (целевой API, ярус sys · типографика) ───────────────────────────────
+// Композит роли (family+size+weight+lh+tracking) приходит из --sys-text-* через
+// text-role(). Идут ПОСЛЕ .heading → при равной специфичности перекрывают канон
+// --heading-* (family/weight/letter/line). Цвет НЕ ставим (контекстный) — берётся
+// из базового .heading (--color-ink). text-role() разрешён только здесь и в Text
+// (guard scripts/check-text-role.mjs).
+.display {
+    @include text-role('display');
+}
+
+.headline {
+    @include text-role('headline');
+}
+
+.title {
+    @include text-role('title');
 }
 
 .screen {
@@ -41,6 +61,21 @@
     font-size: var(--heading-size-section);
 }
 
+// card — заголовок карточки/строки списка (инсайт/гипотеза разбора). ВТОРОЙ,
+// тихий регистр Heading: тот же Onest sans, но НЕ display-громкость — вес 600
+// (не 700), собранный трекинг −0.012em (не −0.022), интерлиньяж под перенос в 2
+// строки, цвет по surface-токену (адаптивен к листу), а не глобальный ink. Это
+// сознательное отступление от «меняется только font-size»: заголовок в плотном
+// списке должен ВЕСТИ весом, а не кричать display-кеглем (канон «Было» Открытий
+// — одна гарнитура, монохром).
+.card {
+    font-size: var(--heading-size-card);
+    font-weight: 600;
+    letter-spacing: -0.012em;
+    line-height: 1.32;
+    color: var(--card-text-rest, var(--color-ink));
+}
+
 // masthead — шапка слайда HomePage (Анализ / Еда / События): тот же bold-sans
 // голос, крупный кегль. Бровку-divider больше НЕ несёт (2026-06-18 — divider
 // стал дефолтом листа, см. Screen .headerOverlap::before).
@@ -50,23 +85,20 @@
 }
 
 // Обёртка-<header> для size="masthead": нижний отступ принадлежит шапке, а не
-// gap'у родителя — так интервал одинаков на всех слайдах. `--ap-inset` уважается,
-// если задан листом (слайд «Анализ» равняет по тексту разбора), иначе 0.
+// gap'у родителя — так интервал одинаков на всех слайдах. Боковой gutter владеет
+// лист (`--sys-inset-page` на `.headerOverlap`) → шапка равняется на край листа,
+// собственного горизонтального инсета нет (канон 2026-06-22, схлопнул `--ap-inset`).
 .mastheadWrap {
     position: relative;
-    padding: var(--space-2) var(--ap-inset, 0) var(--space-4);
+    padding: var(--space-2) 0 var(--space-4);
     margin-bottom: var(--space-3);
 }
 
-// NavSwitcher `tab-as-title[-center]` / `tab-inplace*` / `tab-numerals*` / `tab-peek`:
-// активный таб сам становится крупным жирным заголовком слайда → masthead-шапку
-// прячем, иначе дубль. Anchor на `.swipeArea` (предок).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .mastheadWrap,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) .mastheadWrap {
+// Под NavSwitcher активный таб сам становится крупным жирным заголовком слайда →
+// masthead-шапку прячем, иначе дубль. Anchor-узел (`.swipeArea` / `.tabRow`) несёт
+// `data-nav-align` — используем его наличие как «я под nav-переключателем» (баком
+// 2026-06-22; left/center не важны — прячем в обоих). Standalone masthead (вне
+// свайп-страниц) атрибута не несёт и остаётся видимым.
+:global([data-nav-align]) .mastheadWrap {
     display: none;
 }

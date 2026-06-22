@@ -1,6 +1,1 @@
-export {
-  ActionTile,
-  ArrowGlyph,
-  ACTION_TILE_VARIANTS,
-  type ActionTileVariant,
-} from './ActionTile';
+export { ActionTile, ArrowGlyph } from './ActionTile';

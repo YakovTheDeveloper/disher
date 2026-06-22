@@ -161,85 +161,18 @@
   }
 }
 
-// ─── NavSwitcher — affordance HomePage-табов: трей с пилюлями ───────────
-// Ось «насколько очевидно, что это переключатель экранов». Дефолт
-// (`inverse-lift`) — текущий вид, тут БЕЗ оверрайдов. Дальше — пилюли в
-// стадион-трее: `tray-pill-bleed` (картинка «вытекает» справа из пилюли) и
-// форк `tray-pill-bleed-hero` (графика ушла в HomeHero над табами, пилюли —
-// чистый текст). Anchor висит на `.swipeArea` (HomePage only). Здесь —
-// внутренности пилюли; трей (фон/радиус/gap) держит ScreenIndicator.module.scss.
-
-// Общая база пилюль: короткая капсула вместо квадрата, ≥48px (touch-floor),
-// serif-подпись поверх. Inactive — прозрачная (сливается с треем/фоном),
-// active — приподнятая белая бумага. Графику добавляет каждый вариант.
-@mixin nav-pill {
-  .tile {
-    aspect-ratio: auto;
-    min-height: 32px;
-    border-radius: 999px;
-    align-items: center;
-    // Симметричный вертикальный padding (база несёт асимметричный
-    // `padding-bottom: space-2` от квадратной плитки — он сдвигал текст вверх
-    // от центра). Здесь подпись по центру капсулы по вертикали.
-    padding: 0 var(--space-3);
-    // Неактивная пилюля — прозрачная (сливается с фоном/треем); читается как
-    // переключатель за счёт того, что active — приподнятая белая бумага.
-    background: transparent;
-    box-shadow: none;
-    border-color: transparent;
-  }
-
-  .tileTitle {
-    position: relative;
-    z-index: 1;
-  }
-
-  .tileActive {
-    // Elevate-подъём через box-shadow убран (по запросу) — active читается
-    // плоско: белая бумага-пилюля на сером трее. В hero-базе цвет/типографику
-    // active дальше переопределяет сам hero-блок (линейка вместо пилюли).
-    background: #ffffff;
-    box-shadow: none;
-  }
-}
-
-// tray-pill-bleed — графика «вытекает» из правого края и растворяется маской
-// влево (редакционный приём): картинка прижата вправо, mask-gradient гасит её
-// к центру, подпись слева. Органичный, асимметричный; active ярче bleed.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed']) {
-  @include nav-pill;
-
-  .tile {
-    justify-content: flex-start;
-    padding-left: var(--space-3);
-  }
-
-  .tileImg {
-    inset: 0 0 0 auto;
-    width: 58%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.18;
-    transform: none;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 75%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 75%);
-  }
-
-  .tileTitle {
-    text-align: left;
-  }
-
-  .tileActive .tileImg {
-    opacity: 0.32;
-  }
-}
-
-// ─── NavSwitcher «активный таб = жирный заголовок» (семейство merge-вариантов) ─
+// ─── NavSwitcher «активный таб = жирный заголовок» (вшитый дефолт, баком
+//     tab-numerals-left 2026-06-22; DesignBar-ось снята) ────────────────────
 // Активный раздел поглощает роль Masthead: крупная жирная чёрная антиква-сан
-// (тот самый облик, что юзер любит за контраст с гравюрой и жёлтыми кнопками),
-// единственная типографическая фигура. Неактивные — тихие мелкие serif-italic
-// указатели (музейная табличка). Гравюра-hero — над рядом (HomeHero.module.scss).
-// Общий облик вынесен в миксин; варианты различаются раскладкой ряда.
+// (контраст с гравюрой и жёлтыми кнопками), единственная типографическая фигура.
+// Неактивные — тихие мелкие serif-italic указатели (музейная табличка). Гравюра-
+// hero — над рядом (HomeHero.module.scss). Индикатор «листаемых разделов» —
+// номера таблиц I·II·III (ScreenIndicator `.swipeDots`). Выравнивание заголовка/
+// ряда — лево по умолчанию, центр через `data-nav-align='center'` на anchor-узле
+// (`.swipeArea` / `.tabRow`), который ставят SwipeDeck / ScheduleNavigator.
+// (Инертная square-base пилюля `.tile`/`.tileActive` + ось SwitcherTabAmbient выше
+//  — мёртвый груз под этим прозрачным title-обликом; снос отдельным проходом, см.
+//  UiKitPage debt-каталог.)
 @mixin nav-title-tabs {
   // Снимаем всё «плиточное»: квадрат, подложку, рамку, радиус.
   .tile {
@@ -273,164 +206,23 @@
   }
 }
 
-// tab-as-title[-center]: активный — на СВОЕЙ строке (поглощает шапку целиком),
-// неактивные перетекают строкой ниже (`flex-basis:100%` + flex-wrap в .tilesRow).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) {
-  @include nav-title-tabs;
+// Применяем безусловно: каждый живой ScreenIndicator сидит под nav-anchor
+// (SwipeDeck `.swipeArea` / ScheduleNavigator `.tabRow`) — un-anchored инстанса
+// нет. Активный таб переносится на свою строку (own-line), неактивные перетекают
+// строкой ниже (flex-wrap в `.tilesRow`, ScreenIndicator.module.scss).
+@include nav-title-tabs;
 
-  .tileActive {
-    order: -1;
-    flex-basis: 100%;
-  }
+.tileActive {
+  order: -1;
+  flex-basis: 100%;
 }
 
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .tile {
+// Выравнивание заголовка: лево по умолчанию (бывш. `tab-numerals-left`); центр
+// (бывш. `tab-numerals`) — через проп align → `data-nav-align='center'` на anchor.
+.tile {
   justify-content: flex-start;
 }
 
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .tile {
+:global([data-nav-align='center']) .tile {
   justify-content: center;
-}
-
-// tab-inplace: активный остаётся В РЯДУ на своём месте — жирный заголовок
-// «садится» в позицию активного таба, неактивные жмутся к нему вплотную (gap, не
-// space-between — раскладку держит ScreenIndicator). Кегль = как у own-line
-// (38px из миксина, по запросу «как в title»).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']) {
-  @include nav-title-tabs;
-
-  .tile {
-    justify-content: center;
-  }
-}
-
-// tab-inplace-rule — то же, что tab-inplace, но под активным заголовком тонкая
-// тающая чернильная линейка («музейный» индикатор «выбранный из набора»):
-// усиливает таб-ность без отдельного ряда точек. `--tab-rule` (literal rgba) —
-// token-gate пропускает `border: ... var(...)`.
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) {
-  @include nav-title-tabs;
-
-  --tab-rule: rgba(38, 38, 51, 0.5);
-
-  .tile {
-    justify-content: center;
-  }
-
-  .tileActive .tileTitle {
-    border-bottom: 1px solid var(--tab-rule);
-    padding-bottom: 4px;
-  }
-}
-
-// tab-numerals — own-line заголовок, а индикатор — номера таблиц I·II·III
-// (ScreenIndicator). Тут только облик подписей (миксин) + перенос активного на
-// свою строку. Форк `-left` лево-выравнивает заголовок (как tab-as-title),
-// дефолтный `tab-numerals` — по центру (как tab-as-title-center).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) {
-  @include nav-title-tabs;
-
-  .tileActive {
-    order: -1;
-    flex-basis: 100%;
-  }
-}
-
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .tile {
-  justify-content: center;
-}
-
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .tile {
-  justify-content: flex-start;
-}
-
-// tab-peek (фильмстрип) — три раздела крупно в ряд, активный чёрный, соседи
-// бледные и подрезаны краями (mask + сдвиг ряда живут в ScreenIndicator).
-// Здесь — типографика: все подписи крупный жирный sans, неактивные сильно
-// притушены. Миксин не используем (там неактивные мелкие — тут крупные).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) {
-  .tile {
-    aspect-ratio: auto;
-    min-width: 0;
-    min-height: 0;
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    overflow: visible;
-    flex: 0 0 60%;
-    justify-content: center;
-    align-items: baseline;
-  }
-
-  .tileImg {
-    display: none;
-  }
-
-  .tileTitle {
-    --peek-fs: 30px;
-    --peek-font: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
-    font-family: var(--peek-font);
-    font-style: normal;
-    font-weight: 700;
-    font-size: var(--peek-fs);
-    letter-spacing: -0.022em;
-    line-height: 1.05;
-    color: var(--color-ink);
-    opacity: 0.16;
-    white-space: nowrap;
-  }
-
-  .tileActive {
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .tileActive .tileTitle {
-    opacity: 1;
-  }
-}
-
-// tray-pill-bleed-hero (БАЗА HomePage) — графика живёт в HomeHero над табами,
-// поэтому в пилюлях её НЕТ: чистый текст-указатель. Облик подписей — вшитый
-// канон (бывш. DEV-вариант `HomeTabs=smallcaps-rule`, ось убрана из DesignBar):
-// музейная табличка — small-caps serif + трекинг, inactive приглушён, active
-// БЕЗ белой пилюли, с тонкой чернильной линейкой снизу. Читается как «вы здесь»
-// (тихий указатель), а не как контрол — переключение всё равно свайпом.
-//   `--tab-rule` (literal rgba) — token-gate пропускает `color/border: var(...)`.
-// `hero-tabs-top` носит ТОТ ЖЕ облик пилюль (текст-указатель + чернильная
-// линейка под active) — разница только в положении ряда (над обложкой, см.
-// ScreenIndicator/HomeHero), поэтому делит этот блок.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']),
-:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) {
-  @include nav-pill;
-
-  --tab-rule: rgba(38, 38, 51, 0.55);
-
-  .tileImg {
-    display: none;
-  }
-
-  .tileTitle {
-    font-family: "Source Serif 4", "Merriweather", serif;
-    font-style: normal;
-    font-variant: small-caps;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    opacity: 0.5;
-  }
-
-  // active без белой пилюли (перебивает `#ffffff` из nav-pill) — только линейка.
-  .tileActive {
-    background: transparent;
-  }
-
-  .tileActive .tileTitle {
-    color: var(--text-primary);
-    opacity: 1;
-    border-bottom: 1px solid var(--tab-rule);
-    padding-bottom: 3px;
-  }
 }

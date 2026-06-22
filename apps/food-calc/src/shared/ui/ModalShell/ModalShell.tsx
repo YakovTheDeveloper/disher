@@ -13,16 +13,15 @@ import { ModalHeader } from '@/shared/ui/ModalHeader';
 // across EVERY page and through Base UI portals. This replaced the old
 // `data-surface` warm/lavender axis AND the earlier multi-variant law-giver.
 //
-// The wrapper carries a STATIC `[data-dv='ModalShell'][data-dv-v='mono']` for its
-// own ambient (wash + desaturated orbs). It no longer registers with
-// `useDesignVariant`, so ModalShell does NOT appear in the DesignVariantsBar.
+// The wrapper's own ambient (wash + desaturated orbs) is baked into `.wrapper`
+// directly (dev-форк `data-dv='ModalShell'` снят 2026-06-22 — был single-variant).
 // The legacy `variant` prop is still ACCEPTED for source compatibility (~19 call
 // sites pass variant="spring2"/etc.) but is fully ignored.
 type Props = { children: ReactNode; className?: string; variant?: string };
 
 export const ModalShell = ({ children, className }: Props) => {
   return (
-    <div className={`${s.wrapper} ${className ?? ''}`} data-dv="ModalShell" data-dv-v="mono">
+    <div className={`${s.wrapper} ${className ?? ''}`}>
       <div className={s.springOrbs} aria-hidden>
         <span className={`${s.orb} ${s.orb1}`} />
         <span className={`${s.orb} ${s.orb2}`} />

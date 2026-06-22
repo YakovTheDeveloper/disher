@@ -10,7 +10,7 @@ import { isCreatedByUser } from '@/shared/lib';
 import { findCatalogProduct } from '@/shared/data/catalog';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { getProductUrl, RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
 import { formatNormPercent } from './formatNormPercent';
@@ -133,13 +133,12 @@ const FoodActionCard = ({
   htmlFor,
 }: Props) => {
   const { pressed, pressProps } = usePressFeedback();
-  const infoHref = variant === 'product' ? getProductUrl(item.id) : RouterUrls.getDish(item.id);
-  // Переход card→page через тот же хелпер, что и кнопка «Анализ по неделям», но
-  // раскадровка 'push' (iOS-навигация: новая страница въезжает справа, старая
-  // параллаксит влево). cover (снизу) остаётся за секцией «Анализ по неделям».
-  // state.heroName даёт ProductPage показать имя сразу, пока продукт грузится из
-  // Dexie.
-  const goToInfo = useViewTransitionNavigate(infoHref, 'push', {
+  // Только dish-инфо-кнопка навигирует на страницу (продукт открывает
+  // ProductDrawer, см. ниже), поэтому цель всегда /dish/:id. Раскадровка 'push'
+  // (iOS-навигация: новая страница въезжает справа, старая параллаксит влево);
+  // cover (снизу) остаётся за секцией «Анализ по неделям». state.heroName даёт
+  // DishPage показать имя сразу, пока блюдо грузится из Dexie.
+  const goToInfo = useViewTransitionNavigate(RouterUrls.getDish(item.id), 'push', {
     state: { heroName: item.name },
   });
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);

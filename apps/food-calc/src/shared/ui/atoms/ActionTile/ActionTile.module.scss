@@ -1,26 +1,16 @@
-// ActionTile — унифицированный примитив «быстрое действие». Структура и раскладка
-// общие; облик ПОВЕРХНОСТИ переключается DesignBar'ом через
-// useDesignVariant('ActionTile', ['grad','shadow']): атрибут садится на
-// контейнер-консумер, потомки-плитки читают [data-dv='ActionTile'][data-dv-v=…].
-//   grad   = «v1 + градиент уходит в картинку» — прозрачная бумага, ink-wash слева
-//            затухает к гравюре справа, чёрный текст, мягкая бровка снизу.
-//   shadow = «мягкая карточка с тенью» — белая поверхность, область клика видна,
-//            чёрный текст, без бровки.
+// ActionTile — унифицированный примитив «быстрое действие». Облик ПОВЕРХНОСТИ —
+// «мягкая карточка с тенью» (баком 2026-06-22: форк `grad` снят, выбран `shadow`):
+// белая поверхность + soft-shadow (область клика видна), чёрный текст, без бровки,
+// active = серая заливка, press = инверсия в тёмную карту.
 // Локальные $-переменные несут сырые значения (strict-value принимает $…),
 // токены — через var().
 
-$hairline-soft: rgba(15, 23, 42, 0.1);
-// Wash для «градиент уходит в картинку»: тон слева, затухает к гравюре.
-$grad-wash: rgba(15, 23, 42, 0.14);
 $tile-surface: #ffffff;
 $tile-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.05);
 $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
 
 // ── Общий каркас ─────────────────────────────────────────────────────────────
 .tile {
-  // Светлая инверсия текста/графики на press (custom-prop — token-gate допускает).
-  --tile-fg-invert: #ffffff;
-
   position: relative;
   overflow: hidden;
   display: flex;
@@ -34,8 +24,9 @@ $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  color: var(--card-text-rest);
-  background: transparent;
+  color: var(--color-ink);
+  background: $tile-surface;
+  box-shadow: $tile-shadow;
   transition: transform 0.12s ease, opacity 0.14s ease, background 0.16s ease;
 
   &:active {
@@ -45,6 +36,18 @@ $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+  }
+
+  &.active {
+    background: var(--card-active);
+  }
+
+  // Press — инверсия в тёмную карту (stripe-fork press tokens).
+  &[data-pressed] {
+    background: var(--card-press-bg);
+    color: var(--card-press-fg);
+    transform: scale(0.985);
+    box-shadow: $tile-shadow-press;
   }
 }
 
@@ -82,7 +85,7 @@ $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
 .bottom {
   font-size: var(--text-sm);
   color: inherit;
-  opacity: 0.6;
+  opacity: 0.85;
 }
 
 // Caveat-строка (warning) — напр. «Нет сети — разбор недоступен».
@@ -119,7 +122,10 @@ $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
     height: 100%;
     object-fit: contain;
     object-position: right center;
-    opacity: 0.2;
+    // Гравюра растворяется в правый край через fade-mask.
+    opacity: 0.15;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 48%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 48%);
     transition: opacity 0.16s ease;
   }
 }
@@ -135,95 +141,13 @@ $tile-shadow-press: 0 1px 2px rgba(15, 23, 42, 0.08);
   transition: opacity 0.16s ease;
 }
 
-// Гравюра растворяется в правый край через fade-mask — общий приём обоих вариантов.
-[data-dv='ActionTile'] .art img {
-  opacity: 0.15;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 48%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 48%);
-}
-
 // На press графика проступает ярче поверх тёмной заливки.
-[data-dv='ActionTile'] .tile[data-pressed] .art img {
+.tile[data-pressed] .art img {
   opacity: 0.4;
 }
 
 .tile[data-pressed] .glyph {
   opacity: 0.6;
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// grad — облик v1 (прозрачная бумага, без тени), но с ВИДИМЫМ surface-градиентом:
-// мягкий wash слева затухает к правому краю, где сидит гравюра — поток цвета
-// «втекает в картинку». Бровка видимая снизу; текст чёрный (--color-ink).
-[data-dv='ActionTile'][data-dv-v='grad'] .tile {
-  background: linear-gradient(90deg, $grad-wash 0%, transparent 62%);
-  color: var(--color-ink);
-
-  .bottom {
-    opacity: 0.9;
-  }
-
-  .top {
-    color: var(--color-ink);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: var(--space-4);
-    right: var(--space-4);
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, $hairline-soft 18%, $hairline-soft 82%, transparent 100%);
-    pointer-events: none;
-    transition: opacity 0.16s ease;
-  }
-
-  &.active {
-    background: var(--card-active);
-  }
-
-  &[data-pressed] {
-    background: var(--card-press-bg);
-    color: var(--card-press-fg);
-    transform: scale(0.985);
-
-    .top {
-      color: var(--card-press-fg);
-    }
-
-    &::after {
-      opacity: 0;
-    }
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// shadow — мягкая карточка: нейтральная белая поверхность + soft-shadow (область
-// клика видна). Без градиента и без бровки. Текст чёрный везде. active = серая заливка.
-[data-dv='ActionTile'][data-dv-v='shadow'] .tile {
-  background: $tile-surface;
-  color: var(--color-ink);
-  box-shadow: $tile-shadow;
-
-  .bottom {
-    opacity: 0.85;
-  }
-
-  &.active {
-    background: var(--card-active);
-  }
-
-  &[data-pressed] {
-    background: var(--card-press-bg);
-    color: var(--card-press-fg);
-    transform: scale(0.985);
-    box-shadow: $tile-shadow-press;
-
-    .bottom {
-      opacity: 0.85;
-    }
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

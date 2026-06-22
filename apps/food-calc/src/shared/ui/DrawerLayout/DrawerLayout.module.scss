@@ -80,7 +80,12 @@
     // right) держат свой --radius-lg намеренно.
     border-top-left-radius: var(--radius-2xl);
     border-top-right-radius: var(--radius-2xl);
-    box-shadow: 0px -2px 4px rgba(0, 0, 0, 0.03);
+    // Edge-glint — НАМЕРЕННЫЙ декоративный glass-кант (Vista/Aero voice), НЕ elevation.
+    // Отделение краевого дровера несёт scrim (Drawer.module.scss .overlay, black/0.2);
+    // этот тонкий кант — чистый голос, выведен из --sys-elevation-* (решение 2026-06-22:
+    // стандарт M3/Apple = scrim, не тень у краевых панелей). Navy-tint по locked-канону
+    // теней. Exempt в будущем shadow-греп-гейте (как focus/selection-ring).
+    box-shadow: 0px -2px 4px rgba(31, 42, 68, 0.03);
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
     // Live gesture-driven transform during swipe; --drawer-swipe-movement-y is set
@@ -146,7 +151,7 @@
     flex-direction: row-reverse;
     border-top-right-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
-    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 4px 0 16px rgba(31, 42, 68, 0.08); // glass-кант (voice, НЕ elevation) — см. .content_bottom
 
     &[data-starting-style],
     &[data-ending-style] {
@@ -166,7 +171,7 @@
     right: 0;
     border-top-left-radius: var(--radius-lg);
     border-bottom-left-radius: var(--radius-lg);
-    box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+    box-shadow: -4px 0 16px rgba(31, 42, 68, 0.08); // glass-кант (voice, НЕ elevation) — см. .content_bottom
 
     &[data-starting-style],
     &[data-ending-style] {

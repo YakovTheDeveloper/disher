@@ -14,6 +14,23 @@
 // <Text variant="navTabQuiet">. SwitcherTab data-dv-варианты (CSS-only, тематизация
 // через ancestor-атрибут) инлайнят голос напрямую / читают --heading-* токены.
 
+// text-role — применяет КОМПОЗИТ семантической типо-роли (`--sys-text-<роль>-*`)
+// одним вызовом: family + size + weight + line-height + letter-spacing. ЭТО НЕ
+// возврат «голоса в миксин» (см. заметку выше) — миксин лишь читает токены роли из
+// tokens.scss (ярус sys · типографика; пресет «сист» 5dbbbf43, LOCKED 2026-06-22,
+// ground truth tds/typography-roles-system.md). Источник правды — токены: swap
+// значения там перекрашивает роль ВЕЗДЕ. Потребители — role-классы примитивов
+// Heading/Text. `$role` ∈ display | headline | title | body | label | caption.
+// Цвет НЕ ставится (контекстный/темо-зависимый). serif-голос тихого мелкого яруса —
+// ОРТОГОНАЛЕН: ставится ПОВЕРХ (Text variant navTabQuiet/sectionLabel), не сюда.
+@mixin text-role($role) {
+    font-family: var(--sys-text-family-sans);
+    font-size: var(--sys-text-#{$role}-size);
+    font-weight: var(--sys-text-#{$role}-weight);
+    line-height: var(--sys-text-#{$role}-line);
+    letter-spacing: var(--sys-text-#{$role}-tracking);
+}
+
 
 @mixin glassBackgroundPseudoElement($blur: 5px) {
     &::after {

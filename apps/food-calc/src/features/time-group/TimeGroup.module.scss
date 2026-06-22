@@ -3,33 +3,32 @@
     flex-direction: column;
     gap: 0;
 
-    // Experiment: merged-list look — first/last items keep rounded corners
-    // on their outer edges, middle items stay flat. Middle items drop the
-    // full outline in favor of a soft hairline separator on top so the
-    // group reads as a single merged card.
+    // Borderless boundary — baked default 2026-06-22 (was the RowBoundary
+    // `gutter-time` / `borderless` design-variant; the DesignBar anchor was
+    // retired). Rows read as soft tint blocks with no per-row frame, drop shadow
+    // or visible border — only the group's outer corners stay rounded and a
+    // single whisper-faint fading hairline parts adjacent rows, so the cluster
+    // reads as one merged card.
+    //
+    // `li` = the inner card (`.commonListItemInner`, rendered by LongPressRow).
+    // Position (first / middle / last) is tracked on the `> div` wrapper; some
+    // consumers render the row as a bare `> li`, so both forms are matched.
+    // `var(--_outline-from)` is the per-time-of-day accent published on each card
+    // by LongPressRow.
+
+    // Drop the vivid per-row frame + shadow + border; keep only the soft tint.
+    >div li,
+    >li {
+        --row-rest-outline-w: 0;
+        --row-last-shadow: none;
+        border: 0;
+    }
+
+    // Middle items square off; the group's outer corners stay rounded.
     >div,
     >li {
         li {
             border-radius: 0;
-        }
-    }
-
-    // Non-first items: hide the top part of the outline and draw a hairline
-    // separator instead, so adjacent items merge into one continuous block.
-    >div:not(:first-of-type) li,
-    >li:not(:first-of-type) {
-        position: relative;
-
-        &::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: var(--space-3);
-            right: var(--space-3);
-            height: 1px;
-            background: color-mix(in oklch, var(--_outline-from, currentColor) 35%, transparent);
-            pointer-events: none;
-            z-index: 2;
         }
     }
 
@@ -55,144 +54,27 @@
             border-radius: 9px;
         }
     }
-}
 
-// ════════════════════════════════════════════════════════════════════════
-// Row-boundary design variants — DesignBar key `RowBoundary`
-// ════════════════════════════════════════════════════════════════════════
-// The anchor (see rowBoundary.ts) wraps the ItemsList in BOTH FoodSchedule and
-// ScheduleEvents, so these rules reach food rows AND health-event rows with one
-// shared bar control. Each variant decides how adjacent rows in a time-group
-// meet at their shared edge.
-//
-// The legacy look (`.container` block above) stacks three 1px lines at every
-// seam: the upper card's bottom outline + the lower card's top outline (outline
-// never collapses) + this block's `::before` hairline — the muddy "inorganic"
-// border. The variants below each replace that with ONE coherent treatment.
-//
-// `li` = the inner card (`.commonListItemInner`, rendered by LongPressRow).
-// Position (first / middle / last) is tracked on the `> div` wrapper; some
-// consumers render the row as a bare `> li`, so both forms are matched.
-// `var(--_outline-from)` is the per-time-of-day accent colour, published on
-// each card by LongPressRow. The `-flat` / `-soft` suffixes share geometry and
-// differ only in the group's drop shadow (flat = none, soft = half strength).
+    // The single seam between adjacent rows: a whisper-faint fading hairline
+    // (transparent → 15% tint → transparent), inset by `--space-4`.
+    >div:not(:first-of-type) li,
+    >li:not(:first-of-type) {
+        position: relative;
 
-// ── merged (flat | soft): one soft frame around the whole group; inner rows
-//    parted by a fading hairline (transparent → tint → transparent).
-:global([data-dv='RowBoundary'][data-dv-v='merged-flat']) .container,
-:global([data-dv='RowBoundary'][data-dv-v='merged-soft']) .container {
-
-    >div li,
-    >li {
-        --row-rest-outline-w: 0; // drop the vivid per-row frame
-        --row-last-shadow: none; // …and the per-row drop shadow
-        --bnd-edge: color-mix(in oklch, var(--_outline-from) 36%, transparent);
-        border-inline: 1px solid var(--bnd-edge); // continuous side rails
-    }
-
-    >div:first-of-type li,
-    >li:first-of-type {
-        border-top: 1px solid var(--bnd-edge);
-    }
-
-    >div:last-of-type li,
-    >li:last-of-type {
-        border-bottom: 1px solid var(--bnd-edge);
-    }
-
-    >div:not(:first-of-type) li::before,
-    >li:not(:first-of-type)::before {
-        left: var(--space-4);
-        right: var(--space-4);
-        background: linear-gradient(90deg,
-                transparent 0%,
-                color-mix(in oklch, var(--_outline-from) 30%, transparent) 20%,
-                color-mix(in oklch, var(--_outline-from) 30%, transparent) 80%,
-                transparent 100%);
-    }
-}
-
-// merged-soft: group's last row casts a half-strength shadow (0.16 → 0.08).
-:global([data-dv='RowBoundary'][data-dv-v='merged-soft']) .container {
-
-    >div:last-of-type li,
-    >li:last-of-type {
-        --row-last-shadow: 0 12px 18px -14px rgba(0, 0, 0, 0.08);
-    }
-}
-
-// ── borderless: no frame at all. Rows read as soft tint blocks parted by a
-//    whisper-faint hairline. The most subtle / organic option.
-//    `gutter-time` + `corner-time` share this boundary look — they only add their
-//    own time-placement treatment on top (see ScheduleFoodItemInline /
-//    ScheduleEventCard / LongPressRow).
-:global([data-dv='RowBoundary'][data-dv-v='borderless']) .container,
-:global([data-dv='RowBoundary'][data-dv-v='gutter-time']) .container,
-:global([data-dv='RowBoundary'][data-dv-v='corner-time']) .container {
-
-    >div li,
-    >li {
-        --row-rest-outline-w: 0;
-        --row-last-shadow: none;
-        border: 0;
-    }
-
-    >div:not(:first-of-type) li::before,
-    >li:not(:first-of-type)::before {
-        left: var(--space-4);
-        right: var(--space-4);
-        background: linear-gradient(90deg,
-                transparent 0%,
-                color-mix(in oklch, var(--_outline-from) 15%, transparent) 30%,
-                color-mix(in oklch, var(--_outline-from) 15%, transparent) 70%,
-                transparent 100%);
-    }
-}
-
-// ── rail (flat | soft): soft frame + a vivid full-height accent rail on the
-//    left edge (stripe-fork rule #3). The accent colour moves OFF the full
-//    perimeter and ONTO the rail, so the green stays as identity.
-:global([data-dv='RowBoundary'][data-dv-v='rail-flat']) .container,
-:global([data-dv='RowBoundary'][data-dv-v='rail-soft']) .container {
-
-    >div li,
-    >li {
-        --row-rest-outline-w: 0;
-        --row-last-shadow: none;
-        --bnd-edge: color-mix(in oklch, var(--_outline-from) 26%, transparent);
-        border-inline-end: 1px solid var(--bnd-edge);
-        border-inline-start: 3px solid var(--_outline-from); // vivid TOD rail
-    }
-
-    >div:first-of-type li,
-    >li:first-of-type {
-        border-top: 1px solid var(--bnd-edge);
-        border-top-left-radius: 0; // square the left so the rail reads as a straight bar
-    }
-
-    >div:last-of-type li,
-    >li:last-of-type {
-        border-bottom: 1px solid var(--bnd-edge);
-        border-bottom-left-radius: 0;
-    }
-
-    >div:not(:first-of-type) li::before,
-    >li:not(:first-of-type)::before {
-        left: var(--space-4);
-        right: var(--space-4);
-        background: linear-gradient(90deg,
-                transparent 0%,
-                color-mix(in oklch, var(--_outline-from) 26%, transparent) 20%,
-                color-mix(in oklch, var(--_outline-from) 26%, transparent) 80%,
-                transparent 100%);
-    }
-}
-
-// rail-soft: group's last row casts a half-strength shadow (0.16 → 0.08).
-:global([data-dv='RowBoundary'][data-dv-v='rail-soft']) .container {
-
-    >div:last-of-type li,
-    >li:last-of-type {
-        --row-last-shadow: 0 12px 18px -14px rgba(0, 0, 0, 0.08);
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: var(--space-4);
+            right: var(--space-4);
+            height: 1px;
+            background: linear-gradient(90deg,
+                    transparent 0%,
+                    color-mix(in oklch, var(--_outline-from) 15%, transparent) 30%,
+                    color-mix(in oklch, var(--_outline-from) 15%, transparent) 70%,
+                    transparent 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
     }
 }

@@ -59,8 +59,8 @@ type Props = {
    * Publish ModalShell's fixed `mono` field/chip tokens (`--field-*` / `--chip-*`)
    * onto the whole popup via `data-modal-fields='mono'`, so a drawer's surface
    * wash + its inner pills/chips/fields share the app-wide monochrome tone
-   * (instead of a bespoke per-drawer palette). Carries ONLY the tokens — never
-   * `data-dv='ModalShell'` (which would drag the modal's orbs / backdrop-filter /
+   * (instead of a bespoke per-drawer palette). Carries ONLY the tokens — never the
+   * ModalShell `.wrapper` ambient (which would drag the modal's orbs / backdrop-filter /
    * wash onto the popup). See ModalShell.module.scss `[data-modal-fields]`.
    */
   modalFields?: boolean;
@@ -108,9 +108,9 @@ const DrawerLayout = ({
   // The edge swipe-handle (side drawers) + the optional popup-wide field tone
   // carry ModalShell's single fixed `mono` tone (the «great unification»,
   // 2026-06-19). We publish ONLY the field tokens via `data-modal-fields='mono'`
-  // — never `data-dv='ModalShell'` (that would drag the modal's backdrop-filter /
-  // wash onto the popup). The handle's gradient + grip read `--field-*`. See
-  // ModalShell.module.scss `[data-modal-fields]`.
+  // — never the ModalShell `.wrapper` ambient (that would drag the modal's
+  // backdrop-filter / wash onto the popup). The handle's gradient + grip read
+  // `--field-*`. See ModalShell.module.scss `[data-modal-fields]`.
   const modalShellVariant = 'mono';
 
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =

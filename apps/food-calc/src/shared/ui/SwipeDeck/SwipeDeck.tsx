@@ -1,7 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, type ReactNode, type Ref } from 'react';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
 import s from './SwipeDeck.module.scss';
 
@@ -13,28 +12,6 @@ import s from './SwipeDeck.module.scss';
 // Инвариант zero-React-render свайпа: каркас НЕ держит активный индекс в state.
 // Смена слайда — императивна (`setHide('none')` + опц. `onIndexChange`), per-slide
 // topSlot мемоизирован. Поэтому Embla двигает DOM сам, React молчит.
-
-// NavSwitcher — облик плиток-переключателя (живой DEV-тоггл). Anchor на
-// `.swipeArea`. Первый = дефолт (`tab-as-title`: активный раздел = крупный
-// заголовок, неактивные — тихие serif-указатели). Все варианты дают листу
-// крупный радиус верхних углов (см. SwipeDeck.module.scss).
-//   tab-as-title         — активный раздел крупным заголовком (лево).
-//   tab-as-title-center  — то же, по центру.
-//   tab-inplace          — короткий лейбл активного «садится» в свою позицию.
-//   tab-numerals         — own-line заголовок + номера таблиц I·II·III.
-//   tab-numerals-left    — то же, лево-выровнено.
-const NAV_SWITCHER_VARIANTS = [
-  'tab-as-title',
-  'tab-as-title-center',
-  'tab-inplace',
-  'tab-numerals',
-  'tab-numerals-left',
-] as const;
-
-// SheetMaterial — «история» материала контент-листа (живой DEV-тоггл). Anchor на
-// `.container`. БАЗА `band` — стеклянная полка сверху + бумага ниже; `dissolve` —
-// верх плавно растворяется из стекла в бумагу. CSS-карта — SwipeDeck.module.scss.
-const SHEET_MATERIAL_VARIANTS = ['band', 'dissolve'] as const;
 
 export type DeckSlide = {
   // Контент слайда. Получает готовый topSlot (hero?+ScreenIndicator), который слайд
@@ -63,6 +40,10 @@ type Props = {
   /** Accessible name для role="tablist" плиток. Дефолт — «Экран» (Home/Dish).
    *  Discoveries передаёт «Открытия: раздел» (контентный переключатель). */
   tablistLabel?: string;
+  /** Выравнивание заголовка-таба + ряда номеров: `left` (дефолт) / `center`.
+   *  Ставит `data-nav-align` на anchor-узел `.swipeArea` (см. SwitcherTab /
+   *  ScreenIndicator). Заменил бывшую dv-пару `tab-numerals-left` / `tab-numerals`. */
+  align?: 'left' | 'center';
 };
 
 export const SwipeDeck = ({
@@ -73,6 +54,7 @@ export const SwipeDeck = ({
   onIndexChange,
   heroForSlide,
   tablistLabel,
+  align = 'left',
 }: Props) => {
   const swipeableRef = useRef<SwipeableRef>(null);
 
@@ -86,11 +68,6 @@ export const SwipeDeck = ({
       );
     }
   }, [slides.length, screens.length]);
-
-  // Якорь облика плиток — на `.swipeArea` (потомки-плитки ловят `[data-dv-v]`).
-  const { anchor: navAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
-  // Якорь материала листа — на `.container` (предок листа Screen в слайдах).
-  const { anchor: sheetAnchor } = useDesignVariant('SheetMaterial', SHEET_MATERIAL_VARIANTS);
 
   // Направление-зависимое скрытие кнопок бара при скролле. Контроллер пишет
   // `data-topbar-hide` на `.shell` бара императивно — свайп остаётся zero-render.
@@ -128,9 +105,9 @@ export const SwipeDeck = ({
   );
 
   return (
-    <div className={s.container} data-deck-hero={heroForSlide ? '' : undefined} {...sheetAnchor}>
+    <div className={s.container} data-deck-hero={heroForSlide ? '' : undefined}>
       {renderTopBar(shellRef)}
-      <div className={s.swipeArea} {...navAnchor}>
+      <div className={s.swipeArea} data-nav-align={align}>
         <TopBarScrollHideContext.Provider value={api}>
           <div className={s.tabsAnchor}>
             <Swipeable

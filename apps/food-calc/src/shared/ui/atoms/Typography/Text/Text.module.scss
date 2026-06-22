@@ -1,10 +1,28 @@
 // Text — body-tier typography primitive (sibling of Heading).
 // Add a new variant as a class here; keep each one anchored to the
 // `--text-*` / `--space-*` token scale rather than raw px.
+@import '@/shared/assets/style/mixin.scss';
 
 .text {
   margin: 0;
   font-family: var(--font-sans);
+}
+
+// ── РОЛИ (целевой API, ярус sys · типографика) ───────────────────────────────
+// Композит body-роли (family+size+weight+lh+tracking) из --sys-text-* через
+// text-role(). Перекрывает базовый .text (font-family Jost → sys-sans Onest).
+// Цвет НЕ ставим (контекстный). text-role() разрешён только здесь и в Heading
+// (guard scripts/check-text-role.mjs).
+.body {
+  @include text-role('body');
+}
+
+.label {
+  @include text-role('label');
+}
+
+.caption {
+  @include text-role('caption');
 }
 
 // navTabQuiet — тихий serif-italic указатель «музейная табличка» (неактивный

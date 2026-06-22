@@ -6,8 +6,8 @@ import { create } from 'zustand';
  *
  * Default is **always shown** (`hidden: false`) and NOT persisted: the time-group
  * header — the only toggle entry point — is hidden by default now (TimeHeader
- * `hidden` variant), and the per-row time lives in the gutter (`gutter-time`
- * RowBoundary). So per-row time must reliably appear out of the box; we no
+ * `hidden` variant), and the per-row time lives in the left gutter (baked
+ * messenger-style placement). So per-row time must reliably appear out of the box; we no
  * longer read a saved "hidden" flag on load. The toggle still works in-session
  * for anyone on a visible header variant — it just doesn't survive a reload.
  *

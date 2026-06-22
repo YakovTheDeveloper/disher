@@ -19,9 +19,6 @@
   --bar-bg: #fff;
   --bar-backdrop: none;
   --bar-border: 1px solid rgba(31, 42, 68, 0.12);
-  --bar-shadow:
-    0 3px 10px rgba(31, 42, 68, 0.1),
-    0 1px 3px rgba(31, 42, 68, 0.07);
   --bar-pad-y: 8px;
 
   --seg-color: rgba(0, 0, 0, 0.78);
@@ -35,10 +32,6 @@
   // контента не может разъехаться по вертикали с соседями. AccountPanel
   // тоже 44px — токен держит date/center в той же сетке.
   --bar-pill-h: 44px;
-  // Типошкала date-пилюли — день недели (serif italic accent) и dd.mm-мета.
-  // Раньше день был зашит 19px и перебивал весь бар; теперь — контролируемый
-  // токен, тоньше пилюли по высоте.
-  --bar-day-size: 16px;
   // Размер мета-строки (месяц / dd.mm) = глобальный --text-meta, общий со
   // сводкой нутриентов в этом же баре (NutrientsSummaryButton).
   --bar-meta-size: var(--text-meta);
@@ -160,7 +153,7 @@
   box-sizing: border-box;
   background: var(--bar-bg);
   border: var(--bar-border);
-  box-shadow: var(--bar-shadow);
+  box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--radius-full);
   backdrop-filter: var(--bar-backdrop);
   -webkit-backdrop-filter: var(--bar-backdrop);
@@ -201,7 +194,7 @@
   margin-right: 4px;
   background: var(--bar-bg);
   border: var(--bar-border);
-  box-shadow: var(--bar-shadow);
+  box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--radius-full);
   backdrop-filter: var(--bar-backdrop);
   -webkit-backdrop-filter: var(--bar-backdrop);
@@ -249,11 +242,18 @@
   // сетке с account/center и не «вырастает» из-за serif-дня.
   --date-pad-y: 4px;
 
+  // Палитра date-пилюли (ink-inline, баком 2026-06-22 — форк paper-inline снят):
+  // чёрная пилюля, белый текст. День/разделитель/цифры красятся через --inline-*.
+  --bar-border: 1px solid var(--color-ink-strong);
+  --inline-day: #fff;
+  --inline-num: rgba(255, 255, 255, 0.92);
+  --inline-divider: rgba(255, 255, 255, 0.22);
+
   min-height: var(--bar-pill-h);
   box-sizing: border-box;
-  background: var(--bar-bg);
+  background: var(--color-ink-strong);
   border: var(--bar-border);
-  box-shadow: var(--bar-shadow);
+  box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--radius-full);
   backdrop-filter: var(--bar-backdrop);
   -webkit-backdrop-filter: var(--bar-backdrop);
@@ -268,148 +268,73 @@
     color var(--press-out) var(--easing-default);
 }
 
-// ─── Date-button (numeral, fixed) ──────────────────────────────────────
+// ─── Date-button (inline numeral, баком 2026-06-22) ─────────────────────────
+// Одна строка: короткий serif-день «Пн» · тонкий вертикальный разделитель ·
+// цифры dd.mm. Палитра (чёрная пилюля, белый текст) — на `.dateSegment` выше
+// через --inline-*. Форк paper-inline снят (ink-inline был живым дефолтом).
 
 .dateNumeral {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
 }
 
+// Полный день недели не показываем в inline-раскладке (его место — короткий
+// serif «Пн» ниже). Рендерится в JSX, но скрыт.
 .dateWeekday {
-  font-family: "Source Serif 4", "Merriweather", serif;
-  // font-style: italic;
-  font-size: var(--bar-day-size);
-  font-weight: 600;
-  color: rgb(54, 63, 68);
-
-  &::first-letter {
-    text-transform: uppercase;
-  }
-}
-
-// Короткий день («пн») — рендерится всегда, но скрыт в дефолте; компактные
-// ink-варианты (inline / numeral) показывают его вместо полного дня.
-.dateWeekdayShort {
   display: none;
+}
+
+// Короткий serif-день («Пн») — основной день inline-пилюли.
+.dateWeekdayShort {
+  display: block;
+  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-style: italic;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--inline-day);
 
   &::first-letter {
     text-transform: uppercase;
   }
 }
 
-// Нижняя строка — месяц прижат влево, dd.mm вправо. Тянется на всю ширину
-// стопки (= ширина дня недели сверху), `space-between` разводит их по краям.
+// Цифры dd.mm: тонкий вертикальный разделитель слева, ширина по контенту.
 .dateMeta {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  width: 100%;
+  width: auto;
+  padding-left: 8px;
+  border-left: 1px solid var(--inline-divider);
   font-size: var(--bar-meta-size);
   line-height: 1.2;
 }
 
-// Название месяца — нижним регистром («июнь»), как отдаёт Intl standalone.
+// Название месяца не показываем в inline-раскладке. Рендерится в JSX, но скрыт.
 .dateMonth {
-  letter-spacing: 0.01em;
-  font-style: italic;
-  padding-left: 2px;
-  color: rgb(168, 168, 168);
-
+  display: none;
 }
 
-// dd.mm — приглушённые моноширинные цифры, прижаты вправо.
+// dd.mm — приглушённые моноширинные цифры.
 .dateDdmm {
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: 0.02em;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
-  color: rgb(75, 75, 75);
-
+  color: var(--inline-num);
 }
 
-// ГОЧА инверсии: у дня/месяца/dd.mm собственный color — каскад от .segment:active
-// их не перекрасит. Наследуем белый кнопки на press; color-transition держит
-// выход в темпе с фоном пилюли (вход мгновенный через --press-in).
-.dateWeekday,
-.dateMonth,
+// ГОЧА инверсии: у dd.mm собственный color — каскад от .segment:active его не
+// перекрасит. Наследуем белый кнопки на press; color-transition держит выход в
+// темпе с фоном пилюли (вход мгновенный через --press-in).
 .dateDdmm {
   transition: color var(--press-out) var(--easing-default);
 }
 
-.dateSegment:active {
-
-  .dateWeekday,
-  .dateMonth,
-  .dateDdmm {
-    color: inherit;
-    transition-duration: var(--press-in);
-  }
-}
-
-// ─── DesignBar-ось: облик date-пилюли ──────────────────────────────────────
-// Якорь `[data-dv='HomeTopBar']` висит на `.bar`; `.dateSegment` — потомок,
-// поэтому ловит переопределения. Обе раскладки одинаковы (одна строка: короткий
-// serif-день · тонкий разделитель · цифры dd.mm) — различается только палитра:
-//   ink-inline    — БАЗА: чёрная пилюля, белый текст.
-//   paper-inline  — форк: белая пилюля (канон-токены), чёрный текст.
-// Раскладка общая на оба, цвет — через `--inline-*` токены на `.dateSegment`.
-
-// Общая inline-раскладка (через `--inline-*` токены, которые красят варианты).
-[data-dv='HomeTopBar'][data-dv-v='ink-inline'],
-[data-dv='HomeTopBar'][data-dv-v='paper-inline'] {
-  .dateNumeral {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
-  }
-
-  .dateWeekday {
-    display: none;
-  }
-
-  .dateWeekdayShort {
-    display: block;
-    font-family: 'Source Serif 4', 'Merriweather', serif;
-    font-style: italic;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--inline-day);
-  }
-
-  .dateMeta {
-    width: auto;
-    padding-left: 8px;
-    // Тонкий вертикальный разделитель слева от цифр.
-    border-left: 1px solid var(--inline-divider);
-  }
-
-  .dateMonth {
-    display: none;
-  }
-
-  .dateDdmm {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--inline-num);
-  }
-}
-
-// ink-inline (база) — чёрная пилюля, белый текст.
-[data-dv='HomeTopBar'][data-dv-v='ink-inline'] .dateSegment {
-  --bar-border: 1px solid var(--color-ink-strong);
-  background: var(--color-ink-strong);
-  --inline-day: #fff;
-  --inline-num: rgba(255, 255, 255, 0.92);
-  --inline-divider: rgba(255, 255, 255, 0.22);
-}
-
-// paper-inline (форк) — белая пилюля (наследует канон-токены `--bar-*`),
-// чёрный текст.
-[data-dv='HomeTopBar'][data-dv-v='paper-inline'] .dateSegment {
-  --inline-day: rgb(54, 63, 68);
-  --inline-num: rgb(75, 75, 75);
-  --inline-divider: rgba(0, 0, 0, 0.14);
+.dateSegment:active .dateDdmm {
+  color: inherit;
+  transition-duration: var(--press-in);
 }
 
 // ─── Scroll-hide (направление-зависимое) ───────────────────────────────────

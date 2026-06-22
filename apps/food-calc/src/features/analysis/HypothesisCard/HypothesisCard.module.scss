@@ -14,25 +14,21 @@
     --hc-ink-faint: color-mix(in srgb, var(--card-text-rest) var(--analysis-faint-amt, 50%), transparent);
     // Тело — near-black на полную силу (гармоничная композиция 2026-06-21).
     --hc-ink-body: color-mix(in srgb, var(--card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    // Заголовок-антиква в navy (как в предложке s_ad537308) — фиксированный синий.
-    --hc-title-ink: #1c2566;
     // У гипотезы нет strength — нейтральная средняя плотность полосы (rail).
     --hc-accent: color-mix(in srgb, var(--card-text-rest) 24%, transparent);
-    --hc-chip-radius: 7px;
-    // Сиды `--analysis-*` (дефолты = старые значения; дом «Открытия» задаёт
-    // Apple-шкалу в `.ambientSheet`). Унифицировано с InsightCard.
-    // Гармоничная композиция 2026-06-21: антиква-заголовок крупнее тела Onest.
-    // Дом «Открытия» держит свою Apple-шкалу в `.ambientSheet` (перекрывает).
-    --hc-fs-title: var(--analysis-fs-title, 1.1875rem);
-    --hc-fs-body: var(--analysis-fs-detail, 0.9375rem);
-    --hc-fs-meta: var(--analysis-fs-meta, 0.75rem);
+    --hc-chip-radius: var(--radius-sm);
+    // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
+    // мета 12.8 (`--text-sm`). Заголовок больше НЕ здесь — рендерится примитивом
+    // <Heading size="card"> (`--text-lg`, 20px = Apple Title3, вес 600, монохром).
+    --hc-fs-body: var(--analysis-fs-detail, var(--text-base));
+    --hc-fs-meta: var(--analysis-fs-meta, var(--text-sm));
 
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-3);
     // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
-    padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+    padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
     border-radius: var(--ax-card-radius, 0px);
     background: var(--ax-card-bg, transparent);
     box-shadow: var(--ax-card-shadow, none);
@@ -42,8 +38,8 @@
         content: '';
         position: absolute;
         left: 0;
-        top: 8px;
-        bottom: 8px;
+        top: var(--space-2);
+        bottom: var(--space-2);
         width: var(--ax-accent-w, 0px);
         border-radius: var(--hc-chip-radius);
         background: var(--hc-accent);
@@ -71,26 +67,18 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: var(--space-1);
 }
 
 .head {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-2);
 }
 
-// Заголовок — антиква (Source Serif), монохромный ink по токенам темы.
-.title {
-    margin: 0;
-    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-    font-size: var(--hc-fs-title);
-    font-weight: var(--analysis-w-title, 600);
-    letter-spacing: var(--analysis-track-title, -0.003em);
-    line-height: var(--analysis-lh-title, 1.22);
-    color: var(--hc-title-ink);
-}
+// Заголовок рендерится примитивом <Heading size="card"> (см. HypothesisCard.tsx)
+// — Onest sans 20px (--text-lg), вес 600, монохром. Здесь его стилей больше нет.
 
 .days {
     flex-shrink: 0;
@@ -122,13 +110,13 @@
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 9px 14px;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3); // высоту держит min-height (touch-floor)
     min-height: 40px;
     border: none;
     border-radius: var(--hc-btn-radius);
     background: var(--cta-brand-fill);
-    box-shadow: var(--cta-brand-shadow);
+    box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A)
     color: var(--cta-brand-ink);
     font-size: var(--hc-fs-meta);
     font-weight: 600;

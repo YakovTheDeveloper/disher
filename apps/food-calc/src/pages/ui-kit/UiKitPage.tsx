@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import {
   modalStore,
   drawerStore,
@@ -47,11 +46,7 @@ import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { FoodActionCard } from '@/features/food/food-search/food-action-card';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
-import {
-  LongPressRow,
-  ROW_BOUNDARY_KEY,
-  ROW_BOUNDARY_VARIANTS,
-} from '@/features/shared/long-press-item';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
 import { AnalysisKindDrawer } from '@/features/analysis/AnalysisKindDrawer';
@@ -920,40 +915,8 @@ const SELECT_OPTIONS = [
   { value: 'month', label: 'За месяц' },
 ];
 
-// Same key + tuple as FoodSchedule so the row palette here is the REAL one and
-// the floating DesignBar flips it (the schedule rows read CSS off this
-// `[data-dv='ScheduleFood'][data-dv-v]` ancestor attribute). Mirrors the inline
-// list in FoodSchedule.tsx — keep in sync if that canon changes.
-const FOOD_DV_VARIANTS = [
-  'meadow',
-  'sunrise',
-  'sorbet',
-  'garden',
-  'lagoon',
-  'tropic',
-  'twilight',
-  'plain',
-  'lime',
-  'lemon',
-] as const;
-
 // ─── Page ────────────────────────────────────────────────────────────────────
 const UiKitPage = () => {
-  // Real design-variant anchors for the schedule-row specimens (section 08), so
-  // they render in their actual palette (lemon/TOD) and the DesignBar can flip
-  // them — instead of falling back to base styling. Food rows read the
-  // `ScheduleFood` palette anchor; the boundary anchor (shared with food+events)
-  // drives the adjacent-row edge treatment.
-  const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
-  // Two boundary anchors (one per specimen) mirrors prod, where FoodSchedule and
-  // ScheduleEvents each register this same key from their own component — each
-  // anchor's ref binds exactly one DOM node.
-  const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
-  const { anchor: boundaryAnchorEvents } = useDesignVariant(
-    ROW_BOUNDARY_KEY,
-    ROW_BOUNDARY_VARIANTS,
-  );
-
   // ── Scroll-spy: highlight the nav item of the section nearest the top of the
   // content scroller. The scroller is THIS page's own element (we don't wrap in
   // <Screen>), so the IntersectionObserver root is that ref directly.
@@ -1247,13 +1210,13 @@ const UiKitPage = () => {
 
               <Specimen
                 name="<ScreenIndicator>"
-                note="каноничный NavSwitcher tab-as-title — активный = заголовок"
-                role={<><b>Что:</b> ряд табов экранов (примитив SwitcherTab). Активный = крупный заголовок (Heading), неактивные — тихие serif-указатели, под ними точки «свайпай раздел». <b>Где:</b> HomePage, ProductPage, DishBuilderPage, DiscoveriesScreen. <b>Зачем:</b> единый облик переключения разделов на весь app. <b>Облик:</b> задаёт <code>{'data-dv="NavSwitcher" data-dv-v="tab-as-title"'}</code> на предке. Квадратная плитка (white-paper lift) ретайрнута 2026-06-19.</>}
+                note="каноничный NavSwitcher (вшитый numerals-left) — активный = заголовок"
+                role={<><b>Что:</b> ряд табов экранов (примитив SwitcherTab). Активный = крупный заголовок (Heading), неактивные — тихие serif-указатели, под ними номера таблиц I·II·III «свайпай раздел». <b>Где:</b> HomePage, ProductPage, DishBuilderPage, DiscoveriesScreen. <b>Зачем:</b> единый облик переключения разделов на весь app. <b>Облик:</b> вшит дефолтом (баком 2026-06-22, DesignBar-ось снята); выравнивание — <code>{'data-nav-align="left|center"'}</code> на предке. Квадратная плитка (white-paper lift) ретайрнута 2026-06-19.</>}
                 full
               >
-                {/* Атрибут активирует каноничный tab-as-title облик — ровно как на
-                    боевых страницах (хардкод, не useDesignVariant). */}
-                <div data-dv="NavSwitcher" data-dv-v="tab-as-title">
+                {/* Anchor-узел несёт `data-nav-align` (left дефолт) — ровно как на
+                    боевых страницах (SwipeDeck/ScheduleNavigator ставят его из пропа align). */}
+                <div data-nav-align="left">
                   <ScreenIndicator
                     screens={SCREEN_TILES}
                     activeIndex={screenIdx}
@@ -1351,47 +1314,44 @@ const UiKitPage = () => {
             >
               <Specimen
                 name="<ScheduleFoodItem>"
-                note="строка еды — палитра по DesignBar (как в проде) · продукт · вода · блюдо · своя добавка"
+                note="строка еды · продукт · вода · блюдо · своя добавка (палитра lemon — в проде на FoodSchedule)"
                 full
               >
-                {/* Real anchors: food rows read palette off [data-dv='ScheduleFood'],
-                    boundary anchor drives the adjacent-row edge — same wrapping as
-                    FoodSchedule. */}
-                <div {...foodAnchor}>
-                  <div {...boundaryAnchor}>
-                    <div className={s.rowStack}>
-                      {DEMO_SCHEDULE_FOODS.map((item, i) => (
-                        <ScheduleFoodItem
-                          key={item.id}
-                          item={item}
-                          index={i}
-                          totalCount={DEMO_SCHEDULE_FOODS.length}
-                          onLongPress={() => toast('long-press → ItemActionsDrawer')}
-                        />
-                      ))}
-                    </div>
+                {/* Food palette is baked `lemon` on FoodSchedule's own
+                    `.foodListAnchor` (module-scoped); the row boundary look is
+                    baked borderless + gutter-time now (RowBoundary anchor
+                    retired) — this kitchen-sink specimen shows the base rows. */}
+                <div>
+                  <div className={s.rowStack}>
+                    {DEMO_SCHEDULE_FOODS.map((item, i) => (
+                      <ScheduleFoodItem
+                        key={item.id}
+                        item={item}
+                        index={i}
+                        totalCount={DEMO_SCHEDULE_FOODS.length}
+                        onLongPress={() => toast('long-press → ItemActionsDrawer')}
+                      />
+                    ))}
                   </div>
                 </div>
               </Specimen>
 
               <Specimen name="<ScheduleEventCard>" note="строка события (lemon вшит) — scale/tag/relation чипы" full>
-                {/* Events have no palette anchor (lemon baked-in 2026-06-13); they
-                    still consume the shared boundary anchor for the edge treatment. */}
-                <div {...boundaryAnchorEvents}>
-                  <div className={s.rowStack}>
-                    {DEMO_EVENTS.map((item, i) => (
-                      <ScheduleEventCard
-                        key={item.id}
-                        item={item}
-                        index={i}
-                        totalCount={DEMO_EVENTS.length}
-                        onLongPress={() => toast('long-press → действия')}
-                        onEditTime={() => toast('править время')}
-                        onEditText={() => toast('править текст')}
-                        onEditAtoms={() => toast('править данные')}
-                      />
-                    ))}
-                  </div>
+                {/* Events have no palette anchor (lemon baked-in 2026-06-13); the
+                    boundary look is baked borderless + gutter-time (anchor retired). */}
+                <div className={s.rowStack}>
+                  {DEMO_EVENTS.map((item, i) => (
+                    <ScheduleEventCard
+                      key={item.id}
+                      item={item}
+                      index={i}
+                      totalCount={DEMO_EVENTS.length}
+                      onLongPress={() => toast('long-press → действия')}
+                      onEditTime={() => toast('править время')}
+                      onEditText={() => toast('править текст')}
+                      onEditAtoms={() => toast('править данные')}
+                    />
+                  ))}
                 </div>
               </Specimen>
 

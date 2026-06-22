@@ -2,6 +2,7 @@ import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { saveHypothesis } from '@/entities/hypothesis';
 import PlusIcon from '@/shared/assets/icons/plus.svg?react';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import type { AnalysisHypothesis } from '../api';
 import styles from './HypothesisCard.module.scss';
 
@@ -37,7 +38,9 @@ const HypothesisCard = ({ hypothesis }: Props) => {
     <article className={styles.card}>
       <div className={styles.text}>
         <div className={styles.head}>
-          <h3 className={styles.title}>{title}</h3>
+          <Heading as="h3" size="card">
+            {title}
+          </Heading>
           {suggestedDays ? (
             <span className={styles.days}>проверить ~{suggestedDays} дн.</span>
           ) : null}

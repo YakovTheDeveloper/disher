@@ -257,7 +257,9 @@
 .headerAction {
     position: absolute;
     top: var(--space-1);
-    left: var(--space-3);
+    // Боковой инсет = общий gutter листа (`--sys-inset-page`) → кнопка на одном
+    // хребте с контентом, а не на 4px левее (канон 2026-06-22).
+    left: var(--sys-inset-page);
     z-index: 2;
     display: flex;
     align-items: center;
@@ -275,8 +277,9 @@
     justify-content: flex-start;
     // Верхний воздух (divider → заголовок) держит сама обёртка `.headerOverlap`
     // через `padding-top` — единый отступ для всех экранов, с заголовком и без.
-    // Здесь — только свои горизонтали и низ.
-    padding: 0 var(--space-3) var(--space-8) var(--space-4);
+    // Боковой gutter ТОЖЕ владеет лист (`--sys-inset-page`, канон 2026-06-22) —
+    // здесь горизонтали 0, иначе двойной инсет (был 8 лист + 16/12 свой). Низ — свой.
+    padding: 0 0 var(--space-8);
     text-align: left;
 
     // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
@@ -324,15 +327,6 @@
     background: var(--sticky-top-bg, #fff);
 }
 
-// NavSwitcher `hero-tabs-top`: ряд табов поднимается НАД обложкой через flex-
-// `order` (ScreenIndicator `order:-1`, HomeHero `order:1`). Для этого sticky-блок
-// должен быть flex-колонкой. Скоупится якорем `[data-dv-v]` на `.swipeArea`
-// (предок) — другие страницы/варианты не затронуты (дефолт = block).
-:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) .stickyTop {
-    display: flex;
-    flex-direction: column;
-}
-
 .headerOverlap {
     position: relative;
     z-index: 1;
@@ -341,9 +335,10 @@
     // не обрывается. На длинном — basis auto + min-height auto держат высоту по
     // контенту, лист скроллится.
     flex: 1 0 auto;
-    margin: 0 var(--space-3);
-    padding-right: var(--space-2);
-    padding-left: var(--space-2);
+    // Единый боковой gutter всех Screen-листов — семантический --sys-inset-page
+    // (16px, канон 2026-06-22). Карточки/заголовки/бары равняются на этот край.
+    padding-right: var(--sys-inset-page);
+    padding-left: var(--sys-inset-page);
 
     // Верхняя «полка» листа: фиксированная зона сверху, в которой живут watermark-
     // логотип (справа) и закрывающий её снизу divider. Резервируется на ВСЕХ
@@ -384,8 +379,8 @@
     backdrop-filter: var(--header-overlap-blur, none);
     -webkit-backdrop-filter: var(--header-overlap-blur, none);
     // Радиус верхних углов переопределяется токеном `--header-overlap-radius`
-    // (дефолт near-square `--radius-xs`; HomePage поднимает до 2xl под tray-табы,
-    // см. HomePage.module.scss).
+    // (дефолт near-square `--radius-xs`; SwipeDeck поднимает до 2xl под tray-табы,
+    // см. SwipeDeck.module.scss).
     border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
     border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
 
@@ -402,8 +397,8 @@
         content: '';
         position: absolute;
         top: var(--sheet-band-h);
-        left: var(--space-2);
-        right: var(--space-2);
+        left: var(--sys-inset-page);
+        right: var(--sys-inset-page);
         height: 1px;
         // Цвет шва — чернила листа на 13% по дефолту; ось GlassEdge (вариант
         // `rim-seam`) может переопределить `--sheet-seam-color` на светлый рефлекс,
@@ -464,4 +459,3 @@
     border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
     pointer-events: none;
 }
-

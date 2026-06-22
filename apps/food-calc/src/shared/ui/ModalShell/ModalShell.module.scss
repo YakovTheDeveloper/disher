@@ -37,72 +37,51 @@
 }
 
 // ── ModalShell ambient background — single monochrome tone ───────────────────
-// After the «great unification» (2026-06-19) ModalShell is no longer a switchable
-// design-variant: it carries one fixed `mono` tone, set statically as
-// `[data-dv='ModalShell'][data-dv-v='mono']` on the wrapper (ModalShell.tsx) — it
-// is NOT registered with the DesignVariantsBar anymore. The attribute selector is
-// GLOBAL (Base UI renders modals through a portal); `.springOrbs` / `.orb*` stay
-// CSS-module-scoped.
-//
-// Geometry (orb size + position) is shared — the single `mono` palette below only
-// colours the 5 orbs + the wrapper wash.
-[data-dv='ModalShell'] {
+// After the «great unification» (2026-06-19) ModalShell carries one fixed `mono`
+// tone, baked directly on `.wrapper` (dev-форк `data-dv='ModalShell'` снят
+// 2026-06-22 — был single-variant). A faintly gray page (`#f0f1f4`, kin to
+// SearchFood `--search-page-bg`, set on `.wrapper` above) with five desaturated
+// orbs in the upper region: a couple lean LIGHTER (toward white), the rest a touch
+// DARKER, with a whisper of lavender echo (the SearchFood `--search-ambient-top`
+// hue) tying the top glow to the search step. `background` is NOT token-gated
+// (stripe-fork canon). Orbs walk the spatial path orb2 → orb4 → orb5 → orb3 → orb1
+// (far-left → far-right); the transparent-feather + dither (above) keep them
+// band-free. `.springOrbs` / `.orb*` stay CSS-module-scoped; the wrapper class is
+// on the same element React portals, so it reaches modals through the Base UI portal.
+.wrapper {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 
-  // Top-cluster geometry — all 5 orbs live in the upper region; the bottom of
-  // the modal stays clean (HomePage HomeAmbient-style top glow). Every variant
-  // is top now, so this IS the base geometry (no per-variant override). Spatial
-  // left→right order is orb2 → orb4 → orb5 → orb3 → orb1, which is the path the
-  // two/three-hue palettes below walk through.
-  .orb1 { width: 250px; height: 250px; top: -70px; right: -40px; }
-  .orb2 { width: 220px; height: 220px; top: -30px; left: -50px; }
-  .orb3 { width: 190px; height: 190px; top: 30px; right: 24px; }
-  .orb4 { width: 170px; height: 170px; top: 110px; left: 16px; }
-  .orb5 { width: 150px; height: 150px; top: -40px; left: 38%; }
+  .orb { opacity: 0.4; }
+
+  // Feather each disc into transparent BEFORE the element edge — kills the hard
+  // circular boundary that `blur()` would smear into a visible ring.
+  .orb1 {
+    width: 250px; height: 250px; top: -70px; right: -40px;
+    background: radial-gradient(circle, #fbfbfd 0%, #f4f4f7 56%, transparent 84%);
+  }
+  .orb2 {
+    width: 220px; height: 220px; top: -30px; left: -50px;
+    background: radial-gradient(circle, #eef0f4 0%, #e6e7ec 56%, transparent 84%);
+  }
+  .orb3 {
+    width: 190px; height: 190px; top: 30px; right: 24px;
+    background: radial-gradient(circle, #f3f1f9 0%, #e7e3f2 56%, transparent 84%);
+  }
+  .orb4 {
+    width: 170px; height: 170px; top: 110px; left: 16px;
+    background: radial-gradient(circle, #f7f7fa 0%, #ececf0 56%, transparent 84%);
+  }
+  .orb5 {
+    width: 150px; height: 150px; top: -40px; left: 38%;
+    background: radial-gradient(circle, #f4f2fa 0%, #e4dff1 56%, transparent 84%);
+  }
 
   >*:not(.springOrbs) {
     position: relative;
     z-index: 1;
-  }
-}
-
-// Palette = (wrapper wash, orb opacity, 5×(inner, outer) orb gradient stops).
-// `background` is intentionally NOT token-gated (stripe-fork canon). After the
-// «great unification» (2026-06-19) there is a single MONOCHROME tone: a faintly
-// gray page (`#f0f1f4`, kin to SearchFood `--search-page-bg`) with five
-// desaturated orbs giving a barely-there light/dark unevenness — a couple of
-// them lean LIGHTER than the wash (toward white), the rest a touch DARKER
-// (toward `#e6e6ea`), and the top cluster carries a whisper of lavender echo
-// (`rgba(225,215,245,…)`, the SearchFood `--search-ambient-top` hue) so the top
-// glow ties the screen to the search step. Orbs still walk the spatial path
-// orb2 → orb4 → orb5 → orb3 → orb1 (far-left → far-right). The transparent-
-// feather + dither (above) keep them band-free.
-$modal-shell-variants: (
-  'mono': (#f0f1f4, 0.4,
-    ((#fbfbfd, #f4f4f7), (#eef0f4, #e6e7ec), (#f3f1f9, #e7e3f2), (#f7f7fa, #ececf0), (#f4f2fa, #e4dff1))),
-);
-
-@each $name, $cfg in $modal-shell-variants {
-  [data-dv='ModalShell'][data-dv-v='#{$name}'] {
-    background: list.nth($cfg, 1);
-
-    .orb { opacity: list.nth($cfg, 2); }
-
-    $orbs: list.nth($cfg, 3);
-
-    @for $i from 1 through 5 {
-      $pair: list.nth($orbs, $i);
-
-      .orb#{$i} {
-        // Feather the disc into transparent BEFORE the element edge — kills the
-        // hard circular boundary that `blur()` smears into a visible ring.
-        background: radial-gradient(circle,
-          list.nth($pair, 1) 0%, list.nth($pair, 2) 56%, transparent 84%);
-      }
-    }
   }
 }
 
@@ -112,11 +91,12 @@ $modal-shell-variants: (
 // instead of hard-coding them. These tokens are published APP-WIDE: App.tsx sets
 // the fixed `mono` tone on `<body data-modal-fields>` (the tokens-only attribute,
 // no ambient), so the whole page — not just modals — shares one monochrome tone.
-// The ModalShell wrapper also carries `[data-dv='ModalShell'][data-dv-v='mono']`
-// for its own ambient orbs. This replaced the old `data-surface` warm/lavender
-// axis AND the earlier multi-variant law-giver: ModalShell is now a single fixed
-// tone (the «great unification», 2026-06-19). The `card-palette` mixin below
-// extends the same inputs to the stripe-fork `--card-*`/`--list-*` surface tokens.
+// ModalShell content inherits these from `body` (its ancestor, even through Base
+// UI portals); the wrapper's own ambient orbs live on `.wrapper` separately (dev
+// `data-dv='ModalShell'` форк снят 2026-06-22). This replaced the old `data-surface`
+// warm/lavender axis AND the earlier multi-variant law-giver: ModalShell is now a
+// single fixed tone (the «great unification», 2026-06-19). The `card-palette` mixin
+// below extends the same inputs to the stripe-fork `--card-*`/`--list-*` surface tokens.
 //
 // The palette is derived from a few inputs via `field-chip-palette`,
 // mirroring the alpha ladder of the warm/lavender surfaces (surfaces.scss):
@@ -204,18 +184,14 @@ $modal-shell-field-chip: (
   'mono': (#1d1d1f, #2c2c30, #877f9c, (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff),
 );
 
-// Two entry points share one palette:
-//   [data-dv='ModalShell'][data-dv-v]  — the ModalShell wrapper itself.
-//   [data-modal-fields]                — a light-weight opt-in attribute for
-//     modal content that is NOT wrapped in ModalShell (e.g. the bare SearchFood
-//     search step of a ModalByLabel flow). It carries ONLY these tokens, none of
-//     the `[data-dv='ModalShell']` ambient baggage (orbs / position /
-//     backdrop-filter — the latter would create a containing block and break the
-//     fixed-position modal expansion). Consumers spread it on a `display:contents`
-//     wrapper so the field/chip palette stays in colour with ModalShell without
-//     changing layout.
+// Single entry point: `[data-modal-fields]`. App.tsx publishes it app-wide on
+// `<body data-modal-fields='mono'>`, so the tokens cascade to EVERY page and
+// through Base UI portals (incl. ModalShell content — body is its ancestor). It
+// carries ONLY these field/chip/card tokens, none of the `.wrapper` ambient
+// baggage (orbs / backdrop-filter — the latter would create a containing block
+// and break fixed-position modal expansion). DrawerLayout + ModalVariantFields
+// republish it locally (`data-modal-fields='mono'`) for portal-free subtrees.
 @each $name, $p in $modal-shell-field-chip {
-  [data-dv='ModalShell'][data-dv-v='#{$name}'],
   [data-modal-fields='#{$name}'] {
     @include field-chip-palette(
       list.nth($p, 1), list.nth($p, 2), list.nth($p, 3),

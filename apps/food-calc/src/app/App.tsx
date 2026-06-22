@@ -17,20 +17,6 @@ import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-
-// Глобальный ambient-backdrop (radial-glow обвязки экрана). Один anchor на
-// app-уровне (`.main`) → DesignVariantsBar переключает свечение сразу для ВСЕХ
-// страниц (HomePage / Schedule / Product / Dish / Analyses). Первый вариант =
-// продакшен-дефолт (см. useDesignVariant fallback). CSS — App.module.scss
-// (`.main[data-dv='HomeAmbient']`).
-const HOME_AMBIENT_VARIANTS = [
-  'lavender-cream',
-  'peach-rose',
-  'mint-sky',
-  'sunrise',
-  'plain',
-] as const;
 
 // Single app-wide tone. THIS is the theming loophole: every interactive surface
 // (--field-* inputs/chips, --card-*/--list-* rows) derives its colour from ONE
@@ -48,8 +34,6 @@ export default function App() {
   useGlobalScrollBlur();
   useApplyUserTheme();
   setupGlobalLog();
-
-  const { anchor: ambientAnchor } = useDesignVariant('HomeAmbient', HOME_AMBIENT_VARIANTS);
 
   // Boot-hydrate the daily-analysis store from idb-keyval. Without this the
   // store starts empty on every reload — a completed daily review would not
@@ -87,7 +71,7 @@ export default function App() {
           },
         }}
       />
-      <div className={s.main} {...ambientAnchor}>
+      <div className={s.main}>
         <ModalManager />
         <DrawerManager />
 

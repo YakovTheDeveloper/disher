@@ -219,11 +219,14 @@
     }
 
     .textButton {
-        padding: var(--ax-pad-y, 14px) var(--ax-pad-x, 16px);
+        padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
     }
 
+    // Размер заголовка — на сетке (--text-lg, 20px), как у карточек разбора
+    // (<Heading size="card">). Семейство/цвет .title наследует из base (серив-
+    // navy — отдельная, ещё не унифицированная трактовка сохранённого списка).
     .title {
-        font-size: var(--analysis-fs-title, 1.0625rem);
+        font-size: var(--text-lg);
     }
 
     .body {

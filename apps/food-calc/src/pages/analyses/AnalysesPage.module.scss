@@ -1,5 +1,5 @@
 // AnalysesPage chrome. Ambient backdrop переехал на app-уровень
-// (`.main[data-dv='HomeAmbient']` в App.module.scss) — глобальный glow
+// (`.main` в App.module.scss) — глобальный glow
 // проступает сквозь прозрачную обвязку; контент-лист (`.headerOverlap`)
 // остаётся opaque, поэтому строки списка не читаются поверх свечения.
 .ambient {

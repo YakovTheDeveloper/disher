@@ -12,9 +12,7 @@
   background: linear-gradient(135deg, #fffefb 0%, #fef8ec 100%);
   border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
   border-radius: var(--radius-lg);
-  box-shadow:
-    0 12px 32px -8px rgba(31, 42, 68, 0.18),
-    0 4px 12px -4px rgba(31, 42, 68, 0.1);
+  box-shadow: var(--sys-elevation-overlay);
   // Block touch swipes from bubbling to surrounding Drawer (Base UI swipe-ignore).
 }
 

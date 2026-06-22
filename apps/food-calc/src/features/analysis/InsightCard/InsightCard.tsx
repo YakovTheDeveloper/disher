@@ -11,6 +11,7 @@ import {
 } from '@/entities/insight';
 import PlusIcon from '@/shared/assets/icons/plus.svg?react';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import styles from './InsightCard.module.scss';
 
 export type InsightCardAction = 'none' | 'add' | 'delete';
@@ -40,18 +41,12 @@ const STRENGTH_LABEL: Partial<Record<InsightStrength, string>> = {
   moderate: 'есть связь',
 };
 
-// Valence shown WITHOUT colour (F3 minimalism). Two minimal monochrome modes,
-// flipped by the 'Insight' design-variant on an ancestor (set in AnalysisResult
-// / InsightListPanel): default 'sign' shows a ＋/− glyph; 'label' shows a quiet
-// word; 'plain' shows neither. Both spans render; CSS picks which is visible.
+// Valence shown WITHOUT colour (F3 minimalism): a quiet monochrome ＋/− glyph
+// before the title (baked 2026-06-22 — the 'label'/'plain' DesignBar forks were
+// dropped, 'sign' was the live default). Neutral renders no glyph.
 const VALENCE_SIGN: Record<InsightValence, string> = {
   positive: '+',
   negative: '−',
-  neutral: '',
-};
-const VALENCE_LABEL: Record<InsightValence, string> = {
-  positive: 'синергия',
-  negative: 'осторожно',
   neutral: '',
 };
 
@@ -76,7 +71,6 @@ const InsightCard = ({
   const { title, detail, valence, strength, evidence } = insight;
   const strengthLabel = STRENGTH_LABEL[strength];
   const sign = VALENCE_SIGN[valence];
-  const valenceLabel = VALENCE_LABEL[valence];
   const days = showDays ? evidence.days : [];
   const foods = evidence.foods ?? [];
   const events = evidence.events ?? [];
@@ -104,15 +98,14 @@ const InsightCard = ({
     <article className={styles.card} data-strength={strength} data-valence={valence}>
       <div className={styles.text}>
         <div className={styles.head}>
-          <h3 className={styles.title}>
+          <Heading as="h3" size="card">
             {sign && (
               <span className={styles.valenceSign} aria-hidden>
                 {sign}
               </span>
             )}
             {title}
-          </h3>
-          {valenceLabel && <span className={styles.valenceLabel}>{valenceLabel}</span>}
+          </Heading>
           {strengthLabel && <span className={styles.strength}>{strengthLabel}</span>}
         </div>
         <p className={styles.detail}>{detail}</p>

@@ -3,7 +3,7 @@
 //   ::before — база (постоянно бледная гравюра; в study медленно наезжает);
 //   ::after  — проявляющая копия (видна сквозь маску: полоса scan / круг study);
 //   .glow    — тёплый свет лампы (отдельный слой, чтобы складываться с проявлением).
-// Характер — DesignBar 'AnalysisLoader': scan / glow / study / scan-glow.
+// Характер — проп `effect` (data-effect на .stage): scan / glow / study / scan-glow.
 // Цветовое сырьё — в локальных проперти БЕЗ суффикса `-color` (token-gate ловит
 // /color$/, font-size, border-radius; mask / filter / градиенты освобождены).
 
@@ -111,7 +111,7 @@
 }
 
 // ── glow: только тёплый свет, без проявляющей полосы ──
-.stage[data-dv-v='glow'] {
+.stage[data-effect='glow'] {
   .art::after {
     display: none;
   }
@@ -121,7 +121,7 @@
 }
 
 // ── scan-glow: проявляющая полоса + тёплый свет одновременно ──
-.stage[data-dv-v='scan-glow'] {
+.stage[data-effect='scan-glow'] {
   // ::after остаётся дефолтным scan
   .glow {
     animation: fl-glow 5.2s ease-in-out infinite;
@@ -129,7 +129,7 @@
 }
 
 // ── study: наезд (Ken Burns) + пульс-лампа из центра + тёплый свет вместе ──
-.stage[data-dv-v='study'] {
+.stage[data-effect='study'] {
   .artBase {
     transform-origin: 52% 46%;
     animation: fl-pushin 7.5s ease-in-out infinite;

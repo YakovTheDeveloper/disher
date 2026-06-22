@@ -110,7 +110,6 @@ const ScheduleFoodItemInline = ({
       className={clsx([
         className,
         styles.group,
-        hideTime && styles.timesHidden,
         isCustom && styles.customProduct,
       ])}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
@@ -118,6 +117,9 @@ const ScheduleFoodItemInline = ({
       index={index}
       tod={getTimeOfDay(item.time)}
       data-row-id={id}
+      // Opens the left time-gutter on the wrapper (LongPressRow) — the time hangs
+      // there, messenger-style. Scoped so plain lists keep flush-left layout.
+      data-row-gutter="time"
       onLongPress={onLongPress}
     >
       {!hideTime && (

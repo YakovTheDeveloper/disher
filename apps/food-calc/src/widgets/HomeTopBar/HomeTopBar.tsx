@@ -6,16 +6,7 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './HomeTopBar.module.scss';
-
-// DesignBar-ось облика date-пилюли бара (см. CSS-блок в HomeTopBar.module.scss
-// под `[data-dv='HomeTopBar']`). Обе раскладки одинаковы (одна строка: короткий
-// serif-день «Пн» · тонкий разделитель · цифры dd.mm) — различается только
-// палитра пилюли.
-//   ink-inline    — БАЗА: чёрная пилюля, белый текст.
-//   paper-inline  — форк: белая пилюля, чёрный текст.
-const TOPBAR_VARIANTS = ['ink-inline', 'paper-inline'] as const;
 
 type Props = {
   date: string;
@@ -135,12 +126,6 @@ const HomeTopBar = ({
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
-  // Облик date-пилюли (см. TOPBAR_VARIANTS). Якорь висит на `.bar` —
-  // `.dateSegment` (потомок) ловит переопределения через `[data-dv-v]`.
-  // Раскладка одна на оба варианта — переключение чисто CSS, поэтому `variant`
-  // в JS не нужен.
-  const { anchor: topBarAnchor } = useDesignVariant('HomeTopBar', TOPBAR_VARIANTS);
-
   const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
@@ -173,7 +158,7 @@ const HomeTopBar = ({
 
   return (
     <div className={styles.shell} ref={shellRef}>
-      <div className={styles.bar} {...topBarAnchor}>
+      <div className={styles.bar}>
         {backSlot}
         <div className={styles.accountSlot}>
           <AccountPanel />

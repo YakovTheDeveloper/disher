@@ -1,17 +1,16 @@
 import { memo, type CSSProperties } from 'react';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './FabricLoader.module.scss';
 
 // Лоадер анализа дня. Над бледной гравюрой-библиотекой (art) анимация работает с
 // самой картинкой (без концентрической ауры). Три слоя: база (::before),
-// проявляющая копия (::after), тёплый свет лампы (.glow). Характеры — DesignBar
-// 'AnalysisLoader':
-//   scan      — световая полоса проявляет гравюру слева направо;
+// проявляющая копия (::after), тёплый свет лампы (.glow). Характер анимации —
+// проп `effect` (баком 2026-06-22 переведён из DesignBar в API компонента):
+//   scan      — световая полоса проявляет гравюру слева направо (дефолт);
 //   glow      — по гравюре дрейфует тёплый свет лампы;
 //   study     — наезд (Ken Burns) + пульс-лампа из центра + тёплый свет вместе;
 //   scan-glow — проявляющая полоса и тёплый свет одновременно.
 // Под картинкой подпись (Alice, основной цвет).
-const VARIANTS = ['scan', 'glow', 'study', 'scan-glow'] as const;
+export type FabricLoaderEffect = 'scan' | 'glow' | 'study' | 'scan-glow';
 
 type Props = {
   /** Цифра в центре — число дня (dd). Показывается, только если нет `art`. */
@@ -20,14 +19,14 @@ type Props = {
   art?: string;
   /** Подпись под лоадером. */
   caption?: string;
+  /** Характер анимации над гравюрой. */
+  effect?: FabricLoaderEffect;
 };
 
-const FabricLoader = ({ day, art, caption = 'Разбираем день…' }: Props) => {
-  const { anchor } = useDesignVariant('AnalysisLoader', VARIANTS);
-
+const FabricLoader = ({ day, art, caption = 'Разбираем день…', effect = 'scan' }: Props) => {
   return (
     <div className={styles.loader} role="status" aria-label={caption}>
-      <div className={styles.stage} {...anchor}>
+      <div className={styles.stage} data-effect={effect}>
         {art ? (
           <div
             className={styles.art}

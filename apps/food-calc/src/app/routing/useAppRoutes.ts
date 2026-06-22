@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls, getProductUrl } from '@/app/router';
+import { RouterLinks, RouterUrls } from '@/app/router';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;
@@ -13,7 +13,6 @@ export interface UseAppRoutesReturn {
     toDish: (id: string) => void;
     toScheduleBuilder: (id: string) => void;
     toFood: () => void;
-    toProduct: (id: string) => void;
 }
 
 export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn => {
@@ -35,7 +34,6 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
     const toDish = (id: string) => navigate(RouterUrls.getDish(id));
     const toScheduleBuilder = (id: string) => navigate(`${RouterLinks.ScheduleBuilder}/${id}`, { viewTransition: true });
     const toFood = () => navigate(RouterLinks.Food);
-    const toProduct = (id: string) => navigate(getProductUrl(id));
 
     return {
         navigate,
@@ -45,6 +43,5 @@ export const useAppRoutes = (options?: UseAppRoutesOptions): UseAppRoutesReturn 
         toDish,
         toScheduleBuilder,
         toFood,
-        toProduct,
     };
 };

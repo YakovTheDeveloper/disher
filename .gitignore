@@ -35,6 +35,9 @@ playwright-report/
 test-results/
 coverage/
 
+# Claude skills
+.claude/skills/
+
 # Misc
 *.tmp
 .cache/

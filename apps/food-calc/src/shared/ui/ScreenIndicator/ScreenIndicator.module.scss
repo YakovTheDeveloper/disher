@@ -65,73 +65,14 @@
     overflow: visible;
 }
 
-// ─── NavSwitcher — обвязка ряда (стадион-трей) под HomePage-табы ─────────
-// Anchor на `.swipeArea` (HomePage only), `.tilesRow` — потомок. Здесь только
-// контейнер ряда — утопленный стадион-трей вокруг пилюль; форму пилюль/графику
-// держит SwitcherTab.module.scss. На HomePage `bandImg={false}`, поэтому большой
-// `padding-top: var(--space-6)` (резерв под band-картинку) ужимаем. `inverse-
-// lift` (дефолт) тут не упомянут — ноль оверрайдов.
-//
-// tray-pill-bleed — пилюли В утопленном стадион-трее (видимая подложка). hero-
-// форк (база) трей НЕ носит — там чистый текст поверх растворяющейся гравюры.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed']) {
-    .tilesRow {
-        padding: var(--space-1);
-        background: rgba(0, 0, 0, 0.035);
-        // Радиус трея = стадион, чтобы перекликаться с капсулами-пилюлями.
-        border-radius: var(--radius-full);
-        box-shadow: inset 0 1px 3px rgba(31, 42, 68, 0.08);
-    }
-}
+// ─── NavSwitcher — обвязка ряда (вшитый дефолт tab-numerals-left, баком
+//     2026-06-22) ───────────────────────────────────────────────────────────
+// Anchor-узел (`.swipeArea` / `.tabRow`) — предок; `.tilesRow` / `.root` /
+// `.swipeDots` — потомки. Облик ряда вшит ниже безусловно (DesignBar-ось снята);
+// форму подписей держит SwitcherTab.module.scss. Легаси-контейнеры (стадион-трей
+// tray-pill-bleed, hero-bleed/hero-tabs-top, inplace, peek) сняты.
 
-// bleed: трей — первый элемент под `.stickyTop`(top:0) у самого верха скролла,
-// а `HomeTopBar` absolute поверх → без отступа табы слипаются с кнопками бара.
-// Отступ = высота бара (`--top-bar-h`, задаёт HomePage) + воздух.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed']) .tilesRow {
-    margin-top: calc(var(--top-bar-h, 60px) + var(--space-2));
-}
-
-
-// hero (база): ряд табов «утоплен» в нижний fade обложки — низ растворяющейся
-// гравюры заходит ЗА подписи, и верхний блок (обложка + табы) читается единой
-// рамкой, а не двумя соседями. Лифт = отрицательный margin-top, высоту держит
-// `--home-tabs-lift`. `.root` позже hero в DOM и position:relative → подписи
-// рисуются ПОВЕРХ fade.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) {
-    .root {
-        // ↓↓↓ ГЛУБИНА УТОПЛЕНИЯ ряда в гравюру — крути это число.
-        // больше (56–64px) → глубже/плотнее рамка; меньше (28–36px) → деликатнее.
-        --home-tabs-lift: 24px;
-        padding-top: 0;
-        margin-top: calc(-1 * var(--home-tabs-lift));
-    }
-
-    // База `.tilesRow` несёт `padding-top: var(--space-6)` (24px, резерв под
-    // band-картинку, которой в hero НЕТ) — он отжимал подписи вниз и гасил лифт.
-    // Обнуляем, чтобы `--home-tabs-lift` управлял позицией ряда напрямую.
-    .tilesRow {
-        padding-top: 0;
-    }
-}
-
-// hero-tabs-top: табы подняты НАД обложкой. `.stickyTop` стал flex-колонкой
-// (Screen.module.scss), здесь ряд получает `order: -1` → встаёт первым, обложка
-// (`order: 1`) уходит под него. Лифта в гравюру НЕТ (он жил в bleed-hero, где
-// табы внизу); вместо этого ряд отступает вниз на высоту плавающего бара
-// (`--top-bar-h`), чтобы пилюли не слиплись с кнопками меню/даты.
-:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) {
-    .root {
-        order: -1;
-        padding-top: 0;
-    }
-
-    .tilesRow {
-        padding-top: 0;
-        margin-top: calc(var(--top-bar-h, 60px) + var(--space-2));
-    }
-}
-
-// Левый inset — все merge-варианты выравнивают заголовок/табы по левому краю
+// Левый inset — merge-облик выравнивает заголовок/табы по левому краю
 // контента листа. `.root` уже несёт `margin: 0 space-3` (как `.headerOverlap`),
 // добавляем `padding-inline: space-2` — столько же, сколько внутренний паддинг
 // листа → крупный заголовок встаёт ровно туда, где была шапка-Masthead.
@@ -142,7 +83,7 @@
 // СНИЗУ ряда (цветное двухтоновое свечение, ось IndicatorAmbient) — СНЯТ 2026-06-18:
 // под стеклянной полкой листа он накладывался вторым translucent-слоем на гравюру и
 // читался грязно. Край листа теперь подчёркивает rim-свет на самом стекле
-// (`.sheetBand` box-shadow, ось GlassEdge — см. HomePage.module.scss). Остался только
+// (`.sheetBand` box-shadow, ось GlassEdge — см. SwipeDeck.module.scss). Остался только
 // структурный лифт ряда.
 @mixin merge-lift {
     .root {
@@ -151,178 +92,76 @@
     }
 }
 
-// tab-as-title / -center / tab-numerals: активный раздел поглощает роль Masthead
-// (крупный жирный заголовок), неактивные — тихие указатели. Ряд = flex-wrap:
-// активный тайл получает `flex-basis:100%` (SwitcherTab.module.scss) → встаёт на
-// СВОЮ строку, неактивные перетекают строкой ниже. Masthead скрыт
-// (Masthead.module.scss). Обложка-hero остаётся над рядом (DOM-порядок, без
-// reorder). center/numerals форки центрируют кластер.
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) {
-    @include merge-lift;
+// Активный раздел поглощает роль Masthead (крупный жирный заголовок), неактивные
+// — тихие указатели. Ряд = flex-wrap: активный тайл получает `flex-basis:100%`
+// (SwitcherTab.module.scss) → встаёт на СВОЮ строку, неактивные перетекают строкой
+// ниже. Masthead скрыт (Heading.module.scss). Обложка-hero остаётся над рядом.
+// Применяем безусловно (DesignBar-ось снята); лево по умолчанию, центр — через
+// `data-nav-align='center'` на anchor-предке.
+@include merge-lift;
 
-    .tilesRow {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        column-gap: var(--space-3);
-        row-gap: var(--space-1);
-        padding-top: var(--space-2);
-        padding-bottom: var(--space-1);
-        padding-inline: var(--space-4);
-    }
+.tilesRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-3);
+    row-gap: var(--space-1);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-1);
+    padding-inline: var(--space-4);
 }
 
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .tilesRow,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .tilesRow {
+:global([data-nav-align='center']) .tilesRow {
     justify-content: center;
 }
 
-// tab-inplace / tab-inplace-rule: ряд НЕ переносится, неактивные жмутся ВПЛОТНУЮ
-// к активному (gap, не space-between). Кластер «наклоняется» к стороне активного
-// таба, чтобы крупный заголовок читался на своём месте, а соседи липли к нему:
-// слайд 0 — влево, 1 — центр, 2 — вправо (по `data-screen` на `.root`).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) {
-    @include merge-lift;
-
-    .tilesRow {
-        display: flex;
-        align-items: baseline;
-        column-gap: var(--space-3);
-        padding-top: var(--space-2);
-        padding-bottom: var(--space-1);
-        padding-inline: var(--space-8);
-    }
-
-    .root[data-screen='0'] .tilesRow {
-        justify-content: flex-start;
-    }
-
-    .root[data-screen='1'] .tilesRow {
-        justify-content: center;
-    }
-
-    .root[data-screen='2'] .tilesRow {
-        justify-content: flex-end;
-    }
-}
-
-// tab-peek (фильмстрип): три раздела крупно в ряд, активный по центру и чёрный,
-// соседи бледные и подрезаны краями (mask-fade) — «там продолжение, свайпай».
-// Центрируем активный сдвигом ряда: каждый тайл = 60% ширины, сдвиг
-// `20% - active*60%` ставит активный по центру при любом индексе (CSS-only,
-// `--active-idx` приходит из JSX). Маска гасит боковые слова к краям.
-:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) {
-
-    // Лифт ближе к гравюре, как у остальных merge-вариантов (ambient-glow снят, см.
-    // `merge-lift`). `overflow:hidden` + mask — для фильмстрип-обрезки соседей.
-    .root {
-        padding-top: var(--space-2);
-        padding-bottom: var(--space-1);
-        margin-top: calc(-1 * var(--space-4));
-        overflow: hidden;
-        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
-        mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 78%, transparent 100%);
-    }
-
-    .tilesRow {
-        display: flex;
-        flex-wrap: nowrap;
-        align-items: baseline;
-        transform: translateX(calc(20% - var(--active-idx, 0) * 60%));
-    }
-}
-
-// ─── Индикатор «листаемые разделы»: точки (дефолт) или номера таблиц ──────────
-// Дефолт — скрыт (другие страницы/варианты не показывают). Включается в own-line
-// merge-вариантах, где крупный заголовок сам по себе не кричит «свайпай».
-// Разметка одна (пустой span + `data-num`); точки = круги, numerals = глиф
-// через `::before { content: attr(data-num) }`.
+// ─── Индикатор «листаемые разделы»: номера таблиц (plate numerals) ───────────
+// Вшитый дефолт (баком tab-numerals-left 2026-06-22): авторский индикатор
+// «дневника натуралиста» — I · II · III антиквой-италик, активный чёрный/жирный,
+// остальные бледные. Разметка — пустой span + `data-num`, глиф через
+// `::before { content: attr(data-num) }`. Всегда виден (раньше display:none +
+// gate на варианте). Лево по умолчанию; центр — через `data-nav-align='center'`.
 .swipeDots {
-    display: none;
+    display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 12px;
     padding-top: var(--space-2);
-    padding-inline: var(--space-2);
+    // `-left`: ряд номеров выровнен под заголовок (та же inline-полка space-4).
+    padding-inline: var(--space-4);
+    justify-content: flex-start;
+}
+
+:global([data-nav-align='center']) .swipeDots {
+    justify-content: center;
 }
 
 .swipeDot {
-    width: 5px;
-    height: 5px;
-    border-radius: var(--radius-full);
-    background: var(--color-ink);
-    opacity: 0.2;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border-radius: 0;
+    opacity: 1;
+    font-family: "Source Serif 4", "Merriweather", serif;
+    font-style: italic;
+    line-height: 1;
+
+    &::before {
+        --numeral-fs: 13px;
+        content: attr(data-num);
+        font-size: var(--numeral-fs);
+        letter-spacing: 0.04em;
+        color: var(--color-ink);
+        opacity: 0.3;
+    }
 }
 
-// Активная точка — шире (pill) и темнее: «вы на этом развороте».
 .swipeDotActive {
-    width: 16px;
-    opacity: 0.55;
-}
+    width: auto;
 
-// Точки — для own-line title-вариантов (tab-as-title слева, -center по центру).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .swipeDots {
-    display: flex;
-    justify-content: flex-start;
-}
-
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .swipeDots {
-    display: flex;
-    justify-content: center;
-}
-
-// Номера таблиц (plate numerals) — авторский индикатор «дневника натуралиста»:
-// I · II · III антиквой-италик, активный чёрный/жирный, остальные бледные.
-// `tab-numerals` центрирует ряд номеров, `tab-numerals-left` прижимает влево
-// (под лево-выровненный заголовок).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']),
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) {
-    .swipeDots {
-        display: flex;
-        gap: 12px;
-    }
-
-    .swipeDot {
-        width: auto;
-        height: auto;
-        background: transparent;
-        border-radius: 0;
+    &::before {
         opacity: 1;
-        font-family: "Source Serif 4", "Merriweather", serif;
-        font-style: italic;
-        line-height: 1;
-
-        &::before {
-            --numeral-fs: 13px;
-            content: attr(data-num);
-            font-size: var(--numeral-fs);
-            letter-spacing: 0.04em;
-            color: var(--color-ink);
-            opacity: 0.3;
-        }
+        font-weight: 600;
     }
-
-    .swipeDotActive {
-        width: auto;
-
-        &::before {
-            opacity: 1;
-            font-weight: 600;
-        }
-    }
-}
-
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .swipeDots {
-    justify-content: center;
-}
-
-// `-left` — ряд номеров влево, выровнен под заголовок (та же inline-полка space-4).
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .swipeDots {
-    justify-content: flex-start;
-    padding-inline: var(--space-4);
 }
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла

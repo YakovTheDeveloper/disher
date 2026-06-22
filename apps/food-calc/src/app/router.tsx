@@ -4,11 +4,6 @@ import App from '@/app/App.tsx';
 import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
-
-// ProductPage инактивирована (2026-06-08): продукт теперь открывается боковым
-// ProductDrawer (features/food/product-drawer) везде, где раньше был переход на
-// /product/:id. Файл оставлен для возможного возврата; роут ниже закомментирован.
-// import ProductPage from '@/pages/product/ProductPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import { DiscoveriesPage } from '@/pages/discoveries';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
@@ -31,12 +26,9 @@ export enum RouterLinks {
   ScheduleBuilder = '/schedule',
   Analyses = '/analyses',
   Discoveries = '/discoveries',
-  Product = '/product',
   UiKit = '/ui-kit',
   VerifyEmail = '/auth/verify-email',
 }
-
-export const getProductUrl = (id: string) => `/product/${id}`;
 
 export const RouterUrls = {
   Schedule: (id: string) => `/schedule/${id}`,
@@ -69,12 +61,6 @@ export const router = createBrowserRouter([
         path: RouterLinks.Discoveries,
         element: <DiscoveriesPage />,
       },
-      // Инактивировано 2026-06-08 — продукт открывается боковым ProductDrawer,
-      // не страницей. Раскомментировать вместе с импортом ProductPage выше.
-      // {
-      //   path: `${RouterLinks.Product}/:id`,
-      //   element: <ProductPage />,
-      // },
       {
         path: RouterLinks.UiKit,
         element: (

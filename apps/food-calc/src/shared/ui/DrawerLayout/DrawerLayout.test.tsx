@@ -83,15 +83,15 @@ describe('DrawerLayout — hideTopChrome', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  // Side drawers render the edge swipe-handle, which follows the live ModalShell
-  // DesignBar variant via `data-modal-fields` (falls back to the first variant
-  // when no ModalShell entry is registered — the case here).
-  it('side drawer edge handle carries data-modal-fields = ModalShell variant', () => {
+  // Side drawers render the edge swipe-handle, which carries the single fixed
+  // ModalShell `mono` tone via `data-modal-fields` (the «great unification»
+  // 2026-06-19 — DrawerLayout hardcodes 'mono', no DesignBar variant anymore).
+  it('side drawer edge handle carries data-modal-fields = ModalShell tone', () => {
     sideMock.side = 'left';
     const { container } = render(<DrawerLayout>body</DrawerLayout>);
     const handle = container.querySelector('[data-modal-fields]');
     expect(handle).not.toBeNull();
-    expect(handle?.getAttribute('data-modal-fields')).toBe('spring2');
+    expect(handle?.getAttribute('data-modal-fields')).toBe('mono');
   });
 
   it('bottom drawer has no edge handle (no data-modal-fields)', () => {

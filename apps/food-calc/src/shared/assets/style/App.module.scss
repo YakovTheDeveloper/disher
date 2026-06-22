@@ -1,55 +1,22 @@
+// ─── Global ambient backdrop ─────────────────────────────────────────────
+// Единый источник свечения для ВСЕХ страниц (design-DNA «ambient-backdrop
+// page chrome»), запечён на `.main` (баком 2026-06-22: форки mint-sky/
+// lavender-cream/sunrise/plain сняты, выбран peach-rose).
+//
+// peach-rose — тёплый peach + холодный rose, СОСРЕДОТОЧЕН В НИЖНЕЙ ЧАСТИ экрана
+// (а не из верхних углов): задача ambient — подсветить контейнер Screen снизу,
+// приподнять его карточку над фоном. Glow'и стоят у нижней кромки (`at … 100%+`)
+// и поднимаются вверх, угасая в transparent; НЕОДНОРОДНЫ (два пятна разного
+// размера/тона со смещением) → свечение «живое», а не ровная заливка.
+// Контент-лист (`.headerOverlap`) остаётся opaque — строки списка никогда не
+// читаются поверх свечения; ambient проступает только сквозь обвязку.
 .main {
     display: flex;
     width: 100vw;
     height: 100dvh;
-    // padding: 20px 0 0;
     position: relative;
     overflow: hidden;
-}
-
-// ─── Global ambient backdrop ─────────────────────────────────────────────
-// Единый источник свечения для ВСЕХ страниц (design-DNA «ambient-backdrop
-// page chrome»). Anchor `HomeAmbient` живёт на `.main` (App.tsx), переключается
-// глобально через DesignVariantsBar.
-//
-// Свет СОСРЕДОТОЧЕН В НИЖНЕЙ ЧАСТИ экрана (а не из верхних углов): задача ambient
-// — подсветить контейнер Screen снизу, приподнять его карточку над фоном, чуть-
-// чуть. Поэтому glow'и стоят у нижней кромки (`at … 100%+`) и поднимаются вверх,
-// угасая в transparent. Они НЕОДНОРОДНЫ: два пятна разного размера/тона и со
-// смещением (не зеркальная пара), чтобы свечение читалось «живым», а не ровной
-// заливкой. Контент-лист (`.headerOverlap`) остаётся opaque — строки списка
-// никогда не читаются поверх свечения; ambient проступает только сквозь обвязку
-// (нижний бар / sticky-индикатор).
-// Раньше дублировалось на HomePage `.container` (HomeAmbient) + Product/Dish
-// (ProductAmbient) + AnalysesPage `.ambient` — теперь одно место.
-
-.main[data-dv='HomeAmbient'][data-dv-v='plain'] {
-    background: none;
-}
-
-// peach-rose — тёплый peach + холодный rose, снизу. Продакшен-дефолт.
-.main[data-dv='HomeAmbient'][data-dv-v='peach-rose'] {
     background:
         radial-gradient(ellipse 78% 42% at 26% 104%, rgba(253, 230, 200, 0.55), transparent 70%),
         radial-gradient(ellipse 56% 30% at 90% 100%, rgba(252, 225, 235, 0.5), transparent 62%);
-}
-
-// mint-sky — прохладный mint + sky-blue, снизу.
-.main[data-dv='HomeAmbient'][data-dv-v='mint-sky'] {
-    background:
-        radial-gradient(ellipse 78% 42% at 28% 104%, rgba(210, 240, 220, 0.55), transparent 70%),
-        radial-gradient(ellipse 56% 30% at 88% 100%, rgba(210, 228, 245, 0.55), transparent 62%);
-}
-
-// lavender-cream — лавандовый + кремовый, снизу.
-.main[data-dv='HomeAmbient'][data-dv-v='lavender-cream'] {
-    background:
-        radial-gradient(ellipse 78% 42% at 28% 104%, rgba(225, 215, 245, 0.55), transparent 70%),
-        radial-gradient(ellipse 56% 30% at 88% 100%, rgba(252, 245, 220, 0.6), transparent 62%);
-}
-
-// sunrise — широкий single-glow по центру снизу (свет поднимается, как зарево).
-.main[data-dv='HomeAmbient'][data-dv-v='sunrise'] {
-    background:
-        radial-gradient(ellipse 115% 48% at 50% 106%, rgba(255, 220, 180, 0.6), transparent 70%);
 }

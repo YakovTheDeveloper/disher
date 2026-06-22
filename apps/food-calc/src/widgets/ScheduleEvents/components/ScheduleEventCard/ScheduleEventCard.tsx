@@ -81,12 +81,14 @@ export function ScheduleEventCard({
 
   return (
     <LongPressRow
-      className={clsx(className, styles.row, hideTime && styles.timeHidden)}
+      className={clsx(className, styles.row)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
       index={index}
       tod={getTimeOfDay(item.time)}
       recent={isRecent}
+      // Opens the left time-gutter on the wrapper (see ScheduleFoodItemInline).
+      data-row-gutter="time"
       onLongPress={onLongPress}
     >
       {!hideTime && (

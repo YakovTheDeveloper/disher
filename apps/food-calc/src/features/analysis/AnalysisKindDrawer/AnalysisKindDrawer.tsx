@@ -4,11 +4,10 @@ import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { modalStore, type BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { ActionTile, ACTION_TILE_VARIANTS } from '@/shared/ui/atoms/ActionTile';
+import { ActionTile } from '@/shared/ui/atoms/ActionTile';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { AnalysisClarificationModal } from '../AnalysisClarificationModal';
 import styles from './AnalysisKindDrawer.module.scss';
 
@@ -41,10 +40,6 @@ const AnalysisKindDrawer = ({ date, onClose }: Props) => {
   const foods = useScheduleFoods(date) ?? [];
   const events = useScheduleEvents(date) ?? [];
 
-  // Облик плиток (grad / shadow) — общий design-variant 'ActionTile', флипается
-  // DesignBar'ом разом с поиском и навигацией. Атрибут садится на контейнер пары.
-  const { anchor } = useDesignVariant('ActionTile', ACTION_TILE_VARIANTS);
-
   // The day is empty only when there is neither food nor a health event —
   // a day with food but no events is still worth a review.
   const emptyDay = foods.length === 0 && events.length === 0;
@@ -71,7 +66,7 @@ const AnalysisKindDrawer = ({ date, onClose }: Props) => {
 
   return (
     <DrawerLayout title="Что разобрать?">
-      <div className={styles.body} {...anchor}>
+      <div className={styles.body}>
         <ActionTile
           emphasis
           top="Текущий день"

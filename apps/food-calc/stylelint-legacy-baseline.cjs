@@ -50,7 +50,6 @@ module.exports = [
   "src/pages/dish/ui/Heading/Heading.module.scss",
   "src/pages/home-page/ui/HomeHero.module.scss",
   "src/pages/home-page/ui/Navigation.module.scss",
-  "src/pages/product/ProductPage.module.scss",
   "src/pages/ui-kit/UiKitPage.module.scss",
   "src/shared/assets/style/toaster.scss",
   "src/shared/ui/AppBottomBar/AppBottomBar.module.scss",

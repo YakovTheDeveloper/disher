@@ -2,8 +2,7 @@ import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'r
 import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { ActionTile, ArrowGlyph, ACTION_TILE_VARIANTS } from '@/shared/ui/atoms/ActionTile';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { ActionTile, ArrowGlyph } from '@/shared/ui/atoms/ActionTile';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
 import type { DateStr } from './model';
@@ -12,6 +11,9 @@ import s from './ScheduleNavigator.module.scss';
 interface Props {
   onSelect: (date: DateStr) => void;
   selectedDate?: DateStr;
+  /** Выравнивание ряда табов: `left` (дефолт) / `center`. Ставит `data-nav-align`
+   *  на `.tabRow` (см. SwitcherTab / ScreenIndicator). */
+  align?: 'left' | 'center';
 }
 
 type NavTab = 'quick' | 'active';
@@ -28,20 +30,6 @@ const NAV_SCREENS: ScreenEntry[] = [
 // Доля высоты окна, до которой активная панель слайдера может расти, прежде чем
 // начнёт скроллиться внутри (drawer «дышит» под текущую панель до этого потолка).
 const PANEL_MAX_VH = 0.56;
-
-// Тот же anchor и список вариантов, что у HomePage (`pages/home-page/HomePage`).
-// `useDesignVariant` хранит выбор глобально по ключу 'NavSwitcher', поэтому
-// переключение варианта в DesignBar меняет облик табов HomePage И этого drawer'а
-// разом. Первый элемент = живой дефолт = 'tab-as-title' (активный раздел =
-// крупный заголовок own-line, неактивный — тихий указатель ниже). Массив зеркалит
-// HomePage; держать в синхроне (FSD не даёт импортить из pages).
-const NAV_SWITCHER_VARIANTS = [
-  'tab-as-title',
-  'tab-as-title-center',
-  'tab-inplace',
-  'tab-numerals',
-  'tab-numerals-left',
-] as const;
 
 // ─── DayRow (anchors — three ActionTiles) ──────────────────────────────────
 // Вчера/Сегодня/Завтра как общий примитив `ActionTile` (унификация 2026-06-21):
@@ -117,16 +105,12 @@ const DayChip = memo(function DayChip({ day, today, isSelected, onSelect }: DayC
 });
 
 // ─── ScheduleNavigator ─────────────────────────────────────────────────────
-export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
+export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Props) => {
   const today = useToday();
   const filledKeys = useFilledDateKeys();
 
   // Дефолт — всегда «Быстрая навигация» (якоря). «Активные дни» — явный тап/свайп.
   const [tab, setTab] = useState<NavTab>('quick');
-  const { anchor: navAnchor } = useDesignVariant('NavSwitcher', NAV_SWITCHER_VARIANTS);
-  // Облик якорей-плиток (grad / shadow) — общий design-variant 'ActionTile',
-  // флипается DesignBar'ом разом с дровером анализа и панелью поиска.
-  const { anchor: tileAnchor } = useDesignVariant('ActionTile', ACTION_TILE_VARIANTS);
 
   // Горизонтальный CSS scroll-snap слайдер: viewport со снапом + две панели по
   // 100% ширины. Таб ↔ панель синхронизированы в обе стороны (клик скроллит,
@@ -231,10 +215,9 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
 
   return (
     <div className={s.shell}>
-      {/* Ряд табов = тот же ScreenIndicator + NavSwitcher-anchor, что на
-          HomePage → идентичный облик (дефолт tab-as-title), и DesignBar меняет
-          оба разом. bandImg={false}: картинок у режимов нет. */}
-      <div className={s.tabRow} {...navAnchor}>
+      {/* Ряд табов = тот же ScreenIndicator + вшитый NavSwitcher-облик, что на
+          HomePage (numerals-left по умолчанию). bandImg={false}: картинок нет. */}
+      <div className={s.tabRow} data-nav-align={align}>
         <ScreenIndicator
           screens={NAV_SCREENS}
           activeIndex={tab === 'quick' ? 0 : 1}
@@ -257,7 +240,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate }: Props) => {
         <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Перейти к">
           <div className={s.anchorList} ref={quickInnerRef}>
             {/* Колонка плиток ActionTile под общим design-variant 'ActionTile'. */}
-            <div className={s.navList} {...tileAnchor}>
+            <div className={s.navList}>
               {anchors.map((d) => (
                 <DayRow
                   key={d.dateStr}

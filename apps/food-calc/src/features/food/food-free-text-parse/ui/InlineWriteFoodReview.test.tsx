@@ -64,9 +64,6 @@ describe('InlineWriteFoodReview — SheetCard wiring', () => {
     expect(root).not.toBeNull();
     expect(root).toHaveAttribute('data-state', 'loading');
     expect(root).toHaveClass(reviewStyles.reviewSheet);
-    // Гланец предложки идёт от общего anchor `Predlozhka`, дефолт pearl.
-    expect(root).toHaveAttribute('data-dv', 'Predlozhka');
-    expect(root).toHaveAttribute('data-dv-v', 'pearl');
     expect(screen.getByRole('heading', { name: 'Распознаём…' })).toBeInTheDocument();
   });
 

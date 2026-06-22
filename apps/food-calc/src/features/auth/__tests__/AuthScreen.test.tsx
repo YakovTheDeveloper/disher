@@ -3,8 +3,8 @@
 //           the "check your inbox" branch (CheckInboxView), NOT logged in.
 //
 // AuthScreen's job here is the if/else: pendingVerificationEmail set →
-// CheckInboxView, else → AuthForm. Children + design-variant infra are
-// stubbed so the test isolates the branch.
+// CheckInboxView, else → AuthForm. Children are stubbed so the test isolates
+// the branch. (Облик фикс `v1-photo`, layout=card — dev-форки сняты 2026-06-22.)
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
@@ -30,17 +30,6 @@ vi.mock('../CheckInboxView', () => ({
 
 vi.mock('../DisherLogo', () => ({
   DisherLogo: () => <div data-testid="logo" />,
-}));
-
-vi.mock('@/shared/lib/useDesignVariant', () => ({
-  useDesignVariant: () => ({
-    variant: 'v1-photo',
-    anchor: { ref: () => {}, 'data-dv': 'AuthScreen', 'data-dv-v': 'v1-photo' },
-  }),
-}));
-
-vi.mock('@/app/ui/DesignVariantsBar', () => ({
-  shouldShowDvBar: () => false,
 }));
 
 // Sass module — Proxy returns the property name as a class string so any
@@ -74,10 +63,8 @@ describe('AuthScreen', () => {
     expect(screen.queryByTestId('auth-form')).not.toBeInTheDocument();
   });
 
-  it('passes the variant layout (card for v1-photo) to the active subcomponent', () => {
+  it('passes the baked card layout (v1-photo) to the active subcomponent', () => {
     render(<AuthScreen />);
-    // shouldShowDvBar() is mocked to false → variant locked to v1-photo,
-    // whose LAYOUT_BY_VARIANT entry is 'card'.
     expect(screen.getByTestId('auth-form')).toHaveAttribute('data-layout', 'card');
   });
 });

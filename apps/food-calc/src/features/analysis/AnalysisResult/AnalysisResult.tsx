@@ -9,11 +9,6 @@ import { HypothesisCard } from '../HypothesisCard';
 import type { AnalysisObservation, AnalysisInsight, AnalysisHypothesis } from '../api';
 import styles from './AnalysisResult.module.scss';
 
-// Valence-display variants (F3 «хз» → pick by eye). The anchor sits on the
-// sections wrapper so every InsightCard inside reads the chosen mode via CSS —
-// one anchor per surface (not per card). Default 'sign'.
-const INSIGHT_VALENCE_VARIANTS = ['sign', 'label', 'plain'] as const;
-
 // Visual treatment of the observation/hypothesis rows inside the pearl листок
 // (monochrome by design — see 2026-06-13 «слишком цветасто»). The anchor sits on
 // the result root and publishes `--ax-*` custom props that BOTH card modules
@@ -67,7 +62,6 @@ const AnalysisResult = ({
   bare = false,
   hideSectionHeaders = false,
 }: Props) => {
-  const { anchor: valenceAnchor } = useDesignVariant('Insight', INSIGHT_VALENCE_VARIANTS);
   const { anchor: styleAnchor } = useDesignVariant('Analysis', ANALYSIS_STYLE_VARIANTS);
   const renderSection = (title: string, children: React.ReactNode) =>
     bare ? (
@@ -99,7 +93,7 @@ const AnalysisResult = ({
         </div>
       )}
 
-      <div className={styles.sections} data-analysis-sections="" {...valenceAnchor}>
+      <div className={styles.sections} data-analysis-sections="">
         {observations.length > 0 &&
           renderSection(
             '',

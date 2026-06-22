@@ -23,8 +23,9 @@
 // HypothesisCard), поэтому один тумблер restyle'ит весь разбор.
 :global([data-dv='Analysis']) {
     --ax-list-gap: 0px;
-    --ax-pad-y: 14px;
-    --ax-pad-x: 16px;
+    // Внутр. падинг карточки на сетке: 12/16 (`--space-3`/`--space-4`).
+    --ax-pad-y: var(--space-3);
+    --ax-pad-x: var(--space-4);
     --ax-card-bg: transparent;
     --ax-card-radius: 0px;
     --ax-card-shadow: none;

@@ -2,13 +2,13 @@
 // картинок; клик по обложке перелистывает их с crossfade'ом (см. HomeHero.tsx).
 // Живёт В `stickyTop` КАЖДОГО слайда, НАД табами — поэтому контент-лист
 // (`.headerOverlap`, z-index:1) при скролле НАЕЗЖАЕТ на неё (самокат-оверлеер),
-// ровно как и на табы. 3 слайда → 3 обложки. Видна только в NavSwitcher-
-// варианте `tray-pill-bleed-hero` (gate по `data-dv-v` на `.swipeArea`-предке);
-// в остальных display:none — место не занимает.
+// ровно как и на табы. 3 слайда → 3 обложки. HomeHero рендерит ТОЛЬКО HomePage
+// (heroForSlide), всегда под nav-anchor → обложка видна безусловно (баком
+// 2026-06-22, gate по `data-dv-v` снят).
 // z-index НЕ задаём — лист (z-index:1) перекрывает по дефолту.
 
 .root {
-    display: none;
+    display: block;
     position: relative;
     // Прижата к самому верху экрана: HomeTopBar прозрачный (background:none),
     // поверх плавают только пилюли — обложка уходит под них до верхней кромки.
@@ -82,37 +82,6 @@
     -webkit-mask-composite: source-in; // вебкитовый аналог intersect
     mask-image: var(--hero-fade-v), var(--hero-fade-h), var(--hero-corner-bl), var(--hero-corner-br);
     mask-composite: intersect;
-}
-
-// Gate: показываем только в hero-вариантах. Anchor `[data-dv-v]` на `.swipeArea`
-// (предок), `.root` — потомок.
-:global([data-dv='NavSwitcher'][data-dv-v='tray-pill-bleed-hero']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-as-title-center']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-inplace-rule']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-numerals-left']) .root,
-:global([data-dv='NavSwitcher'][data-dv-v='tab-peek']) .root {
-    display: block;
-}
-
-// hero-tabs-top — форк, где табы подняты НАД обложкой (reorder во flex-stickyTop,
-// см. Screen.module.scss). Обложка едет ВНИЗ под ряд табов (`order: 1`), поэтому
-// больше НЕ резервирует высоту бара (табы заняли зону бара) — высота = только
-// видимая полоса картинки. Между табами и обложкой — лёгкий зазор.
-:global([data-dv='NavSwitcher'][data-dv-v='hero-tabs-top']) .root {
-    order: 1;
-    height: 190px;
-    margin-top: var(--space-2);
-
-    // Логотип больше не прячется под бар (бара над обложкой нет — там табы):
-    // центрируем «Disher» по самой обложке, как смысловую печать кадра.
-    .logo {
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
 }
 
 // Кликабельный слой — заполняет обложку, на нём висит onClick (смена картинки).

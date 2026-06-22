@@ -19,8 +19,6 @@ import { buildEventEditActions } from './eventActions';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
 
 // Events use the `lemon` palette (single warm yellow hue, deepening across the
 // day). Baked-in 2026-06-13 — the 7 alt palettes + the 'ScheduleEvents' DesignBar
@@ -36,10 +34,6 @@ type Props = {
 
 const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
-
-  // Shared with FoodSchedule: one DesignBar control for the adjacent-row edge
-  // treatment across food + event rows (same key → same stored variant).
-  const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -69,7 +63,6 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
 
   return (
     <Screen
-      className={styles.eventsScreen}
       stickyTop={topSlot}
       headerOverlap
       topBarHide={topBarHide}
@@ -87,8 +80,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
     >
       <Heading size="masthead" as="h2">События дня</Heading>
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
-        <div {...boundaryAnchor}>
-          <ItemsList>
+        <ItemsList>
             {(() => {
               let globalIndex = 0;
               return eventsGroupedByTime.map((timeGroup) => (
@@ -124,8 +116,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
                 </React.Fragment>
               ));
             })()}
-          </ItemsList>
-        </div>
+        </ItemsList>
       </section>
     </Screen>
   );

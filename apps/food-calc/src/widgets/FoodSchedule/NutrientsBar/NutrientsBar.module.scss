@@ -24,12 +24,13 @@
     // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
     margin: var(--space-6) 0 var(--space-2);
 
-    // Тающая волосяная бровка — копия `Masthead::after`.
+    // Тающая волосяная бровка — копия `Masthead::after`. Боковой инсет даёт сам
+    // лист (`--sys-inset-page` на `.headerOverlap`) → бровка симметрична краям (0/0).
     &::before {
         content: '';
         position: absolute;
-        left: var(--ap-inset, var(--space-4));
-        right: var(--space-3);
+        left: 0;
+        right: 0;
         top: 0;
         height: 1px;
         background: linear-gradient(90deg,
@@ -42,11 +43,20 @@
 }
 
 // Весь блок — одна кнопка. Без заливки/рамки в покое; отклик — тихий тинт.
+// Числа-грид + шеврон — соседи в flex-ряду (justify-end), НЕ absolute: правое
+// поле = боковой gutter листа (`--sys-inset-page`), числа разводит с шевроном
+// честный `gap`, а не прежний костыль `padding-right`. Лево/право 0 — gutter у листа.
 .block {
-    display: block;
+    display: flex;
+    // flex-start (не center): .cells — высокая колонка из 6 строк (Б/Ж/У/Кл/Ккал/
+    // Вода, «единицы друг под другом»); шеврон держится в ПРАВОМ ВЕРХНЕМ жёлобе
+    // (как прежний absolute top), а не уезжает в вертикальный центр колонки.
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: var(--space-3);
     width: 100%;
     position: relative;
-    padding: var(--space-5) var(--space-6) var(--space-1) var(--ap-inset, var(--space-4));
+    padding: var(--space-5) 0 var(--space-1);
     border: none;
     background: transparent;
     text-align: left;
@@ -64,11 +74,8 @@
     transition-duration: var(--press-in);
 }
 
-// Шеврон-намёк «открыть» — тихий, в правом верхнем жёлобе.
+// Шеврон-намёк «открыть» — тихий, flex-сосед справа от колонки чисел (не absolute).
 .chevron {
-    position: absolute;
-    top: var(--space-5);
-    right: var(--ap-inset, var(--space-4));
     width: 16px;
     height: 16px;
     color: var(--nt-muted);

@@ -15,35 +15,12 @@ import {
   useFoodEntryFlow,
 } from '@/features/food/food-entry-flow';
 import { AppBottomBar } from '@/shared/ui/AppBottomBar';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS } from '@/features/shared/long-press-item';
 import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { useNavigate } from 'react-router-dom';
 import { safeMutate } from '@/shared/lib/safeMutate';
-
-// Cheerful pastel families with semantic time-of-day progression
-// (lightest at morning, deepening towards graphite at night).
-const FOOD_DV_VARIANTS = [
-  'meadow',
-  'sunrise',
-  'sorbet',
-  'garden',
-  'lagoon',
-  'tropic',
-  'twilight',
-  // `plain` — neutral grey, identical across every time-of-day step: the
-  // list reads as fully colourless (no TOD tint, no period shift).
-  'plain',
-  // `lime` — the green parallel to Events' `lemon`: ONE pale lime-green
-  // (anchored on tropic's green) that barely shifts morning→night.
-  'lime',
-  // `lemon` — the Events palette applied to food: ONE pale warm-yellow hue
-  // that barely shifts morning→night.
-  'lemon',
-] as const;
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
@@ -78,12 +55,6 @@ const FoodSchedule = ({
   const writeFoodTarget = useMemo(() => ({ kind: 'schedule' as const, date }), [date]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
-
-  // Design-variant picker for the food list palette (graphite-blue family).
-  const { anchor: foodAnchor } = useDesignVariant('ScheduleFood', FOOD_DV_VARIANTS);
-  // Second anchor: how adjacent rows meet at their shared edge. Same key as
-  // ScheduleEvents so one DesignBar control drives food + event rows together.
-  const { anchor: boundaryAnchor } = useDesignVariant(ROW_BOUNDARY_KEY, ROW_BOUNDARY_VARIANTS);
 
   const startEdit = editFlow.startEdit;
   const onEditTime = useCallback(
@@ -161,7 +132,6 @@ const FoodSchedule = ({
 
   return (
     <Screen
-      className={styles.scheduleScreen}
       stickyTop={topSlot}
       headerOverlap
       topBarHide={topBarHide}
@@ -206,9 +176,8 @@ const FoodSchedule = ({
       }
     >
       <Heading size="masthead" as="h2">Еда и нутриенты</Heading>
-      <div {...foodAnchor} className={styles.foodListAnchor}>
-        <div {...boundaryAnchor}>
-          <ItemsList>
+      <div className={styles.foodListAnchor}>
+        <ItemsList>
             {(() => {
               let globalIndex = 0;
               const rendered = groups.map((group) => (
@@ -248,8 +217,7 @@ const FoodSchedule = ({
               ));
               return rendered;
             })()}
-          </ItemsList>
-        </div>
+        </ItemsList>
       </div>
       {/* Полоса-сводка нутриентов — в конце списка, всегда перед предложкой
           (InlineWriteFoodReview живёт в afterContent → рендерится после контента).
