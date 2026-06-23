@@ -26,7 +26,7 @@
     // Кегли тела/меты — на модульной сетке проекта (`--text-*`). Apple-вид держим
     // выбором ступеней: Body 16 (`--text-base`) · Footnote 12.8 (`--text-sm`).
     // Заголовок больше НЕ сидируется здесь — он рендерится примитивом
-    // <Heading size="card"> (`--text-lg`, 20px = Apple Title3).
+    // <Heading role="title"> (17px = Apple Title3 register).
     --analysis-fs-detail: var(--text-base);
     --analysis-fs-meta: var(--text-sm);
     --analysis-lh-detail: 1.5;
@@ -95,7 +95,7 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--sys-stack-section);
     // Отступы сняты (2026-06-13): разбор сидит прямо на листе, в один ряд с
     // заголовком «Сегодня». Боковой inset теперь даёт только сам лист
     // (`.headerOverlap`, --space-2). Снизу оставлен зазор над нижним баром.
@@ -110,7 +110,7 @@
 // экрана. Сам AppBottomBarShell прозрачный → пилюли «парят» на ambient-фоне,
 // как раньше в плавающем баре.
 .flowActions {
-    margin-top: var(--space-2);
+    margin-top: var(--sys-stack-row);
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-3));
 }
 

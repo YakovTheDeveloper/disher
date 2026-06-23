@@ -116,7 +116,7 @@
     border: none;
     border-radius: var(--radius-full);
     background: transparent;
-    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 14px;
     font-weight: 500;
     letter-spacing: 0;
@@ -179,7 +179,7 @@
     align-items: center;
     gap: var(--space-1);
     padding: var(--space-2) var(--space-4);
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0;
@@ -295,10 +295,12 @@
     --icon-btn-active-bg: #1a1a1a;
     --icon-btn-active-fg: #ffffff;
 
-    // Кнопка «назад»: подложка = серый фон страницы (сливается вверху на скриме,
-    // проступает серым кружком над белыми карточками при скролле); ink-шеврон, без рамки.
-    --bar-bg: var(--search-page-bg);
-    --bar-border: none;
+    // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
+    // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
+    // серым кружком над белыми карточками при скролле), ink-шеврон. Border тянется
+    // за surface (1px того же серого) → визуально без рамки. Санкционированный
+    // single-token scope-override (не per-surface бандл).
+    --sys-color-surface-floating: var(--search-page-bg);
     --back-fg: var(--color-ink-strong);
 
     // Нижний док (FoodSearchEmpty): lavender-cream ambient (--fse-bg, лаванда слева

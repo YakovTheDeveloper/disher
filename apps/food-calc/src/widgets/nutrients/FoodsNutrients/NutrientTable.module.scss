@@ -10,7 +10,7 @@
 
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sys-stack-section);
   padding: 0;
 }
 
@@ -69,7 +69,7 @@
   margin: 0;
   padding: var(--nutrient-card-padding);
   padding-left: var(--space-1);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--sys-stack-row);
   border-radius: var(--nutrient-card-radius);
   // overflow НЕ скрываем — юнит значения спущен под число (absolute, top:100%)
   // и садится в нижний margin карточки; overflow:hidden обрезал бы его (и листик

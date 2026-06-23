@@ -45,7 +45,7 @@ export const ModalHeader = ({
       <ArrowLeftIcon />
     </button>
     <div className={s.titleBlock}>
-      <Heading size={size === 'compact' ? 'drawer' : 'modal'} as="h2" className={s.title}>
+      <Heading role="headline" as="h2" className={s.title}>
         {title}
       </Heading>
       {subtitle != null && <span className={s.subtitle}>{subtitle}</span>}

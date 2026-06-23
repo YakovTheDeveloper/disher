@@ -108,7 +108,7 @@ const InfoIcon = () => (
       y="17"
       textAnchor="middle"
       fill="currentColor"
-      fontFamily="'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif"
+      style={{ fontFamily: 'var(--sys-text-family-serif)' }}
       fontStyle="italic"
       fontSize="16"
       fontWeight="300"

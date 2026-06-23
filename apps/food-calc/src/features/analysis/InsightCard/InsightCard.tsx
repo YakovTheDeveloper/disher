@@ -12,6 +12,7 @@ import {
 import PlusIcon from '@/shared/assets/icons/plus.svg?react';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './InsightCard.module.scss';
 
 export type InsightCardAction = 'none' | 'add' | 'delete';
@@ -98,7 +99,7 @@ const InsightCard = ({
     <article className={styles.card} data-strength={strength} data-valence={valence}>
       <div className={styles.text}>
         <div className={styles.head}>
-          <Heading as="h3" size="card">
+          <Heading as="h3" role="title" className={styles.cardTitle}>
             {sign && (
               <span className={styles.valenceSign} aria-hidden>
                 {sign}
@@ -108,7 +109,9 @@ const InsightCard = ({
           </Heading>
           {strengthLabel && <span className={styles.strength}>{strengthLabel}</span>}
         </div>
-        <p className={styles.detail}>{detail}</p>
+        <Text role="body" className={styles.detail}>
+          {detail}
+        </Text>
         {hasEvidence && (
           <div className={styles.evidence}>
             {days.map((d) => (

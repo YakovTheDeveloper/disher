@@ -9,6 +9,7 @@ import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
 import { AddToListPopover } from './AddToListPopover';
 import styles from './InlineWriteFoodReview.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 const REVIEW_INPUT_IDS = {
   // Уникальные id (отличаются от WriteFoodModal.REVIEW_INPUT_IDS) — на
@@ -258,10 +259,10 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
 
           {ambiguous.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>
+              <Heading as="h3" role="title" className={styles.sectionTitle}>
                 Уточните
                 <span className={styles.sectionCount}>{ambiguous.length}</span>
-              </h3>
+              </Heading>
               <ul className={styles.list}>
                 {ambiguous.map((a) => {
                   const selected =
@@ -311,10 +312,10 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
 
           {unresolved.length > 0 && (
             <section className={styles.section}>
-              <h3 className={styles.sectionTitle}>
+              <Heading as="h3" role="title" className={styles.sectionTitle}>
                 Не распознано
                 <span className={styles.sectionCount}>{unresolved.length}</span>
-              </h3>
+              </Heading>
               <ul
                 className={styles.list}
                 data-rescue-slot={unresolved.some((u) => !u.manual) ? 'true' : undefined}

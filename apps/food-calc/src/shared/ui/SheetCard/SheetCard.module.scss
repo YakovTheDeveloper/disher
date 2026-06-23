@@ -12,7 +12,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--sys-stack-row);
   // `--sheet-bg` / `--sheet-shadow` — точки переопределения для консьюмера: дом
   // на liquid-glass листе делает секции белыми + лёгкий подъём (см. Laboratory
   // `.ambientSheet`). Дефолт — off-white pearl, без тени.

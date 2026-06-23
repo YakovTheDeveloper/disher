@@ -59,7 +59,7 @@ const SearchFoodControls = ({
         {onBack && <BackButton onClick={onBack} />}
 
         {!hasFilter && title && (
-          <Heading size="drawer" as="h2" className={styles.title}>
+          <Heading role="headline" as="h2" className={styles.title}>
             {title}
           </Heading>
         )}

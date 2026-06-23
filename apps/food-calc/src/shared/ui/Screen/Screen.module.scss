@@ -17,38 +17,19 @@
     // свайп-слоя. iOS и так скроллит momentum-ом по умолчанию.
     overscroll-behavior: contain;
 
-    // Тон focus-scrim'а (см. `.screen::before` ниже). Custom-prop — token-gate ok.
-    --screen-scrim: rgba(15, 23, 42, 0.42);
     // Единый off-white поверхности экрана: фон позади листа (`.scrollWrap`) и сам
     // лист (`.headerOverlap`) красятся им → нет стыка, низ растворяется в тот же
     // тон. Страница может переопределить (например тёмный/серый экран).
-    --screen-surface: rgba(250, 250, 252, 1);
+    // Сидит на семантической роли «бумага» (--sys-color-surface-page = #FAFAF7):
+    // одна бумага на весь app, лист и фон-страницы унифицированы. Раньше был
+    // холодноватый rgba(250,250,252) — теперь тёплый канон (elevation-plan §6.5).
+    --screen-surface: var(--sys-color-surface-page);
 }
 
-// Focus-scrim: при фокусе write-bar'а (инпут «что ели») затемняем весь экран —
-// контент уходит в дымку, пилюля бара остаётся «в свету» (она в `.bottomBar`,
-// z-index:2 — НАД scrim'ом z-index:1; floating-кнопки z-index ≥100 тоже сверху).
-// Pure-CSS через `:has()` — проект уже опирается на него (`.bottomBar`-hide ниже).
-// `position:fixed` тут нельзя: слайды Embla на HomePage несут `contain:strict`/
-// `transform` и перехватывают containing-block у fixed-потомка; `absolute`
-// относительно `.screen` (position:relative) надёжен и кроет ровно видимый слайд.
-// Тап по затемнению снимает фокус: pointerdown по pseudo блюрит textarea →
-// `:has` перестаёт матчиться → scrim гаснет.
-.screen::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: var(--screen-scrim);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-.screen:has([data-write-bar] textarea:focus)::before {
-    opacity: 1;
-    pointer-events: auto;
-}
+// (Focus-scrim удалён 2026-06-23: затемнение всего экрана при фокусе write-бара
+// давало вспышки контраста на фокус/блюр — особенно у Событий, где панель оценки
+// дёргает фокус. Подсказка переехала в in-flow прослойку над баром, см.
+// WriteBarShell `.focusHint`.)
 
 .backgroundImage {
     position: absolute;
@@ -330,69 +311,26 @@
 .headerOverlap {
     position: relative;
     z-index: 1;
-    // Растягиваем лист на всю высоту скролл-вьюпорта (родитель `.screenScroll` —
-    // flex-колонка): на коротком контенте лист заполняет слайд до низа, off-white
-    // не обрывается. На длинном — basis auto + min-height auto держат высоту по
-    // контенту, лист скроллится.
     flex: 1 0 auto;
-    // Единый боковой gutter всех Screen-листов — семантический --sys-inset-page
-    // (16px, канон 2026-06-22). Карточки/заголовки/бары равняются на этот край.
     padding-right: var(--sys-inset-page);
     padding-left: var(--sys-inset-page);
 
-    // Верхняя «полка» листа: фиксированная зона сверху, в которой живут watermark-
-    // логотип (справа) и закрывающий её снизу divider. Резервируется на ВСЕХ
-    // overlap-листах. Заголовок (Masthead/contentHeader) к divider'у НЕ привязан —
-    // едет под полкой как обычный контент.
     --sheet-band-h: var(--space-8);
-    // Полка + воздух под divider'ом до первого контента — ОДИН отступ для всех
-    // экранов. Заголовок (Masthead или `contentHeader`) всегда идёт первым ребёнком
-    // и сам верхний воздух не несёт.
     padding-top: calc(var(--sheet-band-h) + var(--space-2));
 
-    // Стандартный фон листа — off-white поверхность экрана (тот же тон, что фон
-    // позади листа). На HomePage верх листа становится стеклянной полкой
-    // (`.sheetBand` backdrop-filter) — раньше выделение нёс цветной ambient-glow
-    // снизу ряда-индикатора, снят 2026-06-18 (грязнил под стеклом).
-    //
-    // Двухзонная заливка (НЕ перелив!): два стопа на ОДНОЙ позиции `--sheet-band-h`
-    // дают РЕЗКУЮ границу = два сплошных блока. Верхняя полка = `--header-overlap-band-bg`
-    // (по дефолту == surface → лист сплошной), низ = сплошной surface. HomePage делает
-    // band-зону прозрачной → под полкой проступает Hero, который фростит `.sheetBand`.
-    // Стык совпадает с divider'ом `::before` (top: --sheet-band-h) — шва не видно.
-    // `--header-overlap-surface` целиком задаёт `background` листа — «история»
-    // материала. Дефолт (fallback) = двухзонная заливка. Ось SheetMaterial (HomePage)
-    // подменяет его на плавный dissolve / сплошное стекло. `--header-overlap-blur` —
-    // backdrop-filter на ВЕСЬ лист (дефолт none; включает вариант all-glass).
-    // Цвет каждой из двух зон заливки разрешаем ОДИН раз, чтобы не повторять
-    // fallback-цепочку четырежды в градиенте. `--_*` — производные/внутренние
-    // (НЕ публичные хуки): HomePage переопределяет `--header-overlap-band-bg`/
-    // `-surface` с предка, эти var() резолвятся уже здесь, на `.headerOverlap`,
-    // с учётом наследования. Низ — всегда поверхность экрана.
-    --_band-fill: var(--header-overlap-band-bg, var(--screen-surface));
-    --_base-fill: var(--screen-surface);
-    background: var(--header-overlap-surface, linear-gradient(to bottom,
-                var(--_band-fill) 0,
-                var(--_band-fill) var(--sheet-band-h),
-                var(--_base-fill) var(--sheet-band-h),
-                var(--_base-fill) 100%));
+
+    background: linear-gradient(to bottom,
+            transparent 0,
+            transparent var(--sheet-band-h),
+            var(--sys-color-surface-page) var(--sheet-band-h),
+            var(--sys-color-surface-page) 100%);
     backdrop-filter: var(--header-overlap-blur, none);
     -webkit-backdrop-filter: var(--header-overlap-blur, none);
-    // Радиус верхних углов переопределяется токеном `--header-overlap-radius`
-    // (дефолт near-square `--radius-xs`; SwipeDeck поднимает до 2xl под tray-табы,
-    // см. SwipeDeck.module.scss).
     border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
     border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
 
-    // Дефолтный цвет watermark-логотипа (custom-prop — token-gate допускает; гасит
-    // raw-литерал в `background-color: var(...)` ниже). Это ИМЕННО дефолт-через-
-    // fallback (НЕ самоназначение `--header-overlap-logo-color`), чтобы предок
-    // (HomePage) мог переопределить `--header-overlap-logo-color` сверху по наследию.
     --header-overlap-logo-color-default: rgba(0, 0, 0, 0.08);
 
-    // Divider полки — тающая волосяная линейка, ВСЕГДА (дефолт листа, не зависит
-    // от наличия заголовка). Отделяет верхнюю полку (воздух + логотип) от контента.
-    // Цвет — чернила листа на 13% (gradient token-gate не гейтит).
     &::before {
         content: '';
         position: absolute;
@@ -400,9 +338,6 @@
         left: var(--sys-inset-page);
         right: var(--sys-inset-page);
         height: 1px;
-        // Цвет шва — чернила листа на 13% по дефолту; ось GlassEdge (вариант
-        // `rim-seam`) может переопределить `--sheet-seam-color` на светлый рефлекс,
-        // чтобы стык «стекло→бумага» тоже ловил свет.
         background: linear-gradient(90deg,
                 transparent 0%,
                 var(--sheet-seam-color, color-mix(in srgb, var(--color-ink) 13%, transparent)) 16%,
@@ -411,23 +346,15 @@
         pointer-events: none;
     }
 
-    // Watermark-логотип Disher принадлежит самому ЛИСТУ (а не заголовку):
-    // ненавязчивый бренд-знак справа-сверху В полке (над divider'ом). `z-index: -1`
-    // — лежит НАД фоном листа, но ПОД контентом. Виден всегда на overlap-экранах.
     &::after {
         content: '';
         position: absolute;
-        // По дефолту -1: НАД фоном листа, ПОД контентом. На HomePage поднимается
-        // над стеклянной полкой (`--header-overlap-logo-z: 1`) — белый знак ложится
-        // ПОВЕРХ фроста.
         z-index: var(--header-overlap-logo-z, -1);
         right: var(--space-4);
         top: var(--space-1);
         width: var(--header-overlap-logo-w, 70px);
         height: var(--header-overlap-logo-h, 20px);
         background-color: var(--header-overlap-logo-color, var(--header-overlap-logo-color-default));
-        // Лёгкая тень — только когда логотип белый поверх гравюры (HomePage задаёт
-        // токен); по дефолту none, на тихом dark-watermark тень не нужна.
         filter: var(--header-overlap-logo-shadow, none);
         -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
         mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;

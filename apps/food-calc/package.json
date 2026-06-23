@@ -27,7 +27,6 @@
     "@base-ui/react": "^1.4.1",
     "@floating-ui/react": "0.27.0",
     "@fontsource/alice": "^5.2.8",
-    "@fontsource/jost": "^5.2.8",
     "@fontsource/merriweather": "^5.2.11",
     "@fontsource/onest": "^5.2.11",
     "@fontsource/raleway": "^5.2.8",

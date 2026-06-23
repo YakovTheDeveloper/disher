@@ -10,17 +10,21 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(0, 0, 0, 0.2);
+  // Шестерёнка живёт в тёмной floating-пилюле бара (--sys-color-surface-floating):
+  // приглушённый БЕЛЫЙ глиф (бывш. приглушённый чёрный rgba(0,0,0,0.2) под белую
+  // пилюлю; канон тёмной обвязки 2026-06-23).
+  color: color-mix(in srgb, var(--sys-color-text-on-floating) 55%, transparent);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Инверсия (канон 2026-06-14): кнопка-в-подложке заливается ink, иконка белеет.
+  // Светлый флэш (канон 2026-06-23): тёмная пилюля на press заливается белым,
+  // иконка чернеет.
   &:active {
-    background: var(--color-ink);
-    color: var(--text-on-accent, #fff);
+    background: var(--sys-color-surface-floating-pressed);
+    color: var(--color-ink);
     transform: scale(0.94);
     transition-duration: var(--press-in);
   }

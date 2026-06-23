@@ -160,7 +160,7 @@ const FoodSchedule = ({
           searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
           searchLabel="Найти еду"
           searchText="выбрать из списка"
-          writeFoodPlaceholder="Напишите, что вы ели или"
+          writeFoodPlaceholder="Напишите, что вы ели"
           // Переносы регулируются `\n` прямо в строке (CSS white-space: pre-line);
           // без них длинные строки переносит auto-wrap по ширине 80%.
           writeFoodHint={'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30'}
@@ -175,7 +175,7 @@ const FoodSchedule = ({
         <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
-      <Heading size="masthead" as="h2">Еда и нутриенты</Heading>
+      <Heading role="display" masthead as="h2">Еда и нутриенты</Heading>
       <div className={styles.foodListAnchor}>
         <ItemsList>
             {(() => {

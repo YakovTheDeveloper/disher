@@ -61,14 +61,12 @@
   }
 }
 
+// Типографику несёт <Heading role="headline"> (миграция 2026-06-23 — голос в
+// примитиве). Контракт ниже: для заголовка типографика теперь в примитиве,
+// класс держит только выравнивание/цвет/отступ (палитру по-прежнему правят темы).
 .heading {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  line-height: 1.15;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
   text-align: right;
 }
 
@@ -92,13 +90,16 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  // Ритм полей формы (поле-ввода → кнопка submit) = row, не section: внутриформенный
+  // вертикальный шаг, по доке --sys-stack-row («между полями в форме»). Решение
+  // 2026-06-23 (/critique): col-flex gap не различает «между полями» и «между секциями».
+  gap: var(--sys-stack-row);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
 }
 
 .input {
@@ -252,15 +253,13 @@
     padding: var(--space-2) 0 var(--space-8);
   }
 
-  .heading {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
+  // .heading в stretch-варианте больше НЕ задаёт размер — типографику несёт
+  // <Heading role="headline"> (миграция 2026-06-23). Крупнее на stretch-экране —
+  // это выбор роли (display), а не bespoke font-size здесь.
 
   .subheading {
     font-size: var(--text-base);
-    margin-top: var(--space-3);
+    margin-top: var(--sys-stack-row);
   }
 
   .form {

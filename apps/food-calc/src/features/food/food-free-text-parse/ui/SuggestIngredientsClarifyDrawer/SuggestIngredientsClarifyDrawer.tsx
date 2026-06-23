@@ -21,7 +21,7 @@ export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
   return (
     <DrawerLayout a11yLabel="Уточнения">
       <div className={s.body}>
-        <Heading size="drawer" as="h2" className={s.title}>
+        <Heading role="headline" as="h2" className={s.title}>
           Уточнения
         </Heading>
         <AutoGrowSearch

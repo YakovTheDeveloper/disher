@@ -62,13 +62,8 @@
     --header-overlap-radius: var(--radius-2xl);
 }
 
-// ─── Материал контент-листа (band, баком 2026-06-22) ────────────────────────
-// Стеклянная полка: band-зона прозрачна (под полкой проступает фон/hero, фростит
-// `.sheetBand`), молочный веиль + blur. Divider-шов скрыт. Токены доезжают до
-// `.headerOverlap`/`.sheetBand` (Screen.module.scss). Форк `dissolve` снят —
-// `band` был живым дефолтом.
+
 .container {
-    --header-overlap-band-bg: transparent;
     --sheet-band-blur: blur(14px) saturate(1.4);
     --sheet-seam-color: transparent;
 }

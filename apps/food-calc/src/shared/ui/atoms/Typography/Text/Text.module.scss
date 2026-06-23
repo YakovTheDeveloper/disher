@@ -10,7 +10,7 @@
 
 // ── РОЛИ (целевой API, ярус sys · типографика) ───────────────────────────────
 // Композит body-роли (family+size+weight+lh+tracking) из --sys-text-* через
-// text-role(). Перекрывает базовый .text (font-family Jost → sys-sans Onest).
+// text-role(). Уточняет базовый .text размером/весом (family уже Onest-led sys-sans).
 // Цвет НЕ ставим (контекстный). text-role() разрешён только здесь и в Heading
 // (guard scripts/check-text-role.mjs).
 .body {
@@ -29,7 +29,7 @@
 // nav-таб / шаг-крошка). Единственный источник этого голоса в проекте — этот
 // примитив (Breadcrumbs + SwitcherTab рендерят <Text variant="navTabQuiet">).
 .navTabQuiet {
-  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-weight: 500;
   font-size: 15px;
@@ -39,12 +39,12 @@
   opacity: 0.22;
 }
 
-// sectionLabel — serif-italic подпись среднего кегля, тёмно-серая. ОДИН голос
-// для заголовка небольшой группы (секция нутриентов) И для метки одного поля
-// (FieldLabel рендерит <Text variant="sectionLabel"> внутри <label>). Громче
+// sectionLabel — serif-italic подпись среднего кегля, тёмно-серая. Заголовок
+// секции нутриентов (NutrientTable / NutrientPickerDrawer) — ЕДИНСТВЕННЫЙ
+// потребитель после флипа FieldLabel→role="label" sans (2026-06-23). Громче
 // navTabQuiet, тише display-Heading. Единственный источник этого вида в проекте.
 .sectionLabel {
-  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-weight: 500;
   font-size: 17px;

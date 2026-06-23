@@ -15,15 +15,15 @@ type Props = {
 /**
  * Канонная подпись поля/секции в overlay'ах. СЕМАНТИКУ несёт сам FieldLabel
  * (`<label htmlFor>` для поля, `<span>` для секции без инпута); ВИД — общий
- * примитив `<Text variant="sectionLabel">`. Один serif-italic голос для меток
- * и заголовков секций, заданный в одном месте (Text.module.scss). `.fieldLabel`
- * несёт только раскладку (display/padding), не типографику.
+ * примитив `<Text role="label">` (body-ярус sans из `--sys-text-*`, задан в
+ * одном месте — Text.module.scss). `.fieldLabel` несёт только раскладку
+ * (display/padding), не типографику.
  */
 const FieldLabel = ({ children, htmlFor, hint, className }: Props) => (
   <Text
     as={htmlFor != null ? 'label' : 'span'}
     htmlFor={htmlFor}
-    variant="sectionLabel"
+    role="label"
     className={clsx(styles.fieldLabel, className)}
   >
     {children}

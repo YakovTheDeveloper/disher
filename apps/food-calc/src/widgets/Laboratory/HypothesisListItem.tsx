@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { relativeTimeRu } from '@/shared/lib/time/relativeTimeRu';
 import styles from './HypothesisListItem.module.scss';
 
@@ -67,8 +68,14 @@ const HypothesisListItem = ({
   const meta = showMeta ? relativeTimeRu(hypothesis.createdAt) : '';
   const content = (
     <>
-      <span className={styles.title}>{hypothesis.title}</span>
-      {hypothesis.body && <span className={styles.body}>{hypothesis.body}</span>}
+      <Heading as="span" role="title" className={styles.title}>
+        {hypothesis.title}
+      </Heading>
+      {hypothesis.body && (
+        <Text as="span" role="body" className={styles.body}>
+          {hypothesis.body}
+        </Text>
+      )}
       {meta && <span className={styles.meta}>{meta}</span>}
     </>
   );

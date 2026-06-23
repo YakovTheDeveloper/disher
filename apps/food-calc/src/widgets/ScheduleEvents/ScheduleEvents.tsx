@@ -78,7 +78,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       key={3}
       bottomBar={<EventsWriteBar scheduleId={date} />}
     >
-      <Heading size="masthead" as="h2">События дня</Heading>
+      <Heading role="display" masthead as="h2">События дня</Heading>
       <section className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList>
             {(() => {

@@ -3,22 +3,23 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import s from './WriteBarShell.module.scss';
 
-const SendArrowIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-    {/* Optically centred: an arrow's visual weight sits toward the head, so the
-        glyph is nudged right ~0.4 to read as centred inside the circle. Slightly
-        shorter shaft + a hair bolder stroke balance it at the coin's size. */}
-    <g transform="translate(0.4 0)">
-      <path
-        d="M3.7 9h9.6M9.3 4.8 13.7 9 9.3 13.2"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </g>
+// DesignBar-предложка 2026-06-23: write-бар «не читался как мессенджер-инпут».
+// Анкор на `.wrap` → 🎨-бар листает форму вживую. 2 варианта (glass/white/gray
+// сняты): `field` (дефолт) — типовой текстовый инпут форм проекта; `cta` —
+// фирменная brand-CTA-заливка (как <Button variant="brand">). НЕЗАВИСИМО от
+// варианта: поле full-width, постоянная иконка send (ниже), плавающая медаль Еды
+// с ~25% overlap. SCSS — внизу WriteBarShell.module.scss + WriteBarMedal.module.scss.
+const WRITE_BAR_SURFACE_VARIANTS = ['field', 'cta'] as const;
+
+// Минималистичный «бумажный самолётик» — канон send-иконки (Telegram-стиль,
+// уже стандарт мессенджер-инпута). Залит currentColor (на тёмной монете читается
+// белым). Заменил прежнюю стрелку 2026-06-23: усиливает айдентику «отправить».
+const SendPlaneIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>
 );
 
@@ -112,7 +113,11 @@ export interface WriteBarShellProps {
   sendAriaLabel?: string;
   /** Affordance before the field, inside the pill (e.g. paperclip). Never collapses. */
   leftSlot?: ReactNode;
-  /** Affordance after the field (medal / arc). Collapses on focus. */
+  /**
+   * Affordance AFTER the pill, as a detached sibling (medal / arc). It sits
+   * OUTSIDE the glass pill, kept in place at the far right; the pill shrinks to
+   * end before it (food bar). Collapses on focus so the pill takes its place.
+   */
   rightSlot?: ReactNode;
   /** Replaces the entire input field (e.g. Food ready-state CTA). Forces collapsed. */
   fieldOverride?: ReactNode;
@@ -129,11 +134,11 @@ export interface WriteBarShellProps {
    */
   blurOnSubmit?: boolean;
   /**
-   * Opt-in: the pill's fill + border dissolve toward the right end (near the
-   * medal), so the pill «opens» toward it. Only the food bar (WriteFoodInput)
-   * uses this; Analysis/Events keep a plain even border.
+   * Fired when the text field gains focus. Events uses it for the inline
+   * scale-panel swap-back: tapping the field closes the panel and brings the
+   * keyboard back. Runs alongside the internal keyboard-scroll.
    */
-  fadeRight?: boolean;
+  onFieldFocus?: () => void;
 }
 
 /**
@@ -163,9 +168,12 @@ export const WriteBarShell = ({
   className,
   scrollToOnSubmit,
   blurOnSubmit = false,
-  fadeRight = false,
+  onFieldFocus,
 }: WriteBarShellProps) => {
   const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
+  // Surface предложка — один анкор на общий каркас (все 3 бара делят его через
+  // refCount). Только `anchor` нужен (CSS читает `data-dv-v`); `variant` не используем.
+  const { anchor: surfaceAnchor } = useDesignVariant('WriteBarSurface', WRITE_BAR_SURFACE_VARIANTS);
 
   const [focused, setFocused] = useState(false);
 
@@ -177,7 +185,10 @@ export const WriteBarShell = ({
     : { visible: expanded && hasText, enabled: online && hasText };
 
   const showSpinner = busy;
-  const showSend = !busy && send.visible;
+  // Постоянная иконка «отправить» (предложка 2026-06-23): рендерим всегда, пока
+  // есть поле и нет загрузки — disabled, пока send не enabled. Усиливает айдентику
+  // мессенджер-инпута (раньше пряталась до фокуса+текста через send.visible).
+  const showSend = !busy && !fieldOverride;
 
   const handleSubmit = useCallback(() => {
     if (!send.enabled) return;
@@ -205,6 +216,7 @@ export const WriteBarShell = ({
 
   return (
     <div
+      {...surfaceAnchor}
       className={clsx(s.wrap, className)}
       data-write-state={writeState}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
@@ -212,67 +224,82 @@ export const WriteBarShell = ({
     >
       {hint ? (
         <div className={s.focusHint} data-visible={expanded || undefined} aria-hidden="true">
-          {renderHint(hint)}
+          <span className={s.focusHintInner}>{renderHint(hint)}</span>
         </div>
       ) : null}
+      {/* barLine = flex row of the glass pill + the detached medal sibling.
+          `data-expanded` rides here (not only the pill) so the medal — now
+          OUTSIDE the pill — still reads the collapse state cross-module.
+          `data-detached` (rightSlot present = food medal) mirrors the medal's
+          footprint as a left margin on the pill, so the pill sits dead-centre on
+          screen regardless of the medal sitting at the right. */}
       <div
-        className={s.writeBarRow}
+        className={s.barLine}
         data-expanded={expanded || undefined}
-        data-pressed={barPressed || undefined}
-        data-has-left={leftSlot ? '' : undefined}
-        data-fade-right={fadeRight ? '' : undefined}
+        data-detached={rightSlot ? '' : undefined}
       >
-        {leftSlot}
-        {fieldOverride ?? (
-          <div
-            className={clsx(s.writeField, s.writeBarInput)}
-            data-state={busy ? 'loading' : 'idle'}
-            {...barPressProps}
-          >
-            <div className={s.writeFieldRow}>
-              <AutoGrowSearch
-                id={inputId}
-                value={value}
-                onChange={onChange}
-                onSubmit={handleSubmit}
-                onFocus={(e) => {
-                  setFocused(true);
-                  scrollInputAboveKeyboard(e.currentTarget);
-                }}
-                onBlur={() => setFocused(false)}
-                placeholder={placeholder}
-                renderPlaceholder={accentPlaceholder ? renderAccent(placeholder) : undefined}
-                maxRows={focused ? maxRowsFocused : 1}
-                maxLength={maxLength}
-                collapseOnBlur={false}
-                className={s.writeFieldInput}
-                readOnly={readOnly}
-              />
+        <div
+          className={s.writeBarRow}
+          data-expanded={expanded || undefined}
+          data-pressed={barPressed || undefined}
+          data-has-left={leftSlot ? '' : undefined}
+        >
+          {leftSlot}
+          {fieldOverride ?? (
+            <div
+              className={clsx(s.writeField, s.writeBarInput)}
+              data-state={busy ? 'loading' : 'idle'}
+              {...barPressProps}
+            >
+              <div className={s.writeFieldRow}>
+                <AutoGrowSearch
+                  id={inputId}
+                  value={value}
+                  onChange={onChange}
+                  onSubmit={handleSubmit}
+                  onFocus={(e) => {
+                    setFocused(true);
+                    onFieldFocus?.();
+                    scrollInputAboveKeyboard(e.currentTarget);
+                  }}
+                  onBlur={() => setFocused(false)}
+                  placeholder={placeholder}
+                  renderPlaceholder={accentPlaceholder ? renderAccent(placeholder) : undefined}
+                  maxRows={focused ? maxRowsFocused : 1}
+                  maxLength={maxLength}
+                  collapseOnBlur={false}
+                  className={s.writeFieldInput}
+                  readOnly={readOnly}
+                />
+              </div>
             </div>
-          </div>
-        )}
-        {/* Right slot = medal (collapses on focus). The send / spinner sits in the
-            SAME slot as a coin of the medal's footprint: on focus the medal
-            collapses and the send coin takes its place. */}
+          )}
+          {/* Send / spinner lives INSIDE the pill, at its right edge. Persistent
+              (предложка 2026-06-23): the coin always shows while a field is present
+              — disabled until send is enabled — to read as a messenger send button.
+              The detached medal floats above it (collapses on focus). */}
+          {showSpinner ? (
+            <div className={s.sendCoin} data-busy="" role="status" aria-label="Загрузка">
+              <Spinner size={22} />
+            </div>
+          ) : showSend ? (
+            <button
+              type="button"
+              className={s.sendCoin}
+              // preventDefault keeps focus: a tap would otherwise blur the input →
+              // collapse → unmount the coin before the click lands.
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={handleSubmit}
+              disabled={!send.enabled}
+              aria-label={online ? (sendAriaLabel ?? 'Отправить') : 'Нет сети'}
+            >
+              <SendPlaneIcon />
+            </button>
+          ) : null}
+        </div>
+        {/* Detached medal — sits OUTSIDE the pill, kept in place at the far right.
+            Collapses on focus (reads `[data-expanded]` off `.barLine`). */}
         {rightSlot}
-        {showSpinner ? (
-          <div className={s.sendCoin} data-busy="" role="status" aria-label="Загрузка">
-            <Spinner size={22} />
-          </div>
-        ) : showSend ? (
-          <button
-            type="button"
-            className={s.sendCoin}
-            // preventDefault keeps focus: a tap would otherwise blur the input →
-            // collapse → unmount the coin before the click lands.
-            onPointerDown={(e) => e.preventDefault()}
-            onClick={handleSubmit}
-            disabled={!send.enabled}
-            aria-label={online ? (sendAriaLabel ?? 'Отправить') : 'Нет сети'}
-          >
-            <SendArrowIcon />
-          </button>
-        ) : null}
       </div>
     </div>
   );

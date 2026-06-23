@@ -7,36 +7,17 @@
 // pill height come from the `--bar-*` tokens in `.shell` so the date pill stays
 // in one grid with the account/center pills.
 
-// ─── Local tokens (defaults — overridden per bar-shell variant) ────────
+// Высота-пол для ВСЕХ пилюль бара (account / center / date) — единый источник,
+// чтобы пилюли не разъезжались по вертикали. SCSS-переменная (compile-time, проходит
+// token-gate, не плодит bespoke custom-prop). AccountPanel тоже 44px.
+$pill-h: 44px;
 
 .shell {
-  // Белая пилюля (2026-06-19): серый framed-plate снят. Рецепт «серая подложка +
-  // белое кольцо» теперь зарезервирован ТОЛЬКО за медалью «Список еды»
-  // (WriteBarMedal) — она единственная в своём роде. Обвязка (меню / центр / дата)
-  // и нижняя кнопка «Мои открытия» говорят на одном «белом» языке: белая заливка +
-  // тонкая ink-окаёмка + мягкая float-тень. Все три пилюли читают эти `--bar-*`
-  // токены → один общий облик; blur по-прежнему снят (непрозрачные пилюли).
-  --bar-bg: #fff;
-  --bar-backdrop: none;
-  --bar-border: 1px solid rgba(31, 42, 68, 0.12);
-  --bar-pad-y: 8px;
-
-  // Цвет глифов/текста обвязки (центр-пилюля, шеврон «назад»). Живёт в семье
-  // --bar-* как сосед --bar-bg/--bar-border (бывш. misnamed --seg-color; --seg-tap/
-  // -font/-letter сняты 2026-06-22 — tap не читался, font=inherit/letter=0 = дефолты).
-  --bar-fg: rgba(0, 0, 0, 0.78);
-
-  // ─── Pill scale (single source of truth) ─────────────────────────────
-  // Высота-пол для ВСЕХ пилюль бара (account / center / date). Любая пилюля
-  // тянется на эту высоту, поэтому добавление новой пилюли или рост её
-  // контента не может разъехаться по вертикали с соседями. AccountPanel
-  // тоже 44px — токен держит date/center в той же сетке.
-  --bar-pill-h: 44px;
-  // Размер мета-строки (месяц / dd.mm) = глобальный --text-meta, общий со
-  // сводкой нутриентов в этом же баре (NutrientsSummaryButton).
-  --bar-meta-size: var(--text-meta);
-
-
+  // Тёмная floating-обвязка (канон 2026-06-23, выбор B предложки s_364ea3f6): все
+  // пилюли (аккаунт / центр / дата) + круглый «назад» = чёрная пилюля кнопки даты
+  // через sys-роль `--sys-color-surface-floating` (#0a0a0a, контент белый, на press
+  // светлый флэш). Бывший component-named бандл `--bar-*` распущен. Пилюли читают
+  // sys-роли напрямую; blur снят (непрозрачные пилюли).
 
   // Floating overlay над контентом: иначе HomeTopBar занимает строку
   // в flex-layout родителя, swipeArea получает свою прямоугольную
@@ -87,7 +68,7 @@
   // через line-clamp ниже. (До back-кнопки было 110px — под один account.)
   max-width: calc(100% - 156px);
   text-align: center;
-  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-size: 20px;
   font-weight: 600;
@@ -138,46 +119,6 @@
   }
 }
 
-// Абсолютно центрированный pill для произвольного контента (HomePage —
-// nutrients summary). Геометрия и поверхность повторяют `.accountSlot`/
-// `.dateSegment`: те же `--bar-*` токены → один и тот же look.
-.centerSlot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--bar-pill-h);
-  box-sizing: border-box;
-  background: var(--bar-bg);
-  border: var(--bar-border);
-  box-shadow: var(--sys-elevation-action-rest);
-  border-radius: var(--radius-full);
-  backdrop-filter: var(--bar-backdrop);
-  -webkit-backdrop-filter: var(--bar-backdrop);
-  padding: 4px 10px;
-  // Резерв под account-pill слева (~44px) + date-segment справа (~110px) +
-  // gap'ы, чтобы центр не наезжал на края. На уже-узких экранах кнопка
-  // нутриентов укоротится за счёт собственного `text-overflow`.
-  max-width: calc(100% - 170px);
-  // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу),
-  // background — для press-инверсии. Оба composite-only.
-  transition:
-    transform var(--duration-normal) var(--easing-default),
-    opacity var(--duration-normal) var(--easing-default),
-    background var(--press-out) var(--easing-default);
-
-  // Инверсия (канон 2026-06-14): подложка-обёртка владеет заливкой. На press
-  // пилюля заливается ink ЦЕЛИКОМ (иначе ink внутренней кнопки оставлял бы
-  // белый ореол от этого padding'а); текст внутри белеет своим :active.
-  // transform НЕ ставим — перебил бы центрирующий translate(-50%, -50%).
-  &:active {
-    background: var(--color-ink);
-    transition-duration: var(--press-in);
-  }
-}
-
 // AccountPanel — первый flex-child. Слева, перед leadingSlot
 // (SwitcherTab в hero-варианте) и dateSegment (margin-left:auto уводит
 // дату вправо). Сам слот теперь — «парящая» круглая pill'а с
@@ -188,15 +129,13 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-height: var(--bar-pill-h);
+  min-height: $pill-h;
   box-sizing: border-box;
   margin-right: 4px;
-  background: var(--bar-bg);
-  border: var(--bar-border);
+  background: var(--sys-color-surface-floating);
+  border: 1px solid var(--sys-color-surface-floating);
   box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--radius-full);
-  backdrop-filter: var(--bar-backdrop);
-  -webkit-backdrop-filter: var(--bar-backdrop);
   // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу).
   transition:
     transform var(--duration-normal) var(--easing-default),
@@ -210,7 +149,7 @@
   padding: 4px 8px;
   margin: 0;
   font: inherit;
-  color: var(--bar-fg);
+  color: var(--sys-color-text-on-floating);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
@@ -223,11 +162,11 @@
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default);
 
-  // Инверсия (канон 2026-06-14): пилюля бара на press заливается ink, контент
-  // белеет. Вход мгновенный (--press-in), выход мягкий (--press-out).
+  // Светлый флэш (канон 2026-06-23): тёмная пилюля на press заливается белым,
+  // контент чернеет. Вход мгновенный (--press-in), выход мягкий (--press-out).
   &:active {
-    background: var(--color-ink);
-    color: var(--text-on-accent, #fff);
+    background: var(--sys-color-surface-floating-pressed);
+    color: var(--color-ink);
     transition-duration: var(--press-in);
   }
 }
@@ -235,27 +174,25 @@
 .dateSegment {
   // Воздух по бокам по сетке проекта (space-5 = 20px) вместо raw 14px.
   --date-pad-x: var(--space-5);
-  // Вертикальный паддинг минимален — высоту пилюли держит `--bar-pill-h`
+  // Вертикальный паддинг минимален — высоту пилюли держит `$pill-h`
   // (min-height ниже), а `.segment` (inline-flex, align-items:center)
   // центрирует day/dd.mm-стопку внутри неё. Так date-пилюля ровно в одной
   // сетке с account/center и не «вырастает» из-за serif-дня.
   --date-pad-y: 4px;
 
-  // Палитра date-пилюли (ink-inline, баком 2026-06-22 — форк paper-inline снят):
-  // чёрная пилюля, белый текст. День/разделитель/цифры красятся через --inline-*.
-  --bar-border: 1px solid var(--color-ink-strong);
+  // Контент date-пилюли: белый день/цифры, приглушённый разделитель. Сама
+  // поверхность теперь общая с остальными пилюлями (--sys-color-surface-floating —
+  // 2026-06-23 кнопка даты перестала быть исключением, весь бар тёмный).
   --inline-day: #fff;
   --inline-num: rgba(255, 255, 255, 0.92);
   --inline-divider: rgba(255, 255, 255, 0.22);
 
-  min-height: var(--bar-pill-h);
+  min-height: $pill-h;
   box-sizing: border-box;
-  background: var(--color-ink-strong);
-  border: var(--bar-border);
+  background: var(--sys-color-surface-floating);
+  border: 1px solid var(--sys-color-surface-floating);
   box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--radius-full);
-  backdrop-filter: var(--bar-backdrop);
-  -webkit-backdrop-filter: var(--bar-backdrop);
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
   // Перебивает transition из `.segment` — добавляет transform/opacity для
@@ -288,7 +225,7 @@
 // Короткий serif-день («Пн») — основной день inline-пилюли.
 .dateWeekdayShort {
   display: block;
-  font-family: 'Source Serif 4', 'Merriweather', serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-size: 17px;
   font-weight: 600;
@@ -306,7 +243,7 @@
   width: auto;
   padding-left: 8px;
   border-left: 1px solid var(--inline-divider);
-  font-size: var(--bar-meta-size);
+  font-size: var(--text-meta);
   line-height: 1.2;
 }
 
@@ -324,15 +261,18 @@
   color: var(--inline-num);
 }
 
-// ГОЧА инверсии: у dd.mm собственный color — каскад от .segment:active его не
-// перекрасит. Наследуем белый кнопки на press; color-transition держит выход в
-// темпе с фоном пилюли (вход мгновенный через --press-in).
+// Плавный выход цвета dd.mm в темпе с фоном пилюли (вход мгновенный --press-in).
 .dateDdmm {
   transition: color var(--press-out) var(--easing-default);
 }
 
-.dateSegment:active .dateDdmm {
-  color: inherit;
+// Светлый флэш (2026-06-23): на press вся палитра контента date-пилюли (day /
+// divider / dd.mm красятся через --inline-*) чернеет, чтобы читаться на белой
+// заливке. Flip одним местом — вместо перекраски каждого глифа.
+.dateSegment:active {
+  --inline-day: var(--color-ink);
+  --inline-num: var(--color-ink);
+  --inline-divider: rgba(10, 10, 10, 0.22);
   transition-duration: var(--press-in);
 }
 
@@ -359,14 +299,6 @@
   pointer-events: none;
 }
 
-// centerSlot центрируется через translate(-50%, -50%) — сохраняем X, добавляем
-// вертикальный увод поверх него.
-.shell[data-topbar-hide='all'] .centerSlot {
-  transform: translate(-50%, calc(-50% - var(--top-bar-h, 80px)));
-  opacity: 0;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
 
   // Скрытие (transform/opacity) становится мгновенным, но press-инверсия
@@ -374,10 +306,6 @@
   // accountSlot своей press-анимации не имеет → ему просто `none`.
   .accountSlot {
     transition: none;
-  }
-
-  .centerSlot {
-    transition: background var(--press-out) var(--easing-default);
   }
 
   .dateSegment {

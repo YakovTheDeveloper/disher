@@ -42,6 +42,19 @@ describe('pendingScale → commitPendingScale', () => {
     expect(scales).toEqual([{ kind: 'scale', value: 4, label: 'Боль' }]);
   });
 
+  it('appends a DIFFERENT label as a second state (multiple states per event)', () => {
+    const s = useEventDraftStore.getState();
+    s.setPendingScale({ value: 7, label: 'Настроение' });
+    s.commitPendingScale();
+    s.setPendingScale({ value: 4, label: 'Энергия' });
+    s.commitPendingScale();
+    const scales = useEventDraftStore.getState().draft.atoms.filter((a) => a.kind === 'scale');
+    expect(scales).toEqual([
+      { kind: 'scale', value: 7, label: 'Настроение' },
+      { kind: 'scale', value: 4, label: 'Энергия' },
+    ]);
+  });
+
   it('keeps legacy tag/relation atoms when upserting the scale', () => {
     const s = useEventDraftStore.getState();
     s.addAtom({ kind: 'tag', value: 'работа' });

@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from '@/features/auth/auth-store';
 import authScreenStyles from '@/features/auth/AuthScreen.module.scss';
 import authFormStyles from '@/features/auth/AuthForm.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 type VerifyState =
   | { kind: 'verifying' }
@@ -78,7 +79,7 @@ export default function VerifyEmailPage() {
 
       <div className={authFormStyles.container}>
         <header className={authFormStyles.header}>
-          <h1 className={authFormStyles.heading}>{titleFor(state)}</h1>
+          <Heading as="h1" role="headline" className={authFormStyles.heading}>{titleFor(state)}</Heading>
           <p className={authFormStyles.subheading}>{subtitleFor(state)}</p>
         </header>
 

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 type Props = {
   email: string;
@@ -35,7 +36,7 @@ export function CheckInboxView({ email, layout }: Props) {
   return (
     <div className={styles.container} data-auth-layout={layout}>
       <header className={styles.header}>
-        <h1 className={styles.heading}>Проверьте почту</h1>
+        <Heading as="h1" role="headline" className={styles.heading}>Проверьте почту</Heading>
         <p className={styles.subheading}>
           Мы отправили ссылку для подтверждения на <strong>{email}</strong>.
           Перейдите по ней, чтобы войти.

@@ -36,14 +36,14 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
 }
 
+// Типографику несёт <Text role="label"> (миграция 2026-06-23 — трио «Оформление»/
+// «Данные»/«Опасная зона» ушло с serif-italic на sans label). Класс — layout-слот +
+// явный цвет (база + хук .accordionToggle:active).
 .sectionLabel {
   margin: 0;
-  font-family: 'Source Serif 4', Georgia, serif;
-  font-style: italic;
-  font-size: 19px;
   color: var(--text-primary);
 }
 
@@ -74,8 +74,8 @@
 .accordionBody {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
+  gap: var(--sys-stack-row);
+  margin-top: var(--sys-stack-row);
   animation: sectionReveal 200ms var(--easing-default);
 }
 
@@ -147,7 +147,7 @@
 .danger {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
   // Park at the bottom of the (viewport-filling) container — «снизу основного
   // потока», but still in the scroll flow, not a pinned footer.
   margin-top: auto;
@@ -180,12 +180,9 @@
   padding: 0;
   border: none;
   background: transparent;
-  // Same serif-italic rhythm as «Оформление»/«Данные» (.sectionLabel) — these
-  // are now sibling section headers in one flow; red is the only divergence,
-  // carrying the «danger» signal on its own.
-  font-family: 'Source Serif 4', Georgia, serif;
-  font-style: italic;
-  font-size: 19px;
+  // Текст лейбла несёт <Text role="label"> (миграция 2026-06-23 — трио ушло на sans
+  // label, см. .sectionLabel); роль цвет не ставит, поэтому красный «danger»-тон
+  // наследуется от кнопки. Шрифт-правила убраны.
   color: #b03423;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;

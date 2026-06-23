@@ -60,27 +60,54 @@ const AnalysisResult = ({
   hideSectionHeaders = false,
   sheetHeader = '',
 }: Props) => {
-  const renderSection = (title: string, children: React.ReactNode) =>
-    bare ? (
+  // `sheetHeader` introduces the WHOLE result, not each section — so it rides
+  // only the FIRST non-empty non-bare плашка. Computed up-front (not via a
+  // render-time mutable flag — that's fragile under the React Compiler's
+  // memoization): the section order is observations → insights → hypotheses, so
+  // the first one with rows owns the header. Without this a non-bare caller with
+  // 2+ non-empty sections would stack «Результат» 2–3× (one per SheetCard).
+  // Today only DishAnalysisScreen is non-bare and it passes a single section, so
+  // the guard is latent; it keeps a future multi-section caller honest.
+  const firstSectionKey: 'observations' | 'insights' | 'hypotheses' | null =
+    observations.length > 0
+      ? 'observations'
+      : insights.length > 0
+        ? 'insights'
+        : hypotheses.length > 0
+          ? 'hypotheses'
+          : null;
+
+  const renderSection = (
+    sectionKey: 'observations' | 'insights' | 'hypotheses',
+    title: string,
+    children: React.ReactNode,
+  ) => {
+    if (bare) {
       // `data-analysis-*` are stable styling hooks (the hashed module classes
       // can't be reached from a consumer's scss). The home «Открытия» slide
       // restyles these under `.ambientSheet` into the Apple type system; other
       // consumers (long modal / dish) are unaffected — they're not under it.
-      <section className={styles.bareBlock} data-analysis-section="">
-        {!hideSectionHeaders && (
-          <Heading size="drawer" as="h3" className={styles.bareHead}>
-            {title}
-          </Heading>
-        )}
-        <div className={styles.list} data-analysis-list="">
-          {children}
-        </div>
-      </section>
-    ) : (
-      <SheetCard header={sheetHeader || undefined}>
+      return (
+        <section className={styles.bareBlock} data-analysis-section="">
+          {!hideSectionHeaders && (
+            <Heading role="headline" as="h3" className={styles.bareHead}>
+              {title}
+            </Heading>
+          )}
+          <div className={styles.list} data-analysis-list="">
+            {children}
+          </div>
+        </section>
+      );
+    }
+    const header =
+      sectionKey === firstSectionKey ? sheetHeader || undefined : undefined;
+    return (
+      <SheetCard header={header}>
         <div className={styles.list}>{children}</div>
       </SheetCard>
     );
+  };
 
   return (
     <div className={styles.root} data-analysis-root="">
@@ -93,6 +120,7 @@ const AnalysisResult = ({
       <div className={styles.sections} data-analysis-sections="">
         {observations.length > 0 &&
           renderSection(
+            'observations',
             '',
             // Read-only reference: render through InsightCard with a neutral
             // valence (no sign/label) and action="none" (no «+ к себе»). An
@@ -110,6 +138,7 @@ const AnalysisResult = ({
 
         {insights.length > 0 &&
           renderSection(
+            'insights',
             '',
             insights.map((insight, idx) => (
               <InsightCard
@@ -124,6 +153,7 @@ const AnalysisResult = ({
 
         {hypotheses.length > 0 &&
           renderSection(
+            'hypotheses',
             '',
             hypotheses.map((hypothesis, idx) => (
               <HypothesisCard key={idx} hypothesis={hypothesis} />

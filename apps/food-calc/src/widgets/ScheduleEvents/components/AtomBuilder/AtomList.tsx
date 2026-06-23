@@ -6,6 +6,7 @@
 
 import { Atom, isScaleAtom, isTagAtom, isRelationAtom } from '@/entities/schedule-event';
 import styles from './AtomList.module.css';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 export interface AtomListProps {
   atoms: Atom[];
@@ -55,7 +56,7 @@ export const AtomList = ({ atoms, onRemove, className = '' }: AtomListProps) => 
 
         return (
           <section key={kind} className={styles.section}>
-            <h4 className={styles.sectionTitle}>{SECTION_TITLES[kind]}</h4>
+            <Heading as="h4" role="headline" className={styles.sectionTitle}>{SECTION_TITLES[kind]}</Heading>
             <div className={styles.chips}>
               {group.map(({ atom, index }) => (
                 <div key={index} className={styles.atomChip} data-kind={kind}>

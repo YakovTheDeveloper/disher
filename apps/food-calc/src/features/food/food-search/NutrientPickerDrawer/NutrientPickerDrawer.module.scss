@@ -5,7 +5,7 @@
 .root {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--sys-stack-section);
     padding: var(--space-2) var(--sys-inset-panel) var(--space-8);
 }
 
@@ -25,7 +25,7 @@
 .choiceGroups {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
+    gap: var(--sys-stack-section);
 }
 
 .group {

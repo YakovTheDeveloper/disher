@@ -216,7 +216,7 @@
 
 // Details = serif italic subtitle (как HomePage .detailsSubtitle).
 .detailsSubtitle {
-  font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-size: var(--text-xs);
   color: var(--text-muted);

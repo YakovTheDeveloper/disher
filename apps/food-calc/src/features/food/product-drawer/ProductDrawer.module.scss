@@ -101,7 +101,7 @@ $sky-ink-soft: rgba(30, 64, 124, 0.55);
 $pill-radius: 14px;
 
 .portions {
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--sys-stack-row);
 }
 
 // Шапка = единственный ряд-toggle на всю ширину: слева заголовок + счётчик,
@@ -176,7 +176,7 @@ $pill-radius: 14px;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    margin-top: var(--space-2);
+    margin-top: var(--sys-stack-row);
     padding: var(--space-2) var(--space-3);
     border: 1.5px dashed $sky-stripe;
     border-radius: $pill-radius;
@@ -221,7 +221,7 @@ $pill-radius: 14px;
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--sys-stack-row);
 }
 
 // Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
@@ -260,7 +260,7 @@ $pill-radius: 14px;
 
 .normRowFull {
     display: flex;
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--sys-stack-row);
 }
 
 .normSlot .normButton,
@@ -273,7 +273,7 @@ $pill-radius: 14px;
     display: inline-flex;
     align-items: baseline;
     gap: var(--space-1);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--sys-stack-row);
 }
 
 .quantityUnit {
@@ -291,7 +291,7 @@ $pill-radius: 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-2);
+    gap: var(--sys-stack-row);
     padding: var(--space-6) var(--space-3);
     text-align: center;
 }
@@ -368,7 +368,7 @@ $pill-radius: 14px;
 // AI-подбор над таблицей — отделён снизу. Тело уже даёт боковой отступ.
 .suggestRow {
     display: flex;
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--sys-stack-row);
 }
 
 // Семантический warning (масса грамм-нутриентов > 100 г) — амбер-полоса с

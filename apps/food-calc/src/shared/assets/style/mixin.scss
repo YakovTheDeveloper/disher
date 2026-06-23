@@ -34,10 +34,9 @@
 //         $on-dark — text on the active chip
 @mixin field-chip-palette($text, $ink, $accent, $pill, $dark, $on-dark) {
     --sys-field-radius: var(--radius-sm);
-    // Field typography — sys-дефолты (Jost 16px). Раньше эти токены никто не
-    // объявлял (хук был, питал его только WriteBar «ash»; снят 2026-06-22) →
-    // reads падали на фоллбэк. Объявлены здесь как единый sys-голос поля.
-    --sys-field-font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    // Field typography — единый sys-голос поля (16px). Семейство = body-голос
+    // app (--font-sans = Onest-led); Jost выпилен 2026-06-23.
+    --sys-field-font-family: var(--font-sans);
     --sys-field-font-weight: 500;
     --sys-field-font-size: 16px;
     --sys-field-font-style: normal;
@@ -189,7 +188,7 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--color-ink);
-    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-sans);
     transition:
         background-color var(--press-out) var(--easing-default),
         color var(--press-out) var(--easing-default),
@@ -475,8 +474,9 @@
 // `@include stripe-fork-row`. mixin.scss exempt от token-gate → сырые литералы тут ок.
 
 @mixin paper-mono-cards() {
-    // Фон страницы под белой группой (бледно-серый, iOS inset-grouped).
-    --cards-page-bg: #f0f1f4;
+    // Фон страницы под белой группой (тёплый-soft n100, iOS inset-grouped).
+    // 2026-06-24: было cool #f0f1f4 — перетон в тёплый лин (hue 85) под warm-soft v2.
+    --cards-page-bg: #f5f3f0; // n100 · oklch(0.965 0.005 85)
 
     // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
     --sys-card-bg: transparent;

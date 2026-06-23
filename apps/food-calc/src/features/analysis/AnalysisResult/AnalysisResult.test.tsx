@@ -17,7 +17,7 @@ const INSIGHT: AnalysisInsight = {
 // во все секции → SheetCard рисовал ПУСТОЙ header-блок (guard `header != null`
 // пропускает ''). Фикс: `header={sheetHeader || undefined}` + DishAnalysisScreen
 // передаёт "Результат". SheetCard header = <Heading role="headline"> → <h2>;
-// заголовки карточек инсайтов = <Heading size="card" as="h3"> → <h3>, поэтому
+// заголовки карточек инсайтов = <Heading role="title" as="h3"> → <h3>, поэтому
 // уровень заголовка различает «шапку плашки» и «тайтл карточки».
 describe('AnalysisResult — sheet header (разбор блюда)', () => {
   it('рендерит sheetHeader как заголовок плашки в sheet-режиме', () => {

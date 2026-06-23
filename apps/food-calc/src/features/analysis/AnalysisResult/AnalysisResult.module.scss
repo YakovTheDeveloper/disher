@@ -6,36 +6,19 @@
 .root {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-
-    // ─── Analysis surface contract (баком 2026-06-22, DesignBar-ось 'Analysis' снята) ──
-    // Вшит вариант 'hairline' (плоский монохромный текст), НО без бровки-divider:
-    // строки разбора разделяет ВОЗДУХ (`--ax-list-gap`), а не волосяная линия —
-    // спокойнее и легче (решение 2026-06-22: divider → воздух). Карточки
-    // (InsightCard / HypothesisCard) читают эти `--ax-*` в своих base-правилах,
-    // поэтому контракт живёт одним местом здесь. Прочие варианты (rail/inset/card)
-    // сняты вместе с dv-осью.
-    //   ⬇️ ВОЗДУХ между строками — основной визуальный регулятор этого бака.
-    //      На каждой карточке уже есть `--ax-pad-y` (12px) сверху/снизу, так что
-    //      реальный зазор текст-к-тексту = 24px + это значение. Крути при смоке.
-    --ax-list-gap: var(--space-3);
-    --ax-pad-y: var(--space-3);
-    --ax-pad-x: var(--space-4);
-    --ax-card-bg: transparent;
-    --ax-card-radius: 0px;
-    --ax-card-shadow: none;
-    --ax-accent-w: 0px;
-    // Бровка-разделитель погашена ЯВНО (карточки делят общий `::after`, читающий
-    // `--ax-divider`; Discoveries публикует градиент-бровку — здесь transparent,
-    // чтобы воздух был единственным разделителем независимо от предка).
-    --ax-divider: transparent;
+    gap: var(--sys-stack-section);
+    // Карточки разбора (InsightCard / HypothesisCard) — плоский paper-mono
+    // content без поверхности, строки делит воздух (--space-3 у `.list`). Бывший
+    // `--ax-*` surface-контракт распущен 2026-06-22 (нёс одно плоское значение,
+    // accent/divider-хуки мертвы) — карточки читают --space-*/--sys-elevation-flat
+    // напрямую.
 }
 
 // Две pearl-плашки (Наблюдения / Гипотезы) — несёт valence-anchor `Insight`.
 .sections {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--sys-stack-section);
 }
 
 // ─── Резюме разбора ────────────────────────────────────────────────────────
@@ -77,7 +60,7 @@
 
 // Заголовки секций («Наблюдения» / «Гипотезы») на доме владеет SheetCard
 // (header-проп) — общий стиль с предложкой. В bare-режиме (длинная модалка, без
-// плашки) — секция с канон-заголовком <Heading size="drawer"> (serif italic).
+// плашки) — секция с канон-заголовком <Heading role="headline"> (sans).
 .bareBlock {
     display: flex;
     flex-direction: column;
@@ -97,6 +80,6 @@
 .list {
     display: flex;
     flex-direction: column;
-    gap: var(--ax-list-gap, 0px);
+    gap: var(--sys-stack-row);
     padding: 0 var(--space-3) var(--space-3);
 }

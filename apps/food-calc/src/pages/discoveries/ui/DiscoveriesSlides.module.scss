@@ -10,25 +10,13 @@
     --sys-card-text-active: #000;
     --sys-card-hairline: rgba(0, 0, 0, 0.08);
 
-    // --ax-* контракт поверхности (плоский монохромный текст) — зеркало дефолта
-    // AnalysisResult.module.scss. Бровка-divider убрана 2026-06-22: строки делит
-    // ВОЗДУХ (`--ax-list-gap`), а не тающая линия — чтобы «Открытия» читались
-    // ТОЧЬ В ТОЧЬ как разбор дня (решение: зеркальность экранов).
-    --ax-card-bg: transparent;
-    --ax-card-shadow: none;
-    --ax-card-radius: 0;
-    --ax-accent-w: 0;
-    //   ⬇️ ВОЗДУХ между строками — основной визуальный регулятор (на каждой
-    //      карточке уже есть --ax-pad-y сверху/снизу; реальный зазор = 24px + это).
-    --ax-list-gap: var(--space-3);
-    --ax-pad-y: var(--space-3);
-    --ax-pad-x: var(--space-4);
-    // Бровка погашена ЯВНО (общий `::after` InsightCard/HypothesisListItem читает
-    // `--ax-divider`; transparent → воздух единственный разделитель).
-    --ax-divider: transparent;
+    // Карточки «Открытий» (InsightCard / analysis-режим HypothesisListItem) —
+    // плоский paper-mono content, строки делит воздух (--space-3), зеркало разбора
+    // дня. Бывший `--ax-*` surface-контракт распущен 2026-06-22 (нёс одно плоское
+    // значение) — карточки читают --space-*/--sys-elevation-flat напрямую.
 
     // Кегли тела/меты на модульной сетке (`--text-*`), как `.ambientSheet`.
-    // Заголовок — примитив <Heading size="card"> (`--text-lg`, 20px).
+    // Заголовок — примитив <Heading role="title"> (17px).
     --analysis-fs-detail: var(--text-base);
     --analysis-fs-meta: var(--text-sm);
     --analysis-lh-detail: 1.5;

@@ -57,7 +57,7 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
       topBarHide={topBarHide}
     >
       <div className={styles.container}>
-        <Heading size="masthead" as="h2">Анализ</Heading>
+        <Heading role="display" masthead as="h2">Анализ</Heading>
         {hasDaily ? (
           /* Лоадер анализа (гравюрный, канон tds/art-loader-canon.md) вшит в
              DailyAnalysisSection и показывается при status==='loading'. */

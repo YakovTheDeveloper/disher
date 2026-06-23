@@ -33,8 +33,8 @@
     justify-content: center;
     gap: 2px;
     box-sizing: border-box;
-    width: calc(var(--pill-h) - var(--space-1));
-    height: calc(var(--pill-h) - var(--space-1));
+    width: var(--medal-size, calc(var(--pill-h) - var(--space-1)));
+    height: var(--medal-size, calc(var(--pill-h) - var(--space-1)));
     margin-left: var(--space-2);
     padding: 0;
     border-radius: var(--radius-full);
@@ -136,6 +136,20 @@
     --medal-shadow:
         -7px 11px 20px rgba(31, 42, 68, 0.09),
         -2px 4px 7px rgba(31, 42, 68, 0.05);
+}
+
+// DesignBar предложка 2026-06-23 (регардлесс варианта): медаль Еды парит над
+// правым краем поля, перекрывая инпут на ~25% (≈75% медали выше верхней кромки).
+// Абсолют относительно `.barLine` (там position:relative). top = -75% высоты
+// медали (--medal-size). Без transform — чтобы НЕ конфликтовать с collapse-
+// transform ниже. Перебивает `.lifted` top по специфичности (2 атрибута).
+// Наезд считается от --medal-size, поэтому reduced-варианты (field/cta), которые
+// держат медаль на 60px при низком баре, перекрывают поле пропорционально (≈25%).
+[data-dv='WriteBarSurface'] .writeBarList {
+    position: absolute;
+    right: 0;
+    top: calc(var(--medal-size, calc(var(--pill-h) - var(--space-1))) * -0.75);
+    margin: 0;
 }
 
 // Collapse on focus — the row carries the `[data-expanded]` plain attribute, so

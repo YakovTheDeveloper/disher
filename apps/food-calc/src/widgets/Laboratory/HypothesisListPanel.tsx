@@ -119,7 +119,7 @@ const HypothesisListPanel = ({
           {titleVariant === 'label' ? (
             <FieldLabel>Гипотезы</FieldLabel>
           ) : (
-            <Heading size="field" className={styles.headerTitle}>
+            <Heading role="title" className={styles.headerTitle}>
               Гипотезы
             </Heading>
           )}

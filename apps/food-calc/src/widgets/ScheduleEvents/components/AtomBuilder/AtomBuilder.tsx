@@ -1,18 +1,18 @@
 /**
- * AtomBuilder — manual atom entry for an event. Scale-only since 2026-06-12.
+ * AtomBuilder — manual atom entry for an event. Scale is the manual atom.
  *
- * Tag/Relation tiles were removed: the cause/category a user used to pick from
- * presets now lives in the event's free text, and the analysis LLM mines it
- * (EVENTS_MINING_INSTRUCTION on the backend). The remaining manual atom is the
- * Scale — magnitude (7/10) is the one signal free text reliably loses.
+ * An event can hold MULTIPLE rated states (one scale atom per phenomenon, e.g.
+ * «Настроение 7» + «Энергия 4»). The added states show as chips at the top of
+ * the section: tap a chip to edit it (lifts it back into the form), ✕ to remove.
+ * The form below edits the current pending scale; «Добавить состояние» commits it
+ * and clears the form for the next (the LAST one is also committed on close, so a
+ * single-state user never needs the button — just type and close, as before).
  *
- * The scale lives in the form (`pendingScale`), committed by the modal's
- * «Готово». So AtomList here shows ONLY the non-scale atoms — i.e. tag/relation
- * atoms on OLD events being edited — removable. New events have none, so the
- * list collapses to nothing and only the scale form shows.
+ * AtomList still shows legacy non-scale atoms (tag/relation) on OLD events.
  */
 
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
+import { isScaleAtom, type ScaleAtom } from '@/entities/schedule-event';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import styles from './AtomBuilder.module.css';
@@ -20,24 +20,66 @@ import styles from './AtomBuilder.module.css';
 export interface AtomBuilderProps {
   id?: string;
   className?: string;
+  /** Forwarded to `ScaleAtomInput` — `false` opens keyboard-down (inline panel). */
+  autoFocusScaleValue?: boolean;
 }
 
-export const AtomBuilder = ({ id, className = '' }: AtomBuilderProps) => {
+export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: AtomBuilderProps) => {
   const atoms = useEventDraftStore((s) => s.draft.atoms);
   const removeAtom = useEventDraftStore((s) => s.removeAtom);
+  const hydratePendingScale = useEventDraftStore((s) => s.hydratePendingScale);
+  const commitPendingScale = useEventDraftStore((s) => s.commitPendingScale);
+  const pendingTouched = useEventDraftStore((s) => s.pendingScale.touched);
 
-  // The scale is edited in the form below — show only legacy tag/relation atoms
-  // here. Keep original indices so onRemove still addresses the full atoms array.
-  const legacy = atoms.map((atom, index) => ({ atom, index })).filter((e) => e.atom.kind !== 'scale');
+  // Keep original indices — onRemove/edit address positions in the full array.
+  const indexed = atoms.map((atom, index) => ({ atom, index }));
+  const scales = indexed.filter((e): e is { atom: ScaleAtom; index: number } => isScaleAtom(e.atom));
+  const legacy = indexed.filter((e) => e.atom.kind !== 'scale');
+
+  // Tap a chip → lift it back into the form to edit (remove from the list;
+  // committing re-adds it by label, so changing the label leaves no orphan).
+  const editScale = (index: number) => {
+    const atom = atoms[index];
+    if (atom && isScaleAtom(atom)) {
+      hydratePendingScale(atom);
+      removeAtom(index);
+    }
+  };
 
   return (
     <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`}>
+      {scales.length > 0 && (
+        <div className={styles.scaleChips}>
+          {scales.map(({ atom, index }) => (
+            <span key={index} className={styles.scaleChip}>
+              <button type="button" className={styles.scaleChipMain} onClick={() => editScale(index)}>
+                {atom.label ? `${atom.label} ` : ''}
+                <b>{atom.value}</b>
+              </button>
+              <button
+                type="button"
+                className={styles.scaleChipRemove}
+                onClick={() => removeAtom(index)}
+                aria-label={`Удалить: ${atom.label ?? atom.value}`}
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
       <AtomList atoms={legacy.map((e) => e.atom)} onRemove={(i) => removeAtom(legacy[i].index)} />
 
-      <ScaleAtomInput />
+      <ScaleAtomInput autoFocusValue={autoFocusScaleValue} />
 
-      {/* Подсказка — мелким, ПОД шкалой и пилюлями (просьба 2026-06-13). */}
-      {legacy.length === 0 && (
+      {pendingTouched && (
+        <button type="button" className={styles.addState} onClick={commitPendingScale}>
+          ＋ Добавить состояние
+        </button>
+      )}
+
+      {scales.length === 0 && legacy.length === 0 && (
         <p className={styles.bottomHint}>
           Оцените состояние по шкале — или просто опишите событие словами.
         </p>

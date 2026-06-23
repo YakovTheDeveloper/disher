@@ -3,8 +3,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 
 // Инвариант scroll-hide бара (см. critique 2026-06-14): `data-topbar-hide`
-// прячет аккаунт/нутриенты/дату, но НИКОГДА кнопку «Назад» (она без класса,
-// рендерится сырым `{backSlot}` — выход со страницы должен всегда оставаться).
+// прячет аккаунт/дату, но НИКОГДА кнопку «Назад» (она без класса, рендерится
+// сырым `{backSlot}` — выход со страницы должен всегда оставаться). (centerSlot
+// снят 2026-06-23 как мёртвый слот — 0 консумеров.)
 // Правило живёт в чистом CSS → typecheck/рантайм-тесты его не ловят. Этот тест
 // читает исходный .scss и проверяет, какие пилюли реально targeted'ятся в
 // hide-правилах. Любой будущий рефактор, добавивший `.backSlot` (или потерявший
@@ -25,9 +26,9 @@ describe('HomeTopBar scroll-hide CSS invariant', () => {
     expect(targets.length).toBeGreaterThan(0);
   });
 
-  it('targeted только аккаунт / центр / дата — ничего лишнего', () => {
+  it('targeted только аккаунт / дата — ничего лишнего', () => {
     for (const t of targets) {
-      expect(['accountSlot', 'centerSlot', 'dateSegment']).toContain(t.cls);
+      expect(['accountSlot', 'dateSegment']).toContain(t.cls);
     }
   });
 
@@ -36,8 +37,8 @@ describe('HomeTopBar scroll-hide CSS invariant', () => {
     expect(settings).toEqual(['accountSlot']);
   });
 
-  it("'all' прячет аккаунт + нутриенты (центр) + дату, и только их (backSlot не тронут)", () => {
+  it("'all' прячет аккаунт + дату, и только их (backSlot не тронут)", () => {
     const all = new Set(targets.filter((t) => t.state === 'all').map((t) => t.cls));
-    expect(all).toEqual(new Set(['accountSlot', 'centerSlot', 'dateSegment']));
+    expect(all).toEqual(new Set(['accountSlot', 'dateSegment']));
   });
 });

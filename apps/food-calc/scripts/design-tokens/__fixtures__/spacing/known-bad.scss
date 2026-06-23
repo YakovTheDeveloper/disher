@@ -1,0 +1,14 @@
+// Fixture: raw px on spacing props. detect(spacing) MUST return the 3 hits below
+// (padding shorthand-less, margin shorthand, gap). The other declarations prove
+// the scoping: a non-spacing prop, a zero, and a var()+0 mix are NOT spacing raw.
+.card {
+  padding: 16px; // hit — single raw px
+  margin: 24px 8px; // hit — shorthand, two raw px
+  gap: 12px; // hit — gap is a spacing prop
+}
+.spacer {
+  margin-top: 0; // not a hit — bare zero is not scale magic
+  padding: 0 var(--space-3); // not a hit — only 0 + a token, no raw px
+  width: 100px; // not a hit — width is not a spacing prop
+  inset: 8px; // not a hit — inset is positioning, out of spacing scope
+}

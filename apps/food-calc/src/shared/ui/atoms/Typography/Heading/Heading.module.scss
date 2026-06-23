@@ -1,9 +1,16 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // Canonical display heading — ОДИН Onest bold-sans голос (Apple Large Title
-// register). Меняется только `font-size` per `size`; family/weight/style/letter/
-// color — общий канон из tokens.scss (--heading-*). serif-italic ушёл из display
-// (живёт только как Text variant="navTabQuiet" + FieldLabel — тихий указатель).
+// register). base даёт color + font-style + margin; роль (.display/.headline/
+// .title) задаёт весь композит family+size+weight+lh+tracking через text-role().
+// serif-italic ушёл из display (живёт только как Text variant="navTabQuiet" +
+// FieldLabel — тихий указатель).
+//
+// КАНОН spacing (миграция-в-примитивы 2026-06-23): база ставит margin:0; зазор
+// ПОД заголовком владеет контейнер (flex gap) или следующий сосед (margin-top),
+// а НЕ собственный margin-bottom заголовка у консумера — он на равной
+// специфичности с этой базой (.heading) и проиграет ей при неудачном порядке
+// CSS-модулей в бандле. Пример применения: CreateDailyNormModal .title/.subtitle.
 .heading {
     margin: 0;
     font-family: var(--heading-font);
@@ -14,7 +21,7 @@
     color: var(--color-ink);
 }
 
-// ── РОЛИ (целевой API, ярус sys · типографика) ───────────────────────────────
+// ── РОЛИ (ярус sys · типографика) ────────────────────────────────────────────
 // Композит роли (family+size+weight+lh+tracking) приходит из --sys-text-* через
 // text-role(). Идут ПОСЛЕ .heading → при равной специфичности перекрывают канон
 // --heading-* (family/weight/letter/line). Цвет НЕ ставим (контекстный) — берётся
@@ -32,66 +39,17 @@
     @include text-role('title');
 }
 
-.screen {
-    font-size: var(--heading-size-screen);
-    line-height: 1;
-}
-
-.modal {
-    font-size: var(--heading-size-modal);
-}
-
-// Под-заголовок внутри модалки — тот же голос, только размер + центрирование.
-.modalSub {
-    font-size: var(--heading-size-modal-sub);
-    text-align: center;
-    text-transform: capitalize;
-}
-
-.drawer {
-    font-size: var(--heading-size-drawer);
-}
-
-// Мелкий под-заголовок поля/секции внутри модалки (ниже drawer).
-.field {
-    font-size: var(--heading-size-field);
-}
-
-.section {
-    font-size: var(--heading-size-section);
-}
-
-// card — заголовок карточки/строки списка (инсайт/гипотеза разбора). ВТОРОЙ,
-// тихий регистр Heading: тот же Onest sans, но НЕ display-громкость — вес 600
-// (не 700), собранный трекинг −0.012em (не −0.022), интерлиньяж под перенос в 2
-// строки, цвет по surface-токену (адаптивен к листу), а не глобальный ink. Это
-// сознательное отступление от «меняется только font-size»: заголовок в плотном
-// списке должен ВЕСТИ весом, а не кричать display-кеглем (канон «Было» Открытий
-// — одна гарнитура, монохром).
-.card {
-    font-size: var(--heading-size-card);
-    font-weight: 600;
-    letter-spacing: -0.012em;
-    line-height: 1.32;
-    color: var(--sys-card-text-rest, var(--color-ink));
-}
-
-// masthead — шапка слайда HomePage (Анализ / Еда / События): тот же bold-sans
-// голос, крупный кегль. Бровку-divider больше НЕ несёт (2026-06-18 — divider
-// стал дефолтом листа, см. Screen .headerOverlap::before).
-.masthead {
-    font-size: var(--heading-size-masthead);
-    line-height: 1.05;
-}
-
-// Обёртка-<header> для size="masthead": нижний отступ принадлежит шапке, а не
-// gap'у родителя — так интервал одинаков на всех слайдах. Боковой gutter владеет
-// лист (`--sys-inset-page` на `.headerOverlap`) → шапка равняется на край листа,
-// собственного горизонтального инсета нет (канон 2026-06-22, схлопнул `--ap-inset`).
+// masthead — обёртка-<header> для шапки слайда HomePage (Анализ / Еда / События).
+// Ортогональна роли (типографику несёт role="display"); здесь — только layout:
+// нижний отступ принадлежит шапке, а не gap'у родителя, так интервал одинаков на
+// всех слайдах. Боковой gutter владеет лист (`--sys-inset-page` на `.headerOverlap`)
+// → шапка равняется на край листа, собственного горизонтального инсета нет
+// (канон 2026-06-22, схлопнул `--ap-inset`). Бровку-divider больше НЕ несёт
+// (2026-06-18 — divider стал дефолтом листа, см. Screen .headerOverlap::before).
 .mastheadWrap {
     position: relative;
     padding: var(--space-2) 0 var(--space-4);
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--sys-stack-row);
 }
 
 // Под NavSwitcher активный таб сам становится крупным жирным заголовком слайда →

@@ -3,18 +3,8 @@
 // Replaces the render-blocking Google Fonts @import removed from index.scss on 2026-06-01
 // (design-consistency-plan Phase 0; offline + Core-Web-Vitals).
 //
-// STATIC @fontsource packages keep PLAIN family names ('Jost', 'Source Serif 4', 'Raleway'),
-// matching the --font-* token stacks AND the ~90 hardcoded font-family literals already in the
-// SCSS — so no module churn. Each weight file bundles every subset incl. Cyrillic (RU UI).
-
-// Body — Jost (--font-sans)
-import '@fontsource/jost/300.css';
-import '@fontsource/jost/400.css';
-import '@fontsource/jost/500.css';
-import '@fontsource/jost/600.css';
-import '@fontsource/jost/700.css';
-import '@fontsource/jost/400-italic.css';
-import '@fontsource/jost/500-italic.css';
+// STATIC @fontsource packages keep PLAIN family names ('Onest', 'Source Serif 4', 'Raleway'),
+// matching the --font-* token stacks. Each weight file bundles every subset incl. Cyrillic (RU UI).
 
 // Onest — теперь ГЛАВНОЕ текстовое семейство (2026-06-22): тело всего приложения
 // (--font-sans → --sys-text-family-sans), заголовки (--heading-font, вес 700) и
@@ -24,8 +14,8 @@ import '@fontsource/jost/500-italic.css';
 // 700 (heading + bold body) · 800 (big-numeric). @fontsource регистрирует все
 // subset'ы, браузер тянет нужный (RU UI → cyrillic).
 // NB: Onest БЕЗ курсива — body `font-style: italic` вне Apple = faux-oblique
-// (принято осознанно; настоящий курсив несёт serif-ярус Source Serif). Бывш.
-// «body = Jost» снят; Jost-импорты ниже остаются ради ~23 хардкод-'Jost' спотов.
+// (принято осознанно; настоящий курсив несёт serif-ярус Source Serif). Jost
+// полностью выпилен 2026-06-23 (тело + поля = Onest-led --font-sans).
 import '@fontsource/onest/300.css';
 import '@fontsource/onest/400.css';
 import '@fontsource/onest/500.css';
@@ -34,8 +24,9 @@ import '@fontsource/onest/700.css';
 import '@fontsource/onest/800.css';
 
 // Quiet serif tier — Source Serif 4: italic for Text variant="navTabQuiet"
-// (inactive tab / breadcrumb step) + FieldLabel. NOT the heading voice — that is
-// Onest bold-sans via --heading-font (flip 2026-06-19).
+// (inactive tab / breadcrumb step) + variant="sectionLabel" (nutrient section
+// headers). NOT the heading voice — that is Onest bold-sans via --heading-font
+// (flip 2026-06-19). FieldLabel left this tier for sans on 2026-06-23.
 import '@fontsource/source-serif-4/300.css';
 import '@fontsource/source-serif-4/600.css';
 import '@fontsource/source-serif-4/700.css';

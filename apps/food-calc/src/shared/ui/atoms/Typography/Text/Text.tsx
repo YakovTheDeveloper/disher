@@ -13,9 +13,9 @@ type TextRole = 'body' | 'label' | 'caption';
  *  `navTabQuiet` — quiet serif-italic «museum-label» pointer: inactive
  *  nav-tabs / breadcrumb-style steps. This primitive is the single source of
  *  that voice — SwitcherTab / Breadcrumbs render <Text variant="navTabQuiet">.
- *  `sectionLabel` — serif-italic, medium, dark-grey title for a small group
- *  (nutrient section) or a single field (FieldLabel renders it inside a
- *  <label>). Single source of that look. */
+ *  `sectionLabel` — serif-italic, medium, dark-grey title for a nutrient-section
+ *  header (NutrientTable / NutrientPickerDrawer). Single source of that look.
+ *  (FieldLabel flipped to role="label" sans on 2026-06-23 — no longer here.) */
 type TextVariant = 'hint' | 'navTabQuiet' | 'sectionLabel';
 
 type CommonProps = {

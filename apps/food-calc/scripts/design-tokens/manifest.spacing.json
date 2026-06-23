@@ -1,0 +1,3305 @@
+[
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 221,
+    "prop": "padding",
+    "value": "10px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 399,
+    "prop": "padding",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 410,
+    "prop": "padding",
+    "value": "0 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 433,
+    "prop": "padding",
+    "value": "0 16px",
+    "bucket": "A",
+    "token": "0 var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 494,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 609,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 13,
+    "prop": "gap",
+    "value": "28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 28,
+    "prop": "margin",
+    "value": "0 0 4px",
+    "bucket": "A",
+    "token": "0 0 var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 38,
+    "prop": "margin",
+    "value": "0 0 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 48,
+    "prop": "padding",
+    "value": "18px 14px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 65,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 66,
+    "prop": "padding",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 141,
+    "prop": "margin-left",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 170,
+    "prop": "margin-top",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 194,
+    "prop": "margin-right",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 205,
+    "prop": "margin",
+    "value": "18px 0 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_5dbbbf43\\specimen.module.scss",
+    "line": 248,
+    "prop": "padding",
+    "value": "2px 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_5dbbbf43\\specimen.module.scss",
+    "line": 438,
+    "prop": "margin-top",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_5dbbbf43\\specimen.module.scss",
+    "line": 442,
+    "prop": "padding",
+    "value": "1px var(--space-2)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_5dbbbf43\\specimen.module.scss",
+    "line": 495,
+    "prop": "margin-top",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_5dbbbf43\\specimen.module.scss",
+    "line": 496,
+    "prop": "padding",
+    "value": "1px var(--space-2)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_66859991\\ActionTile.module.scss",
+    "line": 66,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_66859991\\ActionTile.module.scss",
+    "line": 87,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_ad537308\\cards.module.scss",
+    "line": 41,
+    "prop": "padding",
+    "value": "2px 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_ad537308\\cards.module.scss",
+    "line": 70,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_ad537308\\cards.module.scss",
+    "line": 81,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 81,
+    "prop": "gap",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 301,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 322,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 362,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 597,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 810,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_b01dba00\\system.module.scss",
+    "line": 848,
+    "prop": "padding",
+    "value": "2px var(--space-2)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 30,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 33,
+    "prop": "padding",
+    "value": "0 12px",
+    "bucket": "A",
+    "token": "0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 81,
+    "prop": "padding",
+    "value": "3px 7px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 153,
+    "prop": "padding",
+    "value": "10px 8px 10px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 168,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 231,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 232,
+    "prop": "padding",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 236,
+    "prop": "padding",
+    "value": "22px 16px 24px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 245,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 260,
+    "prop": "padding",
+    "value": "0 34px 0 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 294,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 336,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 338,
+    "prop": "padding",
+    "value": "0 8px",
+    "bucket": "A",
+    "token": "0 var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 368,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 374,
+    "prop": "padding",
+    "value": "0 12px",
+    "bucket": "A",
+    "token": "0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\entities\\nutrient\\ui\\NutrientCard\\NutrientInput.module.scss",
+    "line": 4,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\entities\\nutrient\\ui\\NutrientRow\\NutrientRow.module.scss",
+    "line": 68,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\entities\\nutrient\\ui\\NutrientRow\\NutrientRow.module.scss",
+    "line": 82,
+    "prop": "margin-top",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\AnalysisKindDrawer\\AnalysisKindDrawer.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\AnalysisKindDrawer\\AnalysisKindDrawer.module.scss",
+    "line": 11,
+    "prop": "padding",
+    "value": "12px var(--sys-inset-sheet) 28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\AnalysisResult\\AnalysisResult.module.scss",
+    "line": 53,
+    "prop": "margin",
+    "value": "0 0 8px",
+    "bucket": "A",
+    "token": "0 0 var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\InsightCard\\InsightCard.module.scss",
+    "line": 96,
+    "prop": "padding",
+    "value": "2px 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\InsightCard\\InsightCard.module.scss",
+    "line": 185,
+    "prop": "margin",
+    "value": "0 calc(-1 * var(--space-4)) calc(-1 * var(--space-3)) 6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "has-function"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 12,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 13,
+    "prop": "padding",
+    "value": "16px 20px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 21,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 46,
+    "prop": "padding",
+    "value": "4px 20px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 55,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 56,
+    "prop": "padding",
+    "value": "36px 16px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 69,
+    "prop": "padding",
+    "value": "14px 16px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 75,
+    "prop": "margin",
+    "value": "0 0 4px",
+    "bucket": "A",
+    "token": "0 0 var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 96,
+    "prop": "margin-top",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 97,
+    "prop": "padding",
+    "value": "11px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 132,
+    "prop": "margin",
+    "value": "18px 0 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 146,
+    "prop": "margin",
+    "value": "0 0 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 151,
+    "prop": "margin",
+    "value": "0 0 12px",
+    "bucket": "A",
+    "token": "0 0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 152,
+    "prop": "padding-left",
+    "value": "22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 156,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 170,
+    "prop": "margin-top",
+    "value": "22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 171,
+    "prop": "padding-top",
+    "value": "18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 176,
+    "prop": "margin",
+    "value": "0 0 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 186,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 201,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 207,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 208,
+    "prop": "padding",
+    "value": "10px 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisListItem.module.scss",
+    "line": 12,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisListItem.module.scss",
+    "line": 15,
+    "prop": "padding",
+    "value": "14px 16px 14px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisListItem.module.scss",
+    "line": 81,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisListItem.module.scss",
+    "line": 101,
+    "prop": "gap",
+    "value": "5px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisListItem.module.scss",
+    "line": 103,
+    "prop": "padding",
+    "value": "4px 9px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 25,
+    "prop": "gap",
+    "value": "20px",
+    "bucket": "A",
+    "token": "var(--space-5)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 26,
+    "prop": "padding",
+    "value": "4px 20px 16px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-5) var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 31,
+    "prop": "padding",
+    "value": "8px 20px calc(20px + env(safe-area-inset-bottom, 0px))",
+    "bucket": "C",
+    "token": null,
+    "reason": "has-function"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 39,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 40,
+    "prop": "padding",
+    "value": "16px 20px 8px",
+    "bucket": "A",
+    "token": "var(--space-4) var(--space-5) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 61,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 79,
+    "prop": "padding",
+    "value": "12px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\RangePickerWithFallback.module.scss",
+    "line": 4,
+    "prop": "gap",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\RangePickerWithFallback.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\RangePickerWithFallback.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "5px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\RangePickerWithFallback.module.scss",
+    "line": 23,
+    "prop": "padding",
+    "value": "11px 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\auth\\AuthForm.module.scss",
+    "line": 24,
+    "prop": "margin",
+    "value": "50px auto 0",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\auth\\ProfileDrawer.module.scss",
+    "line": 106,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\auth\\ProfileDrawer.module.scss",
+    "line": 213,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\DailyNormDrawer\\DailyNormDrawer.module.scss",
+    "line": 25,
+    "prop": "padding",
+    "value": "40px 0",
+    "bucket": "A",
+    "token": "var(--space-10) 0",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 29,
+    "prop": "padding",
+    "value": "20px 22px 16px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 49,
+    "prop": "margin-left",
+    "value": "-8px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 50,
+    "prop": "margin-bottom",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 78,
+    "prop": "margin",
+    "value": "0 0 6px 0",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 105,
+    "prop": "padding",
+    "value": "6px 22px 24px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 108,
+    "prop": "gap",
+    "value": "22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 116,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 123,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 132,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 140,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 174,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 180,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 181,
+    "prop": "padding",
+    "value": "12px 12px 11px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 207,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 246,
+    "prop": "margin-top",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 247,
+    "prop": "padding",
+    "value": "20px 18px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 275,
+    "prop": "gap",
+    "value": "4px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 276,
+    "prop": "margin-bottom",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 301,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 302,
+    "prop": "margin-bottom",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 309,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 310,
+    "prop": "padding",
+    "value": "3px 9px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 342,
+    "prop": "margin",
+    "value": "0 0 8px",
+    "bucket": "A",
+    "token": "0 0 var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 365,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 366,
+    "prop": "padding",
+    "value": "14px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 388,
+    "prop": "padding",
+    "value": "12px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 463,
+    "prop": "margin",
+    "value": "12px 16px 0",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-4) 0",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 477,
+    "prop": "padding",
+    "value": "6px 16px 16px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 482,
+    "prop": "padding",
+    "value": "14px 16px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 483,
+    "prop": "padding-bottom",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 13,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 14,
+    "prop": "padding",
+    "value": "20px 20px 12px",
+    "bucket": "A",
+    "token": "var(--space-5) var(--space-5) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 67,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 99,
+    "prop": "padding",
+    "value": "4px 16px 8px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-4) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 142,
+    "prop": "padding",
+    "value": "4px 4px 12px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-1) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 151,
+    "prop": "padding",
+    "value": "4px 0 12px",
+    "bucket": "A",
+    "token": "var(--space-1) 0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 162,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 163,
+    "prop": "padding",
+    "value": "28px 0",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dev\\bug-report\\ui\\BugReportModal.module.scss",
+    "line": 151,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dev\\bug-report\\ui\\BugReportModal.module.scss",
+    "line": 152,
+    "prop": "padding",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dev\\bug-report\\ui\\BugReportModal.module.scss",
+    "line": 334,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dev\\bug-report\\ui\\BugReportModal.module.scss",
+    "line": 488,
+    "prop": "padding",
+    "value": "1px var(--space-1)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 54,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 63,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 88,
+    "prop": "margin",
+    "value": "18px 0 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 96,
+    "prop": "margin",
+    "value": "0 0 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 100,
+    "prop": "margin",
+    "value": "0 0 12px",
+    "bucket": "A",
+    "token": "0 0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 101,
+    "prop": "padding-left",
+    "value": "22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 105,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 113,
+    "prop": "padding",
+    "value": "12px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\details-chips\\DetailsChips.module.scss",
+    "line": 21,
+    "prop": "padding",
+    "value": "2px var(--space-1)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 11,
+    "prop": "padding",
+    "value": "0 16px calc(96px + env(safe-area-inset-bottom))",
+    "bucket": "C",
+    "token": null,
+    "reason": "has-function"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 33,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 34,
+    "prop": "padding",
+    "value": "0 4px",
+    "bucket": "A",
+    "token": "0 var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 35,
+    "prop": "margin-top",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 50,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 52,
+    "prop": "padding",
+    "value": "14px 16px 14px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 84,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 161,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 162,
+    "prop": "padding",
+    "value": "6px 6px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 174,
+    "prop": "padding",
+    "value": "8px 12px",
+    "bucket": "A",
+    "token": "var(--space-2) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 191,
+    "prop": "padding",
+    "value": "24px 8px",
+    "bucket": "A",
+    "token": "var(--space-6) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 192,
+    "prop": "padding-top",
+    "value": "28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryEditModals.module.scss",
+    "line": 10,
+    "prop": "padding",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryEditModals.module.scss",
+    "line": 11,
+    "prop": "margin",
+    "value": "-12px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 91,
+    "prop": "padding",
+    "value": "2px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 92,
+    "prop": "margin",
+    "value": "-2px -6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 102,
+    "prop": "padding",
+    "value": "2px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 103,
+    "prop": "margin",
+    "value": "-2px -6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 170,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 245,
+    "prop": "margin-top",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 254,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 264,
+    "prop": "padding",
+    "value": "3px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\FreeTextFoodReviewItem.module.scss",
+    "line": 265,
+    "prop": "margin",
+    "value": "-3px -6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 96,
+    "prop": "padding",
+    "value": "4px var(--space-3)",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 131,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 143,
+    "prop": "padding",
+    "value": "0 5px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 221,
+    "prop": "padding-right",
+    "value": "28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 224,
+    "prop": "padding-left",
+    "value": "28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 345,
+    "prop": "padding",
+    "value": "12px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 377,
+    "prop": "padding",
+    "value": "12px 22px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 34,
+    "prop": "padding",
+    "value": "2px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 35,
+    "prop": "margin",
+    "value": "-2px -6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 102,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 109,
+    "prop": "padding",
+    "value": "2px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 110,
+    "prop": "margin",
+    "value": "-2px -6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\ProposalFoodItem.module.scss",
+    "line": 157,
+    "prop": "gap",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\SuggestIngredientsClarifyDrawer\\SuggestIngredientsClarifyDrawer.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "16px",
+    "bucket": "A",
+    "token": "var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\SuggestIngredientsClarifyDrawer\\SuggestIngredientsClarifyDrawer.module.scss",
+    "line": 6,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-portions-manager\\FoodPortionsManager.module.scss",
+    "line": 23,
+    "prop": "margin",
+    "value": "0 8px 8px",
+    "bucket": "A",
+    "token": "0 var(--space-2) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-portions-manager\\FoodPortionsManager.module.scss",
+    "line": 81,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-portions-manager\\FoodPortionsManager.module.scss",
+    "line": 174,
+    "prop": "padding",
+    "value": "16px 0",
+    "bucket": "A",
+    "token": "var(--space-4) 0",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 78,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 192,
+    "prop": "margin-top",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 208,
+    "prop": "margin-top",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 257,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 306,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 307,
+    "prop": "padding",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 314,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 315,
+    "prop": "padding",
+    "value": "11px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\FoodSearchEmpty\\FoodSearchEmpty.module.scss",
+    "line": 66,
+    "prop": "padding",
+    "value": "10px 16px 0",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\FoodSearchEmpty\\FoodSearchEmpty.module.scss",
+    "line": 88,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\FoodSearchEmpty\\FoodSearchEmpty.module.scss",
+    "line": 91,
+    "prop": "padding",
+    "value": "8px 12px calc(10px + env(safe-area-inset-bottom))",
+    "bucket": "C",
+    "token": null,
+    "reason": "has-function"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFood.module.scss",
+    "line": 115,
+    "prop": "padding",
+    "value": "var(--space-2) 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFood.module.scss",
+    "line": 172,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFood.module.scss",
+    "line": 173,
+    "prop": "padding",
+    "value": "var(--space-2) 14px var(--space-3)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 35,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 36,
+    "prop": "padding",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 48,
+    "prop": "padding",
+    "value": "0 12px",
+    "bucket": "A",
+    "token": "0 var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 155,
+    "prop": "padding-left",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 156,
+    "prop": "padding-right",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 236,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 240,
+    "prop": "padding",
+    "value": "0 3px 0 9px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 251,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 253,
+    "prop": "padding",
+    "value": "4px 2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "20px",
+    "bucket": "A",
+    "token": "var(--space-5)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 6,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\product\\ProductQuantity\\ProductQuantity.module.scss",
+    "line": 96,
+    "prop": "padding",
+    "value": "21px 28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\schedule-navigator\\ScheduleNavigator.module.scss",
+    "line": 93,
+    "prop": "padding-top",
+    "value": "24px",
+    "bucket": "A",
+    "token": "var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\schedule-navigator\\ScheduleNavigator.module.scss",
+    "line": 142,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\schedule-navigator\\ScheduleNavigator.module.scss",
+    "line": 144,
+    "prop": "padding",
+    "value": "5px 0 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 28,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 29,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-sheet) 12px",
+    "bucket": "A",
+    "token": "0 var(--sys-inset-sheet) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 35,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 38,
+    "prop": "padding",
+    "value": "14px 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\shared\\long-press-item\\LongPressRow.module.scss",
+    "line": 37,
+    "prop": "padding-inline",
+    "value": "12px 8px",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\shared\\long-press-item\\LongPressRow.module.scss",
+    "line": 119,
+    "prop": "padding",
+    "value": "12px 24px",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\shared\\long-press-item\\LongPressRow.module.scss",
+    "line": 215,
+    "prop": "padding-left",
+    "value": "46px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\theme\\ThemePicker.module.scss",
+    "line": 6,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\theme\\ThemePicker.module.scss",
+    "line": 7,
+    "prop": "margin-top",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\features\\theme\\ThemePicker.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\features\\theme\\ThemePicker.module.scss",
+    "line": 18,
+    "prop": "padding",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 4,
+    "prop": "padding",
+    "value": "8px 16px 24px",
+    "bucket": "A",
+    "token": "var(--space-2) var(--space-4) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 12,
+    "prop": "padding",
+    "value": "60px 0",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 21,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 22,
+    "prop": "padding",
+    "value": "24px 4px",
+    "bucket": "A",
+    "token": "var(--space-6) var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 42,
+    "prop": "margin-top",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 43,
+    "prop": "padding",
+    "value": "9px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 37,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 39,
+    "prop": "padding-bottom",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 66,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 67,
+    "prop": "padding",
+    "value": "24px 8px",
+    "bucket": "A",
+    "token": "var(--space-6) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 87,
+    "prop": "padding",
+    "value": "0 12px 12px",
+    "bucket": "A",
+    "token": "0 var(--space-3) var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\dish\\DishBuilderPage.module.scss",
+    "line": 70,
+    "prop": "gap",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\dish\\ui\\Heading\\Heading.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\dish\\ui\\Heading\\Heading.module.scss",
+    "line": 18,
+    "prop": "padding",
+    "value": "4px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\home-page\\ui\\Navigation.module.scss",
+    "line": 61,
+    "prop": "padding-bottom",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 73,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 84,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 92,
+    "prop": "padding",
+    "value": "9px var(--space-3)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 289,
+    "prop": "padding",
+    "value": "8px 16px",
+    "bucket": "A",
+    "token": "var(--space-2) var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 384,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 426,
+    "prop": "padding",
+    "value": "1px 5px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 595,
+    "prop": "padding",
+    "value": "1px 4px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 635,
+    "prop": "padding",
+    "value": "2px 9px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 712,
+    "prop": "padding",
+    "value": "1px 7px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 764,
+    "prop": "padding",
+    "value": "1px 5px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 793,
+    "prop": "padding",
+    "value": "7px var(--space-2)",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\ActionTile\\ActionTile.module.scss",
+    "line": 60,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\ActionTile\\ActionTile.module.scss",
+    "line": 81,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\ActionTile\\ActionTile.module.scss",
+    "line": 93,
+    "prop": "margin-top",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Button\\QuietActionButton\\QuietActionButton.module.scss",
+    "line": 11,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Button\\QuietActionButton\\QuietActionButton.module.scss",
+    "line": 12,
+    "prop": "padding",
+    "value": "6px 4px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Button\\QuietActionButton\\QuietActionButton.module.scss",
+    "line": 50,
+    "prop": "margin-left",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Chip\\Chip.module.scss",
+    "line": 12,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Chip\\Chip.module.scss",
+    "line": 14,
+    "prop": "padding",
+    "value": "7px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Choice\\Choice.module.scss",
+    "line": 13,
+    "prop": "padding",
+    "value": "9px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Choice\\Choice.module.scss",
+    "line": 59,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\Breadcrumbs\\Breadcrumbs.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\Breadcrumbs\\Breadcrumbs.module.scss",
+    "line": 11,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\Breadcrumbs\\Breadcrumbs.module.scss",
+    "line": 44,
+    "prop": "padding",
+    "value": "3px 2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 7,
+    "prop": "gap",
+    "value": "16px",
+    "bucket": "A",
+    "token": "var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 8,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 22,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 23,
+    "prop": "margin-top",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 33,
+    "prop": "padding",
+    "value": "12px 16px",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 4,
+    "prop": "padding",
+    "value": "24px 22px 20px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 11,
+    "prop": "margin-top",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 16,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 17,
+    "prop": "margin-top",
+    "value": "14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 24,
+    "prop": "padding",
+    "value": "12px 16px",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\DrawerLayout\\DrawerLayout.module.scss",
+    "line": 62,
+    "prop": "padding",
+    "value": "6px 56px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\DrawerLayout\\DrawerLayout.module.scss",
+    "line": 397,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\DrawerLayout\\DrawerLayout.module.scss",
+    "line": 473,
+    "prop": "margin-bottom",
+    "value": "-32px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\shared\\ui\\DrawerLayout\\DrawerLayout.module.scss",
+    "line": 496,
+    "prop": "margin-top",
+    "value": "-50px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\shared\\ui\\DrawerLayout\\DrawerLayout.module.scss",
+    "line": 565,
+    "prop": "margin",
+    "value": "-1px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\shared\\ui\\LabeledCheckbox\\LabeledCheckbox.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\LabeledCheckbox\\LabeledCheckbox.module.scss",
+    "line": 12,
+    "prop": "padding",
+    "value": "12px 16px",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\LabeledCheckbox\\LabeledCheckbox.module.scss",
+    "line": 89,
+    "prop": "margin",
+    "value": "3px auto",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ModalFooter\\ModalFooter.module.scss",
+    "line": 3,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ModalFooter\\ModalFooter.module.scss",
+    "line": 5,
+    "prop": "padding-top",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\ModalHeader\\ModalHeader.module.scss",
+    "line": 79,
+    "prop": "margin-top",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ModalLayout\\ModalLayout.module.scss",
+    "line": 76,
+    "prop": "margin",
+    "value": "-1px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\shared\\ui\\popover\\PopoverTrigger\\PopoverTrigger.module.scss",
+    "line": 10,
+    "prop": "padding",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\Quantity\\Quantity.module.scss",
+    "line": 43,
+    "prop": "margin-left",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\ScreenIndicator\\ScreenIndicator.module.scss",
+    "line": 127,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\Swipeable\\Swipeable.module.scss",
+    "line": 99,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 22,
+    "prop": "gap",
+    "value": "18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 38,
+    "prop": "padding",
+    "value": "8px 28px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 144,
+    "prop": "padding",
+    "value": "0 1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 151,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 157,
+    "prop": "gap",
+    "value": "12px",
+    "bucket": "A",
+    "token": "var(--space-3)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 204,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 234,
+    "prop": "padding",
+    "value": "12px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarMedal.module.scss",
+    "line": 34,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarShell.module.scss",
+    "line": 223,
+    "prop": "padding",
+    "value": "4px var(--space-2)",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarShell.module.scss",
+    "line": 232,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarShell.module.scss",
+    "line": 425,
+    "prop": "padding",
+    "value": "0 4px",
+    "bucket": "A",
+    "token": "0 var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\FoodSchedule.module.scss",
+    "line": 50,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\FoodSchedule.module.scss",
+    "line": 51,
+    "prop": "padding",
+    "value": "10px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\FoodSchedule.module.scss",
+    "line": 92,
+    "prop": "margin-left",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 98,
+    "prop": "padding-inline",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 177,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 184,
+    "prop": "padding-inline",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 185,
+    "prop": "margin-inline",
+    "value": "-6px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 234,
+    "prop": "gap",
+    "value": "1px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ScheduleFoodItem\\ScheduleFoodItemInline.module.scss",
+    "line": 261,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ui\\FoodScheduleModals.module.scss",
+    "line": 3,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 44,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 134,
+    "prop": "margin-right",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 149,
+    "prop": "padding",
+    "value": "4px 8px",
+    "bucket": "A",
+    "token": "var(--space-1) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 160,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 216,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 244,
+    "prop": "padding-left",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 44,
+    "prop": "margin",
+    "value": "0 0 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 53,
+    "prop": "margin",
+    "value": "16px 0 8px",
+    "bucket": "A",
+    "token": "var(--space-4) 0 var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 65,
+    "prop": "margin",
+    "value": "0 0 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 66,
+    "prop": "padding-left",
+    "value": "20px",
+    "bucket": "A",
+    "token": "var(--space-5)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 70,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 82,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 83,
+    "prop": "padding",
+    "value": "12px 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 115,
+    "prop": "margin-top",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 122,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 84,
+    "prop": "padding",
+    "value": "0 6px 0 14px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 121,
+    "prop": "margin-top",
+    "value": "-2px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 149,
+    "prop": "padding-left",
+    "value": "16px",
+    "bucket": "A",
+    "token": "var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 158,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 159,
+    "prop": "padding",
+    "value": "13px 16px 13px 6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 188,
+    "prop": "margin-top",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 11,
+    "prop": "padding",
+    "value": "6px 4px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 32,
+    "prop": "margin",
+    "value": "2px 4px 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 89,
+    "prop": "margin",
+    "value": "8px 4px 0",
+    "bucket": "A",
+    "token": "var(--space-2) var(--space-1) 0",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 98,
+    "prop": "gap",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 99,
+    "prop": "padding",
+    "value": "22px 18px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\Laboratory.module.scss",
+    "line": 98,
+    "prop": "gap",
+    "value": "20px",
+    "bucket": "A",
+    "token": "var(--space-5)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\Laboratory.module.scss",
+    "line": 102,
+    "prop": "padding",
+    "value": "0 0 16px",
+    "bucket": "A",
+    "token": "0 0 var(--space-4)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\FoodsNutrients.module.scss",
+    "line": 9,
+    "prop": "padding-bottom",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\FoodsNutrients.module.scss",
+    "line": 18,
+    "prop": "padding",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\FoodsNutrients.module.scss",
+    "line": 22,
+    "prop": "padding",
+    "value": "12px 4px 0",
+    "bucket": "A",
+    "token": "var(--space-3) var(--space-1) 0",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 176,
+    "prop": "margin-top",
+    "value": "-3px",
+    "bucket": "C",
+    "token": null,
+    "reason": "negative-px"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 218,
+    "prop": "gap",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 228,
+    "prop": "padding-bottom",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 279,
+    "prop": "padding-left",
+    "value": "2px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 321,
+    "prop": "padding",
+    "value": "2px 4px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 338,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 379,
+    "prop": "padding",
+    "value": "6px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 391,
+    "prop": "padding",
+    "value": "6px 12px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 23,
+    "prop": "gap",
+    "value": "8px",
+    "bucket": "A",
+    "token": "var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 25,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-panel) 8px",
+    "bucket": "A",
+    "token": "0 var(--sys-inset-panel) var(--space-2)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 93,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-panel) 24px",
+    "bucket": "A",
+    "token": "0 var(--sys-inset-panel) var(--space-6)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\components\\ScheduleEventCard\\ScheduleEventCard.module.scss",
+    "line": 8,
+    "prop": "gap",
+    "value": "4px 10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\components\\ScheduleEventCard\\ScheduleEventCard.module.scss",
+    "line": 73,
+    "prop": "gap",
+    "value": "4px",
+    "bucket": "A",
+    "token": "var(--space-1)",
+    "reason": ""
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\components\\ScheduleEventCard\\ScheduleEventCard.module.scss",
+    "line": 79,
+    "prop": "gap",
+    "value": "3px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\components\\ScheduleEventCard\\ScheduleEventCard.module.scss",
+    "line": 80,
+    "prop": "padding",
+    "value": "2px 8px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\ScheduleEvents.module.scss",
+    "line": 30,
+    "prop": "gap",
+    "value": "10px",
+    "bucket": "B?",
+    "token": null,
+    "reason": "off-scale px (recurring magnitude → user decides scale-extend vs local)"
+  }
+]

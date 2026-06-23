@@ -11,7 +11,7 @@
     padding: 6px 4px 10px;
 }
 
-// Typography приходит из <Heading size="field">; здесь — только цвет под
+// Typography приходит из <Heading role="title">; здесь — только цвет под
 // светлую панель (Heading по умолчанию #000). Селектор `.header .headerTitle`
 // (специфичность 0,2,0) перебивает базовый `.heading { color }` (0,1,0)
 // независимо от порядка загрузки CSS-модулей — не полагаемся на source-order.
@@ -76,11 +76,11 @@
     box-shadow: none;
 }
 
-// Зазор между гипотезами — `--ax-list-gap` (воздух, как InsightCard/AnalysisResult).
-// Наследуется от Discoveries `.container`; `0px` fallback вне «Открытий». Бровка
-// у HypothesisListItem погашена через `--ax-divider: transparent` (зеркальность).
+// Зазор между гипотезами — фиксированный `--space-3` (воздух, как InsightCard/
+// AnalysisResult). Контракт `--ax-*` распущен 2026-06-22 (нёс одно значение);
+// бровка у HypothesisListItem погашена (строки делит воздух).
 .scrollBodyAnalysis {
-    gap: var(--ax-list-gap, 0px);
+    gap: var(--space-3);
     overflow: visible;
     border-radius: 0;
 }
@@ -103,7 +103,7 @@
 
 .emptyTitle {
     margin: 0;
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-size: 19px;
     color: var(--sys-card-text-rest);

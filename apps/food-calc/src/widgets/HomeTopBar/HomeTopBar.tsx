@@ -36,14 +36,6 @@ type Props = {
    *  HomePage to mount mini-tile navigation inside the bar pill itself instead
    *  of stacking another absolute layer over it. */
   leadingSlot?: React.ReactNode;
-  /** Абсолютно центрированный pill-слот для произвольного контента
-   *  (без serif-overrides из `.centerLabel` — он заточен под имя
-   *  продукта/блюда). Обёртка наследует bg/border/blur/shadow из
-   *  `--bar-*` токенов, чтобы visual совпадал с accountSlot/dateSegment.
-   *  Свободный слот произвольного контента (сводка нутриентов сюда больше не
-   *  кладётся — переехала в полосу NutrientsBar). Не совмещается с
-   *  `centerLabel` — кто-то один. */
-  centerSlot?: React.ReactNode;
   /** Suppress the date-switch interrupt guard in `handleDateClick` — skips
    *  BOTH the "analysis still streaming" confirm AND the
    *  `interrupt(date, 'date-switch')` call. Product / dish pages feed a
@@ -119,7 +111,6 @@ const HomeTopBar = ({
   onTitleClick,
   centerLabelHtmlFor,
   leadingSlot,
-  centerSlot,
   noInterruptGuard,
   centerLabelVisible = true,
   shellRef,
@@ -164,7 +155,6 @@ const HomeTopBar = ({
           <AccountPanel />
         </div>
         {leadingSlot}
-        {centerSlot != null && <div className={styles.centerSlot}>{centerSlot}</div>}
         {centerLabel != null &&
           (centerLabelHtmlFor ? (
             <label

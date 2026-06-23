@@ -105,9 +105,6 @@ importers:
       '@fontsource/alice':
         specifier: ^5.2.8
         version: 5.2.8
-      '@fontsource/jost':
-        specifier: ^5.2.8
-        version: 5.2.8
       '@fontsource/merriweather':
         specifier: ^5.2.11
         version: 5.2.11
@@ -1418,9 +1415,6 @@ packages:
 
   '@fontsource/alice@5.2.8':
     resolution: {integrity: sha512-EDpK9aFXsaRKdyZpgFu8d5+zmE07yIaFxqVeKrYQJjdQpEhWDZA+naLflHwQQmMbLMJK3a4X/RAm5MCScT93NA==}
-
-  '@fontsource/jost@5.2.8':
-    resolution: {integrity: sha512-PEK7oGJL8r+YZm6BriWhmCql9DhVYTMt0iEQbZHo8mqfIPIZo67Tm68xEIaRA0yB3wsHA7Tm66yMQDIxq3Bjqw==}
 
   '@fontsource/merriweather@5.2.11':
     resolution: {integrity: sha512-ZiIMeUh5iT8d73o6xlSF8GKgjV5pgiFrufYc5jZTVAfExtWKqM2vQHnsqXSFMv4ELhAcjt6Vf+5T3oVGXhAizQ==}
@@ -7157,8 +7151,6 @@ snapshots:
   '@floating-ui/utils@0.2.11': {}
 
   '@fontsource/alice@5.2.8': {}
-
-  '@fontsource/jost@5.2.8': {}
 
   '@fontsource/merriweather@5.2.11': {}
 

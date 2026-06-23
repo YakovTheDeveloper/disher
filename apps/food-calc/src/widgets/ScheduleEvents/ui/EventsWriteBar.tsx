@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { WriteBarShell, WriteBarClip, PlusIcon } from '@/shared/ui/WriteBarShell';
-import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { ModalShell } from '@/shared/ui/ModalShell';
-import { ModalNextButton } from '@/shared/ui/ModalFooter';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
+import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { addScheduleEvent } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
-import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
-import modalStyles from './ScheduleEventModals.module.scss';
+import { EventScalePanel } from './EventScalePanel';
+import panelStyles from './EventScalePanel.module.scss';
 
 const EVENT_DESCRIPTION_INPUT_ID = 'event-description-bar';
 
@@ -27,17 +26,20 @@ type Props = {
 };
 
 /**
- * Bottom write-bar for the Events screen (screen 3). Replaces the old
- * «Добавить событие» 3-step modal (2026-06-09):
- *  - plus glyph (left) → atoms picker (existing AtomBuilder in a ModalByLabel
- *    fullscreen modal — same shell the old flow used, restored 2026-06-09 on
- *    user request instead of a bottom-sheet Drawer);
+ * Bottom write-bar for the Events screen (screen 3):
+ *  - plus glyph (left) → toggles the inline scale panel (EventScalePanel), which
+ *    rises into the keyboard's place below the bar — Telegram sticker-panel
+ *    pattern (replaced the fullscreen ModalByLabel 2026-06-23);
  *  - field (center)   → «Описание»;
  *  - SEND             → creates the event = description + atoms + the CURRENT
  *    wall-clock time (captured at click), then clears (on success only).
  *
  * Description is bar-local; atoms live in the shared `useEventDraftStore`. Time is
  * NOT chosen here — edit it later via long-press. Works offline (local Dexie write).
+ *
+ * The bar + panel form one bottom-pinned `.stack`; the open/close slide and the
+ * keyboard-lift (when a panel field is focused) compose into ONE transform on the
+ * stack — see `EventScalePanel.module.scss`.
  */
 const EventsWriteBar = ({ scheduleId }: Props) => {
   const online = useOnline();
@@ -45,11 +47,14 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   const clearAtoms = useEventDraftStore((st) => st.clearAtoms);
 
   const [description, setDescription] = useState('');
-  // Atoms modal: `atomsOpen` raises the ModalByLabel. Since the picker is now
-  // Scale-only (AtomBuilder renders the scale form directly — no sub-panels),
-  // the header + «Готово» footer are always shown.
+  // `atomsOpen` raises the inline scale panel. Scale-only: AtomBuilder renders the
+  // scale form directly; closing commits the pending scale.
   const [atomsOpen, setAtomsOpen] = useState(false);
   const submittingRef = useRef(false);
+  // Dock = bar + panel. While the panel is open, a field focused inside it raises
+  // the keyboard; the shared hook lifts the whole dock above it (transform mode —
+  // the dock is the bottom-pinned overlay inside a transformed Embla slide).
+  const dockRef = useKeyboardStick<HTMLDivElement>({ mode: 'transform', enabled: atomsOpen });
 
   // Reset on date change — the atoms draft is a global singleton, so clear it too
   // (otherwise atoms picked on one day leak into the next), and drop the modal.
@@ -62,25 +67,36 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
 
   const hasContent = description.trim().length > 0 || atoms.length > 0;
 
-  // Open: seed the form from the existing scale atom (so re-opening shows/edits
-  // it, not a blank 5), else a clean default. Close/«Готово»/Back: commit the
-  // pending scale into atoms — a single button that never silently drops it.
+  // Open: form starts EMPTY (a new state) — already-rated states show as chips in
+  // the panel; tap a chip there to edit it. Drop the keyboard so the panel can
+  // take its place (the swap). Close/Back/field-tap: commit the pending scale —
+  // never silently drops it.
   const openAtoms = useCallback(() => {
-    const store = useEventDraftStore.getState();
-    const scale = store.draft.atoms.find((a) => a.kind === 'scale');
-    if (scale && scale.kind === 'scale') store.hydratePendingScale(scale);
-    else store.resetPendingScale();
+    useEventDraftStore.getState().resetPendingScale();
+    (document.getElementById(EVENT_DESCRIPTION_INPUT_ID) as HTMLElement | null)?.blur();
     setAtomsOpen(true);
   }, []);
   const closeAtoms = useCallback(() => {
     useEventDraftStore.getState().commitPendingScale();
     setAtomsOpen(false);
   }, []);
+  // The «+» toggles the panel (open if closed, close if open) — like Telegram's
+  // sticker button swapping with the keyboard.
+  const toggleAtoms = useCallback(() => {
+    if (atomsOpen) closeAtoms();
+    else openAtoms();
+  }, [atomsOpen, openAtoms, closeAtoms]);
 
-  // Lock the day-pager while the modal is open; route hardware/browser Back to
+  // Lock the day-pager while the panel is open; route hardware/browser Back to
   // closing it instead of navigating away.
   useSwipeableLock(atomsOpen);
   useOverlayHistory(atomsOpen, closeAtoms);
+
+  // useKeyboardStick leaves its last inline transform when it disables, so clear
+  // it once the panel closes — otherwise a keyboard-lift could stick on the bar.
+  useEffect(() => {
+    if (!atomsOpen) dockRef.current?.style.removeProperty('transform');
+  }, [atomsOpen, dockRef]);
 
   const handleSubmit = useCallback(
     async (desc: string): Promise<boolean> => {
@@ -116,7 +132,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   );
 
   return (
-    <>
+    <div className={panelStyles.dock} ref={dockRef}>
       <WriteBarShell
         value={description}
         onChange={setDescription}
@@ -128,40 +144,34 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         // After send: drop focus so the scrim/overlay dismisses (atoms already
         // cleared on success — once focus drops the badge reflects the reset).
         blurOnSubmit
+        // Swap-back: focusing the field while the panel is open closes it (and
+        // brings the keyboard back), Telegram-style.
+        onFieldFocus={atomsOpen ? closeAtoms : undefined}
         // Local write (offline-ok). Send shows on focus; enabled with a description
         // OR at least one atom (atoms-only / description-only events are both valid).
         computeSend={({ focused }) => ({ visible: focused, enabled: hasContent })}
         sendAriaLabel="Добавить событие"
         leftSlot={
           <WriteBarClip
-            onClick={openAtoms}
-            ariaLabel="Оценить состояние"
+            onClick={toggleAtoms}
+            ariaLabel={atomsOpen ? 'Свернуть оценку' : 'Оценить состояние'}
             count={atoms.length}
-            icon={<PlusIcon />}
+            // Open → chevron-down (collapse affordance); closed → plus (add). The
+            // chevron is the shared `›` glyph rotated to point down.
+            icon={
+              atomsOpen ? (
+                <ChevronGlyph style={{ transform: 'rotate(90deg)' }} />
+              ) : (
+                <PlusIcon />
+              )
+            }
           />
         }
       />
 
-      {/* Оценка — полноэкранная модалка (ModalShell + AtomBuilder в ModalByLabel).
-          Scale-only: AtomBuilder рисует форму шкалы напрямую, поэтому шапка и
-          «Готово» показаны всегда. Выбор пишется в draft-store живьём; «Готово» /
-          стрелка-назад / системный Back просто закрывают. */}
-      <ModalByLabel
-        position="fixed"
-        isExpanded={atomsOpen}
-        content={
-          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
-            <ModalShell.Header title="Оценка состояния" onBack={closeAtoms} backLabel="Закрыть" />
-            <ModalShell.AtomsBody>
-              {atomsOpen && <AtomBuilder />}
-            </ModalShell.AtomsBody>
-            <ModalShell.ActionButtons
-              right={<ModalNextButton onClick={closeAtoms} variant="finish" />}
-            />
-          </ModalShell>
-        }
-      />
-    </>
+      {/* Inline scale panel — mounted only while open; pushes the bar up. */}
+      {atomsOpen && <EventScalePanel />}
+    </div>
   );
 };
 

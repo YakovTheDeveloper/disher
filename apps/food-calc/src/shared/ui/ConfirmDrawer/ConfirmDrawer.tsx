@@ -28,7 +28,7 @@ const ConfirmDrawer = ({
 }: ConfirmDrawerProps) => (
   <DrawerLayout a11yLabel={title}>
     <div className={s.body}>
-      <Heading size="drawer" as="h2" className={s.title}>
+      <Heading role="headline" as="h2" className={s.title}>
         {title}
       </Heading>
       {message && (

@@ -24,7 +24,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   min-height: 0;
   overflow: hidden;
   color: var(--sys-card-text-rest);
-  font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: var(--font-sans);
   // Стандартный белый дровер — фон отдаёт DrawerLayout `.content` (2026-06-20).
   background: transparent;
 }
@@ -109,7 +109,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   display: flex;
   top: 0;
   left: var(--space-1);
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-family: var(--sys-text-family-serif);
   gap: var(--space-1);
   font-style: normal;
   font-weight: 400;
@@ -166,7 +166,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 }
 
 .dayChipNumber {
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-size: 30px;
   font-weight: 400;
@@ -214,7 +214,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   z-index: 1;
   padding: var(--space-8) var(--space-4);
   text-align: center;
-  font-family: 'Source Serif 4', 'Merriweather', Georgia, serif;
+  font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-size: var(--text-sm);
   color: $ink-faint;

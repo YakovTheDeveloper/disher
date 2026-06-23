@@ -66,7 +66,7 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: var(--sys-field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
+  font-family: var(--sys-field-font-family, var(--font-sans));
   font-weight: var(--sys-field-font-weight, 500);
   font-size: var(--sys-field-font-size, 16px);
   font-style: var(--sys-field-font-style, normal);
@@ -125,7 +125,7 @@
   position: absolute;
   inset: 0;
   padding: var(--sys-field-pad-top, 14px) 0 var(--sys-field-pad-bottom, 3px);
-  font-family: var(--sys-field-font-family, 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif);
+  font-family: var(--sys-field-font-family, var(--font-sans));
   font-weight: var(--sys-field-font-weight);
   font-size: var(--sys-field-font-size, 16px);
   line-height: var(--sys-field-line-height, 22px);

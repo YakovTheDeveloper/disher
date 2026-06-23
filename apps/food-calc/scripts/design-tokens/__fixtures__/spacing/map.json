@@ -1,0 +1,5 @@
+[
+  { "line": 2, "prop": "padding", "value": "16px", "token": "var(--space-4)" },
+  { "line": 3, "prop": "margin", "value": "24px 8px", "token": "var(--space-6) var(--space-2)" },
+  { "line": 4, "prop": "gap", "value": "12px", "token": "var(--space-3)" }
+]

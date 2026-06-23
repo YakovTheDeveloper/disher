@@ -1,0 +1,856 @@
+[
+  {
+    "file": "src\\app\\development-features\\s_3d715213\\borders.module.scss",
+    "line": 433,
+    "prop": "padding",
+    "value": "0 16px",
+    "token": "0 var(--space-4)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 28,
+    "prop": "margin",
+    "value": "0 0 4px",
+    "token": "0 0 var(--space-1)"
+  },
+  {
+    "file": "src\\app\\development-features\\s_4c4a585a\\cards.module.scss",
+    "line": 66,
+    "prop": "padding",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 33,
+    "prop": "padding",
+    "value": "0 12px",
+    "token": "0 var(--space-3)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 168,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 231,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 294,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 338,
+    "prop": "padding",
+    "value": "0 8px",
+    "token": "0 var(--space-2)"
+  },
+  {
+    "file": "src\\app\\ui\\DesignVariantsBar\\DesignVariantsBar.module.scss",
+    "line": 374,
+    "prop": "padding",
+    "value": "0 12px",
+    "token": "0 var(--space-3)"
+  },
+  {
+    "file": "src\\entities\\nutrient\\ui\\NutrientCard\\NutrientInput.module.scss",
+    "line": 4,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\analysis\\AnalysisKindDrawer\\AnalysisKindDrawer.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\analysis\\AnalysisResult\\AnalysisResult.module.scss",
+    "line": 53,
+    "prop": "margin",
+    "value": "0 0 8px",
+    "token": "0 0 var(--space-2)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 12,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 55,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 75,
+    "prop": "margin",
+    "value": "0 0 4px",
+    "token": "0 0 var(--space-1)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 151,
+    "prop": "margin",
+    "value": "0 0 12px",
+    "token": "0 0 var(--space-3)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 156,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\AnalysisDetailModal.module.scss",
+    "line": 201,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 25,
+    "prop": "gap",
+    "value": "20px",
+    "token": "var(--space-5)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 26,
+    "prop": "padding",
+    "value": "4px 20px 16px",
+    "token": "var(--space-1) var(--space-5) var(--space-4)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 39,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 40,
+    "prop": "padding",
+    "value": "16px 20px 8px",
+    "token": "var(--space-4) var(--space-5) var(--space-2)"
+  },
+  {
+    "file": "src\\features\\analysis\\long\\CreateLongAnalysisModal.module.scss",
+    "line": 61,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\auth\\ProfileDrawer.module.scss",
+    "line": 106,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\DailyNormDrawer\\DailyNormDrawer.module.scss",
+    "line": 25,
+    "prop": "padding",
+    "value": "40px 0",
+    "token": "var(--space-10) 0"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 50,
+    "prop": "margin-bottom",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 132,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 140,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 207,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 276,
+    "prop": "margin-bottom",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 342,
+    "prop": "margin",
+    "value": "0 0 8px",
+    "token": "0 0 var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\CreateDailyNormModal.module.scss",
+    "line": 463,
+    "prop": "margin",
+    "value": "12px 16px 0",
+    "token": "var(--space-3) var(--space-4) 0"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 13,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 14,
+    "prop": "padding",
+    "value": "20px 20px 12px",
+    "token": "var(--space-5) var(--space-5) var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 99,
+    "prop": "padding",
+    "value": "4px 16px 8px",
+    "token": "var(--space-1) var(--space-4) var(--space-2)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 142,
+    "prop": "padding",
+    "value": "4px 4px 12px",
+    "token": "var(--space-1) var(--space-1) var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dailyNorms\\OpenDailyNorms\\EditDailyNormModal.module.scss",
+    "line": 151,
+    "prop": "padding",
+    "value": "4px 0 12px",
+    "token": "var(--space-1) 0 var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 63,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 100,
+    "prop": "margin",
+    "value": "0 0 12px",
+    "token": "0 0 var(--space-3)"
+  },
+  {
+    "file": "src\\features\\dish-analysis\\ui\\DishAnalysisScreen\\DishAnalysisScreen.module.scss",
+    "line": 105,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 34,
+    "prop": "padding",
+    "value": "0 4px",
+    "token": "0 var(--space-1)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 35,
+    "prop": "margin-top",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 50,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 174,
+    "prop": "padding",
+    "value": "8px 12px",
+    "token": "var(--space-2) var(--space-3)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryCreateModals.module.scss",
+    "line": 191,
+    "prop": "padding",
+    "value": "24px 8px",
+    "token": "var(--space-6) var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-entry-flow\\FoodEntryEditModals.module.scss",
+    "line": 10,
+    "prop": "padding",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 96,
+    "prop": "padding",
+    "value": "4px var(--space-3)",
+    "token": "var(--space-1) var(--space-3)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\InlineWriteFoodReview.module.scss",
+    "line": 131,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\SuggestIngredientsClarifyDrawer\\SuggestIngredientsClarifyDrawer.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "16px",
+    "token": "var(--space-4)"
+  },
+  {
+    "file": "src\\features\\food\\food-free-text-parse\\ui\\SuggestIngredientsClarifyDrawer\\SuggestIngredientsClarifyDrawer.module.scss",
+    "line": 6,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)"
+  },
+  {
+    "file": "src\\features\\food\\food-portions-manager\\FoodPortionsManager.module.scss",
+    "line": 23,
+    "prop": "margin",
+    "value": "0 8px 8px",
+    "token": "0 var(--space-2) var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-portions-manager\\FoodPortionsManager.module.scss",
+    "line": 174,
+    "prop": "padding",
+    "value": "16px 0",
+    "token": "var(--space-4) 0"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 307,
+    "prop": "padding",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\food-action-card\\FoodActionCard.module.scss",
+    "line": 314,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\FoodSearchEmpty\\FoodSearchEmpty.module.scss",
+    "line": 88,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 48,
+    "prop": "padding",
+    "value": "0 12px",
+    "token": "0 var(--space-3)"
+  },
+  {
+    "file": "src\\features\\food\\food-search\\SearchFoodControls\\SearchFoodControls.module.scss",
+    "line": 156,
+    "prop": "padding-right",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "20px",
+    "token": "var(--space-5)"
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 6,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)"
+  },
+  {
+    "file": "src\\features\\food\\product-drawer\\SuggestNutrientsConfirmDrawer.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\schedule-navigator\\ScheduleNavigator.module.scss",
+    "line": 93,
+    "prop": "padding-top",
+    "value": "24px",
+    "token": "var(--space-6)"
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 29,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-sheet) 12px",
+    "token": "0 var(--sys-inset-sheet) var(--space-3)"
+  },
+  {
+    "file": "src\\features\\shared\\item-actions-drawer\\ItemActionsDrawer.module.scss",
+    "line": 35,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\features\\shared\\long-press-item\\LongPressRow.module.scss",
+    "line": 37,
+    "prop": "padding-inline",
+    "value": "12px 8px",
+    "token": "var(--space-3) var(--space-2)"
+  },
+  {
+    "file": "src\\features\\shared\\long-press-item\\LongPressRow.module.scss",
+    "line": 119,
+    "prop": "padding",
+    "value": "12px 24px",
+    "token": "var(--space-3) var(--space-6)"
+  },
+  {
+    "file": "src\\features\\theme\\ThemePicker.module.scss",
+    "line": 7,
+    "prop": "margin-top",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 4,
+    "prop": "padding",
+    "value": "8px 16px 24px",
+    "token": "var(--space-2) var(--space-4) var(--space-6)"
+  },
+  {
+    "file": "src\\pages\\analyses\\ui\\AnalysesSlide.module.scss",
+    "line": 22,
+    "prop": "padding",
+    "value": "24px 4px",
+    "token": "var(--space-6) var(--space-1)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 37,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 39,
+    "prop": "padding-bottom",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 66,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 67,
+    "prop": "padding",
+    "value": "24px 8px",
+    "token": "var(--space-6) var(--space-2)"
+  },
+  {
+    "file": "src\\pages\\discoveries\\ui\\DiscoveriesSlides.module.scss",
+    "line": 87,
+    "prop": "padding",
+    "value": "0 12px 12px",
+    "token": "0 var(--space-3) var(--space-3)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 73,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\pages\\ui-kit\\UiKitPage.module.scss",
+    "line": 289,
+    "prop": "padding",
+    "value": "8px 16px",
+    "token": "var(--space-2) var(--space-4)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\ActionTile\\ActionTile.module.scss",
+    "line": 93,
+    "prop": "margin-top",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\shared\\ui\\atoms\\Chip\\Chip.module.scss",
+    "line": 12,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\shared\\ui\\Breadcrumbs\\Breadcrumbs.module.scss",
+    "line": 5,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\shared\\ui\\Breadcrumbs\\Breadcrumbs.module.scss",
+    "line": 11,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 7,
+    "prop": "gap",
+    "value": "16px",
+    "token": "var(--space-4)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 8,
+    "prop": "padding",
+    "value": "4px var(--sys-inset-sheet) 24px",
+    "token": "var(--space-1) var(--sys-inset-sheet) var(--space-6)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 22,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 23,
+    "prop": "margin-top",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmDrawer\\ConfirmDrawer.module.scss",
+    "line": 33,
+    "prop": "padding",
+    "value": "12px 16px",
+    "token": "var(--space-3) var(--space-4)"
+  },
+  {
+    "file": "src\\shared\\ui\\ConfirmModal\\ConfirmModal.module.scss",
+    "line": 24,
+    "prop": "padding",
+    "value": "12px 16px",
+    "token": "var(--space-3) var(--space-4)"
+  },
+  {
+    "file": "src\\shared\\ui\\LabeledCheckbox\\LabeledCheckbox.module.scss",
+    "line": 10,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\shared\\ui\\LabeledCheckbox\\LabeledCheckbox.module.scss",
+    "line": 12,
+    "prop": "padding",
+    "value": "12px 16px",
+    "token": "var(--space-3) var(--space-4)"
+  },
+  {
+    "file": "src\\shared\\ui\\ModalFooter\\ModalFooter.module.scss",
+    "line": 3,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\shared\\ui\\ModalFooter\\ModalFooter.module.scss",
+    "line": 5,
+    "prop": "padding-top",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\shared\\ui\\popover\\PopoverTrigger\\PopoverTrigger.module.scss",
+    "line": 10,
+    "prop": "padding",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\shared\\ui\\ScreenIndicator\\ScreenIndicator.module.scss",
+    "line": 127,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 151,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\shared\\ui\\TimeChoose\\TimeChoose.module.scss",
+    "line": 157,
+    "prop": "gap",
+    "value": "12px",
+    "token": "var(--space-3)"
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarShell.module.scss",
+    "line": 223,
+    "prop": "padding",
+    "value": "4px var(--space-2)",
+    "token": "var(--space-1) var(--space-2)"
+  },
+  {
+    "file": "src\\shared\\ui\\WriteBarShell\\WriteBarShell.module.scss",
+    "line": 425,
+    "prop": "padding",
+    "value": "0 4px",
+    "token": "0 var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\FoodSchedule.module.scss",
+    "line": 50,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\FoodSchedule.module.scss",
+    "line": 92,
+    "prop": "margin-left",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\FoodSchedule\\ui\\FoodScheduleModals.module.scss",
+    "line": 3,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 134,
+    "prop": "margin-right",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 149,
+    "prop": "padding",
+    "value": "4px 8px",
+    "token": "var(--space-1) var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 160,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 216,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\HomeTopBar\\HomeTopBar.module.scss",
+    "line": 244,
+    "prop": "padding-left",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 53,
+    "prop": "margin",
+    "value": "16px 0 8px",
+    "token": "var(--space-4) 0 var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 66,
+    "prop": "padding-left",
+    "value": "20px",
+    "token": "var(--space-5)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 70,
+    "prop": "margin-bottom",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 82,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 115,
+    "prop": "margin-top",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\DailyAnalysisSection.module.scss",
+    "line": 122,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 17,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListItem.module.scss",
+    "line": 149,
+    "prop": "padding-left",
+    "value": "16px",
+    "token": "var(--space-4)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\HypothesisListPanel.module.scss",
+    "line": 89,
+    "prop": "margin",
+    "value": "8px 4px 0",
+    "token": "var(--space-2) var(--space-1) 0"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\Laboratory.module.scss",
+    "line": 98,
+    "prop": "gap",
+    "value": "20px",
+    "token": "var(--space-5)"
+  },
+  {
+    "file": "src\\widgets\\Laboratory\\Laboratory.module.scss",
+    "line": 102,
+    "prop": "padding",
+    "value": "0 0 16px",
+    "token": "0 0 var(--space-4)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\FoodsNutrients.module.scss",
+    "line": 18,
+    "prop": "padding",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\FoodsNutrients.module.scss",
+    "line": 22,
+    "prop": "padding",
+    "value": "12px 4px 0",
+    "token": "var(--space-3) var(--space-1) 0"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\FoodsNutrients\\NutrientTable.module.scss",
+    "line": 338,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 23,
+    "prop": "gap",
+    "value": "8px",
+    "token": "var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 25,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-panel) 8px",
+    "token": "0 var(--sys-inset-panel) var(--space-2)"
+  },
+  {
+    "file": "src\\widgets\\nutrients\\NutrientsDrawer\\NutrientsDrawer.module.scss",
+    "line": 93,
+    "prop": "padding",
+    "value": "0 var(--sys-inset-panel) 24px",
+    "token": "0 var(--sys-inset-panel) var(--space-6)"
+  },
+  {
+    "file": "src\\widgets\\ScheduleEvents\\components\\ScheduleEventCard\\ScheduleEventCard.module.scss",
+    "line": 73,
+    "prop": "gap",
+    "value": "4px",
+    "token": "var(--space-1)"
+  }
+]

@@ -6,7 +6,7 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-6);
+    gap: var(--sys-stack-section);
     padding-inline: var(--space-4);
 }
 
@@ -152,7 +152,7 @@
 }
 
 .unit {
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--sys-field-font-family);
     font-size: 1.125rem;
     font-weight: 500;
     letter-spacing: 0;
@@ -168,11 +168,11 @@
 .section {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--sys-stack-row);
 }
 
 .sectionLabel {
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--sys-field-font-family);
     font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0;
@@ -221,7 +221,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--space-2);
+    gap: var(--sys-stack-row);
     animation: multiplierIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -243,7 +243,7 @@
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--sys-field-font-family);
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-ink);
@@ -269,7 +269,7 @@
 .multiplierInput {
     width: 4rem;
     text-align: center;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--sys-field-font-family);
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--color-ink);

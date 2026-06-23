@@ -31,6 +31,20 @@
   // Схлопнул прежний per-widget `--ap-inset` (card-edge vs prose-text рельсы → один).
   --sys-inset-page: var(--space-4); // 16px
 
+  // ─── System stack (CTI: sys · stack · роль) — ВЕРТИКАЛЬНЫЙ ритм ──
+  // «Воздух» между блоками, поставленными друг на друга, назван по РОЛИ, а не по
+  // числу — крутится из одного места. Канон строки = 12px (решение 2026-06-24 по
+  // предложке /suggestion_57acc012: свели дрейф 8/12 в один ритм, выбор «воздушнее»).
+  // row — между соседними строками / полями / карточками в ОДНОМ списке или форме.
+  // Оптические зазоры 1–2px НЕ сюда (у них нет переносимой роли — остаются локально).
+  // SearchFood-список намеренно flush (gap:0 + тающая бровка) — не stack-роль.
+  --sys-stack-row: var(--space-3); // 12px
+  // section — между КРУПНЫМИ секциями тела дровера/модалки/экрана (.body, .root,
+  // .fields, .sections). Канон = 24px (решение 2026-06-24 по предложке
+  // /suggestion_5ec74a02: свели дрейф 16/18/20/22/24 в один ритм, выбор «просторнее» —
+  // секции читаются как отдельные блоки, а не слипаются как строки списка).
+  --sys-stack-section: var(--space-6); // 24px
+
   // ─── Typography (modular scale 1.25) ─────────────────────────
   --text-xs: 0.64rem; // 10.2px — badges, micro labels
   --text-sm: 0.8rem; // 12.8px — secondary text, captions
@@ -46,10 +60,9 @@
   --text-meta: 12px;
 
   // ─── Font families ───────────────────────────────────────────
-  // Body-голос = Onest-led sans (было "Jost"). Алиас на семейство sys-роли →
-  // тело всего app совпадает с Body-ролью композит-спека (SF Pro на Apple, Onest вне).
+  // Body-голос = Onest-first sans (было "Jost", потом apple-first; с 2026-06-23
+  // Onest первым → рендерится везде, вкл. Apple). Алиас на семейство sys-роли.
   --font-sans: var(--sys-text-family-sans);
-  --font-serif: "Merriweather", serif;
   --font-display: "Raleway", sans-serif;
   --font-alice: "Alice", "Source Serif 4", serif; // accent serif (analysis loader caption)
   --font-mono: "Ubuntu Mono", monospace;
@@ -61,33 +74,20 @@
   // ОДИН display-голос для каждого section/overlay/active-tab заголовка.
   // Consume через <Heading> (или эти vars напрямую в bespoke-хедерах). Меняется
   // ТОЛЬКО font-size (шкала `--heading-size-*` ниже); family/weight/style/letter —
-  // общий канон. SF Pro на Apple-устройствах, Onest fallback вне (self-host).
+  // общий канон. Onest-first (2026-06-23): рендерится везде, вкл. Apple (как тело
+  // и --font-big-numeric; -apple-system ушёл в хвост fallback).
   // serif-italic больше НЕ display-голос — он остался только тихим указателем
-  // (Text variant="navTabQuiet") + FieldLabel.
-  --heading-font: -apple-system, BlinkMacSystemFont, "Onest", "Golos Text", system-ui, sans-serif;
+  // (Text variant="navTabQuiet" + sectionLabel-заголовки секций нутриентов).
+  --heading-font: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --heading-style: normal;
   --heading-weight: 700;
   --heading-letter: -0.022em;
-  --heading-size-screen: 2.5rem; // 40px — page / screen header (HomePage band)
+  // Live heading-size rungs (orphan screen/section/masthead/card/modal-sub/
+  // modal-header deleted 2026-06-24 — zero consumers after the Heading size-prop
+  // removal; consumers now read sys-text roles via <Heading role="…">).
   --heading-size-modal: 2rem; //    32px — wizard-flow modal title (ModalShell.Title)
-  --heading-size-modal-sub: 2rem; // 26px — sub-heading inside a modal
-  --heading-size-modal-header: 1.75rem; // 28px — ModalHeader bar title (centered)
   --heading-size-drawer: 1.5rem; // 24px — drawer header
   --heading-size-field: 1rem; //    16px — small in-modal field/section label — below drawer
-  // M2b (2026-06-22): section = Headline-роль (28px, было var(--text-3xl)~39) —
-  // чинит ГЛАВНЫЙ дрейф section(39)≈Display(38). Живые потребители size="section"
-  // мигрированы на role="headline" напрямую (имя блюда DishBuilderPage, SheetCard-
-  // тайтл) — остался ТОЛЬКО UiKitPage-витрина. Значение держим на Headline (чтобы
-  // --text-3xl стал orphan и удалился); токен — кандидат на снос вместе с витриной.
-  --heading-size-section: var(--sys-text-headline-size); // 28px — legacy (только UiKitPage)
-  --heading-size-masthead: 2rem; // 32px — Apple Large Title шапка слайда HomePage (бывш. Masthead)
-  // M2-шим (2026-06-22): legacy card-size теперь питается от Title-роли
-  // (--sys-text-title-size = 17px, было var(--text-lg)=20). Карточный <Heading
-  // size="card"> (Открытия инсайт/гипотеза) = ТИХИЙ reading-регистр (вес 600),
-  // не display-700; теперь делит размер с ролью Title (Apple-база карточек). Swap
-  // Title-токена двигает и карточки. Полный переезд size="card"→role="title"
-  // отложен: .card несёт surface-adaptive цвет, которого роль не моделирует.
-  --heading-size-card: var(--sys-text-title-size);
   // Single top gap above an overlay title — owned by the title itself, so it
   // stays constant regardless of how the modal nests it (see ModalShell).
   --modal-title-offset: var(--space-6); // 24px
@@ -101,13 +101,15 @@
   // перекраска роли во всём приложении (доказательство системности).
   //
   // Размеры — рунги конечной лесенки 13·14·15·16·17·18·20·22·24·26·28·32·38·44 (НЕ
-  // произвольный px). Семейство sans = Onest-led голос (SF Pro на Apple, Onest вне —
-  // совпадает с --heading-font/--font-big-numeric register). Цвет в роль НЕ зашит
+  // произвольный px). Семейство sans = Onest-first (2026-06-23 решение юзера: Onest
+  // рендерится ВЕЗДЕ, включая Apple — бренд един на всех платформах; -apple-system
+  // ушёл в хвост как fallback). Совпадает с --font-big-numeric И --heading-font
+  // (все три Onest-first с 2026-06-23 — единый бренд на всех платформах). Цвет в роль НЕ зашит
   // (контекстный/темо-зависимый). serif — ОРТОГОНАЛЬНЫЙ голос тихого яруса (см.
   // Text variant navTabQuiet/sectionLabel), НЕ роль размера. (tokens.scss exempt от token-gate.)
 
   // голоса-семейства (ref для ролей)
-  --sys-text-family-sans: -apple-system, BlinkMacSystemFont, "Onest", "Golos Text", system-ui, sans-serif;
+  --sys-text-family-sans: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // тихий мелкий ярус (voice)
   --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
 
@@ -168,11 +170,10 @@
   --radius-full: 9999px; // circular buttons, badges
 
   // ─── Shadows ─────────────────────────────────────────────────
+  // (lg/xl deleted 2026-06-24 — 0 consumers; overlay depth lives on --sys-elevation-*)
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
 
   // ─── ELEVATION (M0 рельсы) · глубина = функция ИНТЕРАКТИВНОСТИ ──
   // Ground truth: tds/elevation-palette-2026.md. Глубина приподнимает РЫЧАГИ
@@ -272,23 +273,25 @@
   --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
   --cta-brand-ink: rgba(31, 42, 68, 0.92);
 
-  // ─── ЯРУС ref · ПРИМИТИВЫ цвета (M0 рельсы) ───────────────────
-  // Ground truth: tds/elevation-palette-2026.md §4. M0 = объявить как алиасы
-  // ТЕКУЩИХ значений (ноль перекраски). OKLCH-warm-генерация (готовая шкала
-  // Radix/Stripe под единый ТЁПЛЫЙ лин, §6.5) ЗАМЕНИТ значения нейтрали на этапе
-  // генерации — пока это рельсы-плейсхолдеры с текущими литералами.
+  // ─── ЯРУС ref · ПРИМИТИВЫ цвета · НЕЙТРАЛЬ (warm-soft v2, СГЕНЕРИРОВАНА 2026-06-24) ──
+  // Ground truth: tds/ANALYSIS/token-canon-rename §4.0 + scratchpad/v2.mjs. Больше НЕ
+  // плейсхолдеры — это РЕАЛЬНАЯ перцептивно-равномерная OKLCH-лесенка, единый тёплый лин
+  // (hue 85), текст L-locked под APCA. Hex = oklch-производные (универсально, без @supports;
+  // chroma низкая → sRGB==oklch визуально). Семантика (--surface/--text/--border/--color-ink
+  // в palette.scss) теперь несёт ТЕ ЖЕ тёплые значения; rename legacy→ref — отдельный codemod.
   // Нейтраль: {0}=бумага … {1000}=ink (step растёт = темнее).
-  --ref-color-neutral-0: var(--surface-base); // #FAFAF7
-  --ref-color-neutral-50: var(--surface-raised); // rgba(255,255,255,.7)
-  --ref-color-neutral-100: #f0f1f4; // = cards-page-bg (mixin-scoped → литерал; перетон в тёплый при генерации)
-  --ref-color-neutral-200: var(--border-subtle); // rgba(0,0,0,.1)
-  --ref-color-neutral-300: var(--border-default); // #e5e7eb
-  --ref-color-neutral-400: var(--text-tertiary); // #9ca3af
-  --ref-color-neutral-500: var(--text-secondary); // #6b7280
-  // (neutral-700 НЕ объявлен в M0: нет текущего токена-источника на этом шаге →
-  // не выдумываем magic-литерал; ступень заведётся на этапе генерации шкалы.)
-  --ref-color-neutral-900: var(--color-ink); // rgb(38,38,51) — тёплый near-black
-  --ref-color-neutral-1000: var(--color-ink-strong); // #0a0a0a
+  --ref-color-neutral-0: #fefcf9; // oklch(0.992 0.004 85) = surface-base
+  --ref-color-neutral-50: #faf9f6; // oklch(0.982 0.004 85)
+  --ref-color-neutral-100: #f5f3f0; // oklch(0.965 0.005 85) = cards-page-bg
+  --ref-color-neutral-200: #ebe9e5; // oklch(0.935 0.006 85)
+  --ref-color-neutral-300: #e2dfda; // oklch(0.905 0.008 85) = border-default
+  --ref-color-neutral-400: #89867e; // oklch(0.62 0.012 85) = text-tertiary (APCA Lc 62)
+  --ref-color-neutral-500: #757169; // oklch(0.55 0.013 85) = text-secondary (Lc 72)
+  --ref-color-neutral-600: #5b5850; // oklch(0.46 0.013 85) — NEW (убирает cliff)
+  --ref-color-neutral-700: #46423b; // oklch(0.38 0.013 85) — NEW
+  --ref-color-neutral-800: #312d27; // oklch(0.30 0.012 85) — NEW
+  --ref-color-neutral-900: #221f19; // oklch(0.24 0.011 85) = color-ink (тёплый-уголь, Lc 102)
+  --ref-color-neutral-1000: #0d0b07; // oklch(0.15 0.009 85) = color-ink-strong
 
   // ink-accent (navy) — ЕДИНСТВЕННЫЙ брендовый hue для выбрано/действие/фокус.
   // M0: точное ТЕКУЩЕЕ значение «выбрано» (oklch-перевод — на этапе генерации, §4.2).
@@ -320,6 +323,17 @@
   --sys-color-surface-raised: var(--surface-raised);
   --sys-color-surface-sunken: var(--surface-base); // нет отдельного sunken-примитива → page-нейтраль
   --sys-color-surface-overlay: var(--surface-overlay);
+
+  // color · surface · floating — тёмная плавающая обвязка экрана: пилюли HomeTopBar
+  // (аккаунт / центр / дата) + круглый BackButton. Канон 2026-06-23 (выбор B по
+  // предложке s_364ea3f6): ВСЕ floating-элементы = чёрная пилюля кнопки даты
+  // (#0a0a0a), контент белый, на :active — светлый флэш (заливка белым, глиф чернеет).
+  // Распустил бывший component-named бандл `--bar-*`. Scope-override: SearchFood
+  // переобъявляет surface/text в своём scope → кнопка-назад там сливается со светлой
+  // страницей (санкционированный single-token override, не per-surface бандл).
+  --sys-color-surface-floating: var(--color-ink-strong); // #0a0a0a — эталон кнопки даты
+  --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff — светлый флэш на :active
+  --sys-color-text-on-floating: var(--text-on-accent); // белый контент/глиф
 
   // color · text (foreground)
   --sys-color-text-primary: var(--text-primary);
@@ -372,9 +386,7 @@
   // удалены — Chip + ModalShell теперь читают `--sys-color-*-selected` напрямую.)
 
   // ─── Nutrient family ──────────────────────────────────────────
-  --nutrient-bg-main: #fef5e7;
-  --nutrient-bg-minerals: #ecf6ef;
-  --nutrient-bg-vitamins: #edf4fb;
+  // (bg-main/minerals/vitamins + card-shadow deleted 2026-06-24 — 0 consumers)
   --nutrient-accent-main: var(--color-deep-blue);
   --nutrient-accent-minerals: var(--color-deep-blue);
   --nutrient-accent-vitamins: var(--color-deep-blue);
@@ -386,27 +398,16 @@
   // белом дровере почти невидима (тень делает работу), на тёплом фоне страницы
   // даёт лёгкий лифт.
   --nutrient-card-surface: rgba(255, 255, 255, 0.55);
-  --nutrient-card-shadow: 0 1px 6px rgba(15, 23, 42, 0.2);
   // Внутренний отступ карточки нутриента — чтобы контент не липнул к краю/тени.
   --nutrient-card-padding: var(--space-2) var(--space-3);
 
   // ─── Event / Atom family ──────────────────────────────────────
-  // accent — solid colour for caret / underline / borders / icons.
-  // fill   — background of the selected chip / «Готово» button (a gradient
-  //          per variant; here it just mirrors the accent as the default).
-  // Default is the `sage` trio — dusty green → muted teal → deep teal. The
-  // old neon --color-deep-blue is retired. Palettes flip via the
+  // accent — solid colour for caret / underline / borders / icons. The `sage`
+  // trio — dusty green → muted teal → deep teal. Palettes flip via the
   // DesignVariantsBar anchor "AtomAccent" (see AtomBuilder.module.css).
-  --event-scale-bg: rgba(108, 255, 196, 0.18);
-  --event-scale-text: var(--color-deep-blue);
+  // (per-atom -bg/-text deleted 2026-06-24 — 0 consumers; only -accent is read.)
   --event-scale-accent: #52784a;
-
-  --event-tag-bg: rgba(255, 180, 220, 0.18);
-  --event-tag-text: var(--color-deep-blue);
   --event-tag-accent: #37786a;
-
-  --event-relation-bg: rgba(180, 245, 230, 0.18);
-  --event-relation-text: var(--color-deep-blue);
   --event-relation-accent: #2c6a72;
 
   // ─── Time-of-day card palettes ────────────────────────────────

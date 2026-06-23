@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './BalanceSection.module.scss';
 import { fetchBalance, fetchLedger, type LedgerEntry } from '@/shared/lib/api/billing';
+import { Text } from '@/shared/ui/atoms/Typography';
 
 // Balance + recent transactions, shown in the ProfileDrawer. Fetched fresh each
 // time the drawer opens (balance only changes on spend/top-up — no live bus).
@@ -53,7 +54,7 @@ export function BalanceSection() {
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionLabel}>Баланс</h2>
+      <Text as="h2" role="label" className={styles.sectionLabel}>Баланс</Text>
 
       {failed ? (
         <p className={styles.hint}>Не удалось загрузить баланс</p>

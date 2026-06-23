@@ -22,7 +22,7 @@
     -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--sys-stack-section);
     padding: 4px 20px 16px;
 }
 
@@ -42,15 +42,9 @@
     flex-shrink: 0;
 }
 
+// Типографику несёт <Heading role="title"> (миграция 2026-06-23). Класс — layout-слот.
 .title {
     margin: 0;
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-size: var(--heading-size-modal);
-    font-weight: var(--heading-weight);
-    letter-spacing: var(--heading-letter);
-    line-height: 1.1;
-    color: var(--color-ink);
 }
 
 // .closeButton удалён — × теперь общий примитив CloseButton.

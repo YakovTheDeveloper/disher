@@ -14,7 +14,6 @@ import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
-import { LayoutEditOverlay } from '@/features/dev/layout-edit';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
 // idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
@@ -97,7 +96,6 @@ ReactDOM.createRoot(root).render(
     showDialog={false}
   >
     {shouldShowDvBar() && <DesignVariantsBar />}
-    {shouldShowDvBar() && <LayoutEditOverlay />}
     <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );

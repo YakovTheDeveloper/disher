@@ -18,17 +18,30 @@ import styles from './shared/AtomInputShared.module.css';
 
 const PRESET_LABELS = ['Боль', 'Настроение', 'Энергия', 'Стресс', 'Тревога', 'Нагрузка'];
 
-export const ScaleAtomInput = () => {
+interface ScaleAtomInputProps {
+  /**
+   * Focus the value field on mount. Default `true` — the fullscreen Оценка modal
+   * wants the numpad up immediately. The inline write-bar panel passes `false`:
+   * it opens keyboard-DOWN (it sits in the keyboard's place), and a focus here
+   * would raise the numpad and break that swap. The keyboard appears only when
+   * the user taps a field.
+   */
+  autoFocusValue?: boolean;
+}
+
+export const ScaleAtomInput = ({ autoFocusValue = true }: ScaleAtomInputProps) => {
   const value = useEventDraftStore((s) => s.pendingScale.value);
   const label = useEventDraftStore((s) => s.pendingScale.label);
   const setPendingScale = useEventDraftStore((s) => s.setPendingScale);
   const numberRef = useRef<HTMLInputElement>(null);
 
   // Autofocus WITHOUT scrolling — a focus-driven scroll mid-modal-transition
-  // jumps the whole sheet. preventScroll keeps the caret put.
+  // jumps the whole sheet. preventScroll keeps the caret put. Gated by
+  // `autoFocusValue` so the inline panel can open keyboard-down.
   useEffect(() => {
+    if (!autoFocusValue) return;
     numberRef.current?.focus({ preventScroll: true });
-  }, []);
+  }, [autoFocusValue]);
 
   const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');

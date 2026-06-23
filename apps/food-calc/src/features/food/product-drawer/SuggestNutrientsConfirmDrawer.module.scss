@@ -2,7 +2,7 @@
 .body {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--sys-stack-section);
     padding: 4px var(--sys-inset-sheet) 24px;
 }
 

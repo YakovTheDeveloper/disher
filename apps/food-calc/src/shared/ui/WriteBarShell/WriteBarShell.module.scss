@@ -21,21 +21,36 @@
     // ширине.
     --coin-size: calc(var(--bottom-action-h, 72px) - var(--space-1));
 
+    // Размер плавающей медали Еды (WriteBarMedal живёт в соседнем модуле, читает
+    // эту переменную). Дефолт = footprint бара (как было). Reduced-варианты
+    // (`field`/`cta`) держат медаль на отдельном легибельном размере, чтобы дуги-
+    // подписи не схлопывались, когда сам бар ужимается до поля. Наезд пересчитан
+    // от --medal-size (см. WriteBarMedal.module.scss).
+    --medal-size: calc(var(--bottom-action-h, 72px) - var(--space-1));
+
     // ash field tone + typography overrides СНЯТЫ 2026-06-22 (бандл-роспуск
     // --sys-field-*): write-бар наследует единую :root mono field-палитру
     // (--sys-field-text/-placeholder/-adornment + --sys-field-font-*), как остальные поля.
     // `--wb-*` ниже — собственные токены write-бара (пилюля/send/tile), не field.
 
-    --wb-pill-bg: rgb(249, 249, 249);
-    --wb-pill-border: rgba(40, 44, 54, 0.12);
-    --wb-pill-border-focus: rgba(40, 44, 54, 0.26);
+    // Пилюля = СТЕКЛО (Aero-lite, канон elevation §M2): полупрозрачная raised-
+    // поверхность + backdrop-blur. Семантику несёт --sys-color-surface-raised
+    // (та же стеклянная роль, что у raised-слоёв app). --wb-pill-bg — один локальный
+    // алиас на неё, чтобы fallback (нет backdrop-filter / выключена прозрачность)
+    // переключал на ПЛОТНУЮ бумагу ОДНОЙ строкой (см. @supports/@media ниже).
+    --wb-pill-bg: var(--sys-color-surface-raised);
+    // Матовое frosted-стекло: тяжёлый blur + saturate (за пилюлей цвета остаются
+    // живыми, но мягко размыты — «матовое», не глянец). Было blur(14px) — читалось
+    // плоско/грязно у фейд-края. saturate подтягивает тёплую бумагу под стеклом.
+    --wb-backdrop: blur(22px) saturate(150%);
+    --wb-pill-border: var(--sys-color-border-subtle);
+    --wb-pill-border-focus: rgba(40, 44, 54, 0.26); // focus-дельта (нет sys нейтрального strong-бордера)
     --wb-pill-press: #e6e8ec;
-    --wb-hairline: rgba(40, 44, 54, 0.14);
-    --wb-hairline-focus: rgba(40, 44, 54, 0.3);
-    --wb-backdrop: none;
+    --wb-hairline: var(--sys-color-border-subtle);
+    --wb-hairline-focus: rgba(40, 44, 54, 0.3); // focus-дельта хайрлайна
 
     --wb-send: #454b59;
-    --wb-send-fg: #ffffff;
+    --wb-send-fg: var(--sys-color-text-on-accent);
 
     --wb-tile-bg: #f3f4f6;
     --wb-tile-fg: rgba(40, 44, 54, 0.78);
@@ -44,46 +59,77 @@
     --wb-status-bg: rgba(64, 82, 128, 0.12);
     --wb-status-fg: rgba(64, 82, 128, 0.85);
 
-    --hint-fg: rgba(255, 255, 255, 0.95);
-    --hint-accent: rgba(255, 255, 255, 0.72);
+    // Dark hint text — the strip now sits on a light surface pill above the bar
+    // (focus-scrim removed 2026-06-23), not white-on-dimmed-screen.
+    --hint-fg: rgba(31, 42, 68, 0.74);
+    --hint-accent: rgba(31, 42, 68, 0.95);
 
     display: flex;
     flex-direction: column;
     width: 100%;
+    // Симметричные инсеты (8px) — фундамент центрирования. Правый край = место
+    // медали (крайний правый элемент). Левый зеркалит его, поэтому пилюля (с
+    // зеркальным margin ниже) встаёт строго по центру экрана.
     padding: var(--space-2);
-    padding-left: calc(var(--space-12) + var(--space-4));
     position: relative;
     box-sizing: border-box;
     background: transparent;
 }
 
-// ─── Focus-hint: example input ABOVE the bar (over the Screen focus-scrim) ──
+// Стекло-фоллбэк: где backdrop-filter недоступен ИЛИ юзер просит меньше
+// прозрачности (a11y) — пилюля становится ПЛОТНОЙ бумагой, blur снимается, чтобы
+// текст над ней не терял контраст.
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .wrap {
+        --wb-pill-bg: var(--sys-color-surface-page);
+        --wb-backdrop: none;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .wrap {
+        --wb-pill-bg: var(--sys-color-surface-page);
+        --wb-backdrop: none;
+    }
+}
+
+// ─── Focus-hint: example shown in a strip ABOVE the bar ────────────────────
+// In-flow strip (scrim removed 2026-06-23). Reserves a constant line so revealing
+// the hint on focus doesn't shift the bar; the inner pill + text fade in. Dark
+// text on a light surface pill instead of white-on-dimmed-screen.
 
 .focusHint {
-    position: absolute;
-    left: 10%;
-    right: 10%;
-    bottom: calc(100% + var(--space-4));
-    padding: 0 var(--space-1);
-    text-align: center;
-    white-space: pre-line;
-    color: var(--hint-fg);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    line-height: 1.5;
-    letter-spacing: -0.005em;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 0 var(--space-2) var(--space-1);
     pointer-events: none;
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.22s ease, transform 0.22s ease;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .focusHint[data-visible] {
     opacity: 1;
     transform: translateY(0);
+}
+
+.focusHintInner {
+    max-width: 100%;
+    padding: 4px var(--space-3);
+    border-radius: var(--radius-full);
+    background: var(--sys-color-surface-raised);
+    box-shadow: var(--sys-elevation-action-rest);
+    color: var(--hint-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    text-align: center;
+    white-space: pre-line;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .focusHintAccent {
@@ -93,9 +139,30 @@
     color: var(--hint-accent);
 }
 
-// ─── Row: pill (left slot + field + right slot) ────────────────────────────
+// ─── Bar line: glass pill (flex-fill) + detached medal sibling ─────────────
+// The medal now lives OUTSIDE the pill (2026-06-23 «отделить бар от кнопки»). The
+// pill is `flex: 1` so it shrinks to end before the medal, which keeps its place
+// at the far right. Analysis/Events have no medal → the pill fills the whole line.
+
+.barLine {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+// Food bar (detached medal): mirror the medal's right-hand footprint as a left
+// margin on the pill, so the pill is dead-centred on screen — independent of the
+// medal, which keeps its place at the far right. Medal footprint = its width
+// (`--pill-h - --space-1`) + its gap (`--space-2`).
+.barLine[data-detached] .writeBarRow {
+    margin-left: calc(var(--pill-h) - var(--space-1) + var(--space-2));
+}
+
+// ─── Row: glass pill (left slot + field + send) ────────────────────────────
 
 .writeBarRow {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     min-height: var(--pill-h);
@@ -106,62 +173,18 @@
     border-radius: var(--radius-full);
     padding: 0 var(--space-2) 0 var(--space-4);
     backdrop-filter: var(--wb-backdrop);
+    -webkit-backdrop-filter: var(--wb-backdrop);
+    // Лифт «это рычаг» (канон elevation §M2) + frosted-кромка: верхний внутренний
+    // световой хайлайт (inset top) и мягкое заземление снизу продают «стекло» без
+    // глянца. Тень внешняя — action-hover (это ГЛАВНЫЙ плавающий бар над скроллом).
+    box-shadow:
+        var(--sys-elevation-action-hover),
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -1px 1px rgba(31, 42, 68, 0.04);
     transition: border-color 0.15s ease, background 0.15s ease;
 
     &:focus-within {
         border-color: var(--wb-pill-border-focus);
-    }
-
-    // Fade-right — ТОЛЬКО по пропу (WriteFoodInput → fadeRight, бар еды). Заливка
-    // И контур пилюли уезжают в прозрачность к правому торцу (у медали «Выбор
-    // еды»), будто пилюля «открывается» к кнопке. Слой fill+border вынесен на
-    // ::before и срезан горизонтальной mask-маской; контент (поле/медаль) рисуется
-    // ПОВЕРХ (isolate + z-index:-1), поэтому маска не трогает текст и медаль.
-    // Полная прозрачность достигается на ~72% (ДО медали), старт фейда — 40%.
-    // Не-еда барам (Анализ/События) — обычная ровная рамка выше.
-    &[data-fade-right] {
-        background: transparent;
-        border-color: transparent;
-        isolation: isolate;
-
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            border-radius: inherit;
-            background: var(--wb-pill-bg);
-            border: 1px solid var(--wb-pill-border);
-            pointer-events: none;
-            -webkit-mask: linear-gradient(90deg,
-                    #000 0%,
-                    #000 40%,
-                    transparent 72%);
-            -webkit-mask-repeat: no-repeat;
-            mask: linear-gradient(90deg,
-                    #000 0%,
-                    #000 40%,
-                    transparent 72%);
-            mask-repeat: no-repeat;
-            transition: opacity 0.15s ease;
-        }
-
-        &[data-pressed]::before {
-            background: var(--wb-pill-press);
-            transition: background 0s;
-        }
-
-        // На фокусе fade выключаем: возвращаем цельную пилюлю (fill + border на
-        // самом элементе), masked-слой ::before прячем — растворённый правый край
-        // мешал бы при вводе.
-        &:focus-within {
-            background: var(--wb-pill-bg);
-            border-color: var(--wb-pill-border-focus);
-
-            &::before {
-                opacity: 0;
-            }
-        }
     }
 
     // A left slot (paperclip) sits inside the pill — trim the left padding so
@@ -170,7 +193,7 @@
         padding-left: var(--space-2);
     }
 
-    &[data-pressed]:not([data-fade-right]) {
+    &[data-pressed] {
         background: var(--wb-pill-press);
         transition: background 0s;
     }
@@ -267,6 +290,7 @@
 .sendCoin {
     flex-shrink: 0;
     align-self: center;
+    position: relative;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
@@ -281,9 +305,10 @@
     border-radius: var(--radius-full);
     background: var(--wb-send);
     color: var(--wb-send-fg);
-    box-shadow:
-        0 5px 12px rgba(31, 42, 68, 0.14),
-        0 2px 4px rgba(31, 42, 68, 0.08);
+    // Affordance-петля (канон elevation §M2): покой = action-rest, наведение/фокус =
+    // action-hover (через opacity ::after — box-shadow напрямую НЕ анимируем,
+    // animation budget), нажатие = тень СЖИМАЕТСЯ (action-pressed).
+    box-shadow: var(--sys-elevation-action-rest);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     animation: sendCoinIn 0.22s ease;
@@ -296,14 +321,35 @@
         height: 37%;
     }
 
+    // Подъём на наведение/фокус — fade-in БОЛЬШЕЙ тени на ::after (композитно).
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: var(--sys-elevation-action-hover);
+        opacity: 0;
+        transition: opacity var(--press-out) var(--easing-default);
+        pointer-events: none;
+    }
+
     &:not(:disabled):hover {
         filter: brightness(0.93);
+    }
+
+    &:not(:disabled):hover::after {
+        opacity: 1;
     }
 
     &:not(:disabled):active {
         transform: scale(0.92);
         filter: brightness(0.85);
+        box-shadow: var(--sys-elevation-action-pressed);
         transition-duration: var(--press-in);
+
+        &::after {
+            opacity: 0;
+        }
     }
 
     &:disabled {
@@ -319,6 +365,10 @@
         cursor: default;
         pointer-events: none;
         user-select: none;
+
+        &::after {
+            display: none;
+        }
     }
 }
 
@@ -446,4 +496,125 @@
     height: 8px;
     border-radius: var(--radius-full);
     background: var(--wb-send);
+}
+
+// ─── DesignBar surface variants (anchor `WriteBarSurface` on `.wrap`) ──────────
+// Предложка 2026-06-23 «бар не читался как мессенджер-инпут». 2 варианта формы
+// (glass/white/gray сняты): `field` (дефолт) — типовой текстовый инпут форм
+// проекта; `cta` — фирменная brand-CTA-заливка. Фон — ТОЛЬКО sys/cta-роли (без
+// новых bespoke --wb-*). Медаль Еды позиционируется в WriteBarMedal.module.scss
+// (overlap), т.к. `.writeBarList` живёт в другом CSS-модуле.
+
+// Общее для обоих вариантов (НЕ зависит от выбора в баре): поле тянется на всю
+// ширину со screen-inset по бокам; медаль больше не отъедает ширину (парит, см.
+// WriteBarMedal) → центрирующий margin детача гасим.
+[data-dv='WriteBarSurface'] {
+    padding-left: var(--sys-inset-page);
+    padding-right: var(--sys-inset-page);
+}
+
+[data-dv='WriteBarSurface'] .barLine {
+    position: relative;
+}
+
+[data-dv='WriteBarSurface'] .barLine[data-detached] .writeBarRow {
+    margin-left: 0;
+}
+
+// field — НАСТОЯЩЕЕ поле формы проекта (как .shell в AutoGrowSearch: поля форм /
+// поиск SearchFood). 2026-06-23 «бар не читался как обычный инпут»: дефолт-вариант
+// перекрашивал только поверхность, но оставлял габариты плавающего бара (72px-кузов
+// + ~60px send-монета). Теперь field ПЕРЕОПРЕДЕЛЯЕТ И ГЕОМЕТРИЮ:
+//   --pill-h   52px → высота как у обычного поля (.shell = 50px);
+//   --coin-size 44px → маленькая send-кнопка (≈40px), гармонична низкому полю;
+//   --medal-size 60px → медаль Еды держит легибельный размер, наезд пересчитан.
+// Поверхность: прямоугольник --radius-sm, плоский фон-бумага, тающий hairline снизу
+// (наследуется от базового .writeBarRow::after), лифт --sys-elevation-action-rest.
+[data-dv='WriteBarSurface'][data-dv-v='field'] {
+    --pill-h: 52px;
+    --coin-size: 44px;
+    --medal-size: 60px;
+    // Hairline РОВНО как у обычного поля (.shell), а не обвязочный border-subtle.
+    --wb-hairline: var(--sys-field-hairline);
+    --wb-hairline-focus: var(--sys-field-hairline-focus);
+}
+
+// Источник правды поверхности = ТОКЕНЫ ПОЛЯ (--sys-field-*), те же, что красят
+// .shell (AutoGrowSearch) в каждом инпуте/поиске проекта. Прошлый заход красил
+// surface-page + --sys-elevation-action-rest (это лифт КНОПКИ — токен помечен
+// «поле НЕ сюда»), из-за чего бар читался ПРИПОДНЯТОЙ КАРТОЧКОЙ, а не инпутом.
+// Теперь field = буквально .shell: тот же cool-градиент фона, та же мягкая
+// field-тень, тот же тающий field-hairline.
+[data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarRow {
+    border-radius: var(--sys-field-radius, var(--radius-sm));
+    background: linear-gradient(90deg,
+        var(--sys-field-bg-from) 0%,
+        var(--sys-field-bg-mid) 55%,
+        var(--sys-field-bg-to) 100%);
+    border-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--sys-field-shadow);
+}
+
+// Фокус — как у .shell: усиливаем мягкую field-тень (не бордер-дельту обвязки).
+[data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarRow:focus-within {
+    box-shadow: var(--sys-field-shadow-focus);
+}
+
+// Низкое поле → подрезаем вертикальные инсеты внутреннего бокса (база заточена под
+// 72px-бар), чтобы текст/плейсхолдер встал по центру 52px-строки.
+[data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarInput {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+// cta — «весь бар = фирменная CTA-кнопка» (<Button variant="brand">), которая по
+// тапу РАСКРЫВАЕТСЯ в поле (collapsed→expand, решение 2026-06-23). Источник правды
+// цвета/геометрии — Button.module.css .brand: --cta-brand-fill/-ink, min-height 56px,
+// --radius-full (уже на базе). В покое: лейбл-плейсхолдер по центру, send-монета
+// спрятана → читается как кнопка. В фокусе ([data-expanded]): текст влево + появляется
+// самолётик → превращается в brand-окрашенное поле.
+[data-dv='WriteBarSurface'][data-dv-v='cta'] {
+    --pill-h: 56px;
+    --coin-size: 44px;
+    --medal-size: 60px;
+}
+
+[data-dv='WriteBarSurface'][data-dv-v='cta'] .writeBarRow {
+    --sys-field-text: var(--cta-brand-ink);
+    --sys-field-placeholder: color-mix(in srgb, var(--cta-brand-ink) 55%, transparent);
+    --sys-field-adornment: var(--cta-brand-ink);
+
+    background: var(--cta-brand-fill);
+    border-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--sys-elevation-action-rest);
+
+    // hairline ни к чему на сплошной заливке.
+    &::after {
+        display: none;
+    }
+
+    &:focus-within {
+        border-color: transparent;
+    }
+}
+
+// CTA в ПОКОЕ (не раскрыт) = кнопка: плейсхолдер-лейбл по центру, полный ink
+// (не 55%-плейсхолдерный, чтобы читался как подпись кнопки), send-монета скрыта.
+// text-align на .shell наследуется и textarea, и rich-placeholder-оверлеем.
+[data-dv='WriteBarSurface'][data-dv-v='cta'] .writeBarRow:not([data-expanded]) {
+    --sys-field-placeholder: var(--cta-brand-ink);
+
+    .writeFieldInput {
+        text-align: center;
+    }
+
+    // display:none (не opacity) — поле тянется на всю строку, лейбл строго по центру;
+    // при раскрытии монета вновь монтируется и проигрывает sendCoinIn (scale-in).
+    .sendCoin {
+        display: none;
+    }
 }

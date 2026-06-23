@@ -36,7 +36,7 @@
     right: 0;
     bottom: 8px;
     z-index: 1;
-    font-family: "Source Serif 4", "Merriweather", serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-weight: 600;
     font-size: 12px;
@@ -141,7 +141,7 @@
     background: transparent;
     border-radius: 0;
     opacity: 1;
-    font-family: "Source Serif 4", "Merriweather", serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     line-height: 1;
 

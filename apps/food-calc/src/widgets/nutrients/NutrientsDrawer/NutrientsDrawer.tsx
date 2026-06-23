@@ -36,7 +36,7 @@ export function NutrientsDrawer({
   return (
     <DrawerLayout a11yLabel={title} hideTopChrome>
       <div className={styles.header}>
-        <Heading size="drawer" as="h2" className={styles.title}>
+        <Heading role="headline" as="h2" className={styles.title}>
           {title}
         </Heading>
       </div>

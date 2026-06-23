@@ -42,7 +42,7 @@
     //    распределяются по кривой между start и end через calc. Если полоса всё
     //    ещё заметна — РАСТЯНИ зону: уменьши `--hero-fade-start` (напр. 65–70%).
     //    Чем уже полоса, тем круче спад и тем виднее любой край.
-    --hero-fade-start: 85%; // с какой высоты НАЧИНАЕТСЯ растворение (тут альфа ещё 1)
+    --hero-fade-start: 75%; // с какой высоты НАЧИНАЕТСЯ растворение (тут альфа ещё 1) — ниже = шире зона = плавнее
     --hero-fade-end: 100%; //  на какой высоте картинка растворилась ПОЛНОСТЬЮ (альфа 0)
     --hero-fade-span: calc(var(--hero-fade-end) - var(--hero-fade-start));
     --hero-fade-v: linear-gradient(to bottom,
@@ -59,6 +59,17 @@
             rgba(0, 0, 0, 0.009) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.9),
             rgba(0, 0, 0, 0) var(--hero-fade-end));
     --hero-fade-h: linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+
+    // ВЕРХ во всю ширину: боковой фейд (--hero-fade-h) применяется на `.heroImg` в
+    // ОБЪЕДИНЕНИИ (mask-composite: add) с «верхней полосой» --hero-top-keep. Где
+    // полоса непрозрачна (самый верх) — бока НЕ срезаются, картинка идёт от края до
+    // края; ниже полоса гаснет → вступает боковой фейд. Верхние углы обложки видны
+    // целиком («от 100% до 80%»), низ по-прежнему тает в бок.
+    //   ⬇️ КРУТИ ЭТУ: докуда сверху держим полный bleed (в % высоты обложки).
+    //      Боковой фейд вступает на последних ~8% этой зоны (короткая рампа — под
+    //      пилюлями/контентом её излома не видно, smootherstep тут не нужен).
+    --hero-side-keep: 30%;
+    --hero-top-keep: linear-gradient(to bottom, #000 0%, #000 calc(var(--hero-side-keep) - 8%), transparent var(--hero-side-keep));
 
     // Скругление НИЖНИХ углов «туманом». Вертикальный + горизонтальный фейды —
     // прямые рампы; в нижнем углу они встречаются под прямым углом → читается
@@ -78,9 +89,13 @@
     --hero-corner-solid: 90%;
     --hero-corner-bl: radial-gradient(circle var(--hero-corner) at bottom left, transparent 0%, #000 var(--hero-corner-solid));
     --hero-corner-br: radial-gradient(circle var(--hero-corner) at bottom right, transparent 0%, #000 var(--hero-corner-solid));
-    -webkit-mask-image: var(--hero-fade-v), var(--hero-fade-h), var(--hero-corner-bl), var(--hero-corner-br);
+    // Вертикальный фейд (низ) + угловые радиусы накладывает РОДИТЕЛЬ (intersect).
+    // Боковой фейд переехал на `.heroImg` (там он в union с верхней полосой — см.
+    // ниже), чтобы верх обложки шёл во всю ширину. Маска родителя клипует и дочернюю
+    // маску картинок → итог = (низ ∩ углы) ∩ (верх-полоса ∪ бок).
+    -webkit-mask-image: var(--hero-fade-v), var(--hero-corner-bl), var(--hero-corner-br);
     -webkit-mask-composite: source-in; // вебкитовый аналог intersect
-    mask-image: var(--hero-fade-v), var(--hero-fade-h), var(--hero-corner-bl), var(--hero-corner-br);
+    mask-image: var(--hero-fade-v), var(--hero-corner-bl), var(--hero-corner-br);
     mask-composite: intersect;
 }
 
@@ -105,6 +120,13 @@
     // Картинка прижата верхом — кадрируем от верхней кромки, а не от центра:
     // верх виден целиком, обрезка уходит вниз (там фейд в фон).
     object-position: center top;
+    // Боковой фейд + верхняя полоса в ОБЪЕДИНЕНИИ (union): верх во всю ширину,
+    // бока тают ниже. Вертикальный фейд и углы накладывает `.root` (его маска
+    // клипует и эту). `--hero-fade-h` / `--hero-top-keep` наследуются от `.root`.
+    -webkit-mask-image: var(--hero-top-keep), var(--hero-fade-h);
+    -webkit-mask-composite: source-over; // вебкитовый аналог add (объединение)
+    mask-image: var(--hero-top-keep), var(--hero-fade-h);
+    mask-composite: add;
     opacity: 0.7;
     user-select: none;
 }

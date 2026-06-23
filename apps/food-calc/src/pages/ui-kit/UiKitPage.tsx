@@ -316,7 +316,7 @@ const ANATOMY: AnatomyEntity[] = [
     parts: [
       {
         part: 'Heading (единый display-канон)',
-        role: 'заголовок экрана / оверлея / слайда (size="masthead") / активного таба',
+        role: 'заголовок экрана / оверлея / слайда (role="display" masthead) / активного таба',
         css: 'Onest bold-sans (Apple Large Title register), размеры по роли',
         why: 'ОДИН display-голос — Masthead свёрнут сюда (2026-06-19)',
       },
@@ -328,9 +328,9 @@ const ANATOMY: AnatomyEntity[] = [
       },
     ],
     critique:
-      'RESOLVED (2026-06-19): задвоение display-голоса убрано. Heading = единственный Onest bold-sans голос (Masthead свёрнут в size="masthead", Typography/ScreenLabel удалены). serif-italic остался только тихим указателем (Text navTabQuiet) + FieldLabel.',
+      'RESOLVED (2026-06-19): задвоение display-голоса убрано. Heading = единственный Onest bold-sans голос, role-only (size удалён 2026-06-23; Masthead → masthead-проп, Typography/ScreenLabel удалены). serif-italic остался только тихим указателем (Text navTabQuiet) + заголовки секций нутриентов (Text sectionLabel).',
     improve:
-      'Канон зафиксирован: display = Heading (bold-sans), тихий ярус = Text navTabQuiet. Голоса инкапсулированы в примитивах, typography-миксины удалены. Мёртвый вариант: Heading size="field" — 0 боевых использований (FieldLabel ест токен --heading-size-field напрямую, а не через Heading-вариант) → кандидат на culling.',
+      'Канон зафиксирован: display = Heading (bold-sans, role display/headline/title), тихий ярус = Text navTabQuiet. Голоса инкапсулированы в примитивах, typography-миксины удалены. Heading size-проп удалён 2026-06-23 (legacy шкала size схлопнута в 3 роли); FieldLabel слетел на role="label" sans.',
   },
   {
     id: 'an-card',
@@ -352,7 +352,7 @@ const ANATOMY: AnatomyEntity[] = [
       {
         part: 'Analysis .card',
         role: 'feature-карточка',
-        css: 'свои --ax-* токены (hairline / rail / inset)',
+        css: 'плоский paper-mono content (--space + --sys-elevation-flat)',
         why: 'вторая философия карточки',
         smell: true,
       },
@@ -422,7 +422,7 @@ function Section({
     <section id={id} className={s.section}>
       <div className={s.sectionHead}>
         <span className={s.sectionIndex}>{index}</span>
-        <Heading size="section" as="h2" className={s.sectionTitle}>
+        <Heading role="headline" as="h2" className={s.sectionTitle}>
           {title}
         </Heading>
         {desc && <p className={s.sectionDesc}>{desc}</p>}
@@ -475,7 +475,7 @@ function AnatomyBlock({ e }: { e: AnatomyEntity }) {
   return (
     <article className={clsx(s.anatomyEntity, s.anatomyInline, e.win && s.anatomyEntityWin)}>
       <div className={s.anatomyHead}>
-        <Heading size="drawer" as="h3" className={s.anatomyTitle}>
+        <Heading role="headline" as="h3" className={s.anatomyTitle}>
           {e.title}
         </Heading>
         <span className={s.anatomyTag}>{e.win ? 'консистентно' : 'разбор'}</span>
@@ -888,7 +888,7 @@ function DemoDrawer({ onClose }: BaseDrawerProps) {
       }
     >
       <div className={s.overlayBody}>
-        <Heading size="drawer">Drawer</Heading>
+        <Heading role="headline">Drawer</Heading>
         <Text variant="hint">
           DrawerLayout — каркас нижней или боковой панели: drag-handle, крестик, скролл-зона и
           закреплённый <code>footer</code>. Открывается через <code>drawerStore.show()</code>.
@@ -1004,7 +1004,7 @@ const UiKitPage = () => {
         {/* ── Left nav rail (Storybook-style) ── */}
         <aside className={s.rail}>
           <div className={s.railHead}>
-            <Heading size="drawer" as="h1" className={s.railBrand}>
+            <Heading role="headline" as="h1" className={s.railBrand}>
               UI Kit
             </Heading>
             <Text variant="hint">Живая витрина общих компонентов Disher</Text>
@@ -1039,14 +1039,11 @@ const UiKitPage = () => {
               title="Типографика"
               desc="Источник правды для заголовков и текста. Heading — единый Onest bold-sans display-голос, Text — тело + тихий указатель (navTabQuiet). Внизу — разбор ролей «Заголовок» и «Метка поля»."
             >
-              <Specimen name="<Heading>" note="size: masthead · screen · modal · modalSub · drawer · section" wide>
+              <Specimen name="<Heading>" note="role: display · headline · title" wide>
                 <div className={s.stack}>
-                  <Heading size="masthead">Masthead 32px</Heading>
-                  <Heading size="screen">Screen 40px</Heading>
-                  <Heading size="modal">Modal 32px</Heading>
-                  <Heading size="modalSub">ModalSub</Heading>
-                  <Heading size="drawer">Drawer 24px</Heading>
-                  <Heading size="section">Section</Heading>
+                  <Heading role="display">Display 38px</Heading>
+                  <Heading role="headline">Headline 28px</Heading>
+                  <Heading role="title">Title 17px</Heading>
                 </div>
               </Specimen>
 

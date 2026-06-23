@@ -68,7 +68,7 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
         />
         <ModalShell.Body>
           <div className={s.block}>
-            <Heading size="field">Пожелания к анализу</Heading>
+            <Heading role="title">Пожелания к анализу</Heading>
             <AutoGrowSearch
               value={message}
               onChange={setMessage}

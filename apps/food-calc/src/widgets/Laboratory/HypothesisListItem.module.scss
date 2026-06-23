@@ -163,7 +163,6 @@
 // Заголовок — sans + монохром (унификация с мигрированным HypothesisCard,
 // 2026-06-22): засечка и navy сняты, ink по surface-токену темы.
 .title {
-    font-family: var(--font-sans);
     font-size: var(--hli-fs-title);
     font-weight: 600;
     letter-spacing: -0.003em;
@@ -173,7 +172,6 @@
 
 // Тело — Onest near-black на полную силу (читаемее прежних 58%).
 .body {
-    font-family: 'Onest', system-ui, sans-serif;
     font-size: var(--hli-fs-body);
     line-height: 1.5;
     color: color-mix(in srgb, var(--sys-card-text-rest) 85%, transparent);
@@ -195,34 +193,35 @@
 }
 
 // ─── Analysis presentation — «Анализ дня» look ────────────────────────────
-// Surface off (`--ax-*`), no accent stripe, a fading-hairline divider between
-// rows, Apple type scale — mirrors InsightCard's analysis mode so both
-// «Открытия» slides read identically. Inherited `--ax-*` / `--analysis-*` come
-// from the Discoveries `.container`. Declared after `.textButton` / `.title` /
-// `.body` / `.meta` so equal-specificity overrides win on source order.
+// Surface off (flat paper-mono), no accent stripe, rows split by air — mirrors
+// InsightCard's analysis mode so both «Открытия» slides read identically. The
+// `--ax-*` surface-contract was dissolved 2026-06-22 (read --space/--sys-elevation
+// directly); `--analysis-*` type scale still comes from the Discoveries
+// `.container`. Declared after `.textButton` / `.title` / `.body` / `.meta` so
+// equal-specificity overrides win on source order.
 .row[data-presentation='analysis'] {
-    background: var(--ax-card-bg, transparent);
-    box-shadow: var(--ax-card-shadow, none);
-    border-radius: var(--ax-card-radius, 0);
+    // Плоский paper-mono content-ряд (--ax-* контракт распущен 2026-06-22).
+    background: transparent;
+    box-shadow: var(--sys-elevation-flat);
+    border-radius: 0;
 
     // Accent stripe off — the analysis look carries no left rail.
     &::before {
         display: none;
     }
 
-    // Every divider identical: the fading hairline (neutralizes the flush
-    // nth-child re-paint below it).
+    // Строки делит воздух (--ax-list-gap), бровка погашена.
     &::after,
     &:nth-child(2n)::after {
-        background: var(--ax-divider, transparent);
+        background: transparent;
     }
 
     .textButton {
-        padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
+        padding: var(--space-3) var(--space-4);
     }
 
     // Размер заголовка — на сетке (--text-lg, 20px), как у карточек разбора
-    // (<Heading size="card">). Семейство/цвет .title наследует из base (серив-
+    // (<Heading role="title">). Семейство/цвет .title наследует из base (серив-
     // navy — отдельная, ещё не унифицированная трактовка сохранённого списка).
     .title {
         font-size: var(--text-lg);

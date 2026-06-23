@@ -26,7 +26,9 @@ if (!process.env.STYLELINT_BASELINE_REGEN) {
 module.exports = {
   customSyntax: 'postcss-scss',
   plugins: ['stylelint-declaration-strict-value'],
-  ignoreFiles: ['dist/**', 'dev-dist/**', 'coverage/**', 'playwright-report/**', '**/node_modules/**'],
+  // `__fixtures__/**` — design-tooling test fixtures intentionally carry raw
+  // literals (the detector's known-bad / codemod input cases); never gate them.
+  ignoreFiles: ['dist/**', 'dev-dist/**', 'coverage/**', 'playwright-report/**', '**/node_modules/**', '**/__fixtures__/**'],
   rules: {
     'scale-unlimited/declaration-strict-value': [
       ['/color$/', 'font-size', 'border-radius'],

@@ -45,10 +45,9 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     for (const atom of existingAtoms) {
       store.addAtom(atom);
     }
-    // Seed the scale form from the event's existing scale (if any) so the Оценка
-    // step shows/edits it instead of a blank 5.
-    const scale = existingAtoms.find((a) => a.kind === 'scale');
-    if (scale && scale.kind === 'scale') store.hydratePendingScale(scale);
+    // Form starts empty — existing rated states show as chips in AtomBuilder; tap
+    // a chip to edit one. (Was: pre-hydrate the single scale, which now double-shows
+    // it as both chip and form when an event has multiple states.)
   }, [item.id]);
 
   useSwipeableLock(step !== 'idle');

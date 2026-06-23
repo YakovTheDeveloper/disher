@@ -89,20 +89,12 @@
   text-overflow: ellipsis;
 }
 
-// Чуть меньший кегль для заголовка-полосы (28px против 32px у ModalShell.Title).
-.header:not(.compact) .title {
-  font-size: var(--heading-size-modal-header);
-}
-
 .trailing {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
 }
 
-// ─── Таб-метафора step-шапки (маркер data-nav-tabs на .stepHeader) ──────
-// Заголовок шага крупнее базового (28px → 32px). Сам голос (Onest bold-sans)
-// теперь несёт <Heading> по умолчанию — отдельный font-override не нужен.
-:global([data-nav-tabs]) .header:not(.compact) .title {
-  font-size: var(--heading-size-modal);
-}
+// Кегль заголовка-полосы (28px) теперь несёт role="headline" самого <Heading>;
+// compact / step (data-nav-tabs) больше НЕ переопределяют размер — все шапки
+// модалок унифицированы на Headline (схлопывание size→role 2026-06-23).

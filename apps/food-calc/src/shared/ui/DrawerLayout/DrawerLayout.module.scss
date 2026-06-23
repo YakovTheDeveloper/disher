@@ -365,8 +365,8 @@
 // Centered header title — between the Close cross and the topRight slot. Cross
 // and topRight are absolutely positioned, so the title centers in the flex row
 // (justify-content: center on .dragHandle). This element IS the Drawer.Title
-// (<h2>); styling mirrors the canonical `Heading size="drawer"` via the shared
-// heading tokens (Source Serif italic, --heading-size-drawer) — single source
+// (<h2>); styling mirrors the canonical `Heading role="headline"` via the shared
+// heading tokens (Onest bold-sans, --heading-size-drawer) — single source
 // of truth is the tokens. `margin: 0` strips the UA heading margin so it stays
 // centered in the 50px row; pointer-events off so taps fall through to the
 // (decorative) drag row.

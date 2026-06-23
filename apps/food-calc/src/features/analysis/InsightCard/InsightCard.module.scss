@@ -1,12 +1,11 @@
 // Insight card — one read-only observation grounded in evidence. Сидит внутри
 // pearl-плашки SheetCard (общий контейнер с гипотезами и предложкой). Сама
-// поверхность карточки больше НЕ задаётся здесь жёстко — её рисуют `--ax-*`,
-// публикуемые консумером: AnalysisResult `.root` (разбор — плоский текст, строки
-// разделяет воздух; бровка убрана 2026-06-22, dv-ось 'Analysis' распущена) ИЛИ
-// DiscoveriesSlides `.container` («Открытия» — тот же плоский текст, но строки
-// делит тающая бровка `--ax-divider`). Левая accent-полоса несёт strength
-// (плотность серого, не смена оттенка). Token-driven app-wide тоном (`--sys-card-*`);
-// local `--ic-*` props алиасят их, чтобы правила читались.
+// Поверхность — плоский paper-mono content без рамки/тени: строки делит воздух
+// (--space-3), и в разборе (AnalysisResult), и в «Открытиях» (DiscoveriesSlides).
+// Бывший `--ax-*` surface-контракт распущен 2026-06-22 (нёс одно плоское значение;
+// accent/divider-хуки мертвы) — карточка читает --space-*/--sys-elevation-flat
+// напрямую. Token-driven app-wide тоном (`--sys-card-*`); local `--ic-*` props
+// алиасят их, чтобы правила читались.
 .card {
     --ic-ink: var(--sys-card-text-rest);
     // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
@@ -17,68 +16,29 @@
     // должно читаться, а не выцветать как soft. Контексты могут поднять/опустить
     // через `--analysis-body-amt` (дом уже держит soft на 80%).
     --ic-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    // strength = плотность серого (moderate-дефолт; weak бледнее, clear плотнее).
-    --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 28%, transparent);
     --ic-chip-bg: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
     --ic-radius: var(--radius-md);
     --ic-chip-radius: var(--radius-sm);
     // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
     // мета 12.8 (`--text-sm`). Сид `--analysis-*` = тот же грид (дом «Открытия»).
-    // Заголовок больше НЕ здесь — рендерится примитивом <Heading size="card">
-    // (`--text-lg`, 20px = Apple Title3, вес 600, монохром; канон Открытий).
+    // Заголовок больше НЕ здесь — рендерится примитивом <Heading role="title">
+    // (17px = Apple Title3 register, вес 600, монохром; канон Открытий).
     --ic-fs-detail: var(--analysis-fs-detail, var(--text-base));
     --ic-fs-meta: var(--analysis-fs-meta, var(--text-sm));
 
     position: relative;
     display: flex;
     align-items: flex-start;
-    // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
-    padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
-    border-radius: var(--ax-card-radius, 0px);
-    background: var(--ax-card-bg, transparent);
-    box-shadow: var(--ax-card-shadow, none);
+    // Плоская paper-mono content-карточка: поверхности нет, разделяет воздух
+    // (--ax-* контракт распущен 2026-06-22 — нёс одно плоское значение).
+    padding: var(--space-3) var(--space-4);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: var(--sys-elevation-flat);
 
-    // Левая accent-полоса: геометрия постоянна, ширину даёт вариант (0 везде,
-    // 3px у rail). Цвет = плотность strength.
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: var(--space-2);
-        bottom: var(--space-2);
-        width: var(--ax-accent-w, 0px);
-        border-radius: var(--ic-chip-radius);
-        background: var(--ic-accent);
-        pointer-events: none;
-    }
-
-    &[data-strength='weak'] {
-        --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 16%, transparent);
-    }
-
-    &[data-strength='clear'] {
-        --ic-accent: color-mix(in srgb, var(--sys-card-text-rest) 40%, transparent);
-    }
-
-    // Бровка-разделитель: тающая волосяная линия, показывается ТОЛЬКО когда
-    // консумер публикует `--ax-divider` градиентом. Discoveries («Открытия»,
-    // DiscoveriesSlides `.container`) публикует → строки делит бровка. AnalysisResult
-    // (разбор дня/блюда/длинный) с 2026-06-22 публикует `transparent` → бровки нет,
-    // строки разделяет воздух (`--ax-list-gap`). Один общий `::after`, два режима.
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        background: var(--ax-divider, transparent);
-        pointer-events: none;
-    }
-
-    &:last-child::after {
-        background: transparent;
-    }
+    // Без accent-полосы и без бровки: плоская карточка, строки делит воздух
+    // (--space-3 у листа). Мёртвые `::before` (accent width:0) / `::after` (divider
+    // transparent) и strength-рейка сняты 2026-06-23 — никогда не активировались.
 }
 
 .text {
@@ -96,8 +56,13 @@
     gap: var(--space-2);
 }
 
-// Заголовок рендерится примитивом <Heading size="card"> (см. InsightCard.tsx) —
-// Onest sans 20px (--text-lg), вес 600, монохром. Здесь его стилей больше нет.
+// Заголовок рендерится примитивом <Heading role="title"> (см. InsightCard.tsx) —
+// Onest sans 17px, вес 600. Роль не моделирует цвет → здесь добавляем ТОЛЬКО
+// surface-adaptive ink карточки (`.head .cardTitle` = 0,2,0 перебивает базовый
+// `.heading { color }` 0,1,0 независимо от порядка загрузки CSS-модулей).
+.head .cardTitle {
+    color: var(--sys-card-text-rest, var(--color-ink));
+}
 
 .strength {
     flex-shrink: 0;
@@ -111,7 +76,6 @@
 // Тело — Onest near-black на полную силу. Вторая (и последняя) гарнитура.
 .detail {
     margin: 0;
-    font-family: 'Onest', system-ui, sans-serif;
     font-size: var(--ic-fs-detail);
     line-height: var(--analysis-lh-detail, 1.5);
     color: var(--ic-ink-body);
@@ -131,7 +95,7 @@
 .chipEvent {
     padding: 2px 8px;
     border-radius: var(--ic-chip-radius);
-    font-family: 'Onest', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: var(--ic-fs-meta);
     font-weight: 500;
     line-height: 1.4;
@@ -218,7 +182,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    margin: 0 calc(-1 * var(--ax-pad-x, 16px)) calc(-1 * var(--ax-pad-y, 14px)) 6px;
+    margin: 0 calc(-1 * var(--space-4)) calc(-1 * var(--space-3)) 6px;
     padding: 0;
     border: none;
     border-radius: var(--ic-chip-radius);

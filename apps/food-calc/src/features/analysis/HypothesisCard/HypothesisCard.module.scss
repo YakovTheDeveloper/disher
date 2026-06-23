@@ -2,8 +2,8 @@
 // Сидит внутри pearl-плашки SheetCard (общий контейнер с наблюдениями и
 // предложкой). Унифицирована с InsightCard (2026-06-14): тот же монохромный
 // ink (`--sys-card-text-rest`, не навигационный navy) и те же кегли, поверхность —
-// от `--ax-*` контракта AnalysisResult `.root` (плоский текст, строки разделяет
-// воздух; бровка убрана и dv-ось 'Analysis' распущена 2026-06-22). Действенность читается из
+// плоский paper-mono content без рамки/тени, строки делит воздух (--space-3; бывший
+// `--ax-*` контракт распущен 2026-06-22). Действенность читается из
 // тихой «+ к себе», не из заливки. Layout — колонка: текст сверху, действие в
 // правом нижнем углу.
 .card {
@@ -14,57 +14,27 @@
     --hc-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-faint-amt, 50%), transparent);
     // Тело — near-black на полную силу (гармоничная композиция 2026-06-21).
     --hc-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    // У гипотезы нет strength — нейтральная средняя плотность полосы (rail).
-    --hc-accent: color-mix(in srgb, var(--sys-card-text-rest) 24%, transparent);
     --hc-chip-radius: var(--radius-sm);
     // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
     // мета 12.8 (`--text-sm`). Заголовок больше НЕ здесь — рендерится примитивом
-    // <Heading size="card"> (`--text-lg`, 20px = Apple Title3, вес 600, монохром).
+    // <Heading role="title"> (17px = Apple Title3 register, вес 600, монохром).
     --hc-fs-body: var(--analysis-fs-detail, var(--text-base));
     --hc-fs-meta: var(--analysis-fs-meta, var(--text-sm));
 
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    // Поверхность — от активного `Analysis`-варианта (`--ax-*`).
-    padding: var(--ax-pad-y, var(--space-3)) var(--ax-pad-x, var(--space-4));
-    border-radius: var(--ax-card-radius, 0px);
-    background: var(--ax-card-bg, transparent);
-    box-shadow: var(--ax-card-shadow, none);
+    gap: var(--sys-stack-row);
+    // Плоская paper-mono content-карточка: поверхности нет, строки делит воздух
+    // (--ax-* контракт распущен 2026-06-22 — нёс одно плоское значение).
+    padding: var(--space-3) var(--space-4);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: var(--sys-elevation-flat);
 
-    // Левая accent-полоса (rail): ширина от варианта (0 везде, 3px у rail).
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: var(--space-2);
-        bottom: var(--space-2);
-        width: var(--ax-accent-w, 0px);
-        border-radius: var(--hc-chip-radius);
-        background: var(--hc-accent);
-        pointer-events: none;
-    }
-
-    // Бровка-разделитель: показывается ТОЛЬКО когда консумер публикует
-    // `--ax-divider` градиентом (как InsightCard). HypothesisCard живёт только в
-    // AnalysisResult, который с 2026-06-22 публикует `transparent` → бровки нет,
-    // строки делит воздух (`--ax-list-gap`). `::after` оставлен общим с InsightCard
-    // для единообразия (в Discoveries-режиме показал бы линию).
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        background: var(--ax-divider, transparent);
-        pointer-events: none;
-    }
-
-    &:last-child::after {
-        background: transparent;
-    }
+    // Без accent-полосы и без бровки: плоская карточка, строки делит воздух.
+    // Мёртвые `::before` (accent width:0) / `::after` (divider transparent) сняты
+    // 2026-06-23 — никогда не активировались.
 }
 
 .text {
@@ -81,8 +51,13 @@
     gap: var(--space-2);
 }
 
-// Заголовок рендерится примитивом <Heading size="card"> (см. HypothesisCard.tsx)
-// — Onest sans 20px (--text-lg), вес 600, монохром. Здесь его стилей больше нет.
+// Заголовок рендерится примитивом <Heading role="title"> (см. HypothesisCard.tsx)
+// — Onest sans 17px, вес 600. Роль не моделирует цвет → здесь добавляем ТОЛЬКО
+// surface-adaptive ink карточки (`.head .cardTitle` = 0,2,0 перебивает базовый
+// `.heading { color }` 0,1,0 независимо от порядка загрузки CSS-модулей).
+.head .cardTitle {
+    color: var(--sys-card-text-rest, var(--color-ink));
+}
 
 .days {
     flex-shrink: 0;

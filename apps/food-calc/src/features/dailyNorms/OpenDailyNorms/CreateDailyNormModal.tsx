@@ -18,6 +18,7 @@ import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 // chrome:
 //   'modal' (default) — full modal with ModalLayout, hero title header
@@ -139,7 +140,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           >
             <ArrowLeftIcon />
           </button>
-          <h2 className={styles.title}>Моя норма</h2>
+          <Heading role="title" className={styles.title}>Моя норма</Heading>
           <p className={styles.subtitle}>
             Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
             по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.

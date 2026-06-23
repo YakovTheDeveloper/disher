@@ -74,20 +74,20 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
 }
 
+// Типографику несёт <Heading role="title"> (миграция 2026-06-23). Класс — layout-слот.
+// Зазор до подзаголовка владеет .subtitle (margin-top), а НЕ собственный
+// margin-bottom заголовка: база примитива <Heading> ставит margin:0 на равной
+// специфичности и при неудачном порядке CSS-модулей перебила бы его. Канон:
+// spacing-вниз от заголовка — у соседа/контейнера (см. Heading.module.scss).
 .title {
-    margin: 0 0 6px 0;
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-size: var(--heading-size-modal);
-    font-weight: var(--heading-weight);
-    color: var(--sys-field-text, #{$ink});
-    letter-spacing: var(--heading-letter);
-    line-height: 1.05;
+    margin: 0;
 }
 
 .subtitle {
-    margin: 0;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    // 6px зазора от заголовка живёт здесь (margin-top соседа), а не в .title
+    // margin-bottom — детерминированно против базы примитива (см. .title выше).
+    margin: 6px 0 0;
+    font-family: var(--font-sans);
     font-size: 0.83rem;
     line-height: 1.45;
     color: var(--sys-field-adornment, #{$ink-soft});
@@ -105,7 +105,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     padding: 6px 22px 24px;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: var(--sys-stack-section);
 }
 
 // ─── Section ─────────────────────────────────────────────────────
@@ -214,7 +214,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         background: transparent;
         border: none;
         padding: 0;
-        font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+        font-family: var(--sys-text-family-serif);
         font-size: 1.5rem;
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -231,7 +231,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .numberUnit {
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.78rem;
     font-weight: 500;
     color: var(--sys-field-adornment, #{$ink-muted});
@@ -277,7 +277,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .previewKcalValue {
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-size: clamp(2.6rem, 11vw, 3.4rem);
     font-weight: 500;
@@ -288,7 +288,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .previewKcalUnit {
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--sys-field-adornment, #{$ink-soft});
@@ -314,7 +314,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .macroLabel {
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-size: 0.85rem;
     font-weight: 500;
@@ -323,7 +323,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .macroValue {
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--sys-field-text, #{$ink});
@@ -340,7 +340,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 
 .previewMeta {
     margin: 0 0 8px;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.76rem;
     font-weight: 500;
     color: var(--sys-field-adornment, #{$ink-soft});
@@ -350,7 +350,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 
 .disclaimer {
     margin: 0;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.72rem;
     line-height: 1.45;
     color: var(--sys-field-placeholder, #{$ink-muted});
@@ -390,7 +390,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     background: var(--sys-field-text, #{$ink});
     color: var(--sys-color-text-on-accent);
     border-radius: 12px;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.92rem;
     font-weight: 600;
     letter-spacing: -0.005em;
@@ -461,7 +461,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 
 .panelSubtitle {
     margin: 12px 16px 0;
-    font-family: 'Jost', 'YS Text', 'Golos Text', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 0.8rem;
     line-height: 1.45;
     color: var(--sys-field-adornment, #{$ink-soft});

@@ -15,13 +15,13 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 .container {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--sys-stack-row);
     padding: var(--space-2) var(--space-3);
 }
 
 .hint {
     margin: 0 8px 8px;
-    font-family: "Raleway", sans-serif;
+    font-family: var(--font-display);
     font-size: 12px;
     font-weight: 300;
     line-height: 1.45;
@@ -32,7 +32,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 .list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--sys-stack-row);
 }
 
 // View-only pill (and implicit pinned row).
@@ -82,7 +82,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 }
 
 .portionLabel {
-    font-family: "Raleway", sans-serif;
+    font-family: var(--font-display);
     font-size: 15px;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -108,7 +108,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 // ScheduleFoodItemInline qty), тап → input. min-height даёт комфортный тап и
 // держит высоту строки стабильной при переключении span↔input.
 .cellLabel {
-    font-family: "Raleway", sans-serif;
+    font-family: var(--font-display);
     font-size: 15px;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -139,7 +139,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 .formInput {
     border: none;
     background: transparent;
-    font-family: "Raleway", sans-serif;
+    font-family: var(--font-display);
     font-size: 14px;
     font-weight: 500;
     color: $sky-ink;

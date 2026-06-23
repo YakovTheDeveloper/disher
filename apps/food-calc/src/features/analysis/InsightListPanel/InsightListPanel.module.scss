@@ -2,12 +2,11 @@
     width: 100%;
 }
 
-// Rows are divided by AIR — the gap is `--ax-list-gap`, inherited from the
-// Discoveries `.container` (and `0px` fallback elsewhere). Mirrors AnalysisResult
-// `.list`: the «Анализ дня» look dropped the fading-hairline divider 2026-06-22
-// (`--ax-divider: transparent`), so the rhythm is carried by the gap, not a line.
+// Rows are divided by AIR — a fixed `--space-3` gap (the `--ax-list-gap` contract
+// was dissolved 2026-06-22; both surfaces published the same value). No fading
+// hairline: the rhythm is carried by the gap, not a line.
 .list {
     display: flex;
     flex-direction: column;
-    gap: var(--ax-list-gap, 0px);
+    gap: var(--sys-stack-row);
 }

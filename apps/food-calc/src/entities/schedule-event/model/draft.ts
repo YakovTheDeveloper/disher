@@ -37,12 +37,15 @@ interface EventDraftStore {
   clearAtoms: () => void;
   clear: () => void;
 
-  // Pending scale for the Оценка modal (single scale per event).
+  // Pending scale being edited in the Оценка form. An event can hold MULTIPLE
+  // scale atoms (one per phenomenon, e.g. «Настроение 7» + «Энергия 4»); this is
+  // the single one currently in the form, committed into atoms by label.
   pendingScale: PendingScale;
   setPendingScale: (patch: Partial<Pick<PendingScale, "value" | "label">>) => void;
   hydratePendingScale: (scale: { value: number; label?: string }) => void;
   resetPendingScale: () => void;
-  /** Upsert the pending scale into atoms (replace the existing scale, else append). No-op if untouched. */
+  /** Upsert the pending scale into atoms keyed by LABEL (same label replaces,
+   *  new label appends → multiple states per event). No-op if untouched. */
   commitPendingScale: () => void;
 
   tagHistory: string[];
@@ -98,8 +101,11 @@ export const useEventDraftStore = create<EventDraftStore>()(
           const p = s.pendingScale;
           if (!p.touched) return { pendingScale: EMPTY_PENDING() };
           const value = typeof p.value === "number" ? p.value : 5;
-          const atom: Atom = { kind: "scale", value: value || 5, label: p.label.trim() || undefined };
-          const idx = s.draft.atoms.findIndex((a) => a.kind === "scale");
+          const label = p.label.trim() || undefined;
+          const atom: Atom = { kind: "scale", value: value || 5, label };
+          // Upsert by label: a scale with the SAME label replaces it (editing),
+          // a new label appends (another state). Label-less matches label-less.
+          const idx = s.draft.atoms.findIndex((a) => a.kind === "scale" && (a.label ?? "") === (label ?? ""));
           const atoms =
             idx >= 0
               ? s.draft.atoms.map((a, i) => (i === idx ? atom : a))

@@ -133,7 +133,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: var(--text-base);
     font-weight: 500;
     text-transform: capitalize;
@@ -160,7 +160,7 @@
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--sys-card-rich-track, #eef0f3);
-    font-family: 'Jost', 'YS Text', 'Golos Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     font-size: 13px;
     font-weight: 600;
@@ -238,7 +238,7 @@
     position: absolute;
     // left: var(--space-6, 8px);
     bottom: 4px;
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-size: var(--text-sm);
     font-weight: 400;

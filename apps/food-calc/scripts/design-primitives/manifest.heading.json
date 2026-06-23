@@ -1,0 +1,200 @@
+{
+  "category": "heading",
+  "count": 11,
+  "hash": "53724725c845",
+  "entries": [
+    {
+      "id": "853025e5",
+      "axis": "tsx",
+      "file": "src/features/analysis/long/AnalysisDetailModal.tsx",
+      "line": 62,
+      "tag": "h2",
+      "styleKey": "title",
+      "from": "<h2 className={styles.title}>",
+      "to": "<Heading role=\"headline\" className={styles.title}>",
+      "primitive": "Heading",
+      "props": {
+        "role": "headline"
+      },
+      "sampleText": "Разбор по неделям",
+      "bucket": "A",
+      "confidence": "high"
+    },
+    {
+      "id": "1c8a5b8a",
+      "axis": "tsx",
+      "file": "src/features/analysis/long/CreateLongAnalysisModal.tsx",
+      "line": 83,
+      "tag": "h2",
+      "styleKey": "title",
+      "from": "<h2 className={styles.title}>",
+      "to": "<Heading role=\"headline\" className={styles.title}>",
+      "primitive": "Heading",
+      "props": {
+        "role": "headline"
+      },
+      "sampleText": "Разбор по неделям",
+      "bucket": "A",
+      "confidence": "high"
+    },
+    {
+      "id": "a7775d3f",
+      "axis": "tsx",
+      "file": "src/features/auth/AuthForm.tsx",
+      "line": 131,
+      "tag": "h1",
+      "styleKey": "heading",
+      "from": "<h1 className={styles.heading}>",
+      "to": "<Heading as=\"h1\" role=\"display\" className={styles.heading}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h1",
+        "role": "display"
+      },
+      "sampleText": "Заголовок",
+      "bucket": "A",
+      "confidence": "medium"
+    },
+    {
+      "id": "99cd8035",
+      "axis": "tsx",
+      "file": "src/features/auth/BalanceSection.tsx",
+      "line": 56,
+      "tag": "h2",
+      "styleKey": "sectionLabel",
+      "from": "<h2 className={styles.sectionLabel}>",
+      "to": "<Heading role=\"title\" className={styles.sectionLabel}>",
+      "primitive": "Heading",
+      "props": {
+        "role": "title"
+      },
+      "sampleText": "Баланс",
+      "bucket": "B",
+      "confidence": "low"
+    },
+    {
+      "id": "2707cbd4",
+      "axis": "tsx",
+      "file": "src/features/auth/CheckInboxView.tsx",
+      "line": 38,
+      "tag": "h1",
+      "styleKey": "heading",
+      "from": "<h1 className={styles.heading}>",
+      "to": "<Heading as=\"h1\" role=\"display\" className={styles.heading}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h1",
+        "role": "display"
+      },
+      "sampleText": "Проверьте почту",
+      "bucket": "A",
+      "confidence": "medium"
+    },
+    {
+      "id": "aff80ba5",
+      "axis": "tsx",
+      "file": "src/features/auth/ProfileDrawer.tsx",
+      "line": 112,
+      "tag": "h2",
+      "styleKey": "sectionLabel",
+      "from": "<h2 className={styles.sectionLabel}>",
+      "to": "<Heading role=\"title\" className={styles.sectionLabel}>",
+      "primitive": "Heading",
+      "props": {
+        "role": "title"
+      },
+      "sampleText": "Оформление",
+      "bucket": "B",
+      "confidence": "low"
+    },
+    {
+      "id": "b7dba1e9",
+      "axis": "tsx",
+      "file": "src/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal.tsx",
+      "line": 142,
+      "tag": "h2",
+      "styleKey": "title",
+      "from": "<h2 className={styles.title}>",
+      "to": "<Heading role=\"headline\" className={styles.title}>",
+      "primitive": "Heading",
+      "props": {
+        "role": "headline"
+      },
+      "sampleText": "Моя норма",
+      "bucket": "A",
+      "confidence": "high"
+    },
+    {
+      "id": "5620e3c3",
+      "axis": "tsx",
+      "file": "src/features/food/food-free-text-parse/ui/InlineWriteFoodReview.tsx",
+      "line": 261,
+      "tag": "h3",
+      "styleKey": "sectionTitle",
+      "from": "<h3 className={styles.sectionTitle}>",
+      "to": "<Heading as=\"h3\" role=\"headline\" className={styles.sectionTitle}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h3",
+        "role": "headline"
+      },
+      "sampleText": "Уточните",
+      "bucket": "A",
+      "confidence": "medium"
+    },
+    {
+      "id": "d052f2f5",
+      "axis": "tsx",
+      "file": "src/features/food/food-free-text-parse/ui/InlineWriteFoodReview.tsx",
+      "line": 314,
+      "tag": "h3",
+      "styleKey": "sectionTitle",
+      "from": "<h3 className={styles.sectionTitle}>",
+      "to": "<Heading as=\"h3\" role=\"headline\" className={styles.sectionTitle}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h3",
+        "role": "headline"
+      },
+      "sampleText": "Не распознано",
+      "bucket": "A",
+      "confidence": "medium"
+    },
+    {
+      "id": "efd3e25d",
+      "axis": "tsx",
+      "file": "src/pages/auth/VerifyEmailPage.tsx",
+      "line": 81,
+      "tag": "h1",
+      "styleKey": "heading",
+      "from": "<h1 className={authFormStyles.heading}>",
+      "to": "<Heading as=\"h1\" role=\"display\" className={authFormStyles.heading}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h1",
+        "role": "display"
+      },
+      "sampleText": "Заголовок",
+      "bucket": "A",
+      "confidence": "medium"
+    },
+    {
+      "id": "f1d30ec9",
+      "axis": "tsx",
+      "file": "src/widgets/ScheduleEvents/components/AtomBuilder/AtomList.tsx",
+      "line": 58,
+      "tag": "h4",
+      "styleKey": "sectionTitle",
+      "from": "<h4 className={styles.sectionTitle}>",
+      "to": "<Heading as=\"h4\" role=\"headline\" className={styles.sectionTitle}>",
+      "primitive": "Heading",
+      "props": {
+        "as": "h4",
+        "role": "headline"
+      },
+      "sampleText": "Заголовок",
+      "bucket": "A",
+      "confidence": "medium"
+    }
+  ]
+}

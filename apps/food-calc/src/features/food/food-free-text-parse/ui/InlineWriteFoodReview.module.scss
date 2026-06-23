@@ -115,23 +115,22 @@
 .sections {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--sys-stack-section);
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
 }
 
+// Типографику несёт <Heading role="title"> (миграция 2026-06-23); класс — layout
+// (inline-flex под счётчик-бейдж .sectionCount).
 .sectionTitle {
   margin: 0;
   display: inline-flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(31, 42, 68, 0.72);
 }
 
 .sectionCount {
@@ -155,7 +154,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
 }
 
 // Wrapper для одного ряда предложки. Сам ряд (FreeTextFoodReviewItem)
@@ -408,7 +407,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--sys-stack-row);
   padding: var(--space-2) 0;
   min-height: 180px;
 }

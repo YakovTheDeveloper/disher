@@ -64,7 +64,7 @@ ModalShellAtomsBody.displayName = 'ModalShell.AtomsBody';
 // The canonical Heading primitive carries the typography; ModalShell.Title
 // adds the modal-tier layout (top offset, flex slot for a leading icon).
 const ModalShellTitle = ({ children }: { children: ReactNode }) => (
-  <Heading size="modal" as="h2" className={s.title}>
+  <Heading role="headline" as="h2" className={s.title}>
     {children}
   </Heading>
 );

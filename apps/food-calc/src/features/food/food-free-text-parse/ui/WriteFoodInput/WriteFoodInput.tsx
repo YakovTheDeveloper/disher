@@ -80,9 +80,6 @@ export const WriteFoodInput = ({
       inputId={inputId}
       placeholder={placeholder}
       online={online}
-      // Бар еды: заливка+рамка пилюли растворяются к правому торцу (у медали
-      // «Выбор еды»). Только здесь — Анализ/События остаются с ровной рамкой.
-      fadeRight
       busy={isLoading}
       readOnly={isLoading}
       hint={hint}

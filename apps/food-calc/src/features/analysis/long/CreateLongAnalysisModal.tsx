@@ -17,6 +17,7 @@ import {
   type DateRange,
 } from './range';
 import styles from './CreateLongAnalysisModal.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 // The modal resolves with the created (pending) analysis so AnalysesPage can
 // show it immediately, or null/undefined if the user dismissed it.
@@ -80,7 +81,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
     <ModalLayout className={styles.layout} a11yLabel="Новый разбор по неделям">
       <div className={styles.shell}>
         <header className={styles.header}>
-          <h2 className={styles.title}>Разбор по неделям</h2>
+          <Heading role="title" className={styles.title}>Разбор по неделям</Heading>
           <CloseButton onClick={() => onClose()} />
         </header>
 

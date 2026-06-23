@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 type Mode = 'signIn' | 'signUp';
 type Step = 'email' | 'password';
@@ -128,7 +129,7 @@ export function AuthForm({
             ←
           </button>
         )}
-        <h1 className={styles.heading}>{heading}</h1>
+        <Heading as="h1" role="headline" className={styles.heading}>{heading}</Heading>
         <p className={styles.subheading}>{subheading}</p>
       </header>
 

@@ -1,9 +1,12 @@
-// Только РАСКЛАДКА подписи поля/секции (канон против «label-as-placeholder»).
-// Типографику (serif italic, тёмно-серый, средний кегль) несёт общий примитив
-// <Text variant="sectionLabel"> — FieldLabel рендерит его как <label>/<span>.
+// Раскладка + цвет подписи поля/секции (канон против «label-as-placeholder»).
+// Семейство/размер/вес несёт общий примитив <Text role="label"> (body-ярус sans
+// из --sys-text-*; text-role() цвет НЕ ставит — он контекстный). Цвет владеет
+// ЗДЕСЬ: --text-primary тема-адаптивен (флипается в белый под [data-tod='night']),
+// иначе метка наследует случайный цвет родителя и тонет на тёмной поверхности.
 .fieldLabel {
     display: block;
     padding-left: var(--space-1);
+    color: var(--text-primary);
 }
 
 .hint {

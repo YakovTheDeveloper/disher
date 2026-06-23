@@ -24,7 +24,7 @@
 
 .emptyTitle {
     margin: 0;
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: var(--sys-text-family-serif);
     font-style: italic;
     font-size: 20px;
     color: var(--sys-card-text-rest);

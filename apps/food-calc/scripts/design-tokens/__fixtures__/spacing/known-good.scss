@@ -1,0 +1,8 @@
+// Fixture: the same spacing, expressed through the --space-* scale. detect(spacing)
+// MUST return 0 — every spacing value is a var(), and a bare 0 is allowed.
+.card {
+  padding: var(--space-4);
+  margin: var(--space-6) var(--space-2);
+  gap: var(--space-3);
+  margin-top: 0;
+}

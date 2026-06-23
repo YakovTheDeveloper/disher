@@ -7,6 +7,7 @@ import { ThemePicker } from '@/features/theme';
 import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
+import { Text } from '@/shared/ui/atoms/Typography';
 
 const downloadJson = (name: string, obj: unknown) => {
   const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
@@ -109,7 +110,7 @@ export function ProfileDrawer() {
         <BalanceSection />
 
         <section className={styles.section}>
-          <h2 className={styles.sectionLabel}>Оформление</h2>
+          <Text as="h2" role="label" className={styles.sectionLabel}>Оформление</Text>
           <ThemePicker />
         </section>
 
@@ -121,7 +122,9 @@ export function ProfileDrawer() {
             onClick={() => setDataOpen((v) => !v)}
             aria-expanded={dataOpen}
           >
-            <span className={styles.sectionLabel}>Данные</span>
+            <Text as="span" role="label" className={styles.sectionLabel}>
+              Данные
+            </Text>
             <span
               className={clsx(styles.chevron, dataOpen && styles.chevronOpen)}
               aria-hidden
@@ -167,7 +170,9 @@ export function ProfileDrawer() {
             onClick={() => setDangerOpen((v) => !v)}
             aria-expanded={dangerOpen}
           >
-            <span>Опасная зона</span>
+            <Text as="span" role="label">
+              Опасная зона
+            </Text>
             <span
               className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
               aria-hidden

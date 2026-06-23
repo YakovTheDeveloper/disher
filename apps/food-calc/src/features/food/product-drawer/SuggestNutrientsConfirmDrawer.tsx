@@ -13,7 +13,7 @@ export function SuggestNutrientsConfirmDrawer({ onClose }: Props) {
   return (
     <DrawerLayout a11yLabel="Предложить нутриенты">
       <div className={s.body}>
-        <Heading size="drawer" as="h2" className={s.title}>
+        <Heading role="headline" as="h2" className={s.title}>
           Все прошлые нутриенты сотрутся. Продолжить?
         </Heading>
         <div className={s.actions}>

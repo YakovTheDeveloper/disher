@@ -38,7 +38,7 @@ const HypothesisCard = ({ hypothesis }: Props) => {
     <article className={styles.card}>
       <div className={styles.text}>
         <div className={styles.head}>
-          <Heading as="h3" size="card">
+          <Heading as="h3" role="title" className={styles.cardTitle}>
             {title}
           </Heading>
           {suggestedDays ? (

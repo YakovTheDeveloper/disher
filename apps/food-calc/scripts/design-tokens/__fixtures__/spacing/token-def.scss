@@ -1,0 +1,11 @@
+// Fixture: a fragment shaped like shared/assets/style/tokens.scss — the legal raw
+// zone. detect(spacing) MUST return 0: these are custom-property DEFINITIONS
+// (prop names start with --), never padding/margin/gap call-sites, so the raw px
+// here is a definition, not a violation. (The real run also excludes this file by
+// path; this proves the prop-scoping holds even without that.)
+:root {
+  --space-1: 4px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --sys-inset-page: var(--space-4);
+}

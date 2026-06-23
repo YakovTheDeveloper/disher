@@ -100,7 +100,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--sys-stack-section);
   min-height: 0;
   overflow-y: auto;
   padding: var(--space-3) var(--space-1) 0;
@@ -126,7 +126,7 @@
 }
 
 // Layout shell for ModalShell.Title — typography comes from the <Heading>
-// primitive it renders (size="modal"). `display: flex` keeps a leading
+// primitive it renders (role="headline"). `display: flex` keeps a leading
 // ButtonBack icon beside the title text (see ScheduleEventCreateModals time
 // step). The title owns its top gap via `--modal-title-offset` so it is
 // identical whether it sits inside a Body/AtomsBody or directly under
@@ -195,7 +195,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: var(--space-3);
+  gap: var(--sys-stack-row);
   padding: var(--space-2);
   min-height: 0;
   overflow-y: auto;

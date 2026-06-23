@@ -59,7 +59,7 @@
   border: none;
   cursor: pointer;
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
-  font-family: "Jost", "YS Text", "Golos Text", system-ui, sans-serif;
+  font-family: var(--sys-field-font-family);
   background: rgba(38, 38, 51, 0.1);
   color: var(--color-ink);
   transition:

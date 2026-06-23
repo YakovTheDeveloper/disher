@@ -1,0 +1,50 @@
+// EventScalePanel — inline rating sheet below the Events write-bar.
+//
+// The panel is rendered ONLY while open and sits in `.dock` (the bottom-bar's
+// normal flow), so the bottom-pinned bar is just pushed up — no transforms, no
+// below-fold tricks, no scroll-overflow risk. Keyboard-lift (a field here raising
+// the keyboard) is applied to `.dock` by the shared `useKeyboardStick`.
+
+.dock {
+    display: flex;
+    flex-direction: column;
+}
+
+// Sheet surface — owns bg + radius; AtomBuilder (content) owns its own padding.
+.panel {
+    display: flex;
+    flex-direction: column;
+    // Cap height so a long-keyboard short-phone combo scrolls internally instead
+    // of pushing the bar off-screen. `dvh` tracks the dynamic viewport (URL bar).
+    max-height: 50dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-3) var(--sys-inset-page) var(--space-4);
+
+    background: var(--sys-color-surface-page);
+    border-top-left-radius: var(--radius-2xl);
+    border-top-right-radius: var(--radius-2xl);
+    box-shadow: var(--sys-elevation-overlay);
+
+    // Light composite entrance (opacity + rise) — the bar's upward reflow is
+    // instant (layout can't animate), the sheet fades in over it.
+    animation: panelRise 0.22s var(--easing-default);
+}
+
+@keyframes panelRise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel {
+        animation: none;
+    }
+}

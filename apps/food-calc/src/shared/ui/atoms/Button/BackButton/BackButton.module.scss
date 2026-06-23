@@ -1,9 +1,10 @@
-// Shared circular back button (‹). In HomeTopBar it inherits the floating-pill
-// surface through `--bar-*` tokens published on `.shell`, so it visually matches
-// the account / date pills. Where those tokens are absent (AnalysesTopBar) it
-// falls back to a glassy white circle — the look the old raw `.back` had.
+// Shared circular back button (‹). Reads the dark floating-pill surface role
+// (`--sys-color-surface-floating`) so it matches the HomeTopBar pills AND the
+// Analyses/Discoveries top bars (no publisher needed — the sys role is the
+// default). SearchFood scope-overrides the role so its back button blends with
+// the light page (gray fill, ink chevron) instead of a dark pill.
 .back {
-  --back-fg: var(--bar-fg, rgba(15, 23, 42, 0.72));
+  --back-fg: var(--sys-color-text-on-floating);
   --back-glyph-size: 26px;
 
   display: inline-flex;
@@ -13,12 +14,12 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: var(--bar-border, none);
+  border: 1px solid var(--sys-color-surface-floating);
   border-radius: var(--radius-full);
-  background: var(--bar-bg, rgba(255, 255, 255, 1));
-  box-shadow: none; // back-кнопка elevation не несёт (var(--bar-shadow,none) всегда резолвился в none)
-  backdrop-filter: blur(var(--bar-blur, 0));
-  -webkit-backdrop-filter: blur(var(--bar-blur, 0));
+  background: var(--sys-color-surface-floating);
+  box-shadow: var(--sys-elevation-flat); // back-кнопка elevation не несёт
+  backdrop-filter: none; // непрозрачная пилюля — blur снят
+  -webkit-backdrop-filter: none;
   color: var(--back-fg);
   font-size: var(--back-glyph-size);
   line-height: 1;
@@ -29,12 +30,12 @@
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Инверсия (канон 2026-06-14): круглый шеврон-в-подложке на press заливается
-  // ink, глиф ‹ белеет. Шеврон с подложкой инверсирует (в отличие от голого ×
-  // в шапке дровера — там подложки нет, см. tds/button-press-unification).
+  // Светлый флэш (канон 2026-06-23): тёмный круглый шеврон-в-подложке на press
+  // заливается белым, глиф ‹ чернеет. (× в шапке дровера НЕ инверсирует — там
+  // подложки нет, см. tds/button-press-unification.)
   &:active {
-    background: var(--color-ink);
-    color: var(--text-on-accent, #fff);
+    background: var(--sys-color-surface-floating-pressed);
+    color: var(--color-ink);
     transform: scale(0.94);
     transition-duration: var(--press-in);
   }

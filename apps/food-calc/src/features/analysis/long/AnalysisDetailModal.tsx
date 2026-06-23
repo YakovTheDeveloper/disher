@@ -11,6 +11,7 @@ import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
 import styles from './AnalysisDetailModal.module.scss';
+import { Heading } from '@/shared/ui/atoms/Typography';
 
 // The modal resolves with a freshly-started analysis when the user restarts a
 // stale/failed run, so AnalysesPage can show the new pending row. Plain close
@@ -59,7 +60,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
     <ModalLayout className={styles.layout} a11yLabel="Детали разбора">
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h2 className={styles.title}>Разбор по неделям</h2>
+          <Heading role="title" className={styles.title}>Разбор по неделям</Heading>
           <p className={styles.range}>
             {formatRange(analysis.windowStart, analysis.windowEnd)}
           </p>

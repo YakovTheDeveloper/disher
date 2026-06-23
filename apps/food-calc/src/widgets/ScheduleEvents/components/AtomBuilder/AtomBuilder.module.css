@@ -11,6 +11,70 @@
   gap: var(--space-3);
 }
 
+/* ─── Added states — chips at the TOP of the scale section ──────────────────
+   Committed scale atoms (one per phenomenon). Navy «selected» fill to read as
+   committed (vs the white preset pills in the form below). Tap = edit, ✕ = remove. */
+.scaleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.scaleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 6px 4px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--sys-color-bg-selected);
+  color: var(--sys-color-text-on-accent);
+}
+
+.scaleChipMain {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scaleChipMain b {
+  font-weight: 700;
+}
+
+.scaleChipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  font-size: var(--text-xs);
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* «Добавить состояние» — quiet text action under the form; appears only while
+   the form is touched (commits the current state + clears for the next). */
+.addState {
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-1) 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Подсказка — мелким кеглем, под шкалой и пилюлями (а не крупным заголовком
    сверху). «Намного меньше» по просьбе 2026-06-13. */
 .bottomHint {
