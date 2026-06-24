@@ -133,7 +133,7 @@ const BugReportModal = ({
           {/* Flow column: route + input on top, screenshot below, actions last.
               No overlap — each block owns its space. */}
           <div className={s.topBar}>
-            <Text variant="hint" className={s.route}>
+            <Text role="caption" className={s.route}>
               {page}
             </Text>
             <AutoGrowSearch
@@ -145,7 +145,7 @@ const BugReportModal = ({
               collapseOnBlur={false}
             />
             {error && (
-              <Text variant="hint" className={s.error}>
+              <Text role="caption" className={s.error}>
                 {error}
               </Text>
             )}

@@ -46,8 +46,10 @@ export type ChoiceGroupProps = {
  * (←/→ или ↑/↓ по `orientation`, плюс Home/End). Стрелка перемещает фокус И
  * выбирает (канон WAI-ARIA radiogroup) — это смена семантики против старого
  * `aria-pressed`-тумблера, а не косметика. Маркер «выбрано» у `ChoiceItem` —
- * кромка + галочка в углу, БЕЗ заливки; цвет из `--sys-color-*-selected`,
- * форма угловатая (`--sys-radius-control`).
+ * indicator-заливка `--sys-color-bg-selected` + флип текста на on-selected
+ * (как Chip.active, плоско) + круглая плашка-«наклейка» на углу (фон
+ * surface-raised, тик bg-selected, мягкая тень); форма угловатая
+ * (`--sys-radius-control`).
  *
  * Дети приходят `.map()`-ом от консумера (значения/лейблы — его данные), поэтому
  * roving управляется через DOM-запрос `[role="radio"]`, а не через реестр рефов.
@@ -167,7 +169,9 @@ export function ChoiceItem({
       {...rest}
     >
       <span className={styles.content}>{children}</span>
-      <TickIcon className={styles.marker} aria-hidden />
+      <span className={styles.marker} aria-hidden>
+        <TickIcon className={styles.markerTick} />
+      </span>
     </button>
   );
 }

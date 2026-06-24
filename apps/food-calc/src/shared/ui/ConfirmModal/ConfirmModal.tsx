@@ -25,11 +25,11 @@ const ConfirmModal = ({
   onClose,
 }: ConfirmModalProps) => (
   <ModalLayout className={styles.layout} a11yLabel={title}>
-    {/* Canonical typography — title via Heading, message via Text(hint). */}
+    {/* Canonical typography — title via Heading, message via Text(caption). */}
     <Heading role="headline" as="h2">
       {title}
     </Heading>
-    <Text variant="hint" className={styles.message}>
+    <Text role="caption" className={styles.message}>
       {message}
     </Text>
     <div className={styles.actions}>

@@ -33,8 +33,8 @@
     // keeps legacy 9px so existing rows render unchanged; the FoodSchedule
     // pilot (and other text-driven row families) set --row-pad-block: 0 on
     // the grid root and grow each cell to --row-cell-min-h instead.
-    padding-block: var(--row-pad-block, 9px);
-    padding-inline: 12px 8px;
+    padding-block: var(--space-1);
+    padding-inline: var(--space-4);
     transition: background-color 0.3s ease, padding 0.3s ease, transform 0.12s ease;
     border-radius: 9px;
     touch-action: manipulation;

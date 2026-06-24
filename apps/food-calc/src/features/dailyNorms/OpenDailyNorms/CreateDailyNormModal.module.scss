@@ -166,6 +166,14 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     line-height: 1.25;
 }
 
+// «Выбрано» теперь indicator-заливка (navy): подпись флипается на on-selected
+// (тише через opacity), иначе muted-серый сливается с заливкой. aria-checked
+// живёт на самом ChoiceItem (role=radio); scope через .pillCol — не течёт наружу.
+.pillCol [aria-checked='true'] .pillHint {
+    color: var(--sys-color-text-on-selected);
+    opacity: 0.78;
+}
+
 // ─── Number fields ───────────────────────────────────────────────
 
 .numbersRow {

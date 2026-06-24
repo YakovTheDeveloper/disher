@@ -7,8 +7,7 @@
     height: 100%;
     overflow-y: auto;
     // Off-white поверхность всего экрана: за листом, в его боковых полях и в зоне
-    // под прозрачной нижней панелью (куда растворяется маска скроллера) — один
-    // тон. `.bg-white`/`.bg-gray` переопределяют `background-color` ниже.
+    // под прозрачной нижней панелью (куда растворяется маска скроллера) — один тон.
     background: var(--screen-surface);
 
     // #3 — `-webkit-overflow-scrolling: touch` снят (эксперимент 2026-05-16):
@@ -62,15 +61,6 @@
     z-index: 100;
     display: flex;
     justify-content: flex-start;
-}
-
-.bg-gray {
-    background-color: #f5f5f7;
-}
-
-
-.bg-white {
-    background-color: #ffffff;
 }
 
 .actions {

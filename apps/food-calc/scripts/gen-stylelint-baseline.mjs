@@ -16,7 +16,7 @@ import path from 'node:path';
 process.env.STYLELINT_BASELINE_REGEN = '1';
 
 const { results } = await stylelint.lint({
-  files: 'src/**/*.scss',
+  files: 'src/**/*.{scss,css}',
   configFile: path.resolve('.stylelintrc.cjs'),
 });
 

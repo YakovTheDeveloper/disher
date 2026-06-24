@@ -149,7 +149,7 @@
   border: 1px solid rgba(31, 42, 68, 0.16);
   border-radius: var(--radius-full);
   background: #fff;
-  box-shadow: 0 4px 12px rgba(31, 42, 68, 0.08);
+  box-shadow: 0 4px 12px rgba(45, 38, 28, 0.08);
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 0.875rem;

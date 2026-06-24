@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import type { ButtonHTMLAttributes } from 'react';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Heading, QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './SwitcherTab.module.scss';
 
 export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -17,8 +17,8 @@ export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 /**
  * SwitcherTab — таб-переключатель экранов HomePage-ряда (`ScreenIndicator`): фоновая
  * картинка-призрак + подпись. Голос подписи берётся ПРЯМО из примитива по
- * состоянию: активный = `<Heading>` (display bold-sans), неактивный = `<Text
- * variant="navTabQuiet">` (тихий serif-указатель). Раскладку ряда (на своей
+ * состоянию: активный = `<Heading>` (display bold-sans), неактивный =
+ * `<QuietLabel>` (тихий serif-указатель). Раскладку ряда (на своей
  * строке / в ряд / центр) задают `data-dv`-варианты `NavSwitcher` ТОЛЬКО
  * через layout — типографику они не трогают. Размер активного заголовка
  * вариант может переопределить (`font-size` на `.tileActive .tileTitle`).
@@ -49,9 +49,9 @@ export const SwitcherTab = ({
         {label}
       </Heading>
     ) : (
-      <Text as="span" variant="navTabQuiet" className={s.tileTitle}>
+      <QuietLabel as="span" className={s.tileTitle}>
         {label}
-      </Text>
+      </QuietLabel>
     )}
   </button>
 );

@@ -1,7 +1,7 @@
 // Fonts are SELF-HOSTED via @fontsource — see src/app/fonts.ts (bundled → PWA-precached →
 // render correctly offline). Body = Onest-led (--font-sans), headings = Onest bold-sans
 // (--heading-font; флип 2026-06-19, был Source Serif italic); Source Serif 4 / Alice — только
-// тихий serif-ярус (navTabQuiet / sectionLabel-заголовки секций нутриентов) + акцент лоадера.
+// тихий serif-ярус (<QuietLabel> — неактивный таб / шаг-крошка) + акцент лоадера.
 // display = Raleway, mono = Ubuntu Mono. The Google Fonts @import was removed 2026-06-01
 // (design-consistency-plan Phase 0 — offline + render-blocking перф); Jost выпилен 2026-06-23.
 

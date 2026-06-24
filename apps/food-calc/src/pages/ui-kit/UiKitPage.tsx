@@ -12,7 +12,7 @@ import {
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import Button from '@/shared/ui/atoms/Button/Button';
 import BackButton from '@/shared/ui/atoms/Button/BackButton/BackButton';
 import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
@@ -157,7 +157,7 @@ const ANATOMY: AnatomyEntity[] = [
       {
         part: 'NavSwitcher tab-as-title — неактивный',
         role: 'тихий указатель «вы здесь»',
-        css: 'serif italic 15px, opacity 0.22 (Text navTabQuiet)',
+        css: 'serif italic 14px, opacity 0.22 (QuietLabel)',
         why: 'курсив = интерактивность; полупрозрачность = не перетягивать внимание',
       },
       {
@@ -321,16 +321,16 @@ const ANATOMY: AnatomyEntity[] = [
         why: 'ОДИН display-голос — Masthead свёрнут сюда (2026-06-19)',
       },
       {
-        part: 'Text variant="navTabQuiet"',
+        part: 'QuietLabel',
         role: 'тихий указатель: неактивный таб / шаг-крошка',
-        css: 'serif italic 15px, opacity 0.22',
+        css: 'serif italic 14px, opacity 0.22',
         why: 'намеренный второй ярус — «музейная табличка», не заголовок',
       },
     ],
     critique:
-      'RESOLVED (2026-06-19): задвоение display-голоса убрано. Heading = единственный Onest bold-sans голос, role-only (size удалён 2026-06-23; Masthead → masthead-проп, Typography/ScreenLabel удалены). serif-italic остался только тихим указателем (Text navTabQuiet) + заголовки секций нутриентов (Text sectionLabel).',
+      'RESOLVED (2026-06-19): задвоение display-голоса убрано. Heading = единственный Onest bold-sans голос, role-only (size удалён 2026-06-23; Masthead → masthead-проп, Typography/ScreenLabel удалены). serif-italic живёт только в QuietLabel (тихий указатель); заголовки секций нутриентов переехали на Heading role="title" sans.',
     improve:
-      'Канон зафиксирован: display = Heading (bold-sans, role display/headline/title), тихий ярус = Text navTabQuiet. Голоса инкапсулированы в примитивах, typography-миксины удалены. Heading size-проп удалён 2026-06-23 (legacy шкала size схлопнута в 3 роли); FieldLabel слетел на role="label" sans.',
+      'Канон зафиксирован: display = Heading (bold-sans, role display/headline/title), тихий ярус = QuietLabel (serif-italic). Голоса инкапсулированы в примитивах, typography-миксины удалены. Text стал role-only — ось variant удалена 2026-06-24 (hint→role="caption", navTabQuiet→QuietLabel, sectionLabel→Heading title). Heading size-проп удалён 2026-06-23; FieldLabel слетел на role="label" sans.',
   },
   {
     id: 'an-card',
@@ -889,11 +889,11 @@ function DemoDrawer({ onClose }: BaseDrawerProps) {
     >
       <div className={s.overlayBody}>
         <Heading role="headline">Drawer</Heading>
-        <Text variant="hint">
+        <Text role="caption">
           DrawerLayout — каркас нижней или боковой панели: drag-handle, крестик, скролл-зона и
           закреплённый <code>footer</code>. Открывается через <code>drawerStore.show()</code>.
         </Text>
-        <Text variant="hint">
+        <Text role="caption">
           Боковой вариант открывается с опцией <code>{`{ side: 'right', width }`}</code>.
         </Text>
       </div>
@@ -1007,7 +1007,7 @@ const UiKitPage = () => {
             <Heading role="headline" as="h1" className={s.railBrand}>
               UI Kit
             </Heading>
-            <Text variant="hint">Живая витрина общих компонентов Disher</Text>
+            <Text role="caption">Живая витрина общих компонентов Disher</Text>
           </div>
 
           <nav className={s.nav} aria-label="Разделы">
@@ -1037,7 +1037,7 @@ const UiKitPage = () => {
               id="typography"
               index="01"
               title="Типографика"
-              desc="Источник правды для заголовков и текста. Heading — единый Onest bold-sans display-голос, Text — тело + тихий указатель (navTabQuiet). Внизу — разбор ролей «Заголовок» и «Метка поля»."
+              desc="Источник правды для заголовков и текста. Heading — единый Onest bold-sans display-голос, Text — тело (role body/label/caption), QuietLabel — тихий serif-указатель. Внизу — разбор ролей «Заголовок» и «Метка поля»."
             >
               <Specimen name="<Heading>" note="role: display · headline · title" wide>
                 <div className={s.stack}>
@@ -1048,17 +1048,17 @@ const UiKitPage = () => {
               </Specimen>
 
               <Specimen
-                name="<Text variant='hint'>"
+                name="<Text role='caption'>"
                 role={<>Роль: спокойная подсказка. Где: под полем, под заголовком оверлея. Зачем: тише тела — это пояснение, не контент.</>}
               >
-                <Text variant="hint">Спокойная подсказка под полем или заголовком оверлея.</Text>
+                <Text role="caption">Спокойная подсказка под полем или заголовком оверлея.</Text>
               </Specimen>
 
               <Specimen
-                name="<Text variant='navTabQuiet'>"
+                name="<QuietLabel>"
                 role={<>Роль: тихий serif-italic указатель. Где: неактивный таб, шаг-крошка. Зачем: «вы здесь», не контрол.</>}
               >
-                <Text variant="navTabQuiet">navTabQuiet — тихий указатель</Text>
+                <QuietLabel>QuietLabel — тихий указатель</QuietLabel>
               </Specimen>
 
               <Specimen name="<FoodName>" note="анимация смены значения">
@@ -1284,7 +1284,7 @@ const UiKitPage = () => {
                   trigger={<DemoButton onClick={() => {}}>Открыть popover</DemoButton>}
                   content={
                     <div className={s.popoverCard}>
-                      <Text variant="hint">Контент живёт во floating-портале и закрывается по клику вне.</Text>
+                      <Text role="caption">Контент живёт во floating-портале и закрывается по клику вне.</Text>
                     </div>
                   }
                 />
@@ -1574,7 +1574,7 @@ const UiKitPage = () => {
             </ModalShell.Hint>
             <ModalShell.Body>
               <div className={s.overlayBody}>
-                <Text variant="hint">
+                <Text role="caption">
                   Контент шага кладётся в <code>ModalShell.Body</code>.
                 </Text>
                 <NumberInput value={shellQty} onChange={setShellQty} size="big" />

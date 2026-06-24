@@ -32,7 +32,7 @@ const ConfirmDrawer = ({
         {title}
       </Heading>
       {message && (
-        <Text variant="hint" className={s.message}>
+        <Text role="caption" className={s.message}>
           {message}
         </Text>
       )}

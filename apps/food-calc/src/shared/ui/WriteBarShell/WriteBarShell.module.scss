@@ -44,25 +44,29 @@
     // плоско/грязно у фейд-края. saturate подтягивает тёплую бумагу под стеклом.
     --wb-backdrop: blur(22px) saturate(150%);
     --wb-pill-border: var(--sys-color-border-subtle);
-    --wb-pill-border-focus: rgba(40, 44, 54, 0.26); // focus-дельта (нет sys нейтрального strong-бордера)
+    --wb-pill-border-focus: rgba(34, 31, 25, 0.26); // focus-дельта (нет sys нейтрального strong-бордера)
     --wb-pill-press: #e6e8ec;
     --wb-hairline: var(--sys-color-border-subtle);
-    --wb-hairline-focus: rgba(40, 44, 54, 0.3); // focus-дельта хайрлайна
+    --wb-hairline-focus: rgba(34, 31, 25, 0.3); // focus-дельта хайрлайна
 
     --wb-send: #454b59;
     --wb-send-fg: var(--sys-color-text-on-accent);
 
     --wb-tile-bg: #f3f4f6;
-    --wb-tile-fg: rgba(40, 44, 54, 0.78);
-    --wb-tile-border: rgba(40, 44, 54, 0.12);
+    --wb-tile-fg: var(--sys-color-text-secondary);
+    --wb-tile-border: var(--sys-color-border-subtle);
 
+    // ⚠️ Холодный busy-spinner = транзиентное «системное» состояние → роль
+    // «холодный сигнал» (§9 R1 color-weight-and-accent, locked). Hue ещё не
+    // выбран (тил/индиго), поэтому НАМЕРЕННО не warm-сдвигаем здесь — переедет
+    // на --sys-color-accent-cool, когда роль материализуется.
     --wb-status-bg: rgba(64, 82, 128, 0.12);
     --wb-status-fg: rgba(64, 82, 128, 0.85);
 
     // Dark hint text — the strip now sits on a light surface pill above the bar
     // (focus-scrim removed 2026-06-23), not white-on-dimmed-screen.
-    --hint-fg: rgba(31, 42, 68, 0.74);
-    --hint-accent: rgba(31, 42, 68, 0.95);
+    --hint-fg: var(--sys-color-text-secondary);
+    --hint-accent: var(--sys-color-text-primary);
 
     display: flex;
     flex-direction: column;
@@ -180,7 +184,7 @@
     box-shadow:
         var(--sys-elevation-action-hover),
         inset 0 1px 0 rgba(255, 255, 255, 0.55),
-        inset 0 -1px 1px rgba(31, 42, 68, 0.04);
+        inset 0 -1px 1px rgba(34, 31, 25, 0.04);
     transition: border-color 0.15s ease, background 0.15s ease;
 
     &:focus-within {
@@ -228,8 +232,8 @@
 
 .writeField {
     &[data-state='loading'] {
-        --sys-field-text: rgba(31, 42, 68, 0.55);
-        --sys-field-placeholder: rgba(31, 42, 68, 0.3);
+        --sys-field-text: var(--sys-color-text-tertiary);
+        --sys-field-placeholder: rgba(34, 31, 25, 0.3);
     }
 }
 
@@ -499,11 +503,13 @@
 }
 
 // ─── DesignBar surface variants (anchor `WriteBarSurface` on `.wrap`) ──────────
-// Предложка 2026-06-23 «бар не читался как мессенджер-инпут». 2 варианта формы
+// Предложка 2026-06-23 «бар не читался как мессенджер-инпут». 3 варианта формы
 // (glass/white/gray сняты): `field` (дефолт) — типовой текстовый инпут форм
-// проекта; `cta` — фирменная brand-CTA-заливка. Фон — ТОЛЬКО sys/cta-роли (без
-// новых bespoke --wb-*). Медаль Еды позиционируется в WriteBarMedal.module.scss
-// (overlap), т.к. `.writeBarList` живёт в другом CSS-модуле.
+// проекта (low, плоский field-surface); `cta` — фирменная brand-CTA-заливка;
+// `bright` — округлая пилюля «как изначально» + самый яркий тёплый белый (светлее
+// Screen) + усиленная тень-лифт. Фон — ТОЛЬКО sys/cta-роли (без новых bespoke
+// --wb-*). Медаль Еды позиционируется в WriteBarMedal.module.scss (overlap), т.к.
+// `.writeBarList` живёт в другом CSS-модуле.
 
 // Общее для обоих вариантов (НЕ зависит от выбора в баре): поле тянется на всю
 // ширину со screen-inset по бокам; медаль больше не отъедает ширину (парит, см.
@@ -532,7 +538,9 @@
 // (наследуется от базового .writeBarRow::after), лифт --sys-elevation-action-rest.
 [data-dv='WriteBarSurface'][data-dv-v='field'] {
     --pill-h: 52px;
-    --coin-size: 44px;
+    // Send ≈36px (coin-size − space-1): в 52px-поле оставляет ~8px воздуха сверху/
+    // снизу, не доминирует по высоте — как send в мессенджер-инпуте.
+    --coin-size: 40px;
     --medal-size: 60px;
     // Hairline РОВНО как у обычного поля (.shell), а не обвязочный border-subtle.
     --wb-hairline: var(--sys-field-hairline);
@@ -548,9 +556,9 @@
 [data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarRow {
     border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
-        var(--sys-field-bg-from) 0%,
-        var(--sys-field-bg-mid) 55%,
-        var(--sys-field-bg-to) 100%);
+            var(--sys-field-bg-from) 0%,
+            var(--sys-field-bg-mid) 55%,
+            var(--sys-field-bg-to) 100%);
     border-color: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -562,9 +570,12 @@
     box-shadow: var(--sys-field-shadow-focus);
 }
 
-// Низкое поле → подрезаем вертикальные инсеты внутреннего бокса (база заточена под
-// 72px-бар), чтобы текст/плейсхолдер встал по центру 52px-строки.
-[data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarInput {
+// Низкие бары (field 52px, bright/frost 44px) → подрезаем вертикальные инсеты
+// внутреннего бокса (база заточена под 72px-бар), чтобы текст/плейсхолдер встал
+// по центру короткой строки.
+[data-dv='WriteBarSurface'][data-dv-v='field'] .writeBarInput,
+[data-dv='WriteBarSurface'][data-dv-v='bright'] .writeBarInput,
+[data-dv='WriteBarSurface'][data-dv-v='frost'] .writeBarInput {
     padding-top: 0;
     padding-bottom: 0;
 }
@@ -617,4 +628,87 @@
     .sendCoin {
         display: none;
     }
+}
+
+// bright — округлая пилюля «как изначально» (--radius-full уже на базе), но НЕ
+// стекло: сплошной чистый белый --sys-color-surface-bright (белее бумаги Screen)
+// → пилюля ЯВНО ВСПЛЫВАЕТ над экраном. Геометрия — низкая 44px-строка (было 52px,
+// −15% по просьбе 2026-06-24), send 40px, медаль 60px; отличие от field —
+// округлый радиус, белый фон и усиленная тень (ниже).
+[data-dv='WriteBarSurface'][data-dv-v='bright'] {
+    --pill-h: 44px;
+    --coin-size: 40px;
+    --medal-size: 60px;
+}
+
+[data-dv='WriteBarSurface'][data-dv-v='bright'] .writeBarRow {
+    background: var(--sys-color-surface-bright);
+    border-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    // Тень-лифт усилена (была еле видна): ступень --sys-elevation-action-hover
+    // (ref-shadow-2) — «приподнятый бар», ровно та, что нёс ИЗНАЧАЛЬНЫЙ стеклянный
+    // бар. ~2× от field-тени, чётко видна, на канон-лестнице --sys-elevation-*
+    // (navy-подтон, один свет). Мягче/сильнее — один свап: action-rest / overlay.
+    box-shadow: var(--sys-elevation-action-hover);
+}
+
+[data-dv='WriteBarSurface'][data-dv-v='bright'] .writeBarRow:focus-within {
+    border-color: transparent;
+}
+
+// frost — bright за основу, но компактнее (38px) + под баром ПОДЛОЖКА: матовое
+// стекло во всю ширину дока (frosted-полоса ПОД пилюлей, как iOS-toolbar material)
+// С РАМКОЙ СВЕРХУ — тонкий border-top, отделяющий док от контента (референс =
+// футер модалки «Разбор по неделям», `.footer { border-top: 1px solid … }`). Это
+// НЕ полноэкранный оверлей — только полоса-док; контент под ней мягко размывается.
+// Сам бар остаётся непрозрачной белой плашкой с бордером ПОВЕРХ стекла.
+//
+// Подложка = фон самого `.wrap` (контейнер бара, width:100% → во всю ширину
+// экрана): полупрозрачная raised-заливка + backdrop-filter blur — тот же стеклянный
+// рецепт, что у дефолтной пилюли `.writeBarRow` (значит в Embla-слайде работает
+// штатно; глючил лишь fixed-fullscreen backdrop-filter — его выпилили).
+[data-dv='WriteBarSurface'][data-dv-v='frost'] {
+    --pill-h: 42px;
+    --coin-size: 34px;
+    --medal-size: 60px;
+    background: var(--surface-bright);
+
+
+    box-shadow: var(--sys-elevation-overlay);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    // margin: 0 var(--sys-inset-page);
+
+
+    // backdrop-filter: var(--wb-backdrop);
+    // -webkit-backdrop-filter: var(--wb-backdrop);
+    // Рамка сверху подложки-дока — как border-top футера модалки «Разбор по неделям».
+    // border-top: 1px solid var(--sys-color-border-subtle);
+}
+
+// Бар-пилюля: непрозрачный белый (как bright), БЕЗ тени и С бордером — плашка
+// поверх матовой подложки. Бордер не переопределяем (база даёт border-subtle +
+// focus-дельту), снимаем только тень и backdrop-blur самой пилюли (blur несёт
+// подложка-`.wrap`, не пилюля — иначе двойное стекло).
+[data-dv='WriteBarSurface'][data-dv-v='frost'] .writeBarRow {
+    background: var(--sys-color-surface-bright);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+}
+
+// frost: строка-подсказка НЕ резервирует место в покое (база держит 26px заранее,
+// чтобы бар не прыгал; для frost это лишний воздух → подложка выше). Схлопываем в
+// 0 + clip; на фокусе ([data-visible]) разворачиваем — `.bottomBar` прижат к низу,
+// поэтому подсказка растёт ВВЕРХ над баром, сам бар на месте.
+[data-dv='WriteBarSurface'][data-dv-v='frost'] .focusHint {
+    min-height: 0;
+    height: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+[data-dv='WriteBarSurface'][data-dv-v='frost'] .focusHint[data-visible] {
+    height: auto;
+    padding-bottom: var(--space-1);
 }

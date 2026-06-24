@@ -62,7 +62,7 @@ const BugReportList = ({ onZoom }: Props) => {
   if (error) {
     return (
       <div className={s.listState}>
-        <Text variant="hint" className={s.error}>
+        <Text role="caption" className={s.error}>
           {error}
         </Text>
         <button type="button" className={s.retry} onClick={load}>

@@ -5,8 +5,20 @@ import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './DetailsChips.module.scss';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+
+// DesignBar-проба стиля текстового поля (см. .root[data-dv-v=…] в .module.scss).
+// baseline = текущий градиентный вид; journal/well/card = резолюции A/B/C.
+const FIELD_VARIANTS = [
+  'baseline', // текущий градиент
+  'flat-warm', // форк baseline: плоский тёплый bg (без градиента)
+  'journal', // Res A: подчёркивание, очень subtle
+  'journal-plus', // форк journal: чуть «материальнее», читается как поле
+  'well', // Res B: утопленный слот
+  'card', // Res C: белый листок
+] as const;
 
 type Props = {
   value: string;
@@ -47,6 +59,7 @@ export function DetailsChips({
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
+  const { anchor } = useDesignVariant('FieldStyle', FIELD_VARIANTS);
 
   const { suggestionChips, customChips } = useMemo(() => {
     const categories = readCategories(product);
@@ -81,7 +94,7 @@ export function DetailsChips({
   };
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} {...anchor}>
       <div className={styles.inputArea}>
         <AutoGrowSearch
           id={textareaId}

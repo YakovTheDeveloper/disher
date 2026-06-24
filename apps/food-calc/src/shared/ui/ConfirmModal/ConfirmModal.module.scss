@@ -55,8 +55,8 @@
 
 .confirm {
     border: none;
-    background: rgba(24, 24, 105, 0.92);
-    color: #fff;
+    background: var(--sys-color-bg-selected); // navy-brand action (token: flip-able tone, C1 2026-06-24)
+    color: var(--sys-color-text-on-selected);
 
     // Цветной отклик: сплошную кнопку затемняем фильтром.
     &:active {

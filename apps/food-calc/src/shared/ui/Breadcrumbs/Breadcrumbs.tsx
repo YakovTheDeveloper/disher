@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './Breadcrumbs.module.scss';
 
 type Props<T extends string> = {
@@ -58,16 +58,15 @@ function Breadcrumbs<T extends string>({
               ·
             </span>
           )}
-          <Text
+          <QuietLabel
             as="button"
-            variant="navTabQuiet"
             className={s.resultCrumb}
             onClick={() => onStepClick(stepName)}
             aria-label={stepLabels[stepName]}
             aria-current={stepName === current ? 'step' : undefined}
           >
             {truncateCrumb(stepResults?.[stepName] ?? stepLabels[stepName])}
-          </Text>
+          </QuietLabel>
         </span>
       ))}
     </nav>

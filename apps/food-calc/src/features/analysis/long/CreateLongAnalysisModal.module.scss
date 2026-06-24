@@ -73,8 +73,8 @@
     padding: 12px 22px;
     border-radius: var(--radius-lg);
     border: none;
-    background: rgba(24, 24, 105, 0.92);
-    color: var(--color-white);
+    background: var(--sys-color-bg-selected); // navy-brand action (token: flip-able tone, C1 2026-06-24)
+    color: var(--sys-color-text-on-selected);
     font-size: var(--text-base);
     font-weight: 500;
     cursor: pointer;

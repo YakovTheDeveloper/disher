@@ -51,10 +51,10 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 999px;
+    border-radius: var(--sys-radius-indicator);
     background: transparent;
     border: none;
-    color: rgba(31, 42, 68, 0.95);
+    color: var(--sys-color-text-primary);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -62,17 +62,17 @@
 
     &:hover,
     &:focus-visible {
-        color: rgba(31, 42, 68, 1);
-        background: rgba(0, 0, 0, 0.04);
+        color: var(--sys-color-text-primary);
+        background: var(--sys-color-bg-hover);
         outline: none;
     }
 
     // Цветной отклик: на нажатии значок темнеет + лёгкий тинт-фон.
     &:active {
-        color: rgba(31, 42, 68, 1);
-        background: var(--press-tint-bg);
+        color: var(--sys-color-text-primary);
+        background: var(--sys-color-bg-press);
         transform: scale(0.94);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 

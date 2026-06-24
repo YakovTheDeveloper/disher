@@ -77,7 +77,7 @@
   // общий канон. Onest-first (2026-06-23): рендерится везде, вкл. Apple (как тело
   // и --font-big-numeric; -apple-system ушёл в хвост fallback).
   // serif-italic больше НЕ display-голос — он остался только тихим указателем
-  // (Text variant="navTabQuiet" + sectionLabel-заголовки секций нутриентов).
+  // (<QuietLabel>); заголовки секций нутриентов — Heading role="title" sans.
   --heading-font: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --heading-style: normal;
   --heading-weight: 700;
@@ -106,7 +106,7 @@
   // ушёл в хвост как fallback). Совпадает с --font-big-numeric И --heading-font
   // (все три Onest-first с 2026-06-23 — единый бренд на всех платформах). Цвет в роль НЕ зашит
   // (контекстный/темо-зависимый). serif — ОРТОГОНАЛЬНЫЙ голос тихого яруса (см.
-  // Text variant navTabQuiet/sectionLabel), НЕ роль размера. (tokens.scss exempt от token-gate.)
+  // примитив <QuietLabel>), НЕ роль размера. (tokens.scss exempt от token-gate.)
 
   // голоса-семейства (ref для ролей)
   --sys-text-family-sans: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -138,7 +138,7 @@
   --sys-text-body-tracking: -0.005em;
 
   // Label — надпись на интерактиве: кнопка / таб / чип / подпись поля
-  --sys-text-label-size: 14px;
+  --sys-text-label-size: 16px;
   --sys-text-label-weight: 600;
   --sys-text-label-line: 1.2;
   --sys-text-label-tracking: 0;
@@ -180,13 +180,14 @@
   // (CTA / бары / плитки / оверлеи / drag), контент остаётся ПЛОСКИМ (paper-mono).
   // M0 = объявить, НЕ применять (компоненты переедут в M1–M4). Значения = Вариант B
   // (мягкий осмысленный лифт, §3.3 решено). Тень многослойная, один источник света
-  // (вертикальный, сверху), подтон ХОЛОДНЫЙ navy (наш ink 31,42,68), НЕ чёрный (§6.2).
+  // (вертикальный, сверху), подтон ТЁПЛЫЙ уголь rgba(45,38,28) (warm-soft v2 — был
+  // cool navy 31,42,68 до 2026-06-24; sign-off юзера, под тёплую нейтраль), НЕ чёрный.
   // --ref-shadow-* — примитивы-рецепты; --sys-elevation-* — единственный API компонентов.
   --ref-shadow-0: none;
-  --ref-shadow-1: 0 1px 2px rgba(31, 42, 68, 0.07), 0 2px 6px rgba(31, 42, 68, 0.06); // лифт действия в покое
-  --ref-shadow-2: 0 1px 2px rgba(31, 42, 68, 0.08), 0 4px 10px rgba(31, 42, 68, 0.08); // действие наведено / приподнятый бар
-  --ref-shadow-3: 0 1px 3px rgba(31, 42, 68, 0.08), 0 6px 16px rgba(31, 42, 68, 0.10), 0 12px 28px rgba(31, 42, 68, 0.10); // overlay
-  --ref-shadow-4: 0 2px 6px rgba(31, 42, 68, 0.10), 0 10px 24px rgba(31, 42, 68, 0.14), 0 20px 48px rgba(31, 42, 68, 0.14); // drag-лифт
+  --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // лифт действия в покое
+  --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.08), 0 4px 10px rgba(45, 38, 28, 0.08); // действие наведено / приподнятый бар
+  --ref-shadow-3: 0 1px 3px rgba(45, 38, 28, 0.08), 0 6px 16px rgba(45, 38, 28, 0.10), 0 12px 28px rgba(45, 38, 28, 0.10); // overlay
+  --ref-shadow-4: 0 2px 6px rgba(45, 38, 28, 0.10), 0 10px 24px rgba(45, 38, 28, 0.14), 0 20px 48px rgba(45, 38, 28, 0.14); // drag-лифт
 
   // sys · СЕМАНТИКА глубины по РОЛИ действия+состоянию (не по размеру, не по элементу)
   --sys-elevation-flat: var(--ref-shadow-0); // КОНТЕНТ: карточки еды, нутриенты, списки, секции
@@ -208,8 +209,8 @@
   --plate-frame-w: 3px; // толщина рамки
   --plate-shadow:
     0 0 0 var(--plate-frame-w) var(--plate-frame),
-    0 3px 10px rgba(31, 42, 68, 0.12),
-    0 1px 3px rgba(31, 42, 68, 0.08);
+    0 3px 10px rgba(45, 38, 28, 0.12),
+    0 1px 3px rgba(45, 38, 28, 0.08);
 
   // ─── Animation ───────────────────────────────────────────────
   --duration-fast: 120ms; // hover, focus, micro-interactions
@@ -219,6 +220,21 @@
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1); // Material-like
   --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // bouncy/spring
   --easing-ios: cubic-bezier(0.32, 0.72, 0, 1); // iOS nav push/sheet decel
+
+  // ─── sys · MOTION (CTI: sys · duration/easing) — 1:1 алиасы примитивов ──
+  // Гейт sys-only требует var(--sys-duration-*)/var(--sys-easing-*); это
+  // семантический ярус поверх --duration-*/--easing-*/--press-* (значения
+  // ИДЕНТИЧНЫ — чистый rename-канон, рендер не меняется). press-in/out —
+  // press-feedback тайминги, выраженные как duration-роли. (tokens.scss exempt.)
+  --sys-duration-fast: var(--duration-fast); // 120ms
+  --sys-duration-normal: var(--duration-normal); // 200ms
+  --sys-duration-slow: var(--duration-slow); // 350ms
+  --sys-duration-ios: var(--duration-ios); // 500ms
+  --sys-duration-press-in: var(--press-in); // 0ms — вход в :active
+  --sys-duration-press-out: var(--press-out); // 260ms — выход из :active
+  --sys-easing-default: var(--easing-default);
+  --sys-easing-spring: var(--easing-spring);
+  --sys-easing-ios: var(--easing-ios);
 
   // ─── Row geometry (canon for list-item cells) ────────────────
   // Hit-area gets owned by each interactive cell (.timeDisplay, .foodCol,
@@ -256,8 +272,10 @@
   --press-in: 0ms; // вход в :active — мгновенно, тот же кадр
   --press-out: 260ms; // выход из :active — мягкое затухание
   // Лёгкий тинт-фон для press тихих текст/иконочных кнопок (press-fill-tint).
-  // Нейтральный дефолт; surface-палитры могут переопределить (тёплый/лавандовый).
-  --press-tint-bg: rgba(0, 0, 0, 0.05);
+  // State-layer = тинт ink-цвета (M3/Apple), НЕ чистый чёрный: на тёплой бумаге
+  // rgba(0,0,0) холодит в blue-gray → тёплый-уголь rgba(34,31,25). Surface-палитры
+  // могут переопределить.
+  --press-tint-bg: rgba(34, 31, 25, 0.05);
   // Цвет контента (текст/иконка) когда кнопка инверсируется в ink на press.
   // Единый «белый-на-тёмном» для press-fill-ink и ручных инверсий в барах.
   --text-on-accent: #fff;
@@ -265,48 +283,53 @@
   // ─── Brand CTA — единый фирменный цвет primary-кнопок ──────────
   // ОДИН источник правды цвета кнопки по проекту: тёплый бледно-жёлтый
   // НЕПРОЗРАЧНЫЙ направленный градиент — плотный #FFF4BD слева, переходит
-  // в более светлый кремовый справа (без альфы). Тёмный navy-ink. Читают:
+  // в более светлый кремовый справа (без альфы). Тёмный тёплый-уголь ink. Читают:
   // Button `.brand` (нижние CTA HomePage) + InsightCard/HypothesisCard
   // `.add` (действия в карточках разбора). Перекрасить кнопку во всём
   // приложении = правка этих токенов. (tokens.scss exempt от token-gate.)
   --cta-brand-fill: linear-gradient(270deg, #fffae0 0%, #fff4bd 100%);
   --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
-  --cta-brand-ink: rgba(31, 42, 68, 0.92);
+  --cta-brand-ink: rgba(34, 31, 25, 0.92); // тёплый-уголь (warm-soft v2; был cool navy 31,42,68 до 2026-06-24)
 
   // ─── ЯРУС ref · ПРИМИТИВЫ цвета · НЕЙТРАЛЬ (warm-soft v2, СГЕНЕРИРОВАНА 2026-06-24) ──
-  // Ground truth: tds/ANALYSIS/token-canon-rename §4.0 + scratchpad/v2.mjs. Больше НЕ
-  // плейсхолдеры — это РЕАЛЬНАЯ перцептивно-равномерная OKLCH-лесенка, единый тёплый лин
-  // (hue 85), текст L-locked под APCA. Hex = oklch-производные (универсально, без @supports;
-  // chroma низкая → sRGB==oklch визуально). Семантика (--surface/--text/--border/--color-ink
-  // в palette.scss) теперь несёт ТЕ ЖЕ тёплые значения; rename legacy→ref — отдельный codemod.
-  // Нейтраль: {0}=бумага … {1000}=ink (step растёт = темнее).
-  --ref-color-neutral-0: #fefcf9; // oklch(0.992 0.004 85) = surface-base
-  --ref-color-neutral-50: #faf9f6; // oklch(0.982 0.004 85)
-  --ref-color-neutral-100: #f5f3f0; // oklch(0.965 0.005 85) = cards-page-bg
-  --ref-color-neutral-200: #ebe9e5; // oklch(0.935 0.006 85)
-  --ref-color-neutral-300: #e2dfda; // oklch(0.905 0.008 85) = border-default
-  --ref-color-neutral-400: #89867e; // oklch(0.62 0.012 85) = text-tertiary (APCA Lc 62)
-  --ref-color-neutral-500: #757169; // oklch(0.55 0.013 85) = text-secondary (Lc 72)
-  --ref-color-neutral-600: #5b5850; // oklch(0.46 0.013 85) — NEW (убирает cliff)
-  --ref-color-neutral-700: #46423b; // oklch(0.38 0.013 85) — NEW
-  --ref-color-neutral-800: #312d27; // oklch(0.30 0.012 85) — NEW
-  --ref-color-neutral-900: #221f19; // oklch(0.24 0.011 85) = color-ink (тёплый-уголь, Lc 102)
-  --ref-color-neutral-1000: #0d0b07; // oklch(0.15 0.009 85) = color-ink-strong
+  // Ground truth: tds/ANALYSIS/token-canon-rename §4.0. Числа МЕРЯНЫ через scratchpad/crit.mjs
+  // (srgbToOklch + APCA-W3). Hex = oklch-производные (универсально, без @supports; chroma низкая
+  // → sRGB≈oklch визуально). Семантика (--surface/--text/--border/--color-ink в palette.scss)
+  // несёт ТЕ ЖЕ значения; rename legacy→ref — отдельный codemod. Нейтраль: {0}=бумага … {1000}=ink.
+  //
+  // ⚠️ NB (правка 2026-06-24, критика warm-soft v2): «единый hue 85» — НЕ инвариант. Фактический
+  // hue плавает 78–91° (тёплый band, не одна точка); это hue-locked НАМЕРЕНИЕ в тёплой зоне, а
+  // не математическое равенство. И лесенка НЕ перцептивно-равномерная: между 300 и 400 обрыв
+  // ΔL≈0.28 (purpose-stepping — 300 = последний светлый/бумага-граница, 400 = первый текст-ранг;
+  // ступени 0–300 «бумага», 400–1000 «чернила»). Комменты oklch() ниже = ИЗМЕРЕННЫЕ значения.
+  --ref-color-neutral-0: #fefcf9; // oklch(0.992 0.004 78) = surface-base
+  --ref-color-neutral-50: #faf9f6; // oklch(0.982 0.004 91)
+  --ref-color-neutral-100: #f5f3f0; // oklch(0.965 0.004 78) = cards-page-bg
+  --ref-color-neutral-200: #ebe9e5; // oklch(0.934 0.006 85)
+  --ref-color-neutral-300: #e2dfda; // oklch(0.905 0.008 81) = border-default  ← обрыв ΔL≈0.28 ниже
+  --ref-color-neutral-400: #817d76; // oklch(0.591 0.012 82) = text-tertiary (worst |Lc| 61.1 на #f5f3f0)
+  --ref-color-neutral-500: #757169; // oklch(0.550 0.013 85) = text-secondary (worst |Lc| 66.7)
+  --ref-color-neutral-600: #5b5850; // oklch(0.461 0.013 90)
+  --ref-color-neutral-700: #46423b; // oklch(0.381 0.013 82)
+  --ref-color-neutral-800: #312d27; // oklch(0.299 0.012 78)
+  --ref-color-neutral-900: #221f19; // oklch(0.241 0.012 85) = color-ink (тёплый-уголь, worst |Lc| 96.4)
+  --ref-color-neutral-1000: #0d0b07; // oklch(0.150 0.009 86) = color-ink-strong
 
   // ink-accent (navy) — ЕДИНСТВЕННЫЙ брендовый hue для выбрано/действие/фокус.
   // M0: точное ТЕКУЩЕЕ значение «выбрано» (oklch-перевод — на этапе генерации, §4.2).
   --ref-color-navy-600: rgba(24, 24, 105, 0.92); // источник --sys-color-bg-selected
   --ref-color-navy-700: rgba(24, 24, 105, 1); // источник --sys-color-border-selected
 
-  // статусы — землисто-гербарный регистр (§4.3). done/stale — НОВЫЕ (текущего
-  // токена нет → сразу целевые земельные, невидимы пока нет консумера); danger/
-  // warning — ТЕКУЩИЕ значения сохраняем (сдвиг danger→терракота отложен на M4).
-  // HEX-плейсхолдеры (кросс-браузерны). Точные OKLCH + @supports-fallback —
-  // на этапе генерации шкалы (§6.5): голый oklch() в custom-property невалиден
-  // на ~5-7% старых браузеров (старые Android WebView) → прозрачный цвет.
-  --ref-color-terracotta-600: #b25a3f; // danger TARGET (НЕ используется до M4)
-  --ref-color-moss-600: #5f7a4c; // done → мох
+  // статусы — землисто-гербарный регистр (§4.3). ЗНАЧЕНИЯ = warm-deep (выбор юзера
+  // 2026-06-24 по предложке /suggestion_warm_navy_status; APCA scratchpad/crit.mjs p2 на
+  // тёплой бумаге #fefcf9: danger Lc 82 / success 77 / warning 68). ⚠️ Пока 0 ЖИВЫХ
+  // консумеров sys-status-* (Анализ рисует статусы локально через color-mix) → видимый
+  // свап = M4-миграция консумеров; здесь зафиксированы КАНОНИЧЕСКИЕ значения. Сырой
+  // --color-danger (#ec0000, destructive «удалить») НЕ тронут — это аффорданс, не статус.
+  --ref-color-terracotta-600: #983d1f; // danger → терракота-глубокая (text Lc 82)
+  --ref-color-moss-600: #4a6e42; // done/success → шалфей-глубокий (text Lc 77; было #5f7a4c)
   --ref-color-sepia-500: #8a7b60; // stale → сепия
+  --ref-color-amber-earth-600: #a06f30; // warning → амбер-земля (text Lc 68; warm-deep набор)
 
   // ─── ЯРУС sys · СЕМАНТИКА интерактивности (M0) ────────────────
   // Ground truth: tds/interactive-tokens-system.md (§3 каталог).
@@ -320,18 +343,19 @@
 
   // color · surface
   --sys-color-surface-page: var(--surface-base);
+  --sys-color-surface-bright: var(--surface-bright); // ярче бумаги — floating-поверхность всплывает над Screen
   --sys-color-surface-raised: var(--surface-raised);
   --sys-color-surface-sunken: var(--surface-base); // нет отдельного sunken-примитива → page-нейтраль
-  --sys-color-surface-overlay: var(--surface-overlay);
+  // (--sys-color-surface-overlay + примитив --surface-overlay удалены 2026-06-24 — 0 консумеров)
 
   // color · surface · floating — тёмная плавающая обвязка экрана: пилюли HomeTopBar
   // (аккаунт / центр / дата) + круглый BackButton. Канон 2026-06-23 (выбор B по
-  // предложке s_364ea3f6): ВСЕ floating-элементы = чёрная пилюля кнопки даты
-  // (#0a0a0a), контент белый, на :active — светлый флэш (заливка белым, глиф чернеет).
+  // предложке s_364ea3f6): ВСЕ floating-элементы = тёплый-чёрный = ink-strong (n1000
+  // #0d0b07 — warm-soft v2), контент белый, на :active — светлый флэш (заливка белым, глиф чернеет).
   // Распустил бывший component-named бандл `--bar-*`. Scope-override: SearchFood
   // переобъявляет surface/text в своём scope → кнопка-назад там сливается со светлой
   // страницей (санкционированный single-token override, не per-surface бандл).
-  --sys-color-surface-floating: var(--color-ink-strong); // #0a0a0a — эталон кнопки даты
+  --sys-color-surface-floating: var(--ref-color-neutral-800); // #0d0b07 — тёплый-чёрный ink-strong (warm-soft v2; было cool #0a0a0a до 2026-06-24)
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff — светлый флэш на :active
   --sys-color-text-on-floating: var(--text-on-accent); // белый контент/глиф
 
@@ -346,11 +370,12 @@
 
   // color · интенты (действие / статус — НЕ «accent»)
   --sys-color-action-primary: var(--cta-brand-fill);
-  // статусы по СМЫСЛУ. danger/warning = ТЕКУЩИЕ значения (земельный сдвиг danger
-  // →терракота отложен на M4); done/stale/pending — НОВЫЕ (Анализ рисует их сейчас
-  // локально через color-mix; сводим к этим токенам в M4). Земельный регистр §4.3.
-  --sys-color-status-danger: var(--color-danger); // M0: неон; M4 → var(--ref-color-terracotta-600)
-  --sys-color-status-warning: var(--color-warning);
+  --sys-color-text-on-action: var(--cta-brand-ink); // тёплый-уголь ink на brand-CTA (rgba 34,31,25,.92)
+  // статусы по СМЫСЛУ = warm-deep земельный регистр (выбор юзера 2026-06-24, §4.3).
+  // ⚠️ 0 ЖИВЫХ консумеров sys-status-* (Анализ рисует статусы локально color-mix) →
+  // эти токены несут КАНОНИЧЕСКИЕ значения; видимый свап = M4-миграция консумеров.
+  --sys-color-status-danger: var(--ref-color-terracotta-600); // терракота-глубокая (был неон --color-danger)
+  --sys-color-status-warning: var(--ref-color-amber-earth-600); // амбер-земля (был неон --color-warning)
   --sys-color-status-done: var(--ref-color-moss-600);
   --sys-color-status-stale: var(--ref-color-sepia-500);
   --sys-color-status-pending: var(--ref-color-neutral-400);
@@ -359,7 +384,8 @@
   --sys-color-bg-selected: var(--ref-color-navy-600); // «выбрано» → navy-ref (значение то же; M0 §4.2)
   --sys-color-text-on-selected: #fff;
   --sys-color-border-selected: var(--ref-color-navy-700);
-  --sys-color-bg-hover: rgba(0, 0, 0, 0.04);
+  --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // тёплый-уголь state-layer (был cool rgba(0,0,0) до 2026-06-24)
+  --sys-color-bg-press: var(--press-tint-bg); // press state-layer (тёплый-уголь rgba 34,31,25,.05) — алиас 1:1
   // focus — ЕДИНЫЙ фокус-индикатор на весь app: яркий blue-кольцо инпутов (не navy
   // выбора — на navy-кромке navy-фокус сливался; яркий --color-blue-2 читается поверх)
   // И halo «редактируемой» строки/ячейки расписания/free-text (:focus-within, через
@@ -465,10 +491,8 @@
 // descendants and still win. Carries ONLY field/chip/card tokens, no `.wrapper`
 // ambient baggage. (tokens.scss exempt от token-gate → raw literals тут ок.)
 :root {
-  @include field-chip-palette(
-    #1d1d1f, #2c2c30, #877f9c,
-    (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff
-  );
+  @include field-chip-palette(#1d1d1f, #2c2c30, #877f9c,
+    (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff);
   // Карточки-ряды — единый канон paper-mono (выбор юзера 2026-06-22 по предложке
   // suggestion_4c4a585a: плоский hue-free, БЕЗ лавандового градиента; лавандовый
   // card-palette удалён). Грудированные поверхности (SearchFood/навигатор дат)

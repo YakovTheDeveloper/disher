@@ -13,6 +13,8 @@
 
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { isScaleAtom, type ScaleAtom } from '@/entities/schedule-event';
+import { Heading } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
 import styles from './AtomBuilder.module.css';
@@ -71,12 +73,21 @@ export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: 
 
       <AtomList atoms={legacy.map((e) => e.atom)} onRemove={(i) => removeAtom(legacy[i].index)} />
 
+      {/* Section title directly above the inputs — role-based Heading (the canon
+          typography axis; serif-italic `variant` voices are not for new surfaces). */}
+      <Heading as="h3" role="title">
+        Можно добавить состояние
+      </Heading>
+
       <ScaleAtomInput autoFocusValue={autoFocusScaleValue} />
 
+      {/* «Готово» commits the current pending scale (adds a chip + clears the form
+          for the next state); the panel stays open (close is via the chevron).
+          Gated by `touched` so an untouched default never attaches a phantom 5/10. */}
       {pendingTouched && (
-        <button type="button" className={styles.addState} onClick={commitPendingScale}>
-          ＋ Добавить состояние
-        </button>
+        <Button variant="primary" className={styles.addState} onClick={commitPendingScale}>
+          Готово
+        </Button>
       )}
 
       {scales.length === 0 && legacy.length === 0 && (

@@ -35,23 +35,23 @@
     >div:first-of-type,
     >li:first-of-type {
         li {
-            border-top-left-radius: 9px;
-            border-top-right-radius: 9px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
     }
 
     >div:last-of-type,
     >li:last-of-type {
         li {
-            border-bottom-left-radius: 9px;
-            border-bottom-right-radius: 9px;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
         }
     }
 
     >div:only-of-type,
     >li:only-of-type {
         li {
-            border-radius: 9px;
+            border-radius: 20px;
         }
     }
 

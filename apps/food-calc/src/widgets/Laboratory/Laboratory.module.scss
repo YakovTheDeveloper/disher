@@ -141,8 +141,8 @@
     padding: 0 var(--space-5);
     border-radius: var(--radius-full);
     background: #fff;
-    border: 1px solid rgba(31, 42, 68, 0.12);
-    box-shadow: 0 6px 16px rgba(31, 42, 68, 0.1), 0 2px 5px rgba(31, 42, 68, 0.07);
+    border: 1px solid var(--sys-color-border-subtle);
+    box-shadow: 0 6px 16px rgba(45, 38, 28, 0.1), 0 2px 5px rgba(45, 38, 28, 0.07);
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: var(--discoveries-fs);

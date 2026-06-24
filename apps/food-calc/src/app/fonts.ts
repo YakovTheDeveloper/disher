@@ -23,10 +23,10 @@ import '@fontsource/onest/600.css';
 import '@fontsource/onest/700.css';
 import '@fontsource/onest/800.css';
 
-// Quiet serif tier — Source Serif 4: italic for Text variant="navTabQuiet"
-// (inactive tab / breadcrumb step) + variant="sectionLabel" (nutrient section
-// headers). NOT the heading voice — that is Onest bold-sans via --heading-font
-// (flip 2026-06-19). FieldLabel left this tier for sans on 2026-06-23.
+// Quiet serif tier — Source Serif 4: italic for <QuietLabel> (inactive tab /
+// breadcrumb step — the «museum-label» pointer). NOT the heading voice — that is
+// Onest bold-sans via --heading-font (flip 2026-06-19). FieldLabel left this tier
+// for sans on 2026-06-23; nutrient section headers moved to Heading role="title".
 import '@fontsource/source-serif-4/300.css';
 import '@fontsource/source-serif-4/600.css';
 import '@fontsource/source-serif-4/700.css';
@@ -44,8 +44,10 @@ import '@fontsource/raleway/200.css';
 import '@fontsource/raleway/400.css';
 import '@fontsource/raleway/500.css';
 
-// Serif fallback — Merriweather (--font-serif; fallback in the quiet serif tier,
-// e.g. Text navTabQuiet 'Source Serif 4','Merriweather',serif)
+// Serif fallback — Merriweather: 2-я ступень стека --sys-text-family-serif
+// ("Source Serif 4","Merriweather",Georgia,serif) — тихий serif-ярус
+// (<QuietLabel>). NB: токен --font-serif удалён 2026-06-24;
+// семейство живёт теперь только в --sys-text-family-serif (tokens.scss).
 import '@fontsource/merriweather/400.css';
 import '@fontsource/merriweather/700.css';
 

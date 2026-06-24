@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100dvh;
   width: 100%;
-  background: #f0f1f4;
+  background: var(--sys-color-surface-page);
 }
 
 .springOrbs {
@@ -37,12 +37,13 @@
 // ── ModalShell ambient background — single monochrome tone ───────────────────
 // After the «great unification» (2026-06-19) ModalShell carries one fixed `mono`
 // tone, baked directly on `.wrapper` (dev-форк `data-dv='ModalShell'` снят
-// 2026-06-22 — был single-variant). A faintly gray page (`#f0f1f4`, kin to
-// SearchFood `--search-page-bg`, set on `.wrapper` above) with five desaturated
-// orbs in the upper region: a couple lean LIGHTER (toward white), the rest a touch
-// DARKER, with a whisper of lavender echo (the SearchFood `--search-ambient-top`
-// hue) tying the top glow to the search step. `background` is NOT token-gated
-// (stripe-fork canon). Orbs walk the spatial path orb2 → orb4 → orb5 → orb3 → orb1
+// 2026-06-22 — был single-variant). Surface = `--sys-color-surface-page` (тот же
+// paper #fefcf9, что у Screen и DrawerLayout — единый тон оверлеев, не per-surface
+// серый; overlay-токен удалён 2026-06-24 как 0-консумерный, см. no-per-surface-
+// theming). Был cool bespoke #f0f1f4 до 2026-06-24. Дифференциацию от страницы
+// несут backdrop-scrim + пять desaturated warm-sand orbs в верхней зоне (часть
+// LIGHTER к крему, часть DARKER) — единый тёплый hue, без cool/lavender дрейфа.
+// Орбы = `background`-градиенты, NOT token-gated (stripe-fork canon). Orbs walk the spatial path orb2 → orb4 → orb5 → orb3 → orb1
 // (far-left → far-right); the transparent-feather + dither (above) keep them
 // band-free. `.springOrbs` / `.orb*` stay CSS-module-scoped; the wrapper class is
 // on the same element React portals, so it reaches modals through the Base UI portal.
@@ -58,23 +59,23 @@
   // circular boundary that `blur()` would smear into a visible ring.
   .orb1 {
     width: 250px; height: 250px; top: -70px; right: -40px;
-    background: radial-gradient(circle, #fbfbfd 0%, #f4f4f7 56%, transparent 84%);
+    background: radial-gradient(circle, #fdfcf8 0%, #f4f1ea 56%, transparent 84%);
   }
   .orb2 {
     width: 220px; height: 220px; top: -30px; left: -50px;
-    background: radial-gradient(circle, #eef0f4 0%, #e6e7ec 56%, transparent 84%);
+    background: radial-gradient(circle, #f1ede5 0%, #e9e4da 56%, transparent 84%);
   }
   .orb3 {
     width: 190px; height: 190px; top: 30px; right: 24px;
-    background: radial-gradient(circle, #f3f1f9 0%, #e7e3f2 56%, transparent 84%);
+    background: radial-gradient(circle, #f4f0e8 0%, #ebe5d9 56%, transparent 84%);
   }
   .orb4 {
     width: 170px; height: 170px; top: 110px; left: 16px;
-    background: radial-gradient(circle, #f7f7fa 0%, #ececf0 56%, transparent 84%);
+    background: radial-gradient(circle, #f7f4ed 0%, #ece6dc 56%, transparent 84%);
   }
   .orb5 {
     width: 150px; height: 150px; top: -40px; left: 38%;
-    background: radial-gradient(circle, #f4f2fa 0%, #e4dff1 56%, transparent 84%);
+    background: radial-gradient(circle, #f5f1e9 0%, #e9e2d6 56%, transparent 84%);
   }
 
   >*:not(.springOrbs) {
@@ -148,7 +149,7 @@
   padding-top: 0;
 }
 
-// Layout shell for ModalShell.Hint — typography comes from <Text variant="hint">.
+// Layout shell for ModalShell.Hint — typography comes from <Text role="caption">.
 // Sits directly under the Title; the negative margin cancels most of the
 // .body `gap` (20px) so the hint reads as part of the header block, not a
 // detached paragraph. Intended placement is right after ModalShell.Title.

@@ -22,7 +22,7 @@ export function Chip({ active = false, className, type = 'button', ...rest }: Ch
       type={type}
       className={clsx(styles.chip, active && styles.active, className)}
       {...rest}
-    />
+    ></button>
   );
 }
 

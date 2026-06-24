@@ -23,7 +23,7 @@ type Props = {
 /**
  * Canonical display heading — ОДИН Onest bold-sans голос (Apple Large Title).
  * Используй для любого section/overlay/masthead заголовка. serif-italic — НЕ
- * этот примитив (тихий указатель = Text variant="navTabQuiet").
+ * этот примитив (тихий указатель = <QuietLabel>).
  *
  * API — `role` (display/headline/title), композит из `--sys-text-*`.
  */

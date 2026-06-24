@@ -1,7 +1,10 @@
-// Choice — одиночный выбор (роль choice). Маркер «выбрано» = угловатая кромка +
-// галочка в правом-верхнем углу, БЕЗ заливки (текст остаётся тёмным). Цвета/радиус
-// ТОЛЬКО из sys-яруса (tds/interactive-tokens-system.md): перекрасить «выбрано» по
-// всему app = одна строка в tokens.scss или scope-override --sys-color-bg-selected.
+// Choice — одиночный выбор (роль choice). Маркер «выбрано» = indicator-модель:
+// заливка --sys-color-bg-selected + флип текста на --sys-color-text-on-selected
+// (как Chip.active, плоско, без glow) + круглая плашка-«наклейка» центром в углу
+// (фон = surface-bright, тик = bg-selected, мягкая тень — читается на заливке). Цвета/
+// радиус ТОЛЬКО из sys-яруса (tds/interactive-tokens-system.md): перекрасить
+// «выбрано» по всему app = одна строка в tokens.scss или scope-override
+// --sys-color-bg-selected.
 .choice {
   position: relative;
   appearance: none;
@@ -23,6 +26,7 @@
   transition:
     border-color var(--press-out) ease,
     background var(--press-out) ease,
+    color var(--press-out) ease,
     transform var(--press-out) ease;
 }
 
@@ -36,9 +40,12 @@
   transition-duration: var(--press-in);
 }
 
-// «Выбрано» — кромка + галочка, без заливки.
+// «Выбрано» — indicator-модель: ЗАЛИВКА + флип текста, плоско (без glow). Тон
+// «выбрано» во всём app = один токен --sys-color-bg-selected (как у Chip.active).
 .checked {
-  border-color: var(--sys-color-border-selected);
+  background: var(--sys-color-bg-selected);
+  border-color: var(--sys-color-bg-selected);
+  color: var(--sys-color-text-on-selected);
 }
 
 // Колонка «заголовок + подпись» (sex / активность / цель).
@@ -59,19 +66,42 @@
   gap: 2px;
 }
 
-// Галочка-маркер «выбрано» — правый-верхний угол, navy, проявляется на checked.
+// Галочка-маркер «выбрано» — круглая плашка ЦЕНТРОМ ТОЧНО В правом-верхнем углу
+// (top/right: -10px = половина диаметра). Фон = непрозрачная floating-поверхность
+// (--sys-color-surface-bright), тик внутри = активный bg (navy), мягкая тень.
+// Светлый кружок с navy-тиком читается на заливке как «наклейка». Тик меньше
+// диаметра — воздух вокруг галочки.
 .marker {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 14px;
-  height: 14px;
-  color: var(--sys-color-bg-selected);
+  top: -10px;
+  right: -10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-bright);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 22%);
   opacity: 0;
-  transition: opacity var(--press-out) ease;
+  transform: scale(0.6);
+  transition:
+    opacity var(--press-out) ease,
+    transform var(--press-out) ease;
   pointer-events: none;
 }
 
 .checked .marker {
   opacity: 1;
+  transform: scale(1);
+}
+
+.markerTick {
+  width: 10px;
+  height: 10px;
+  color: var(--sys-color-bg-selected);
+}
+
+.markerTick path {
+  stroke-width: 1.6px;
 }

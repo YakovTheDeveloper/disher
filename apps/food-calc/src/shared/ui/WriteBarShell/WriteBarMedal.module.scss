@@ -16,8 +16,8 @@
     // Тень монеты-подъёма. DesignBar-варианты «FoodMedal» переопределяют её на
     // направленную (см. блок вариантов внизу). Дефолт = симметричный lift.
     --medal-shadow:
-        0 5px 12px rgba(31, 42, 68, 0.14),
-        0 2px 4px rgba(31, 42, 68, 0.08);
+        0 5px 12px rgba(45, 38, 28, 0.14),
+        0 2px 4px rgba(45, 38, 28, 0.08);
     // Белая подложка-«монета»: дуги-подписи лежат на ней, серый диск (::before)
     // остаётся внутри. Подъём (float-тень) теперь несёт сама подложка → медаль
     // парит как одно целое.
@@ -60,20 +60,20 @@
         border-radius: var(--radius-full);
         // Float ушёл на белую подложку; серому диску — лёгкая тень, чтобы он
         // читался приподнятым НА белом, а не парил отдельной монетой.
-        box-shadow: 0 1px 3px rgba(31, 42, 68, 0.12);
+        box-shadow: 0 1px 3px rgba(45, 38, 28, 0.12);
         backdrop-filter: var(--wb-backdrop);
         pointer-events: none;
         transition: inset 0.2s ease, background 0.15s ease;
     }
 
-    // Press backdrop: navy inversion wider than the coin (covers arcs + glyph).
+    // Press backdrop: ink inversion wider than the coin (covers arcs + glyph).
     &::after {
         content: '';
         position: absolute;
         inset: -3px;
         z-index: 1;
         border-radius: var(--radius-full);
-        background: #1f2a44;
+        background: var(--color-ink);
         opacity: 0;
         transform: scale(0.6);
         transition: opacity 0.15s ease, transform 0.18s ease;
@@ -90,7 +90,7 @@
         transform: scale(0.96);
 
         &::before {
-            background: #1f2a44;
+            background: var(--color-ink);
         }
 
         &::after {
@@ -134,8 +134,8 @@
 .lifted {
     top: calc(-1 * var(--space-8));
     --medal-shadow:
-        -7px 11px 20px rgba(31, 42, 68, 0.09),
-        -2px 4px 7px rgba(31, 42, 68, 0.05);
+        -7px 11px 20px rgba(45, 38, 28, 0.09),
+        -2px 4px 7px rgba(45, 38, 28, 0.05);
 }
 
 // DesignBar предложка 2026-06-23 (регардлесс варианта): медаль Еды парит над

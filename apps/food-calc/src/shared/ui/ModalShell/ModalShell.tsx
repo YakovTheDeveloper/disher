@@ -70,10 +70,10 @@ const ModalShellTitle = ({ children }: { children: ReactNode }) => (
 );
 ModalShellTitle.displayName = 'ModalShell.Title';
 
-// The Text primitive carries the typography (variant="hint"); ModalShell.Hint
+// The Text primitive carries the typography (role="caption"); ModalShell.Hint
 // adds only the modal-tier layout — a small gap tucked under the Title.
 const ModalShellHint = ({ children }: { children: ReactNode }) => (
-  <Text variant="hint" className={s.hint}>
+  <Text role="caption" className={s.hint}>
     {children}
   </Text>
 );

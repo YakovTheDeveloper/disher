@@ -12,9 +12,10 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "check:tokens": "node scripts/check-scale-tokens.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs",
-    "lint:style": "node scripts/check-scale-tokens.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs && stylelint \"src/**/*.scss\" --max-warnings 0",
+    "check:tokens": "node scripts/check-scale-tokens.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs && node scripts/check-token-naming.mjs && node scripts/check-apca-contrast.mjs && node scripts/check-typo-encapsulation.mjs && node scripts/check-surface-token.mjs && node scripts/check-token-tier.mjs",
+    "lint:style": "node scripts/check-scale-tokens.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs && node scripts/check-token-naming.mjs && node scripts/check-apca-contrast.mjs && node scripts/check-typo-encapsulation.mjs && node scripts/check-surface-token.mjs && node scripts/check-token-tier.mjs && stylelint \"src/**/*.{scss,css}\" --max-warnings 0",
     "lint:style:baseline": "node scripts/gen-stylelint-baseline.mjs",
+    "check:typo:baseline": "cross-env TYPO_BASELINE_REGEN=1 node scripts/check-typo-encapsulation.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -99,10 +100,12 @@
     "vitest": "^3.2.4"
   },
   "lint-staged": {
-    "*.scss": [
+    "*.{scss,css}": [
       "node scripts/check-scale-tokens.mjs",
       "node scripts/check-selected-token.mjs",
       "node scripts/check-text-role.mjs",
+      "node scripts/check-token-tier.mjs",
+      "node scripts/check-surface-token.mjs",
       "stylelint"
     ]
   }

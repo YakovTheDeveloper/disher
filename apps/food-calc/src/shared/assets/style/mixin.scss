@@ -77,7 +77,7 @@
 // Типографические голоса больше НЕ живут в миксинах (2026-06-19): display-голос
 // (бывш. nav-tab-active, Onest bold-sans) инкапсулирован в примитиве <Heading> +
 // токенах --heading-*; тихий указатель (бывш. nav-tab-quiet, serif-italic) — в
-// <Text variant="navTabQuiet">. SwitcherTab data-dv-варианты (CSS-only, тематизация
+// примитиве <QuietLabel>. SwitcherTab data-dv-варианты (CSS-only, тематизация
 // через ancestor-атрибут) инлайнят голос напрямую / читают --heading-* токены.
 
 // text-role — применяет КОМПОЗИТ семантической типо-роли (`--sys-text-<роль>-*`)
@@ -88,7 +88,7 @@
 // значения там перекрашивает роль ВЕЗДЕ. Потребители — role-классы примитивов
 // Heading/Text. `$role` ∈ display | headline | title | body | label | caption.
 // Цвет НЕ ставится (контекстный/темо-зависимый). serif-голос тихого мелкого яруса —
-// ОРТОГОНАЛЕН: ставится ПОВЕРХ (Text variant navTabQuiet/sectionLabel), не сюда.
+// ОРТОГОНАЛЕН: ставится ПОВЕРХ (примитив <QuietLabel>), не сюда.
 @mixin text-role($role) {
     font-family: var(--sys-text-family-sans);
     font-size: var(--sys-text-#{$role}-size);
@@ -321,7 +321,7 @@
         transform var(--press-out) var(--easing-default);
 
     &:active {
-        background: var(--press-tint-bg, rgba(0, 0, 0, 0.05));
+        background: var(--press-tint-bg, rgba(34, 31, 25, 0.05));
         color: $accent;
 
         @if $scale !=1 {

@@ -1,13 +1,10 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// ProductQuantity — Yandex Pogoda inspired light minimalism.
-// Big bold display digit, pill portion chips, blue accent.
 
 .container {
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-section);
-    padding-inline: var(--space-4);
 }
 
 // Row holding the number backdrop + the multiplier stepper. Three grid columns:

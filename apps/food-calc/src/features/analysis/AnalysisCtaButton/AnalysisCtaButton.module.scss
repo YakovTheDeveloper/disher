@@ -9,8 +9,8 @@
 
 // Спиннер под СВЕТЛУЮ пилюлю: тёмный ink (раньше был белый под dark-pill).
 .spinner {
-    --spin-track: rgba(31, 42, 68, 0.25);
-    --spin-head: rgba(31, 42, 68, 0.9);
+    --spin-track: rgba(34, 31, 25, 0.25);
+    --spin-head: var(--sys-color-text-primary);
     width: 15px;
     height: 15px;
     border-radius: var(--radius-full);

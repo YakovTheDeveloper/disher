@@ -3,8 +3,7 @@
 // Canonical display heading — ОДИН Onest bold-sans голос (Apple Large Title
 // register). base даёт color + font-style + margin; роль (.display/.headline/
 // .title) задаёт весь композит family+size+weight+lh+tracking через text-role().
-// serif-italic ушёл из display (живёт только как Text variant="navTabQuiet" +
-// FieldLabel — тихий указатель).
+// serif-italic ушёл из display (живёт только в <QuietLabel> — тихий указатель).
 //
 // КАНОН spacing (миграция-в-примитивы 2026-06-23): база ставит margin:0; зазор
 // ПОД заголовком владеет контейнер (flex gap) или следующий сосед (margin-top),
@@ -18,7 +17,7 @@
     font-weight: var(--heading-weight);
     letter-spacing: var(--heading-letter);
     line-height: 1.1;
-    color: var(--color-ink);
+    color: var(--sys-color-text-primary);
 }
 
 // ── РОЛИ (ярус sys · типографика) ────────────────────────────────────────────

@@ -20,13 +20,18 @@
     // scratchpad/v2.mjs). Один тёплый лин (hue 85), перцептивно-равномерные ступени,
     // текст L-locked под APCA. Hex = oklch-производные (универсально, без @supports).
     --surface-base: #fefcf9; // n0  · oklch(0.992 0.004 85) — было #FAFAF7
+    // Чистый белый — максимальный контраст к тёплой бумаге Screen (--surface-base):
+    // floating-поверхности, которым нужно ЯВНО «всплыть» над экраном (write-бар
+    // вариант `bright`). Намеренно НЕ тёплый — белее бумаги = сильнее выделяется.
+    --surface-bright: #ffffff; // n-1 · чистый белый, ярче бумаги
     --surface-raised: rgba(255, 254, 250, 0.7); // тёплый полупрозрачный raised
-    --surface-overlay: rgba(255, 254, 250, 0.5);
+    // (--surface-overlay удалён 2026-06-24 — 0 консумеров, см. рельс --sys-color-surface-overlay снят)
 
-    // ─── Semantic: text (L-locked: primary Lc 102 / secondary 72 / meta 62 на n0) ──
-    --text-primary: #221f19; // n900 · oklch(0.24 0.011 85) — тёплый-уголь (было холодн. #111827)
-    --text-secondary: #757169; // n500 · oklch(0.55 0.013 85)
-    --text-tertiary: #89867e; // n400 · oklch(0.62 0.012 85) — поднят под APCA Lc≥60
+    // ─── Semantic: text — worst-surface APCA |Lc| (на #f5f3f0, самый тёмный из реальных фонов) ──
+    // Числа из scratchpad/crit.mjs (APCA-W3): primary 96.4 / secondary 66.7 / tertiary 61.1.
+    --text-primary: #221f19; // n900 · oklch(0.24 0.011 85) — тёплый-уголь, worst |Lc| 96.4 (≥75)
+    --text-secondary: #757169; // n500 · oklch(0.55 0.013 85) — worst |Lc| 66.7 (≥60)
+    --text-tertiary: #817d76; // n400 · oklch(0.59 0.012 82) — worst |Lc| 61.1 (≥60; было #89867e = 57 < 60)
     --text-muted: rgba(34, 31, 25, 0.15); // тёплый mute (был чёрный-альфа)
     --text-on-accent: #ffffff;
 

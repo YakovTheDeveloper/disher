@@ -56,7 +56,7 @@
     right: var(--space-3);
     top: 50%;
     height: 1px;
-    background: rgba(31, 42, 68, 0.5);
+    background: var(--sys-color-text-tertiary);
     opacity: 0;
     pointer-events: none;
     z-index: 2;

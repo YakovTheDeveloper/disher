@@ -10,7 +10,8 @@
     flex-direction: column;
 }
 
-// Sheet surface — owns bg + radius; AtomBuilder (content) owns its own padding.
+// Content rows only — bg/radius/shadow live on `.dock` now (the bar + panel are
+// ONE piece, см. блок ниже). AtomBuilder (content) owns its own padding.
 .panel {
     display: flex;
     flex-direction: column;
@@ -20,11 +21,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: var(--space-3) var(--sys-inset-page) var(--space-4);
-
-    background: var(--sys-color-surface-page);
-    border-top-left-radius: var(--radius-2xl);
-    border-top-right-radius: var(--radius-2xl);
-    box-shadow: var(--sys-elevation-overlay);
 
     // Light composite entrance (opacity + rise) — the bar's upward reflow is
     // instant (layout can't animate), the sheet fades in over it.
@@ -47,4 +43,32 @@
     .panel {
         animation: none;
     }
+}
+
+// ─── «Бар + панель = ОДИН кусок» (запечено как база, 2026-06-24) ────────────
+// Раньше DesignBar-форк EventDock (merged / merged-glass / detached); выбран
+// `merged`, остальные сняты, ключ убран из 🎨-бара. Атрибуты `data-dv*` теперь
+// статичны на `.dock` (см. EventsWriteBar) и нужны как СЕЛЕКТОР с весом выше
+// frost-плашки бара: frost-гейт = 2 атрибута
+// (`[data-dv='WriteBarSurface'][data-dv-v='frost']`), наши = 2 атрибута + класс.
+
+// `.dock` = единая поверхность куска: скруглён только СВЕРХУ (как бар-frost),
+// клипует детей по радиусу, несёт ЕДИНСТВЕННУЮ тень блока (поэтому тень бара ниже
+// снимаем — она больше не «капает» на панель), держит белый фон.
+[data-dv='EventDock'][data-dv-v='merged'].dock {
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--sys-elevation-overlay);
+    background: var(--sys-color-surface-bright);
+}
+
+// Бар (`.bar` = WriteBarShell `.wrap`) лежит заподлицо: снимаем его frost-плашку
+// (радиус/тень/фон). Тающий hairline под пилюлей (`.writeBarRow::after`, наследие
+// frost) остаётся и работает швом. Панель фон/скругления/тень НЕ держит (см. базовый
+// `.panel` выше) — её поверхность это и есть `.dock`, поэтому стык исчезает.
+[data-dv='EventDock'][data-dv-v='merged'] .bar {
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
 }

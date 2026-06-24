@@ -35,9 +35,9 @@
   user-select: none;
 }
 
-// Голос крошки (тихий serif-italic указатель) даёт примитив <Text
-// variant="navTabQuiet"> — единый источник с неактивными nav-табами. Здесь —
-// только button-reset, обрезка ellipsis'ом и hover-affordance.
+// Голос крошки (тихий serif-italic указатель) даёт примитив <QuietLabel> —
+// единый источник с неактивными nav-табами. Здесь — только button-reset,
+// обрезка ellipsis'ом и hover-affordance.
 .resultCrumb {
   background: none;
   border: none;

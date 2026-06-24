@@ -53,7 +53,7 @@ div.foodListAnchor.foodListAnchor [data-tod='night'] {
   border-radius: 999px;
   background: transparent;
   border: none;
-  color: rgba(31, 42, 68, 0.72);
+  color: var(--sys-color-text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -62,7 +62,7 @@ div.foodListAnchor.foodListAnchor [data-tod='night'] {
 
   &:hover,
   &:focus-visible {
-    color: rgba(31, 42, 68, 1);
+    color: var(--sys-color-text-primary);
     outline: none;
   }
 

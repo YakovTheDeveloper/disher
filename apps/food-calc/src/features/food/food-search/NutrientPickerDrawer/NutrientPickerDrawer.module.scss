@@ -56,8 +56,8 @@
     }
 }
 
-// Заголовок группы = сериф-italic метка (Text variant="sectionLabel") — типографику
-// владеет примитив, тут только раскладка.
+// Заголовок группы = sans-метка (Heading role="title") — типографику владеет
+// примитив, тут только раскладка.
 .groupTitle {
     margin: 0 0 var(--space-1);
     padding: 0 var(--space-2);

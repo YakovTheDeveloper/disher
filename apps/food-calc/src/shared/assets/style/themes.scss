@@ -20,3 +20,49 @@
 :root[data-theme='garden']   { @include dv-palette-garden; }
 :root[data-theme='lagoon']   { @include dv-palette-lagoon; }
 :root[data-theme='twilight'] { @include dv-palette-twilight; }
+
+// ─── DEV: «выбрано» tone tester (Фаза-2 C1, 2026-06-24) ───────────────────────
+// Живой тестер оттенка «выбрано» через DesignBar (anchor `SelectedTone`, probe в
+// app/index.tsx рефлектит variant → `<html data-selected-tone>`). Имена-говорящие
+// (флип с A2/E/F2/H). Дефолт `navy` = без override (сплошной navy — якорь «как сейчас»).
+//
+// ТРАКТОВКА = Res A предложки /suggestion_3375f4e1 (light-tonal chip): выбранный
+// чип = СВЕТЛЫЙ тональный фон (color-mix 10–14%, дословно из data.ts предложки) +
+// тёмный текст оттенка. Раньше тестер красил сплошной заливкой+белым (тяжёлый
+// чип) — расходилось с предложкой; здесь приведено к ней. Значения color-mix —
+// символ-в-символ из s_3375f4e1/data.ts (deep + lightTonal).
+//
+// ⚠ КОНФЛАТЕД-ТОКЕН: --sys-color-bg-selected едят И чип, И navy-CTA (ConfirmModal,
+// Analysis-модалки, CreateDailyNorm, Choice, mixin). При light-tonal эти CTA тоже
+// светлеют — это ВИЗУАЛЬНОЕ доказательство, что роль надо расщепить по §6:
+// «выбрано» (light-tonal) ≠ «navy-brand action / analytics CTA» (deep). Расщепление
+// = отдельный шаг (план §6/§7). Тёплые = кандидаты на «выбрано»; холодные
+// (teal/indigo/terracotta) — для сравнения, их дом = accent-cool, не selected.
+:root[data-selected-tone='coal-warm'] { // тёплый нейтрал: light-tonal коал + коал-текст
+  --sys-color-bg-selected: color-mix(in srgb, #221f19 10%, #fff);
+  --sys-color-text-on-selected: #221f19; --sys-color-border-selected: #312d27;
+}
+:root[data-selected-tone='yellow-pale'] { // pale-yellow зеркало CTA + тёмный ink
+  --sys-color-bg-selected: #fff4bd;
+  --sys-color-text-on-selected: #221f19; --sys-color-border-selected: #f3e8a6;
+}
+:root[data-selected-tone='amber-deep'] { // амбер: light-tonal #8a5700·14% + текст deep
+  --sys-color-bg-selected: color-mix(in srgb, #8a5700 14%, #fff);
+  --sys-color-text-on-selected: #6d4500; --sys-color-border-selected: #6d4500;
+}
+:root[data-selected-tone='plum'] { // слива/баклажан (комплемент жёлтому)
+  --sys-color-bg-selected: color-mix(in srgb, #62345f 12%, #fff);
+  --sys-color-text-on-selected: #62345f; --sys-color-border-selected: #4d2849;
+}
+:root[data-selected-tone='teal'] { // тил — сине-зелёный мост (зелень без клише)
+  --sys-color-bg-selected: color-mix(in srgb, #2c6a72 12%, #fff);
+  --sys-color-text-on-selected: #2c6a72; --sys-color-border-selected: #22545b;
+}
+:root[data-selected-tone='indigo'] { // индиго-фиолет — холодный акцент (менее заезжен)
+  --sys-color-bg-selected: color-mix(in srgb, #3a2d6b 12%, #fff);
+  --sys-color-text-on-selected: #3a2d6b; --sys-color-border-selected: #2e2456;
+}
+:root[data-selected-tone='terracotta'] { // терракота ⚠ коллизия с danger — для сравнения
+  --sys-color-bg-selected: color-mix(in srgb, #983d1f 12%, #fff);
+  --sys-color-text-on-selected: #983d1f; --sys-color-border-selected: #7d3019;
+}

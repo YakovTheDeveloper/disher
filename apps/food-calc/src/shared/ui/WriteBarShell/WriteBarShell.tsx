@@ -3,16 +3,15 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import s from './WriteBarShell.module.scss';
 
-// DesignBar-предложка 2026-06-23: write-бар «не читался как мессенджер-инпут».
-// Анкор на `.wrap` → 🎨-бар листает форму вживую. 2 варианта (glass/white/gray
-// сняты): `field` (дефолт) — типовой текстовый инпут форм проекта; `cta` —
-// фирменная brand-CTA-заливка (как <Button variant="brand">). НЕЗАВИСИМО от
-// варианта: поле full-width, постоянная иконка send (ниже), плавающая медаль Еды
-// с ~25% overlap. SCSS — внизу WriteBarShell.module.scss + WriteBarMedal.module.scss.
-const WRITE_BAR_SURFACE_VARIANTS = ['field', 'cta'] as const;
+// Поверхность бара ЗАФИКСИРОВАНА на `frost` (2026-06-24) — выбор сделан, живой
+// 🎨-перебор `WriteBarSurface` больше не нужен. Раньше это был DesignBar-анкор
+// (field/cta/bright/frost); теперь атрибуты `data-dv*` проставлены статически на
+// `.wrap`, поэтому CSS-гейт `[data-dv='WriteBarSurface'][data-dv-v='frost']`
+// (внизу WriteBarShell.module.scss) применяется всегда, а сам ключ из бара ушёл
+// (useDesignVariant больше не регистрируется). Остальные форки (field/cta/bright)
+// в scss мёртвы — выпилить вместе с гейтом отдельным проходом.
 
 // Минималистичный «бумажный самолётик» — канон send-иконки (Telegram-стиль,
 // уже стандарт мессенджер-инпута). Залит currentColor (на тёмной монете читается
@@ -171,9 +170,6 @@ export const WriteBarShell = ({
   onFieldFocus,
 }: WriteBarShellProps) => {
   const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
-  // Surface предложка — один анкор на общий каркас (все 3 бара делят его через
-  // refCount). Только `anchor` нужен (CSS читает `data-dv-v`); `variant` не используем.
-  const { anchor: surfaceAnchor } = useDesignVariant('WriteBarSurface', WRITE_BAR_SURFACE_VARIANTS);
 
   const [focused, setFocused] = useState(false);
 
@@ -216,7 +212,9 @@ export const WriteBarShell = ({
 
   return (
     <div
-      {...surfaceAnchor}
+      // Поверхность залочена на `frost` (см. шапку файла) — статический гейт.
+      data-dv="WriteBarSurface"
+      data-dv-v="frost"
       className={clsx(s.wrap, className)}
       data-write-state={writeState}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).

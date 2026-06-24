@@ -132,11 +132,17 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   );
 
   return (
-    <div className={panelStyles.dock} ref={dockRef}>
+    // `data-dv*` — статичный маркер «один кусок» (merged запечён как база, см.
+    // EventScalePanel.module.scss). НЕ зарегистрирован в 🎨-баре; нужен как
+    // селектор с весом выше frost-плашки бара (2 атрибута).
+    <div className={panelStyles.dock} ref={dockRef} data-dv="EventDock" data-dv-v="merged">
       <WriteBarShell
         value={description}
         onChange={setDescription}
         onSubmit={handleSubmit}
+        // Tagged so the dock module can strip the bar's frost plate and sit it
+        // flush on the shared dock surface (the «one piece», see .bar in scss).
+        className={panelStyles.bar}
         inputId={EVENT_DESCRIPTION_INPUT_ID}
         placeholder="Опишите событие"
         hint={EVENT_HINT}
