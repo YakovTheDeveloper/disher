@@ -13,7 +13,7 @@
 
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { isScaleAtom, type ScaleAtom } from '@/entities/schedule-event';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 import { AtomList } from './AtomList';
 import { ScaleAtomInput } from './ScaleAtomInput';
@@ -55,8 +55,10 @@ export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: 
           {scales.map(({ atom, index }) => (
             <span key={index} className={styles.scaleChip}>
               <button type="button" className={styles.scaleChipMain} onClick={() => editScale(index)}>
-                {atom.label ? `${atom.label} ` : ''}
-                <b>{atom.value}</b>
+                <Text as="span" role="caption">
+                  {atom.label ? `${atom.label} ` : ''}
+                  <b>{atom.value}</b>
+                </Text>
               </button>
               <button
                 type="button"

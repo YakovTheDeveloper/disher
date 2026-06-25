@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import type { SearchFilter } from '../SearchFood';
 import { FILTER_LABELS } from '../searchFilterLabels';
@@ -105,7 +105,9 @@ const SearchFoodControls = ({
                     className={clsx(styles.segment, isActive && styles.segmentActive)}
                     onClick={() => onSelectFilter?.(opt)}
                   >
-                    {FILTER_LABELS[opt]}
+                    <Text as="span" role="body">
+                      {FILTER_LABELS[opt]}
+                    </Text>
                   </button>
                 );
               })}
@@ -136,7 +138,9 @@ const SearchFoodControls = ({
                 aria-label={`Нутриент: ${selectedNutrientLabel}. Изменить`}
               >
                 <NutrientIcon />
-                <span className={styles.nutrientPillLabel}>{selectedNutrientLabel}</span>
+                <Text as="span" role="label" className={styles.nutrientPillLabel}>
+                  {selectedNutrientLabel}
+                </Text>
               </button>
               <button
                 type="button"

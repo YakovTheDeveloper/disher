@@ -71,13 +71,9 @@ $dish-sky-tapped: #e6f1ff; // фон строки в момент нажатия
     line-height: 1.15;
 }
 
+// Голос (serif-italic тихий) — примитив <QuietLabel> (DishBuilderPage.tsx).
+// Здесь остаётся ТОЛЬКО раскладка: однострочный эллипсис.
 .detailsSubtitle {
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    line-height: 1.2;
-    letter-spacing: -0.005em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

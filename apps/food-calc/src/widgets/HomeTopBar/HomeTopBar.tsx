@@ -6,6 +6,7 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
+import { QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import styles from './HomeTopBar.module.scss';
 
 type Props = {
@@ -94,10 +95,10 @@ const DateButtonContent = ({ parts }: { parts: DateParts }) => {
   return (
     <span className={styles.dateNumeral}>
       <span className={styles.dateWeekday}>{weekday}</span>
-      <span className={styles.dateWeekdayShort}>{weekdayShort}</span>
+      <QuietLabel className={styles.dateWeekdayShort}>{weekdayShort}</QuietLabel>
       <span className={styles.dateMeta}>
         <span className={styles.dateMonth}>{month}</span>
-        <span className={styles.dateDdmm}>{ddmm}</span>
+        <Numeral as="span" size="base" weight="semibold" className={styles.dateDdmm}>{ddmm}</Numeral>
       </span>
     </span>
   );
@@ -163,7 +164,7 @@ const HomeTopBar = ({
               data-hidden={centerLabelVisible ? undefined : 'true'}
               aria-label="Изменить название"
             >
-              {centerLabel}
+              <QuietLabel>{centerLabel}</QuietLabel>
             </label>
           ) : onTitleClick ? (
             <button
@@ -173,15 +174,15 @@ const HomeTopBar = ({
               onClick={onTitleClick}
               aria-label="Изменить название"
             >
-              {centerLabel}
+              <QuietLabel>{centerLabel}</QuietLabel>
             </button>
           ) : (
-            <span
+            <QuietLabel
               className={styles.centerLabel}
               data-hidden={centerLabelVisible ? undefined : 'true'}
             >
               {centerLabel}
-            </span>
+            </QuietLabel>
           ))}
         <button
           type="button"

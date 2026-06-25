@@ -48,9 +48,7 @@ $pill-h: 44px;
   background: transparent;
   border: none;
   box-shadow: none;
-  font-size: 13px;
   line-height: 1.2;
-  letter-spacing: 0;
 }
 
 // Центральный заголовок (название продукта/блюда). Лежит абсолютно поверх
@@ -68,12 +66,7 @@ $pill-h: 44px;
   // через line-clamp ниже. (До back-кнопки было 110px — под один account.)
   max-width: calc(100% - 156px);
   text-align: center;
-  font-family: var(--sys-text-family-serif);
-  font-style: italic;
-  font-size: 20px;
-  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.01em;
   color: rgba(0, 0, 0, 0.78);
   pointer-events: none;
   // Перенос до 2 строк включительно; всё свыше — троеточие.
@@ -225,10 +218,9 @@ $pill-h: 44px;
 // Короткий serif-день («Пн») — основной день inline-пилюли.
 .dateWeekdayShort {
   display: block;
-  font-family: var(--sys-text-family-serif);
-  font-style: italic;
-  font-size: 17px;
-  font-weight: 600;
+  // День «Пн» — основной (полная непрозрачность), перебивает тихий opacity:0.5
+  // примитива <QuietLabel>, чей serif-italic голос мы здесь переиспользуем.
+  opacity: 1;
   color: var(--inline-day);
 
   &::first-letter {
@@ -254,10 +246,7 @@ $pill-h: 44px;
 
 // dd.mm — приглушённые моноширинные цифры.
 .dateDdmm {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  // Числовой голос (размер/вес/tnum/lnum) несёт <Numeral size="base" weight="semibold">.
   color: var(--inline-num);
 }
 

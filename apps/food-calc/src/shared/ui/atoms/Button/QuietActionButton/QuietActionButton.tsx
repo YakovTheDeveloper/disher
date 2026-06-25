@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { Text } from '@/shared/ui/atoms/Typography';
 import s from './QuietActionButton.module.scss';
 
 type Props = {
@@ -48,7 +49,9 @@ export const QuietActionButton = ({
       aria-label={ariaLabel}
     >
       {iconPosition === 'start' && iconNode}
-      {label}
+      <Text as="span" role="caption" className={s.label}>
+        {label}
+      </Text>
       {iconPosition === 'end' && iconNode}
       {chevron && (
         <span className={s.chevron} aria-hidden="true">

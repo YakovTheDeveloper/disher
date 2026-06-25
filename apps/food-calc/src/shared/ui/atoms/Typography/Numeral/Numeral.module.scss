@@ -1,0 +1,67 @@
+// Numeral — ЧИСЛОВОЙ типо-примитив (брат Heading/Text/QuietLabel). Дом числового
+// голоса: tabular + lining figures (выровненные колонки цифр), family
+// --font-big-numeric. Две ОРТОГОНАЛЬНЫЕ оси — size (числовая шкала --sys-numeral-*)
+// и weight (числа реально варьируют вес независимо от размера: тонкий герой 200 vs
+// жирный ридаут 800). Цвет НЕ ставим (контекстный, берётся у консумера). Это
+// САНКЦИОНИРОВАННЫЙ дом font-* для чисел (ALLOW в check-typo-encapsulation.mjs) —
+// поэтому размеры/веса объявляются здесь литералом/токеном, а не у консумера.
+.numeral {
+  margin: 0;
+  font-family: var(--font-big-numeric);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  line-height: 1.1;
+}
+
+// ── Ось РАЗМЕРА (числовая шкала --sys-numeral-*) ─────────────────────────────
+.sm {
+  font-size: var(--sys-numeral-sm);
+}
+
+.base {
+  font-size: var(--sys-numeral-base);
+}
+
+.md {
+  font-size: var(--sys-numeral-md);
+}
+
+.lg {
+  font-size: var(--sys-numeral-lg);
+}
+
+.xl {
+  font-size: var(--sys-numeral-xl);
+}
+
+.display {
+  font-size: var(--sys-numeral-display);
+}
+
+.hero {
+  font-size: var(--sys-numeral-hero);
+}
+
+// ── Ось ВЕСА (числа варьируют вес независимо от размера) ──────────────────────
+.thin {
+  font-weight: 200;
+}
+
+.regular {
+  font-weight: 400;
+}
+
+.medium {
+  font-weight: 500;
+}
+
+.semibold {
+  font-weight: 600;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.black {
+  font-weight: 800;
+}

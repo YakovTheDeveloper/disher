@@ -3,6 +3,7 @@ import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'd
 import { ru } from 'date-fns/locale';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { ActionTile, ArrowGlyph } from '@/shared/ui/atoms/ActionTile';
+import { QuietLabel, Numeral, Text } from '@/shared/ui/atoms/Typography';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
 import type { DateStr } from './model';
@@ -98,8 +99,17 @@ const DayChip = memo(function DayChip({ day, today, isSelected, onSelect }: DayC
 
   return (
     <button type="button" className={className} onClick={handleClick} data-date={day.dateStr}>
-      <span className={s.dayChipNumber}>{dayNumber}</span>
-      <span className={s.dayChipWeekday}>{weekdayShort}</span>
+      <Numeral
+        as="span"
+        size="display"
+        weight={isSelected ? 'semibold' : 'regular'}
+        className={s.dayChipNumber}
+      >
+        {dayNumber}
+      </Numeral>
+      <Text as="span" role="caption" className={s.dayChipWeekday}>
+        {weekdayShort}
+      </Text>
     </button>
   );
 });
@@ -270,13 +280,13 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
                   // have no backing, so it shows through the wrap flow without
                   // claiming a column.
                   <div key={g.key} className={s.chipRow}>
-                    <span className={s.monthName}>
+                    <QuietLabel className={s.monthName}>
                       <span>
                         {g.name}
                         {"'"}
                       </span>
                       <span>{g.year}</span>
-                    </span>
+                    </QuietLabel>
                     {g.items.map((d) => (
                       <DayChip
                         key={d.dateStr}
@@ -292,7 +302,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
             </div>
           ) : (
             <div className={s.empty} ref={activeInnerRef}>
-              Пока нет дней с записями
+              <QuietLabel>Пока нет дней с записями</QuietLabel>
             </div>
           )}
         </section>

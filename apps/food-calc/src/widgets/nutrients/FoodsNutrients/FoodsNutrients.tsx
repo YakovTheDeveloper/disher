@@ -4,6 +4,7 @@ import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
+import { Text } from '@/shared/ui/atoms/Typography/Text';
 import styles from './FoodsNutrients.module.scss';
 
 type Props = {
@@ -27,9 +28,9 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props)
       </div>
       <NutrientTable getValue={getValue} />
       {missingNutrientNames.length > 0 && (
-        <p className={styles.missing}>
+        <Text role="caption" className={styles.missing}>
           Нет данных о нутриентах: {missingNutrientNames.join(', ')}
-        </p>
+        </Text>
       )}
     </div>
   );

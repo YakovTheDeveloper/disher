@@ -5,6 +5,7 @@ import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Button from '@/shared/ui/atoms/Button/Button';
 import type { Hypothesis } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
+import { Text } from '@/shared/ui/atoms/Typography';
 import s from './AttachHypothesesPicker.module.scss';
 
 type Props = BaseDrawerProps<void> & {
@@ -65,7 +66,7 @@ const AttachHypothesesPicker = ({ hypotheses, initialSelectedIds, onChange, onCl
     >
       <div className={s.body}>
         {hypotheses.length === 0 ? (
-          <p className={s.empty}>Пока нет гипотез — создай их кнопкой «Гипотезы».</p>
+          <Text role="caption" className={s.empty}>Пока нет гипотез — создай их кнопкой «Гипотезы».</Text>
         ) : (
           <>
             <AutoGrowSearch

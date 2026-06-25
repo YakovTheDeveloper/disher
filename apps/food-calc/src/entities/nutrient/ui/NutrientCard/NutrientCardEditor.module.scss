@@ -34,11 +34,7 @@
 }
 
 .label {
-  font-family: var(--font-sans);
-  font-size: 0.7rem;
-  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--sys-card-accent);
 }
 
@@ -50,11 +46,7 @@
 }
 
 .value {
-  font-family: var(--font-sans);
-  font-size: 0.58rem;
-  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--text-secondary);
   align-self: flex-end;
   padding-bottom: 0.15em;
@@ -82,10 +74,6 @@
 }
 
 .percent {
-  font-family: var(--font-sans);
-  font-size: 2rem;
-  font-weight: 200;
-  letter-spacing: -0.03em;
   line-height: 1;
   color: var(--sys-card-accent);
 }
@@ -132,11 +120,7 @@
 }
 
 .name {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--sys-card-accent);
   flex-shrink: 1;
   min-width: 0;
@@ -163,18 +147,12 @@
 }
 
 .normModalTitle {
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
   color: var(--text-primary);
 }
 
 .normModalClose {
   border: none;
   background: none;
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  font-weight: 600;
   color: var(--sys-card-accent, #007aff);
   cursor: pointer;
   padding: var(--space-2) var(--space-3);

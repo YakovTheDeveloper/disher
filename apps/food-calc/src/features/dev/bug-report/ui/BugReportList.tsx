@@ -128,7 +128,9 @@ const BugReportList = ({ onZoom }: Props) => {
                   onClick={() => handleDelete(r.filename)}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? '…' : 'Удалить?'}
+                  <Text as="span" role="caption">
+                    {isDeleting ? '…' : 'Удалить?'}
+                  </Text>
                 </button>
                 <button
                   type="button"

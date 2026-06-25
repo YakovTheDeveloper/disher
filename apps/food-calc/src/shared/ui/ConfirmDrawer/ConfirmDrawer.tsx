@@ -38,14 +38,18 @@ const ConfirmDrawer = ({
       )}
       <div className={s.actions}>
         <button type="button" className={s.cancel} onClick={() => onClose(false)}>
-          {cancelLabel}
+          <Text role="label" as="span">
+            {cancelLabel}
+          </Text>
         </button>
         <button
           type="button"
           className={tone === 'danger' ? s.confirmDanger : s.confirm}
           onClick={() => onClose(true)}
         >
-          {confirmLabel}
+          <Text role="label" as="span">
+            {confirmLabel}
+          </Text>
         </button>
       </div>
     </div>

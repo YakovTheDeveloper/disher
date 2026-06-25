@@ -135,23 +135,23 @@ export function ProfileDrawer() {
 
           {dataOpen && (
             <div className={styles.accordionBody}>
-              <p className={styles.dataHint}>
+              <Text as="p" role="caption" className={styles.dataHint}>
                 Скачать копию данных в файл или загрузить ранее сохранённую.
-              </p>
+              </Text>
               <div className={styles.dataActions}>
                 <button
                   type="button"
                   className={styles.dataBtn}
                   onClick={handleExport}
                 >
-                  Скачать файл
+                  <Text as="span" role="label">Скачать файл</Text>
                 </button>
                 <button
                   type="button"
                   className={styles.dataBtn}
                   onClick={handleImport}
                 >
-                  Загрузить из файла
+                  <Text as="span" role="label">Загрузить из файла</Text>
                 </button>
               </div>
             </div>
@@ -183,18 +183,18 @@ export function ProfileDrawer() {
 
           {dangerOpen && (
             <div className={styles.dangerBody}>
-              <p className={styles.dangerHint}>
+              <Text as="p" role="caption" className={styles.dangerHint}>
                 При выходе данные на этом устройстве очищаются. Они хранятся в
                 облаке и вернутся при следующем входе — но лучше сохранить
                 свежую копию прямо сейчас.
-              </p>
+              </Text>
               <button
                 type="button"
                 className={styles.backupBtn}
                 onClick={handleBackup}
                 disabled={backupState === 'saving'}
               >
-                {BACKUP_LABEL[backupState]}
+                <Text as="span" role="label">{BACKUP_LABEL[backupState]}</Text>
               </button>
               <HoldButton
                 holdMs={HOLD_MS}

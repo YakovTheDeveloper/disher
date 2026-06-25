@@ -13,20 +13,16 @@
   min-height: 42px;
   padding: 7px 14px;
   border: none;
-  border-radius: 999px;
-  background: var(--color-white);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-bright);
   color: var(--sys-chip-text, var(--sys-card-text-rest));
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.005em;
   cursor: pointer;
   transition: background var(--press-out) ease, color var(--press-out) ease,
     transform var(--press-out) ease, box-shadow 140ms ease;
 }
 
 .chip:hover {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--sys-elevation-action-hover);
 }
 
 .chip:focus-visible {
@@ -39,13 +35,13 @@
 .chip:active {
   background: var(--sys-color-bg-selected);
   color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); // glow = selected-тон, флипается тон-тестером (C1)
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано», temp-exempt #4 (флипается тон-тестером C1) */
   transform: scale(0.96);
-  transition-duration: var(--press-in);
+  transition-duration: var(--sys-duration-press-in);
 }
 
 .chip.active {
   background: var(--sys-color-bg-selected);
   color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); // glow = selected-тон, флипается тон-тестером (C1)
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано», temp-exempt #4 (флипается тон-тестером C1) */
 }

@@ -2,6 +2,7 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
+import { Text } from '@/shared/ui/atoms/Typography';
 import s from './EditNutrientsModal.module.scss';
 
 interface Props {
@@ -56,7 +57,9 @@ export const EditNutrientsModal = ({
           )}
           {massWarningGrams != null && (
             <div className={s.massWarning} role="status">
-              Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+              <Text as="span" role="caption">
+                Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+              </Text>
             </div>
           )}
           <NutrientTable

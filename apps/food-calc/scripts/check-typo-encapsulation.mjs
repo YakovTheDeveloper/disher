@@ -47,14 +47,35 @@ const ALLOW = [
   'shared/ui/atoms/Typography/Heading/Heading.module.scss', //    примитив <Heading role>
   'shared/ui/atoms/Typography/Text/Text.module.scss', //          примитив <Text role>
   'shared/ui/atoms/Typography/QuietLabel/QuietLabel.module.scss', // примитив <QuietLabel> (serif-italic тихий указатель)
+  'shared/ui/atoms/Typography/Numeral/Numeral.module.scss', //    примитив <Numeral> (числовой ярус tnum/lnum)
   'shared/ui/atoms/Typography/FieldLabel/FieldLabel.module.scss', // метка поля (раскладка над <Text role="label">)
   'shared/assets/style/mixin.scss', //   text-role() + field-mixin (корневая публикация)
   'shared/assets/style/index.scss', //   body{} корневой
   'shared/assets/style/tokens.scss', //  ОПРЕДЕЛЕНИЯ типо-токенов
 ];
 
+// Permanent dev-tooling exempt — отдельная редсистема `--s-*`/`--uk-*`/`--role-*`
+// (НЕ app sys-токены; память dev-tools-design-system). Витрины (предложки s_*,
+// ui-kit, suggestion-страница, DesignVariantsBar) НАМЕРЕННО не подчиняются
+// app-контракту типографики — зеркало legacy-exempt в `.stylelintrc.cjs` (решение
+// юзера 2026-06-24). Это НЕ baseline-амнистия (которая тает), а постоянное исключение.
+const EXEMPT_DIRS = [
+  'app/development-features/',
+  'app/ui/DesignVariantsBar/',
+  'pages/suggestion/',
+  'pages/ui-kit/',
+];
+
 // CHECK A — запрещённое var()-чтение типо-семантики.
 const RESTRICTED_VAR_RE = /var\(\s*(--sys-text-[A-Za-z0-9-]+|--heading-[A-Za-z0-9-]+|--font-sans)\b/g;
+
+// Санкционированные НЕ-обёртываемые контексты: типографика тут ОБЯЗАНА жить в CSS,
+// т.к. нет HTML-элемента приложения для оборачивания в примитив (решение юзера 2026-06-25):
+//   • <input>/<textarea>/::placeholder — поля ввода (нельзя обернуть в <Text>);
+//   • :global(...) — стили сторонней разметки (sonner-тостер и т.п.);
+//   • SVG-`text` (подпись вдоль дуги/пути) — SVG-элемент, не HTML.
+// Декларация пропускается, если ЛЮБОЙ её предок-селектор матчит это.
+const EXEMPT_SELECTOR_RE = /\binput\b|\btextarea\b|::placeholder|:global|(^|[\s>+~,(])text\b/i;
 
 // CHECK B — сырое типо-объявление. Свойство + значение до `;`/конца строки.
 const RAW_DECL_RE = /^\s*(font-size|font-weight|font-family|letter-spacing)\s*:\s*([^;]+)/i;
@@ -79,7 +100,7 @@ function walk(dir, acc) {
 
 function isAllowed(relPath) {
   const norm = relPath.replace(/\\/g, '/');
-  return ALLOW.some((a) => norm.endsWith(a));
+  return ALLOW.some((a) => norm.endsWith(a)) || EXEMPT_DIRS.some((d) => norm.includes(d));
 }
 
 function loadBaseline() {
@@ -94,25 +115,75 @@ function loadBaseline() {
 }
 
 // Собрать нарушения одного файла (без учёта baseline).
+// Selector-aware: char-walker трекает стек предков-селекторов по `{`/`}`. Декларация
+// внутри санкционированного НЕ-обёртываемого контекста (input/textarea/::placeholder/
+// :global/SVG-`text`, EXEMPT_SELECTOR_RE) пропускается — там типографика ОБЯЗАНА жить
+// в CSS, обернуть в примитив нечего (решение юзера 2026-06-25). SCSS-интерполяция
+// `#{…}` проходит как литерал (её фигурные скобки НЕ структурные).
 function violationsIn(relPath, text) {
   const out = [];
   const stripped = stripComments(text);
-  stripped.split(/\r?\n/).forEach((line, i) => {
+  const selectorStack = [];
+  const exemptNow = () => selectorStack.some((s) => EXEMPT_SELECTOR_RE.test(s));
+
+  let buf = ''; // накопитель текущего сегмента (селектор до `{` или декларация до `;`/`}`)
+  let bufLine = 1; // строка, где сегмент начал непустой контент
+  let line = 1;
+
+  const checkSegment = (segment, atLine) => {
+    if (exemptNow()) return;
     // CHECK A
-    for (const m of line.matchAll(RESTRICTED_VAR_RE)) {
-      // Интерполяция `var(--sys-text-#{...}` — имя не статично, не реф.
-      if (line[m.index + m[0].length] === '#') continue;
-      out.push({ file: relPath, line: i + 1, kind: 'A', code: m[0] });
+    for (const m of segment.matchAll(RESTRICTED_VAR_RE)) {
+      if (segment[m.index + m[0].length] === '#') continue; // var(--sys-text-#{…} — не реф
+      out.push({ file: relPath, line: atLine, kind: 'A', code: m[0] });
     }
     // CHECK B
-    const d = line.match(RAW_DECL_RE);
+    const d = segment.match(RAW_DECL_RE);
     if (d) {
       const val = d[2].trim();
       if (!VALUE_OK_RE.test(val)) {
-        out.push({ file: relPath, line: i + 1, kind: 'B', code: `${d[1]}: ${val}` });
+        out.push({ file: relPath, line: atLine, kind: 'B', code: `${d[1]}: ${val}` });
       }
     }
-  });
+  };
+
+  for (let idx = 0; idx < stripped.length; idx++) {
+    const ch = stripped[idx];
+    if (ch === '\n') {
+      line++;
+      buf += ch;
+      continue;
+    }
+    // SCSS-интерполяция `#{…}` — фигурные скобки НЕ структурные, поглощаем как литерал.
+    if (ch === '#' && stripped[idx + 1] === '{') {
+      let j = idx + 2;
+      while (j < stripped.length && stripped[j] !== '}') {
+        if (stripped[j] === '\n') line++;
+        j++;
+      }
+      buf += stripped.slice(idx, j + 1);
+      idx = j;
+      continue;
+    }
+    if (ch === '{') {
+      selectorStack.push(buf.trim()); // buf = селектор(ы) этого блока
+      buf = '';
+      continue;
+    }
+    if (ch === '}') {
+      checkSegment(buf, bufLine); // декларация без хвостового `;` перед `}`
+      selectorStack.pop();
+      buf = '';
+      continue;
+    }
+    if (ch === ';') {
+      checkSegment(buf, bufLine);
+      buf = '';
+      continue;
+    }
+    if (!/\S/.test(buf) && /\S/.test(ch)) bufLine = line; // первый непустой символ сегмента
+    buf += ch;
+  }
   return out;
 }
 

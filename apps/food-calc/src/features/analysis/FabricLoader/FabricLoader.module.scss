@@ -192,14 +192,13 @@
   pointer-events: none;
 }
 
+// Цифра дня рендерится примитивом <Numeral size="display" weight="black"> —
+// семья big-numeric, tnum/lnum, вес 800 и letter-spacing несёт примитив.
+// Класс держит динамический кегль (clamp), цвет и тень.
 .day {
-  font-family: var(--font-big-numeric);
-  font-weight: 800;
   font-size: var(--fl-day-size);
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
   line-height: 1;
   color: var(--fl-ink);
-  letter-spacing: -0.02em;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75), 0 0 22px rgba(255, 248, 235, 0.95);
 }
 
@@ -208,9 +207,7 @@
   margin: 0;
   font-family: var(--fl-caption-font);
   font-size: var(--fl-caption-size);
-  font-weight: 400;
   color: var(--fl-caption-color);
-  letter-spacing: 0.01em;
   text-align: center;
   animation: fl-breathe-text 2.8s var(--easing-default) infinite;
 }

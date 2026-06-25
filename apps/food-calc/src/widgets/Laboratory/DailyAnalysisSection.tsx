@@ -4,6 +4,7 @@ import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import type { DailyAnalysisReason } from '@/features/analysis/daily';
 import { Button } from '@/shared/ui/atoms/Button';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './DailyAnalysisSection.module.scss';
 
 type Props = {
@@ -82,10 +83,12 @@ const DailyAnalysisSection = ({ date }: Props) => {
 
       {status === 'failed' && (
         <div className={styles.banner} data-tone="error">
-          <p className={styles.bannerTitle}>Разбор не удался</p>
-          <p className={styles.bannerBody}>
+          <Text as="p" role="label" className={styles.bannerTitle}>
+            Разбор не удался
+          </Text>
+          <Text as="p" role="caption" className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Что-то пошло не так.'}
-          </p>
+          </Text>
           <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
             Повторить
           </Button>
@@ -94,10 +97,12 @@ const DailyAnalysisSection = ({ date }: Props) => {
 
       {status === 'interrupted' && (
         <div className={styles.banner} data-tone="muted">
-          <p className={styles.bannerTitle}>Разбор прерван</p>
-          <p className={styles.bannerBody}>
+          <Text as="p" role="label" className={styles.bannerTitle}>
+            Разбор прерван
+          </Text>
+          <Text as="p" role="caption" className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Разбор не завершился.'}
-          </p>
+          </Text>
           <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
             Запустить заново
           </Button>

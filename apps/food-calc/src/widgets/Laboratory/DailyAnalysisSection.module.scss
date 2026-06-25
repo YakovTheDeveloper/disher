@@ -18,25 +18,18 @@
 // ── invitation (idle) ────────────────────────────────────────────────
 .inviteTitle {
     margin: 0;
-    // serif-italic снят с заголовка (канон: serif — тихий мелкий ярус, не на
-    // Display/Headline/Title). Голос = sys sans-семейство.
-    font-family: var(--sys-text-family-sans);
     font-style: normal;
-    // Title-роль (17px) — ближайший минтованный рунг (было 19px, вне системы).
-    font-size: var(--sys-text-title-size);
     color: var(--sys-card-text-rest);
 }
 
 .inviteBody {
     margin: 0;
-    font-size: 13px;
     line-height: 1.55;
     color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
 }
 
 // ── markdown body ────────────────────────────────────────────────────
 .markdown {
-    font-size: 14.5px;
     line-height: 1.6;
     color: var(--sys-card-text-rest);
 
@@ -51,12 +44,7 @@
     h2,
     h3 {
         margin: 16px 0 8px;
-        // serif-italic снят (канон: serif не на заголовках). Title-роль: sans
-        // sys-семейство + минтованный размер/вес (было raw 17px serif italic).
-        font-family: var(--sys-text-family-sans);
         font-style: normal;
-        font-weight: var(--sys-text-title-weight);
-        font-size: var(--sys-text-title-size);
         color: var(--sys-card-text-rest);
     }
 
@@ -70,9 +58,6 @@
         margin-bottom: 4px;
     }
 
-    strong {
-        font-weight: 600;
-    }
 }
 
 // ── failed / interrupted banner ──────────────────────────────────────
@@ -96,14 +81,11 @@
 
 .bannerTitle {
     margin: 0;
-    font-size: 14px;
-    font-weight: 600;
     color: rgba(15, 23, 42, 0.85);
 }
 
 .bannerBody {
     margin: 0;
-    font-size: 12.5px;
     line-height: 1.45;
     color: rgba(15, 23, 42, 0.55);
 }
@@ -124,10 +106,7 @@
 
 .ideasTitle {
     margin: 0;
-    // serif-italic снят (канон: serif не на заголовках). Title-роль (17px).
-    font-family: var(--sys-text-family-sans);
     font-style: normal;
-    font-size: var(--sys-text-title-size);
     color: var(--sys-card-text-rest);
 }
 

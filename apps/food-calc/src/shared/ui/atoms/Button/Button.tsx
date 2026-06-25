@@ -1,6 +1,7 @@
 import React, { ButtonHTMLAttributes } from 'react';
 import s from './Button.module.css';
 import clsx from 'clsx';
+import { Text } from '@/shared/ui/atoms/Typography/Text';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'link' | 'ghost' | 'brand';
@@ -43,6 +44,13 @@ const Button: ButtonComponent = ({
     center && s.center
   );
 
+  // Подпись кнопки несёт типо-РОЛЬ через <Text> (миграция «везде на Text»,
+  // 2026-06-24): action-варианты → label (16/600), link → body (16/500), ghost —
+  // bespoke (italic 200, роли нет) → без <Text>, размер из CSS (size-токен).
+  const labelRole: 'label' | 'body' | null =
+    variant === 'ghost' ? null : variant === 'link' ? 'body' : 'label';
+  const labelNode = isLoading ? 'Loading...' : children;
+
   const content = (
     <>
       {before}
@@ -51,7 +59,13 @@ const Button: ButtonComponent = ({
           {icon}
         </span>
       )}
-      {isLoading ? 'Loading...' : children}
+      {labelRole ? (
+        <Text as="span" role={labelRole}>
+          {labelNode}
+        </Text>
+      ) : (
+        labelNode
+      )}
       {trailingIcon != null && (
         <span className={s.icon} aria-hidden="true">
           {trailingIcon}

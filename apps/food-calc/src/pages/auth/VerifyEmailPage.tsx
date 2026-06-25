@@ -66,13 +66,7 @@ export default function VerifyEmailPage() {
   }, [token, navigate, clearPending]);
 
   return (
-    <div
-      className={authScreenStyles.screen}
-      data-auth-variant="v1-photo"
-      data-auth-theme="dark"
-    >
-      <div className={authScreenStyles.bg} aria-hidden="true" />
-      <div className={authScreenStyles.scrim} aria-hidden="true" />
+    <div className={authScreenStyles.screen}>
       <div className={authScreenStyles.brand}>
         <span className={authScreenStyles.logo}>Disher</span>
       </div>

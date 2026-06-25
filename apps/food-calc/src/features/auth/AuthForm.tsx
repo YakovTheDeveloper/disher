@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
 type Mode = 'signIn' | 'signUp';
 type Step = 'email' | 'password';
@@ -130,7 +130,7 @@ export function AuthForm({
           </button>
         )}
         <Heading as="h1" role="headline" className={styles.heading}>{heading}</Heading>
-        <p className={styles.subheading}>{subheading}</p>
+        <Text as="p" role="caption" className={styles.subheading}>{subheading}</Text>
       </header>
 
       <div className={styles.formWrap}>
@@ -157,7 +157,7 @@ export function AuthForm({
               />
               {emailError && (
                 <p id="auth-email-error" className={styles.fieldError} role="alert">
-                  {emailError}
+                  <Text as="span" role="caption">{emailError}</Text>
                 </p>
               )}
             </div>
@@ -184,7 +184,7 @@ export function AuthForm({
               />
               {error && (
                 <p id="auth-form-error" className={styles.fieldError} role="alert">
-                  {error}
+                  <Text as="span" role="caption">{error}</Text>
                 </p>
               )}
             </div>

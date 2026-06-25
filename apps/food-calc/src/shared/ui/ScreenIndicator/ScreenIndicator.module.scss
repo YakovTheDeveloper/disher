@@ -30,24 +30,6 @@
 // Сами плиточки — примитив `SwitcherTab` (shared/ui/SwitcherTab). Здесь остаётся
 // только grid-раскладка ряда (`.tilesRow`) и band ниже.
 
-.tileShadow {
-    position: absolute;
-    left: 14px;
-    right: 0;
-    bottom: 8px;
-    z-index: 1;
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 1;
-    opacity: 0.35;
-    letter-spacing: -0.1px;
-    color: #9a9a9a;
-    white-space: nowrap;
-    pointer-events: none;
-    user-select: none;
-}
 
 // Опциональный слот под тайлами. Рендерится только если ScreenIndicator
 // получил `title` (HomePage кладёт сюда `<SelectedDayHeading>`; product/dish —
@@ -141,26 +123,21 @@
     background: transparent;
     border-radius: 0;
     opacity: 1;
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
     line-height: 1;
+}
 
-    &::before {
-        --numeral-fs: 13px;
-        content: attr(data-num);
-        font-size: var(--numeral-fs);
-        letter-spacing: 0.04em;
-        color: var(--color-ink);
-        opacity: 0.3;
-    }
+// Сериф-италик «музейная табличка» номера живёт в <QuietLabel>; здесь — только
+// цвет + состояние (тусклый неактивный / полный активный).
+.swipeDotNum {
+    color: var(--color-ink);
+    opacity: 0.3;
 }
 
 .swipeDotActive {
     width: auto;
 
-    &::before {
+    .swipeDotNum {
         opacity: 1;
-        font-weight: 600;
     }
 }
 

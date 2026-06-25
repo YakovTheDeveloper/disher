@@ -89,7 +89,9 @@ const BugReportModal = ({
         className={tab === 'new' ? `${s.tab} ${s.tabActive}` : s.tab}
         onClick={() => setTab('new')}
       >
-        Новый
+        <Text as="span" role="caption">
+          Новый
+        </Text>
       </button>
       <button
         type="button"
@@ -98,7 +100,9 @@ const BugReportModal = ({
         className={tab === 'list' ? `${s.tab} ${s.tabActive}` : s.tab}
         onClick={() => setTab('list')}
       >
-        Список
+        <Text as="span" role="caption">
+          Список
+        </Text>
       </button>
       <button
         type="button"
@@ -107,7 +111,9 @@ const BugReportModal = ({
         className={tab === 'status' ? `${s.tab} ${s.tabActive}` : s.tab}
         onClick={() => setTab('status')}
       >
-        Статус
+        <Text as="span" role="caption">
+          Статус
+        </Text>
       </button>
     </div>
   );
@@ -184,7 +190,9 @@ const BugReportModal = ({
               onClick={() => onClose(false)}
               disabled={busy}
             >
-              Отмена
+              <Text as="span" role="caption">
+                Отмена
+              </Text>
             </button>
             <button
               type="button"
@@ -192,7 +200,9 @@ const BugReportModal = ({
               onClick={handleSubmit}
               disabled={!canSend}
             >
-              {busy ? 'Отправка…' : 'Отправить'}
+              <Text as="span" role="caption">
+                {busy ? 'Отправка…' : 'Отправить'}
+              </Text>
             </button>
           </div>
         </div>

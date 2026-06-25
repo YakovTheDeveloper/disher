@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { PaperclipIcon } from './PaperclipIcon';
+import { Numeral } from '@/shared/ui/atoms/Typography';
 import s from './WriteBarShell.module.scss';
 
 /** `useDesignVariant(...).anchor` — `{ ref, 'data-dv', 'data-dv-v' }`. Spread
@@ -57,7 +58,11 @@ export const WriteBarClip = ({
     {...anchor}
   >
     {icon}
-    {count > 0 && <span className={s.clipBadge}>{count}</span>}
+    {count > 0 && (
+      <Numeral as="span" size="sm" weight="semibold" className={s.clipBadge}>
+        {count}
+      </Numeral>
+    )}
     {dot && <span className={s.clipDot} aria-hidden="true" />}
   </button>
 );

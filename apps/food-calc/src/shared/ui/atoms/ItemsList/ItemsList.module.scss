@@ -28,9 +28,10 @@
 }
 
 .emptyMessage {
+    // size/role — из <Text role="caption">; здесь только моно-семейство (ортогонально
+    // роли, как serif у <QuietLabel>) + тихий вид. font-size НЕ объявляем (инкапсуляция).
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
     opacity: 0.4;
     text-align: center;
     margin: 0;
@@ -40,27 +41,27 @@
     height: 1px;
     background: currentColor;
     opacity: calc(0.04 - var(--line-i, 0) * 0.005);
-    border-radius: 1px;
+    border-radius: 0;
 }
 
 // ─── Empty variants ──────────────────────────────────────────
 
 .empty_v0 {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 .empty_v1 {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 .empty_v2 {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 .empty_v3 {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 .empty_v4 {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }

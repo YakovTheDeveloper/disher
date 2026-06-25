@@ -18,7 +18,7 @@ import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text, Numeral, QuietLabel } from '@/shared/ui/atoms/Typography';
 
 // chrome:
 //   'modal' (default) — full modal with ModalLayout, hero title header
@@ -141,17 +141,17 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             <ArrowLeftIcon />
           </button>
           <Heading role="title" className={styles.title}>Моя норма</Heading>
-          <p className={styles.subtitle}>
+          <Text as="p" role="caption" className={styles.subtitle}>
             Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
             по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
-          </p>
+          </Text>
         </header>
       )}
       {isPanel && (
-        <p className={styles.panelSubtitle}>
+        <Text as="p" role="caption" className={styles.panelSubtitle}>
           Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
           по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
-        </p>
+        </Text>
       )}
 
         <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
@@ -207,8 +207,8 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             >
               {ACTIVITY_OPTIONS.map((o) => (
                 <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                  <span className={styles.pillTitle}>{o.label}</span>
-                  <span className={styles.pillHint}>{o.hint}</span>
+                  <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
+                  <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
                 </ChoiceItem>
               ))}
             </ChoiceGroup>
@@ -224,8 +224,8 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             >
               {GOAL_OPTIONS.map((o) => (
                 <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                  <span className={styles.pillTitle}>{o.label}</span>
-                  <span className={styles.pillHint}>{o.hint}</span>
+                  <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
+                  <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
                 </ChoiceItem>
               ))}
             </ChoiceGroup>
@@ -233,21 +233,21 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
           <div className={styles.preview}>
             <div className={styles.previewKcal}>
-              <span className={styles.previewKcalValue}>{fmt(macros.kcal)}</span>
-              <span className={styles.previewKcalUnit}>ккал в день</span>
+              <Numeral as="span" size="hero" weight="medium" className={styles.previewKcalValue}>{fmt(macros.kcal)}</Numeral>
+              <Text as="span" role="caption" className={styles.previewKcalUnit}>ккал в день</Text>
             </div>
             <div className={styles.macros}>
               <MacroChip label="Б" value={macros.proteinG} />
               <MacroChip label="Ж" value={macros.fatG} />
               <MacroChip label="У" value={macros.carbsG} />
             </div>
-            <p className={styles.previewMeta}>
+            <Text as="p" role="caption" className={styles.previewMeta}>
               BMR ~{fmt(bmr)} · поддержание ~{fmt(tdee)} ккал
-            </p>
-            <p className={styles.disclaimer}>
+            </Text>
+            <Text as="p" role="caption" className={styles.disclaimer}>
               Это ориентир, не медицинская рекомендация. Disher — про корреляции
               «что съел / как себя чувствую», не про точный калькулятор.
-            </p>
+            </Text>
           </div>
         </div>
 
@@ -258,7 +258,9 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             type="button"
             aria-disabled={!isValid}
           >
-            Готово
+            <Text as="span" role="label">
+              Готово
+            </Text>
           </button>
         </footer>
       </div>
@@ -295,7 +297,7 @@ const NumberField = ({ unit, value, min, max, onChange }: NumberFieldProps) => {
     <label className={clsx(styles.numberField, invalid && styles.numberFieldInvalid)}>
       <div className={styles.numberInputRow}>
         <NumberInput value={value} onChange={onChange} maxLength={3} />
-        <span className={styles.numberUnit}>{unit}</span>
+        <Text as="span" role="caption" className={styles.numberUnit}>{unit}</Text>
       </div>
     </label>
   );
@@ -308,9 +310,9 @@ type MacroChipProps = {
 
 const MacroChip = ({ label, value }: MacroChipProps) => (
   <div className={styles.macroChip}>
-    <span className={styles.macroLabel}>{label}</span>
-    <span className={styles.macroValue}>{fmt(value)}</span>
-    <span className={styles.macroUnit}>г</span>
+    <QuietLabel as="span" className={styles.macroLabel}>{label}</QuietLabel>
+    <Numeral as="span" size="base" weight="semibold" className={styles.macroValue}>{fmt(value)}</Numeral>
+    <Text as="span" role="caption" className={styles.macroUnit}>г</Text>
   </div>
 );
 

@@ -17,7 +17,7 @@ import {
   type DateRange,
 } from './range';
 import styles from './CreateLongAnalysisModal.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
 // The modal resolves with the created (pending) analysis so AnalysesPage can
 // show it immediately, or null/undefined if the user dismissed it.
@@ -117,7 +117,9 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
-            {submitting ? 'Запускаем…' : 'Запустить разбор'}
+            <Text role="label" as="span">
+              {submitting ? 'Запускаем…' : 'Запустить разбор'}
+            </Text>
           </button>
         </div>
       </div>

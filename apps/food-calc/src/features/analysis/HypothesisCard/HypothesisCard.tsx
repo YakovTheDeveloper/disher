@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { saveHypothesis } from '@/entities/hypothesis';
 import PlusIcon from '@/shared/assets/icons/plus.svg?react';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { Text } from '@/shared/ui/atoms/Typography';
 import type { AnalysisHypothesis } from '../api';
 import styles from './HypothesisCard.module.scss';
 
@@ -42,10 +43,16 @@ const HypothesisCard = ({ hypothesis }: Props) => {
             {title}
           </Heading>
           {suggestedDays ? (
-            <span className={styles.days}>проверить ~{suggestedDays} дн.</span>
+            <Text as="span" role="caption" className={styles.days}>
+              проверить ~{suggestedDays} дн.
+            </Text>
           ) : null}
         </div>
-        {body && <p className={styles.body}>{body}</p>}
+        {body && (
+          <Text role="body" className={styles.body}>
+            {body}
+          </Text>
+        )}
       </div>
       <button
         type="button"
@@ -56,10 +63,15 @@ const HypothesisCard = ({ hypothesis }: Props) => {
         aria-label={added ? 'Гипотеза сохранена' : 'Сохранить гипотезу'}
       >
         {added ? (
-          '✓ сохранено'
+          <Text as="span" role="caption">
+            ✓ сохранено
+          </Text>
         ) : (
           <>
-            <PlusIcon aria-hidden />Сохранить гипотезу
+            <PlusIcon aria-hidden />
+            <Text as="span" role="caption">
+              Сохранить гипотезу
+            </Text>
           </>
         )}
       </button>

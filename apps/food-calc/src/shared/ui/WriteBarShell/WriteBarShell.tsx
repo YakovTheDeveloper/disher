@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './WriteBarShell.module.scss';
 
 // Поверхность бара ЗАФИКСИРОВАНА на `frost` (2026-06-24) — выбор сделан, живой
@@ -29,7 +30,9 @@ function renderAccent(text: string): ReactNode {
   if (spaceIdx === -1) return text;
   return (
     <>
-      <em className={s.placeholderAccent}>{text.slice(0, spaceIdx)}</em>
+      <QuietLabel as="em" className={s.placeholderAccent}>
+        {text.slice(0, spaceIdx)}
+      </QuietLabel>
       {text.slice(spaceIdx)}
     </>
   );
@@ -40,7 +43,9 @@ function renderHint(text: string): ReactNode {
   if (spaceIdx === -1) return text;
   return (
     <>
-      <em className={s.focusHintAccent}>{text.slice(0, spaceIdx)}</em>
+      <QuietLabel as="em" className={s.focusHintAccent}>
+        {text.slice(0, spaceIdx)}
+      </QuietLabel>
       {text.slice(spaceIdx)}
     </>
   );
@@ -222,7 +227,9 @@ export const WriteBarShell = ({
     >
       {hint ? (
         <div className={s.focusHint} data-visible={expanded || undefined} aria-hidden="true">
-          <span className={s.focusHintInner}>{renderHint(hint)}</span>
+          <Text as="span" role="caption" className={s.focusHintInner}>
+            {renderHint(hint)}
+          </Text>
         </div>
       ) : null}
       {/* barLine = flex row of the glass pill + the detached medal sibling.

@@ -19,8 +19,7 @@
 }
 
 .missing {
+    // font-size + line-height now owned by <Text role="caption"> (= 13px / 1.4).
     padding: 12px 4px 0;
-    font-size: 13px;
     opacity: 0.5;
-    line-height: 1.4;
 }

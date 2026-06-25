@@ -1,12 +1,13 @@
 .group {
-    // ─── Text-driven row geometry ─────────────────────────────────────
-    // Wrapper (.commonListItemInner) keeps its bg / outline / radius /
-    // TOD-gradient but stops carrying vertical padding. Each interactive
-    // cell below owns its own padding-block + min-block-size, so a tap
-    // "above" / "below" the glyph still lands on the cell (and on its
-    // <label htmlFor> trigger inside .foodCol). Wrapper height grows to
-    // hit the floor — see CLAUDE.md "Touch / accessibility floor".
-    --row-pad-block: 0;
+    // ─── Text-driven row geometry (leaf-floor canon) ──────────────────
+    // The wrapper (.commonListItemInner) keeps its bg / outline / radius /
+    // TOD-gradient but goes NAKED on size: zero vertical padding AND zero
+    // wrapper touch-floor. The 48px floor lives on the LEAF cells instead
+    // (min-block-size below), so a bare tap-cell — even a single <label> —
+    // stretches to 48 and DEFINES the row height. One floor, on the thing you
+    // actually tap. See tokens.scss #row-geometry + CLAUDE.md touch floor.
+    --sys-row-pad-block: 0; // no wrapper padding
+    --sys-row-min-h-touch: 0; // no wrapper floor — the leaf carries it
 
     display: grid;
     // Baked gutter-time (2026-06-22): the leading time track is dropped — the
@@ -14,9 +15,9 @@
     // rules below). Name + qty fill the card.
     grid-template-columns: 1fr 5ch;
     gap: var(--space-3);
-    // stretch (not center) so each cell expands to the tallest sibling
-    // and to its own min-block-size floor. Cells center their own content
-    // via inline-flex + align-items: center below.
+    // Leaf cells carry the 48px floor (min-block-size below) → they set the row
+    // height. align-items: stretch only equalizes the two cells to the tallest
+    // sibling; each centers its own content via inline-flex below.
     align-items: stretch;
     position: relative;
 
@@ -77,7 +78,7 @@
 
     .timeDisplay,
     .timeEdit {
-        top: calc(var(--row-cell-pad-block, 9px) + 9px); // name pad-top + ~half its 16px/1.15 line-box
+        top: calc(var(--sys-row-cell-pad-block) + 9px); // name pad-top + ~half its 16px/1.15 line-box
         transform: none;
     }
 }
@@ -170,8 +171,8 @@
     // `center`, not `baseline`: an <input>'s baseline differs from a plain
     // text node's, so a baseline-aligned cell grew taller the moment the
     // static qty was swapped for the NumberInput. The old `height: calc(1em + 4px)`
-    // fixed-height workaround is gone — min-block-size + padding-block from
-    // the row canon keep display/edit states identical without the hack.
+    // fixed-height workaround is gone — the leaf floor (min-block-size) +
+    // padding-block keep display/edit states identical.
     align-items: center;
     justify-content: flex-end;
     gap: 2px;
@@ -180,10 +181,10 @@
     color: inherit;
     line-height: 1;
     box-sizing: border-box;
-    padding-block: var(--row-cell-pad-block, 9px);
+    padding-block: var(--sys-row-cell-pad-block);
     padding-inline: 6px;
     margin-inline: -6px;
-    min-block-size: var(--row-cell-min-h, 36px);
+    min-block-size: var(--sys-row-cell-min-h);
     border-radius: 6px;
     transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
 
@@ -233,21 +234,17 @@
     min-width: 0;
     gap: 1px;
     line-height: 1.15;
-    // Same row canon: cell owns its hit-area. The cell itself is a
-    // <label htmlFor={DETAILS_EDIT_INPUT}> — tap anywhere in the column
-    // (name, subtitle, empty padding) delegates focus to the hidden edit
-    // input and opens the details modal.
-    padding-block: var(--row-cell-pad-block, 9px);
-    min-block-size: var(--row-cell-min-h, 36px);
+    // Leaf-floor canon: this cell IS the tap target (a <label
+    // htmlFor={DETAILS_EDIT_INPUT}>), so it carries the 48px floor + its own
+    // padding. Tap anywhere in the column (name, subtitle, empty floor) → the
+    // label delegates focus and opens the details modal.
+    padding-block: var(--sys-row-cell-pad-block);
+    min-block-size: var(--sys-row-cell-min-h);
 }
 
 .detailsSubtitle {
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
-    font-size: var(--text-xs);
     color: var(--text-muted);
     line-height: 1.2;
-    letter-spacing: -0.005em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -261,13 +258,6 @@
     gap: 2px;
 }
 
-.priceText {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-}
 
 .customProduct {
     border-left: 2px solid var(--text-tertiary);
@@ -283,17 +273,13 @@
 // not text alpha. 600 for the headline names, 500 for the quieter custom label.
 .customTitle {
     color: var(--text-secondary);
-    font-weight: 500;
     font-style: italic;
 }
 
 .dishTitle {
     color: var(--text-primary);
-    font-weight: 600;
-    letter-spacing: 1.5px;
 }
 
 .foodTitle {
     color: var(--text-primary);
-    font-weight: 600;
 }

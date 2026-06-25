@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Heading as HeadingPrimitive } from '@/shared/ui/atoms/Typography';
 import styles from './Heading.module.scss';
 
 type Props = {
@@ -36,7 +37,9 @@ const Heading = ({ store }: Props) => {
         onChange={onChange}
         onBlur={onBlur}
       />
-      <p className={styles.createText}>ваше блюдо </p>
+      <HeadingPrimitive role="display" as="span" className={styles.createText}>
+        ваше блюдо{' '}
+      </HeadingPrimitive>
     </div>
   );
 };

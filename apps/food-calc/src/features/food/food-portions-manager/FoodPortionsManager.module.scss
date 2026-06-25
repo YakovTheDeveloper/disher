@@ -21,11 +21,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 
 .hint {
     margin: 0 8px 8px;
-    font-family: var(--font-display);
-    font-size: 12px;
-    font-weight: 300;
     line-height: 1.45;
-    letter-spacing: 0.01em;
     color: $sky-ink-soft;
 }
 
@@ -82,24 +78,14 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 }
 
 .portionLabel {
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
     color: $sky-ink;
 }
 
 .portionGrams {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 300;
     color: $sky-ink-soft;
 }
 
 .portionUnitSuffix {
-    font-family: var(--font-sans);
-    font-size: 13px;
-    font-weight: 300;
     color: $sky-ink-soft;
     user-select: none;
 }
@@ -108,10 +94,6 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 // ScheduleFoodItemInline qty), тап → input. min-height даёт комфортный тап и
 // держит высоту строки стабильной при переключении span↔input.
 .cellLabel {
-    font-family: var(--font-display);
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
     color: $sky-ink;
     cursor: pointer;
     display: inline-flex;
@@ -124,24 +106,20 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 }
 
 .cellGrams {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 400;
     color: $sky-ink-soft;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
     min-height: 32px;
-    font-variant-numeric: tabular-nums;
 }
 
 .formInput {
     border: none;
     background: transparent;
-    font-family: var(--font-display);
-    font-size: 14px;
-    font-weight: 500;
+    font-family: var(--sys-field-font-family);
+    font-size: var(--sys-field-font-size);
+    font-weight: var(--sys-field-font-weight);
     color: $sky-ink;
     padding: var(--space-1) 0;
     outline: none;
@@ -157,7 +135,7 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 .formInputGrams {
     composes: formInput;
     text-align: right;
-    font-family: var(--font-sans);
+    font-family: var(--sys-field-font-family);
     font-variant-numeric: tabular-nums;
 
     &::placeholder {
@@ -167,9 +145,6 @@ $sky-shadow-focus: 0 1px 10px rgba(30, 64, 124, 0.14);
 
 .empty {
     text-align: center;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 300;
     color: $sky-ink-faint;
     padding: 16px 0;
     font-style: italic;

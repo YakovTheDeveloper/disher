@@ -12,8 +12,11 @@
     // Системный стек → на Apple-устройствах рендерится настоящий SF Pro (родная
     // кириллица, аутентичный «голос» Apple); вне Apple — Onest (cyrillic-native).
     // Перекрывает и явных потребителей `var(--font-sans)` (кнопки нижнего бара).
+    // Локальное переопределение `--font-sans` каскадит в дочерние примитивы
+    // (<Heading>/<Text> читают `--font-sans` внутри) — они и несут family на
+    // листья. Прямого `font-family` на контейнере больше нет: всю прозу держат
+    // примитивы, у `.ambientSheet` собственного leaf-текста нет.
     --font-sans: -apple-system, BlinkMacSystemFont, 'Onest', 'Golos Text', system-ui, sans-serif;
-    font-family: var(--font-sans);
 
     // Apple label-ramp по светлому стеклу: нейтральные near-black чернила +
     // alpha-производные secondary/tertiary. Нейтральный ink (не navy) = читается
@@ -120,56 +123,6 @@
     padding: var(--space-2) 0;
 }
 
-// «Мои открытия» — плоская белая пилюля (канон `tone='paper'` из AppBottomBar):
-// белая заливка + тонкая ink-окаёмка 0.12 + мягкая float-тень. Медаль-рецепт
-// (`framed-plate`: серая подложка + белое кольцо) НАМЕРЕННО не берём — он
-// зарезервирован за «Список еды», чтобы та осталась единственным «медальоном» в
-// приложении. Press-fill чернилами (канон press-feedback 2026-06-08).
-.discoveriesBtn {
-    // 15px — в один размер с brand-CTA «Анализировать» (.brand). 20px на
-    // вторичной ссылке перебивал первичную CTA → инвертированная иерархия.
-    --discoveries-fs: 0.9375rem;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    // Один рост с brand-CTA (`--bottom-action-h`) — пара в split-баре выровнена
-    // по высоте. Вес несёт не размер, а контраст: плоская белая (вторичная)
-    // рядом со сплошной залитой CTA (первичная).
-    min-height: var(--bottom-action-h);
-    padding: 0 var(--space-5);
-    border-radius: var(--radius-full);
-    background: #fff;
-    border: 1px solid var(--sys-color-border-subtle);
-    box-shadow: 0 6px 16px rgba(45, 38, 28, 0.1), 0 2px 5px rgba(45, 38, 28, 0.07);
-    color: var(--color-ink);
-    font-family: var(--font-sans);
-    font-size: var(--discoveries-fs);
-    font-weight: 550;
-    // Чуть разреженный трекинг — короткая «лейбловая» подпись на тихой
-    // вторичной пилюле читается ровнее, чем плотный CTA-трекинг.
-    letter-spacing: 0.005em;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        background var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        transform var(--duration-fast) ease;
-
-    svg {
-        width: 18px;
-        height: 18px;
-        // Иконка-список чуть тише текста — она маркер, не акцент.
-        opacity: 0.7;
-    }
-
-    &:active {
-        background: var(--color-ink);
-        color: var(--text-on-accent);
-        border-color: var(--color-ink);
-        transform: scale(0.97);
-        transition-duration: var(--press-in);
-    }
-}
+// «Мои открытия»-кнопка стала каноном `Button variant="link"` (см.
+// Laboratory.tsx) — локальная пилюля `.discoveriesBtn` удалена как мёртвый CSS
+// (ни одного консумера в .tsx; UiKitPage лишь документирует слияние в Button).

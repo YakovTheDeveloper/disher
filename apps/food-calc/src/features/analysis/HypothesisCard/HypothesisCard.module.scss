@@ -59,21 +59,17 @@
     color: var(--sys-card-text-rest, var(--color-ink));
 }
 
+// Голос (мелкая мета) — примитив <Text role="caption"> (HypothesisCard.tsx).
+// Здесь — раскладка + surface-adaptive ink.
 .days {
     flex-shrink: 0;
-    font-size: var(--hc-fs-meta);
-    font-weight: 500;
-    line-height: 1;
     white-space: nowrap;
     color: var(--hc-ink-faint);
 }
 
-// Тело — Onest near-black на полную силу. Вторая (и последняя) гарнитура.
+// Тело — голос (Onest body) живёт в примитиве <Text role="body">
+// (HypothesisCard.tsx). Здесь — только near-black surface-adaptive ink.
 .body {
-    margin: 0;
-    font-family: 'Onest', system-ui, sans-serif;
-    font-size: var(--hc-fs-body);
-    line-height: var(--analysis-lh-detail, 1.5);
     color: var(--hc-ink-body);
 }
 
@@ -97,9 +93,6 @@
     background: var(--cta-brand-fill);
     box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A)
     color: var(--cta-brand-ink);
-    font-size: var(--hc-fs-meta);
-    font-weight: 600;
-    line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
     transition:

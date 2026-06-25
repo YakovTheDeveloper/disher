@@ -1,5 +1,6 @@
 import styles from './LabeledCheckbox.module.scss';
 import React, { MutableRefObject } from 'react';
+import { Text } from '@/shared/ui/atoms/Typography';
 
 type Props = {
   checked?: boolean;
@@ -28,7 +29,9 @@ const LabeledCheckbox = ({ checked, onChange, label, disabled = false, id, ref }
         disabled={disabled}
         className={styles.checkbox}
       />
-      <span className={styles.label}>{label}</span>
+      <Text role="label" as="span" className={styles.label}>
+        {label}
+      </Text>
     </label>
   );
 };

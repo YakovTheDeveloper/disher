@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './NutrientInput.module.scss';
 
 interface NutrientInputProps {
@@ -21,9 +22,9 @@ const NutrientInput = forwardRef<HTMLInputElement, NutrientInputProps>(
         className={styles.input}
       />
       {norm !== undefined && (
-        <span className={styles.norm}>/ {norm}</span>
+        <Text as="span" role="caption" className={styles.norm}>/ {norm}</Text>
       )}
-      <span className={styles.unit}>{unit}</span>
+      <Text as="span" role="caption" className={styles.unit}>{unit}</Text>
     </div>
   )
 );

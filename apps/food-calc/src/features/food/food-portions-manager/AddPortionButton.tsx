@@ -1,5 +1,6 @@
 import s from './AddPortionButton.module.scss';
 import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { PORTION_INPUT_IDS } from './usePortionFlow';
 
 /**
@@ -15,7 +16,9 @@ const AddPortionButton = () => (
       <span className={s.plus} aria-hidden="true">
         <PlusIcon />
       </span>
-      Добавить порцию
+      <Text as="span" role="body">
+        Добавить порцию
+      </Text>
     </label>
   </div>
 );

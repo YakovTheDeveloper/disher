@@ -12,12 +12,7 @@
 // Инструкция вместо заголовка — сам заголовок «Нутриенты» уехал в хедер
 // DrawerLayout (на строку с крестиком). Тут — мягкий пояснительный текст.
 .intro {
-    margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    line-height: 1.4;
-    letter-spacing: -0.005em;
+    // typo composite now owned by <Text role="caption">; only color stays contextual.
     color: var(--sys-card-rich-unit);
 }
 

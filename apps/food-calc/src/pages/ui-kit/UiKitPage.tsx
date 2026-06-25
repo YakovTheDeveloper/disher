@@ -270,7 +270,10 @@ const ANATOMY: AnatomyEntity[] = [
             placeholder="Заметка про вкус"
             renderPlaceholder={
               <>
-                <em className={writeBarStyles.placeholderAccent}>Заметка</em> про вкус
+                <QuietLabel as="em" className={writeBarStyles.placeholderAccent}>
+                  Заметка
+                </QuietLabel>{' '}
+                про вкус
               </>
             }
           />

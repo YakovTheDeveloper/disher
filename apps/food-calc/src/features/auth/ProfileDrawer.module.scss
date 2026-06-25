@@ -80,7 +80,8 @@
 }
 
 .chevron {
-  font-size: 18px;
+  // Глиф-шеврон (⌄, aria-hidden) — размер несёт icon-токен, не сырой font-size.
+  font-size: var(--sys-icon-size-sm);
   line-height: 1;
   color: var(--text-secondary);
   transition: transform 180ms var(--easing-default);
@@ -92,11 +93,10 @@
 
 // ─── Данные section body ────────────────────────────────────────
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+// сброс отступа + контекстный цвет.
 .dataHint {
   margin: 0;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 1.5;
   color: var(--text-secondary);
 }
 
@@ -113,9 +113,7 @@
   border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
   background: #fff;
   color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
+  // Типографику метки несёт <Text as="span" role="label"> внутри кнопки.
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -223,10 +221,10 @@
   }
 }
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+// сброс отступа + контекстный цвет.
 .dangerHint {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
   color: var(--text-secondary);
 }
 
@@ -237,9 +235,7 @@
   border: 1px solid rgba(176, 52, 35, 0.28);
   background: #fff;
   color: #b03423;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 500;
+  // Типографику метки несёт <Text as="span" role="label"> внутри кнопки.
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:

@@ -104,7 +104,6 @@
 
 .item_active {
     .name {
-        font-weight: 700;
         color: var(--sys-card-text-active);
         font-style: italic;
     }
@@ -133,13 +132,9 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
-    font-weight: 500;
     text-transform: capitalize;
     color: var(--sys-card-text-rest);
     line-height: 1.2;
-    letter-spacing: -0.005em;
 }
 
 // Левый слот = почти-квадратный progress-bar. Сплошной светлый трек + цветная
@@ -160,12 +155,8 @@
     overflow: hidden;
     border-radius: var(--radius-md);
     background: var(--sys-card-rich-track, #eef0f3);
-    font-family: var(--font-sans);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
-    font-size: 13px;
-    font-weight: 600;
     color: var(--sys-card-rich-text);
-    letter-spacing: -0.01em;
     line-height: 1.1;
     text-align: center;
     z-index: 1; // stacking context; заливка z-index:-1 → над треком, под текстом
@@ -186,11 +177,8 @@
 }
 
 .richUnit {
-    font-size: 9px;
-    font-weight: 600;
     color: var(--sys-card-rich-unit);
     margin-top: 1px;
-    letter-spacing: 0.03em;
     text-transform: uppercase;
 }
 
@@ -202,11 +190,8 @@
 }
 
 .richPercent {
-    font-size: 9px;
-    font-weight: 600;
     color: var(--sys-card-rich-percent);
     margin-top: 1px;
-    letter-spacing: 0.03em;
 }
 
 .iconBtn {
@@ -238,12 +223,7 @@
     position: absolute;
     // left: var(--space-6, 8px);
     bottom: 4px;
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
-    font-size: var(--text-sm);
-    font-weight: 400;
     line-height: 1;
-    letter-spacing: 0.01em;
     color: color-mix(in srgb, var(--sys-card-text-rest) 50%, transparent);
     pointer-events: none;
     white-space: nowrap;
@@ -316,9 +296,6 @@
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
     color: #e5534b;
     border-radius: 8px;
     width: 100%;

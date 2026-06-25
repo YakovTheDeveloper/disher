@@ -344,7 +344,7 @@
 
     * {
         color: rgba(0, 0, 0, 0.2);
-        font-size: 1.5rem;
+        font-size: var(--sys-icon-size-md); // close-глиф 24px (был 1.5rem)
         transition: color var(--press-out) var(--easing-default);
     }
 
@@ -373,12 +373,6 @@
 .titleCenter {
     margin: 0;
     max-width: 60%;
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-weight: var(--heading-weight);
-    font-size: var(--heading-size-drawer);
-    letter-spacing: var(--heading-letter);
-    line-height: 1.1;
     color: var(--color-ink);
     text-align: center;
     white-space: nowrap;
@@ -408,9 +402,6 @@
 .titleSubtitle {
     margin: 0;
     max-width: 100%;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    line-height: 1.2;
     color: var(--text-secondary);
     text-align: center;
     word-break: break-all;

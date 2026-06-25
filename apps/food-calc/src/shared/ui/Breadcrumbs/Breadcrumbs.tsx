@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { QuietLabel } from '@/shared/ui/atoms/Typography';
+import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import s from './Breadcrumbs.module.scss';
 
 type Props<T extends string> = {
@@ -54,9 +54,9 @@ function Breadcrumbs<T extends string>({
           className={clsx(s.crumbWrapper, stepName === current && s.crumbWrapperCurrent)}
         >
           {i > 0 && (
-            <span className={s.dot} aria-hidden>
+            <Text role="caption" as="span" className={s.dot} aria-hidden>
               ·
-            </span>
+            </Text>
           )}
           <QuietLabel
             as="button"

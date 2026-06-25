@@ -304,6 +304,9 @@ importers:
       vite-plugin-pwa:
         specifier: ^1.2.0
         version: 1.2.0(vite@6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0))(workbox-build@7.4.0(@types/babel__core@7.20.5))(workbox-window@7.4.0)
+      vite-plugin-react-click-to-component:
+        specifier: ^3.1.1
+        version: 3.1.1(react@19.2.5)(vite@6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0))
       vite-plugin-svgr:
         specifier: ^4.5.0
         version: 4.5.0(rollup@4.60.2)(typescript@5.9.3)(vite@6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0))
@@ -5742,6 +5745,12 @@ packages:
     peerDependenciesMeta:
       '@vite-pwa/assets-generator':
         optional: true
+
+  vite-plugin-react-click-to-component@3.1.1:
+    resolution: {integrity: sha512-i/CAjH9gKSEliEuJotDrQvqWeJGwSM/oGoV/3c8oeZ6gCfcmLh9Z4nArcE4MtkTN86qxBjtl1wHhXskyahfYnQ==}
+    peerDependencies:
+      react: ^18.3.1 || ^19.0.0
+      vite: ^4 || ^5 || ^6
 
   vite-plugin-svgr@4.5.0:
     resolution: {integrity: sha512-W+uoSpmVkSmNOGPSsDCWVW/DDAyv+9fap9AZXBvWiQqrboJ08j2vh0tFxTD/LjwqwAd3yYSVJgm54S/1GhbdnA==}
@@ -12019,6 +12028,11 @@ snapshots:
       workbox-window: 7.4.0
     transitivePeerDependencies:
       - supports-color
+
+  vite-plugin-react-click-to-component@3.1.1(react@19.2.5)(vite@6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0)):
+    dependencies:
+      react: 19.2.5
+      vite: 6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0)
 
   vite-plugin-svgr@4.5.0(rollup@4.60.2)(typescript@5.9.3)(vite@6.3.7(@types/node@22.19.17)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.9.0)):
     dependencies:

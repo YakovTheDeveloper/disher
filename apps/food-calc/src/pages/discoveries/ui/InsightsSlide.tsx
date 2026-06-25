@@ -3,6 +3,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { useAllInsights, deleteInsight } from '@/entities/insight';
 import { InsightListPanel } from '@/features/analysis/InsightListPanel';
 import { pluralInsights } from '@/shared/lib/text/pluralInsights';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
 import styles from './DiscoveriesSlides.module.scss';
 
 // Слайд «Инсайты» — read-only наблюдения, сохранённые с разборов (deletable).
@@ -20,13 +21,15 @@ const InsightsSlide = ({ topSlot }: Props) => {
     <Screen stickyTop={topSlot} headerOverlap topBarHide="settings">
       <div className={styles.container}>
         {insights.length > 0 && (
-          <p className={styles.count}>
+          <Text role="caption" className={styles.count}>
             {insights.length} {pluralInsights(insights.length)}
-          </p>
+          </Text>
         )}
         {insights.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>Пока нет инсайтов</p>
+            <Heading as="h3" role="title" className={styles.emptyTitle}>
+              Пока нет инсайтов
+            </Heading>
             <p className={styles.emptyBody}>
               Инсайты появляются на разборе дня или блюда — это связки и
               предостережения по твоей еде. Нажми «Добавить к себе» на разборе, и

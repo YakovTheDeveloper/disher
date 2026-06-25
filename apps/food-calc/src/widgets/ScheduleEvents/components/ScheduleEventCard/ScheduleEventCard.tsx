@@ -8,6 +8,7 @@ import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
+import { Text } from '@/shared/ui/atoms/Typography';
 
 type Props = {
   item: ScheduleEvent;
@@ -31,26 +32,26 @@ function formatAtomChip(atom: Atom, index: number) {
     case 'scale': {
       const pct = (atom.value / 10) * 100;
       return (
-        <span className={clsx(styles.chip, styles.chipScale)} key={`scale-${index}`}>
+        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipScale)} key={`scale-${index}`}>
           {atom.label && <span>{atom.label}</span>}
           <span className={styles.scaleBar}>
             <span className={styles.scaleFill} style={{ width: `${pct}%` }} />
           </span>
           <span>{atom.value}/10</span>
-        </span>
+        </Text>
       );
     }
     case 'tag':
       return (
-        <span className={clsx(styles.chip, styles.chipTag)} key={`tag-${index}`}>
+        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipTag)} key={`tag-${index}`}>
           {atom.value}
-        </span>
+        </Text>
       );
     case 'relation':
       return (
-        <span className={clsx(styles.chip, styles.chipTag)} key={`rel-${index}`}>
+        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipTag)} key={`rel-${index}`}>
           {atom.value}
-        </span>
+        </Text>
       );
     default:
       return null;
@@ -102,9 +103,9 @@ export function ScheduleEventCard({
         </label>
       )}
 
-      <label htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>
+      <Text as="label" role="body" htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>
         {title}
-      </label>
+      </Text>
 
       <label
         htmlFor={atomsHtmlFor}
@@ -114,7 +115,7 @@ export function ScheduleEventCard({
         {hasAtoms ? (
           <span className={styles.atoms}>{atoms.map((atom, i) => formatAtomChip(atom, i))}</span>
         ) : (
-          <span className={styles.atomsPlaceholder}>+ данные</span>
+          <Text as="span" role="caption" className={styles.atomsPlaceholder}>+ данные</Text>
         )}
       </label>
     </LongPressRow>

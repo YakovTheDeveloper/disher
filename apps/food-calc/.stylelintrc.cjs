@@ -63,15 +63,22 @@ module.exports = {
         // (e.g. `/color$/`) matches every property ending that way; literal keys win
         // for exact properties. Keywords live INSIDE each array (no shared catch-all —
         // the plugin does not merge a '' key, verified empirically).
+        // Surface-component бандлы (`--sys-field-*` поля, `--sys-card-*` карточки,
+        // `--sys-chip-*` чипы) — легитимный SURFACE-ярус компонентов (память
+        // surface-and-tier-gates; иерархия Background→Surface). Имя по оси
+        // «семейство-поверхности», не «тип», поэтому благословлены по префиксу
+        // здесь дополнительно к `--sys-<type>-*` (решение юзера 2026-06-24 §batch.1).
         ignoreValues: {
-          '/color$/': ['/^var\\(--sys-color-/', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
+          '/color$/': ['/^var\\(--sys-color-/', '/^var\\(--sys-field-/', '/^var\\(--sys-card-/', '/^var\\(--sys-chip-/', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
           '/^(fill|stroke)$/': ['/^var\\(--sys-color-/', 'none', 'transparent', 'currentColor', 'currentcolor', 'inherit'],
           // gradients (stripe-fork canon) allowed; solid raw colors + legacy var() rejected.
-          background: ['/gradient/i', '/^var\\(--sys-/', 'none', 'transparent', 'inherit', 'initial', 'unset'],
-          'border-radius': ['/^var\\(--sys-radius-/', '0', '50%', 'inherit', 'initial', 'unset'],
-          'box-shadow': ['/^var\\(--sys-elevation-/', 'none', 'inherit', 'initial', 'unset'],
-          // --sys-text-size-* not minted yet (pending the <Text>-migration decision).
-          'font-size': ['/^var\\(--sys-text-size-/', 'inherit', 'initial', 'unset'],
+          // currentColor blessed (фон-хайрлайн/точка красится текстом — §batch.2).
+          background: ['/gradient/i', '/^var\\(--sys-/', 'none', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
+          'border-radius': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '0', '50%', 'inherit', 'initial', 'unset'],
+          'box-shadow': ['/^var\\(--sys-elevation-/', '/^var\\(--sys-field-shadow/', 'none', 'inherit', 'initial', 'unset'],
+          // --sys-text-size-* (escape для не-прозовых размеров) + --sys-field-font-size (поля #1)
+          // + --sys-numeral-* (числовой ярус примитива <Numeral>) + --sys-icon-size-* (глиф-иконки).
+          'font-size': ['/^var\\(--sys-text-size-/', '/^var\\(--sys-field-font-size/', '/^var\\(--sys-numeral-/', '/^var\\(--sys-icon-size-/', 'inherit', 'initial', 'unset'],
           // --sys-duration-* / --sys-easing-* not minted yet (mechanical aliases pending).
           '/duration$/': ['/^var\\(--sys-duration-/', '0s', '0ms', '0', 'inherit', 'initial', 'unset'],
           '/timing-function$/': ['/^var\\(--sys-easing-/', 'inherit', 'initial', 'unset', 'step-start', 'step-end'],

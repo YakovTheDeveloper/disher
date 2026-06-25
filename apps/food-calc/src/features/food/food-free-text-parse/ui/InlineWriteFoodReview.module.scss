@@ -91,14 +91,13 @@
   }
 }
 
+// Типографику (caption-ярус, italic-голос) несёт <Text role="caption"> —
+// класс держит раскладку (отступы, левый hairline) + контекстный цвет.
 .originalText {
   margin: 0;
   padding: 4px var(--space-3);
   border-left: 2px solid var(--sys-color-text-tertiary);
-  font-size: 13px;
-  font-style: italic;
   color: var(--sys-color-text-secondary);
-  line-height: 1.4;
 }
 
 .empty {
@@ -106,9 +105,9 @@
   text-align: center;
 }
 
+// Типографику несёт <Text role="body">; класс — раскладка + контекстный цвет.
 .emptyText {
   margin: 0;
-  font-size: 14px;
   color: var(--sys-color-text-secondary);
 }
 
@@ -143,9 +142,6 @@
   border-radius: 9999px;
   background: rgba(34, 31, 25, 0.1);
   color: var(--sys-color-text-secondary);
-  font-size: 11px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 .list {
@@ -283,7 +279,7 @@
   background: transparent;
   border-radius: 999px;
   color: var(--sys-color-text-tertiary);
-  font-size: 20px;
+  font-size: var(--sys-icon-size-sm);
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -320,7 +316,7 @@
 
   .iconUndo {
     opacity: 0;
-    font-size: 16px;
+    // Глиф ↶ наследует размер иконки от .outerDelete (--sys-icon-size-sm).
   }
 }
 
@@ -347,8 +343,6 @@
   border-radius: 999px;
   background: rgba(34, 31, 25, 0.06);
   color: var(--sys-color-text-secondary);
-  font-size: 15px;
-  font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   -webkit-appearance: none;
@@ -379,8 +373,6 @@
   border-radius: 999px;
   background: var(--color-ink);
   color: #fff;
-  font-size: 15px;
-  font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   -webkit-appearance: none;

@@ -1,467 +1,430 @@
-// ─── Design Tokens ───────────────────────────────────────────────
-// Based on ProjectPrep.md — Nylon-inspired design system foundation.
-// Import this file in index.scss alongside palette.scss.
+// ═══ Design Tokens ═══════════════════════════════════════════════
+// Primitive (ref) + semantic (sys) custom properties. Source of truth for the
+// design system; consumed via vars or the mixins in mixin.scss.
+//
+// Rationale, decisions & dates live in tds/ANALYSIS/tokens-rationale.md
+// (each section below points there by anchor). This file is EXEMPT from the
+// token-gate (stylelint strict-value + check:tokens) — raw literals are ok here.
+//
+// ─── Map ──────────────────────────────────────────────────────────
+//   :root #1  — spacing · inset · stack · typography · fonts · headings
+//              · text-roles · radius · shadows · elevation · framed-plate
+//              · animation · motion · row · bottom-action · press · brand-cta
+//              · ref-color (neutral/navy/amber/indigo/status) · sys-interactive
+//              · nutrient · event · time-of-day
+//   :root #2  — field/chip/card palette (mixin publication)
+// ══════════════════════════════════════════════════════════════════
 
 :root {
-  // ─── Spacing (4px base) ──────────────────────────────────────
-  --space-1: 4px; // 0.25rem — minimal gap
-  --space-2: 8px; // 0.5rem — inside elements
-  --space-3: 12px; // 0.75rem — between elements
-  --space-4: 16px; // 1rem — standard padding
-  --space-5: 20px; // 1.25rem — sections
-  --space-6: 24px; // 1.5rem — large sections
-  --space-8: 32px; // 2rem — between blocks
-  --space-10: 40px; // 2.5rem — hero spacing
-  --space-12: 48px; // 3rem — major section separation
+  // ─── Spacing (4px base; scale skips 7/9/11) — #spacing ───────
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
 
-  // ─── System insets (CTI: sys · inset · size — по СМЫСЛУ, не по виду) ──
-  // Семантический «воздух» по краям контента: роль = inset (внутренний боковой
-  // отступ), размер = t-shirt-ступень поверх 4px-шкалы. Нейминг по Nathan Curtis
-  // (Category-Type-Item): `sys` слой → `inset` роль → размер. Крутишь воздух
-  // экранов здесь, в одном месте, а не в каждом компоненте.
-  // Боковой inset оверлеев — драйвер = ШИРИНА поверхности (tds/drawer-modal-inset-tokens.md).
-  --sys-inset-panel: var(--space-3); // 12px — узкий side-drawer (88vw): экономит ширину
-  --sys-inset-sheet: var(--space-6); // 24px — full-width: нижний лист + fullscreen-модалка (рамка)
-  // Legacy-шимы (на снос по мере миграции дроверов/модалок на panel/sheet выше):
-  --sys-inset-md: var(--sys-inset-panel); // было space-3 (12) — читается только мёртвым ModalShell.bodyInset
-  --sys-inset-lg: var(--sys-inset-sheet); // было space-6 (24) — читается DailyNormDrawer
-  // page — единый боковой gutter «край листа → контент» ВСЕХ Screen-страниц
-  // (канон 2026-06-22: один симметричный 16px, владелец — `.headerOverlap`).
-  // Карточки/заголовки/бары равняются на край контент-бокса листа = этот инсет.
-  // Схлопнул прежний per-widget `--ap-inset` (card-edge vs prose-text рельсы → один).
-  --sys-inset-page: var(--space-4); // 16px
+  // ─── Inset (sys · inset · size) — side air — #inset ──────────
+  --sys-inset-panel: var(--space-3); // 12 — narrow side-drawer
+  --sys-inset-sheet: var(--space-6); // 24 — full-width sheet / modal frame
+  --sys-inset-md: var(--sys-inset-panel); // legacy shim (dead ModalShell.bodyInset)
+  --sys-inset-lg: var(--sys-inset-sheet); // legacy shim (DailyNormDrawer)
+  --sys-inset-page: var(--space-4); // 16 — single Screen gutter (canon 2026-06-22)
 
-  // ─── System stack (CTI: sys · stack · роль) — ВЕРТИКАЛЬНЫЙ ритм ──
-  // «Воздух» между блоками, поставленными друг на друга, назван по РОЛИ, а не по
-  // числу — крутится из одного места. Канон строки = 12px (решение 2026-06-24 по
-  // предложке /suggestion_57acc012: свели дрейф 8/12 в один ритм, выбор «воздушнее»).
-  // row — между соседними строками / полями / карточками в ОДНОМ списке или форме.
-  // Оптические зазоры 1–2px НЕ сюда (у них нет переносимой роли — остаются локально).
-  // SearchFood-список намеренно flush (gap:0 + тающая бровка) — не stack-роль.
-  --sys-stack-row: var(--space-3); // 12px
-  // section — между КРУПНЫМИ секциями тела дровера/модалки/экрана (.body, .root,
-  // .fields, .sections). Канон = 24px (решение 2026-06-24 по предложке
-  // /suggestion_5ec74a02: свели дрейф 16/18/20/22/24 в один ритм, выбор «просторнее» —
-  // секции читаются как отдельные блоки, а не слипаются как строки списка).
-  --sys-stack-section: var(--space-6); // 24px
+  // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
+  --sys-stack-row: var(--space-3); // 12 — rows/fields/cards in one list/form
+  --sys-stack-section: var(--space-6); // 24 — large body sections
 
-  // ─── Typography (modular scale 1.25) ─────────────────────────
-  --text-xs: 0.64rem; // 10.2px — badges, micro labels
-  --text-sm: 0.8rem; // 12.8px — secondary text, captions
-  --text-base: 1rem; // 16px — body text
-  --text-lg: 1.25rem; // 20px — subheadings
-  --text-xl: 1.563rem; // 25px — section headings
-  --text-2xl: 1.953rem; // 31.3px — page headings
-  // (--text-3xl 39px удалён 2026-06-22 — последним читателем был
-  //  --heading-size-section, переехавший на Headline-роль 28px; orphan)
-  // Компактная мета-строка — фиксированные 12px (намеренно вне 1.25-шкалы):
-  // строка месяц/dd.mm под днём недели в HomeTopBar и числа сводки нутриентов
-  // делят один размер, чтобы верхний бар читался как одна типошкала.
-  --text-meta: 12px;
+  // ─── Typography scale (modular 1.25) — #typography-scale ─────
+  --text-xs: 0.64rem; // 10.2px
+  --text-sm: 0.8rem; // 12.8px
+  --text-base: 1rem; // 16px
+  --text-lg: 1.25rem; // 20px
+  --text-xl: 1.563rem; // 25px
+  --text-2xl: 1.953rem; // 31.3px
+  --text-meta: 12px; // compact meta line, off-scale (HomeTopBar)
 
-  // ─── Font families ───────────────────────────────────────────
-  // Body-голос = Onest-first sans (было "Jost", потом apple-first; с 2026-06-23
-  // Onest первым → рендерится везде, вкл. Apple). Алиас на семейство sys-роли.
-  --font-sans: var(--sys-text-family-sans);
+  // ─── Font families — #font-families ──────────────────────────
+  --font-sans: var(--sys-text-family-sans); // Onest-first body voice
   --font-display: "Raleway", sans-serif;
-  --font-alice: "Alice", "Source Serif 4", serif; // accent serif (analysis loader caption)
+  --font-alice: "Alice", "Source Serif 4", serif; // accent serif (loader caption)
   --font-mono: "Ubuntu Mono", monospace;
-  // Крупные цифры (циферблат TimeChoose, большое число ProductQuantity) —
-  // Onest читается лучше Jost'а на огромных глифах. Только вес 800 (см. fonts.ts).
-  --font-big-numeric: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-big-numeric: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; // weight 800 only
 
-  // ─── Headings (canon: Onest bold-sans — Apple Large Title register) ──
-  // ОДИН display-голос для каждого section/overlay/active-tab заголовка.
-  // Consume через <Heading> (или эти vars напрямую в bespoke-хедерах). Меняется
-  // ТОЛЬКО font-size (шкала `--heading-size-*` ниже); family/weight/style/letter —
-  // общий канон. Onest-first (2026-06-23): рендерится везде, вкл. Apple (как тело
-  // и --font-big-numeric; -apple-system ушёл в хвост fallback).
-  // serif-italic больше НЕ display-голос — он остался только тихим указателем
-  // (<QuietLabel>); заголовки секций нутриентов — Heading role="title" sans.
+  // ─── Headings (Onest bold-sans, Apple Large Title) — #headings ──
   --heading-font: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --heading-style: normal;
   --heading-weight: 700;
   --heading-letter: -0.022em;
-  // Live heading-size rungs (orphan screen/section/masthead/card/modal-sub/
-  // modal-header deleted 2026-06-24 — zero consumers after the Heading size-prop
-  // removal; consumers now read sys-text roles via <Heading role="…">).
-  --heading-size-modal: 2rem; //    32px — wizard-flow modal title (ModalShell.Title)
-  --heading-size-drawer: 1.5rem; // 24px — drawer header
-  --heading-size-field: 1rem; //    16px — small in-modal field/section label — below drawer
-  // Single top gap above an overlay title — owned by the title itself, so it
-  // stays constant regardless of how the modal nests it (see ModalShell).
-  --modal-title-offset: var(--space-6); // 24px
+  --heading-size-modal: 2rem; // 32 — ModalShell.Title
+  --heading-size-drawer: 1.5rem; // 24 — drawer header
+  --heading-size-field: 1rem; // 16 — in-modal field/section label
+  --modal-title-offset: var(--space-6); // 24 — single top gap above overlay title
 
-  // ─── ЯРУС sys · ТИПОГРАФИКА по РОЛИ (CTI: sys · text · роль) ───
-  // 7 семантических ролей, каждая — КОМПОЗИТ (family + size + weight + line-height
-  // + tracking). Источник чисел — предложка /suggestion_5dbbbf43 пресет «сист»
-  // (LOCKED 2026-06-22; ground truth tds/typography-roles-system.md, память
-  // project_typography_anchor_5dbbbf43). Потребляются через mixin `text-role(<роль>)`
-  // (mixin.scss) — role-классы Heading/Text @include его. Swap значения ЗДЕСЬ =
-  // перекраска роли во всём приложении (доказательство системности).
-  //
-  // Размеры — рунги конечной лесенки 13·14·15·16·17·18·20·22·24·26·28·32·38·44 (НЕ
-  // произвольный px). Семейство sans = Onest-first (2026-06-23 решение юзера: Onest
-  // рендерится ВЕЗДЕ, включая Apple — бренд един на всех платформах; -apple-system
-  // ушёл в хвост как fallback). Совпадает с --font-big-numeric И --heading-font
-  // (все три Onest-first с 2026-06-23 — единый бренд на всех платформах). Цвет в роль НЕ зашит
-  // (контекстный/темо-зависимый). serif — ОРТОГОНАЛЬНЫЙ голос тихого яруса (см.
-  // примитив <QuietLabel>), НЕ роль размера. (tokens.scss exempt от token-gate.)
+  // ─── sys · text roles (CTI: sys · text · role) — #text-roles ──
+  // 7 composite roles (family+size+weight+line+tracking). Source: /suggestion_5dbbbf43
+  // preset «сист» (LOCKED 2026-06-22). Consumed via text-role(<role>) mixin.
 
-  // голоса-семейства (ref для ролей)
+  // family voices (ref for roles)
   --sys-text-family-sans: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // тихий мелкий ярус (voice)
+  --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // quiet tier
   --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
 
-  // Display — афиша / активный таб свайп-деки HomePage
+  // Display — poster / active swipe tab
   --sys-text-display-size: 38px;
   --sys-text-display-weight: 700;
   --sys-text-display-line: 1.05;
   --sys-text-display-tracking: -0.022em;
 
-  // Headline — шапка раздела / имя блюда (главный фикс дрейфа: было ≈39 ≈ Display)
+  // Headline — section masthead / dish name
   --sys-text-headline-size: 28px;
   --sys-text-headline-weight: 700;
   --sys-text-headline-line: 1.12;
   --sys-text-headline-tracking: -0.018em;
 
-  // Title — заголовок блока/карточки (база Apple-карточек Открытий; иерархия с Body ВЕСОМ)
+  // Title — block/card title (hierarchy with Body by weight)
   --sys-text-title-size: 17px;
   --sys-text-title-weight: 600;
   --sys-text-title-line: 1.3;
   --sys-text-title-tracking: -0.012em;
 
-  // Body — текст для чтения (тело = Onest, не Jost)
+  // Body — reading text
   --sys-text-body-size: 16px;
   --sys-text-body-weight: 500;
   --sys-text-body-line: 1.5;
   --sys-text-body-tracking: -0.005em;
 
-  // Label — надпись на интерактиве: кнопка / таб / чип / подпись поля
+  // Label — text on interactive (button/tab/chip/field label)
   --sys-text-label-size: 16px;
   --sys-text-label-weight: 600;
   --sys-text-label-line: 1.2;
   --sys-text-label-tracking: 0;
 
-  // Caption — самое мелкое вторичное: мета / проценты / сноски
+  // Caption — smallest secondary (meta/percent/footnotes)
   --sys-text-caption-size: 13px;
   --sys-text-caption-weight: 500;
   --sys-text-caption-line: 1.4;
   --sys-text-caption-tracking: 0;
 
-  // Mono — две нужды: крупные цифры (циферблат TimeChoose + крупное количество
-  // ProductQuantity — один hero-кегль) + табличные (нутриенты). big = ПОЛНЫЙ голос
-  // hero-цифры: family (Onest 800, делит с --font-big-numeric) + size (6rem≈96px —
-  // циферблат и количество делят один кегль) + weight. Трекинг ОПТИЧЕСКИЙ (зависит
-  // от кегля у консумера: циферблат плотнее количества) → остаётся локальным, в роль
-  // НЕ зашит. tab — Ubuntu Mono 13px. Обе tabular. (tokens.scss exempt от token-gate.)
+  // sys-text-size-* — sanctioned font-size escape for non-prose — #text-size-escape
+  --sys-text-size-label: var(--sys-text-label-size); // 16 — control label (alias to role)
+  --sys-text-size-title: var(--sys-text-title-size); // 17 — tile title
+  --sys-text-size-caption: var(--sys-text-caption-size); // 13 — secondary label
+  // (escape-токены --sys-text-size-field*/-glyph-*/-bar-cap сняты 2026-06-25 — мигрированы
+  //  в --sys-field-font-size* / --sys-icon-size-* / <Numeral>; см. burndown в плане.)
+  // --sys-icon-size-* — размер ГЛИФА-иконки (× / ‹ / ›), заданного font-size на
+  // глиф-кнопке. НЕ под --sys-text-* намеренно (глиф — не прозовый ярус): rename
+  // off --sys-text-size-glyph-* (решение юзера 2026-06-25, typo-gate не флагает
+  // не-`--sys-text-` имена). Дом размера иконочного глифа.
+  --sys-icon-size-xs: 12px; // chip-remove ✕ (AtomList)
+  --sys-icon-size-sm: 20px; // BackButton ‹
+  --sys-icon-size-md: 24px; // CloseButton ×, DrawerLayout close-glyph
+
+  // --sys-field-* (типографика) — ПОЛЯ ВВОДА, стилизованные КЛАССОМ (input/textarea/
+  // select-триггер): голый тег `input` гейт exempt'ит, но class-styled поле — нет,
+  // и обернуть <input> в <Text> нельзя. НЕ под --sys-text-* намеренно (поле —
+  // отдельный механизм, не прозовый ярус; решение юзера 2026-06-25). Rename off
+  // --sys-text-size-field*. Дефолты держат прежний рендер полей.
+  --sys-field-font-family: var(--font-sans);
+  --sys-field-font-weight: 500;
+  --sys-field-letter-spacing: -0.005em;
+  --sys-field-line-height: 22px;
+  --sys-field-font-size: 1rem; // 16 — стандартное поле (NumberInput, AutoGrowSearch)
+  --sys-field-font-size-compact: 0.8rem; // 12.8 — Select (плотный список)
+  --sys-field-font-size-hero: 48px; // крупный числовой ввод (AtomBuilder scale)
+
+  // 1:1 scale aliases of the legacy --text-* scale — sanctioned escape for non-prose
+  // элементов (числа/единицы/таблицы), которые НЕ ложатся в <Text>-роли. Value-equal к
+  // --text-* (single source). Только для уже typo-baselined поверхностей (escape, не TSX).
+  --sys-text-size-xs: var(--text-xs); // 0.64rem ≈ 10.2
+  --sys-text-size-sm: var(--text-sm); // 0.8rem ≈ 12.8
+  --sys-text-size-base: var(--text-base); // 1rem = 16
+  --sys-text-size-lg: var(--text-lg); // 1.25rem = 20
+  --sys-text-size-2xl: var(--text-2xl); // 1.953rem ≈ 31.3
+
+  // --sys-numeral-* — ЧИСЛОВОЙ ярус (tnum/lnum), дом примитива <Numeral>. Числовые
+  // ридауты (значения/количества/таблицы) — НЕ прозовый текст: своя size-шкала,
+  // family --font-big-numeric. НЕ под --sys-text-* (typo-gate не флагает): числа —
+  // отдельный примитив. Решение юзера 2026-06-25.
+  --sys-numeral-sm: 13px; // табличная ячейка / мелкий ридаут
+  --sys-numeral-base: 16px; // 1rem
+  --sys-numeral-md: 18px; // 1.125rem
+  --sys-numeral-lg: 20px; // 1.25rem
+  --sys-numeral-xl: 24px; // 1.5rem
+  --sys-numeral-display: 31px; // BalanceSection баланс (≈2xl)
+  --sys-numeral-hero: 48px; // крупный числовой герой
+
+  // Mono — hero numerals + tabular — #mono
   --sys-text-mono-big-family: var(--font-big-numeric);
-  --sys-text-mono-big-size: 6rem; // ≈96px — циферблат + крупное количество
+  --sys-text-mono-big-size: 6rem; // ≈96 — TimeChoose dial + big quantity
   --sys-text-mono-big-weight: 800;
-  --sys-text-mono-tab-size: 13px;
+  --sys-text-mono-tab-size: 13px; // Ubuntu Mono tabular (nutrients)
 
-  // ─── Border Radius ───────────────────────────────────────────
-  --radius-xs: 4px; // progress bars, small pills
-  --radius-sm: 8px; // buttons, inputs, small cards
-  --radius-md: 12px; // cards, panels
-  --radius-lg: 16px; // drawers, modals
-  --radius-xl: 24px; // search bars, large pills
-  --radius-2xl: 40px; // sheet overlays, large content surfaces (headerOverlap)
-  --radius-full: 9999px; // circular buttons, badges
+  // ─── Border radius — #radius ─────────────────────────────────
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 40px; // sheet overlays (headerOverlap)
+  --radius-full: 9999px;
 
-  // ─── Shadows ─────────────────────────────────────────────────
-  // (lg/xl deleted 2026-06-24 — 0 consumers; overlay depth lives on --sys-elevation-*)
+  // ─── Shadows — #shadows ──────────────────────────────────────
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 
-  // ─── ELEVATION (M0 рельсы) · глубина = функция ИНТЕРАКТИВНОСТИ ──
-  // Ground truth: tds/elevation-palette-2026.md. Глубина приподнимает РЫЧАГИ
-  // (CTA / бары / плитки / оверлеи / drag), контент остаётся ПЛОСКИМ (paper-mono).
-  // M0 = объявить, НЕ применять (компоненты переедут в M1–M4). Значения = Вариант B
-  // (мягкий осмысленный лифт, §3.3 решено). Тень многослойная, один источник света
-  // (вертикальный, сверху), подтон ТЁПЛЫЙ уголь rgba(45,38,28) (warm-soft v2 — был
-  // cool navy 31,42,68 до 2026-06-24; sign-off юзера, под тёплую нейтраль), НЕ чёрный.
-  // --ref-shadow-* — примитивы-рецепты; --sys-elevation-* — единственный API компонентов.
+  // ─── Elevation (M0) — depth = interactivity — #elevation ─────
+  // ref-shadow-* = recipes; sys-elevation-* = the only component API.
+  // Warm-coal undertone rgba(45,38,28) (warm-soft v2). GT: tds/elevation-palette-2026.md
   --ref-shadow-0: none;
-  --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // лифт действия в покое
-  --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.08), 0 4px 10px rgba(45, 38, 28, 0.08); // действие наведено / приподнятый бар
+  --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // action-rest
+  --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.08), 0 4px 10px rgba(45, 38, 28, 0.08); // action-hover / raised bar
   --ref-shadow-3: 0 1px 3px rgba(45, 38, 28, 0.08), 0 6px 16px rgba(45, 38, 28, 0.10), 0 12px 28px rgba(45, 38, 28, 0.10); // overlay
-  --ref-shadow-4: 0 2px 6px rgba(45, 38, 28, 0.10), 0 10px 24px rgba(45, 38, 28, 0.14), 0 20px 48px rgba(45, 38, 28, 0.14); // drag-лифт
+  --ref-shadow-4: 0 2px 6px rgba(45, 38, 28, 0.10), 0 10px 24px rgba(45, 38, 28, 0.14), 0 20px 48px rgba(45, 38, 28, 0.14); // drag-lift
 
-  // sys · СЕМАНТИКА глубины по РОЛИ действия+состоянию (не по размеру, не по элементу)
-  --sys-elevation-flat: var(--ref-shadow-0); // КОНТЕНТ: карточки еды, нутриенты, списки, секции
-  --sys-elevation-action-rest: var(--ref-shadow-1); // рычаг в покое: CTA, нижний/верхний бар, плитка, поле НЕ сюда
-  --sys-elevation-action-hover: var(--ref-shadow-2); // рычаг под наведением / фокусом — выше
-  --sys-elevation-action-pressed: var(--ref-shadow-0); // рычаг вдавлен: тень СЖИМАЕТСЯ (≤ rest)
-  --sys-elevation-overlay: var(--ref-shadow-3); // drawer / modal / popover / dropdown / sheet
-  --sys-elevation-dragging: var(--ref-shadow-4); // элемент в захвате (long-press lift)
+  --sys-elevation-flat: var(--ref-shadow-0); // content (cards/lists/sections)
+  --sys-elevation-action-rest: var(--ref-shadow-1); // lever at rest (CTA/bar/tile)
+  --sys-elevation-action-hover: var(--ref-shadow-2); // lever hovered/focused
+  --sys-elevation-action-pressed: var(--ref-shadow-0); // pressed: shadow compresses ≤ rest
+  --sys-elevation-overlay: var(--ref-shadow-3); // drawer/modal/popover/dropdown/sheet
+  --sys-elevation-dragging: var(--ref-shadow-4); // long-press lift
 
-  // ─── Framed-plate (canon 2026-06-18) ─────────────────────────
-  // «Серая подложка внутри + белая рамка + мягкая тень» — рецепт медали
-  // «Список еды» (WriteBarMedal), вынесенный для повторного использования:
-  // пилюли верхнего бара («…» / дата) и светлые кнопки нижнего бара. Белая
-  // рамка рисуется spread-кольцом box-shadow (НЕ border) → не сдвигает геометрию
-  // и не требует ::before/z-index. Применять через mixin `framed-plate()`
-  // (см. mixin.scss) или напрямую: `background: var(--plate-fill); box-shadow: var(--plate-shadow);`.
-  --plate-fill: #ebecf0; // нейтральная серая заливка внутри рамки
-  --plate-frame: #ffffff; // цвет белой рамки-кольца
-  --plate-frame-w: 3px; // толщина рамки
+  // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
+  // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
+  --plate-fill: #ebecf0; // grey fill inside frame
+  --plate-frame: #ffffff; // white ring color
+  --plate-frame-w: 3px;
   --plate-shadow:
     0 0 0 var(--plate-frame-w) var(--plate-frame),
     0 3px 10px rgba(45, 38, 28, 0.12),
     0 1px 3px rgba(45, 38, 28, 0.08);
 
-  // ─── Animation ───────────────────────────────────────────────
-  --duration-fast: 120ms; // hover, focus, micro-interactions
-  --duration-normal: 200ms; // standard transitions
+  // ─── Animation — #animation ──────────────────────────────────
+  --duration-fast: 120ms; // hover, focus, micro
+  --duration-normal: 200ms; // standard
   --duration-slow: 350ms; // layout shifts, overlays
-  --duration-ios: 500ms; // iOS nav push — длиннее = органичнее (Ionic ~540ms)
+  --duration-ios: 500ms; // iOS nav push
   --easing-default: cubic-bezier(0.4, 0, 0.2, 1); // Material-like
   --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // bouncy/spring
-  --easing-ios: cubic-bezier(0.32, 0.72, 0, 1); // iOS nav push/sheet decel
+  --easing-ios: cubic-bezier(0.32, 0.72, 0, 1); // iOS nav/sheet decel
 
-  // ─── sys · MOTION (CTI: sys · duration/easing) — 1:1 алиасы примитивов ──
-  // Гейт sys-only требует var(--sys-duration-*)/var(--sys-easing-*); это
-  // семантический ярус поверх --duration-*/--easing-*/--press-* (значения
-  // ИДЕНТИЧНЫ — чистый rename-канон, рендер не меняется). press-in/out —
-  // press-feedback тайминги, выраженные как duration-роли. (tokens.scss exempt.)
-  --sys-duration-fast: var(--duration-fast); // 120ms
-  --sys-duration-normal: var(--duration-normal); // 200ms
-  --sys-duration-slow: var(--duration-slow); // 350ms
-  --sys-duration-ios: var(--duration-ios); // 500ms
-  --sys-duration-press-in: var(--press-in); // 0ms — вход в :active
-  --sys-duration-press-out: var(--press-out); // 260ms — выход из :active
+  // sys · motion — 1:1 aliases of primitives above — #motion-sys
+  --sys-duration-fast: var(--duration-fast);
+  --sys-duration-normal: var(--duration-normal);
+  --sys-duration-slow: var(--duration-slow);
+  --sys-duration-ios: var(--duration-ios);
+  --sys-duration-press-in: var(--press-in); // 0ms
+  --sys-duration-press-out: var(--press-out); // 260ms
   --sys-easing-default: var(--easing-default);
   --sys-easing-spring: var(--easing-spring);
   --sys-easing-ios: var(--easing-ios);
 
-  // ─── Row geometry (canon for list-item cells) ────────────────
-  // Hit-area gets owned by each interactive cell (.timeDisplay, .foodCol,
-  // .qtyEdit, event-fields…), NOT by the row wrapper. Wrapper keeps the
-  // visual chrome (bg / outline / radius / TOD gradient); cells inside
-  // collect padding-block + min-block-size so a tap "above" / "below" the
-  // glyph still lands on the <label htmlFor> trigger.
-  // Consumers override --row-pad-block on the grid root and set the cell
-  // tokens on each interactive cell. See ScheduleFoodItemInline.module.scss
-  // for the canonical implementation.
-  //
-  // CANON 2026-05-24: row-floor 48px (Material 3 + Apple HIG 44 + WCAG 2.2
-  // AAA пересечение). --row-cell-min-h и --row-min-h-touch ДОЛЖНЫ быть
-  // синхронны — оба описывают один и тот же canon row-floor с разных
-  // сторон (cell-canon vs wrapper-canon).
-  --row-pad-block: 9px; // wrapper vertical padding (default = pre-canon)
-  --row-cell-pad-block: 9px; // each cell's vertical padding (new canon)
-  --row-cell-min-h: 48px; // each cell's hit-area floor (was 36 → 48 on 2026-05-24)
-  --row-min-h-touch: 48px; // wrapper-driven row floor (consume via @include row-touch)
+  // ─── Row geometry (list-item cells) — #row-geometry ──────────
+  // ONE 48px touch floor (canon 2026-05-24), placed on whatever element IS the
+  // tap target — never doubled, never on a non-tappable wrapper:
+  //   • Whole-row-clickable rows (SelectableListItem, dish ingredient) — the
+  //     wrapper is the tap target → min-h-touch on it via @include row-touch.
+  //   • Rows with inner tap-cells (ScheduleFoodItem: name | qty) — the floor
+  //     lives on each LEAF cell (cell-min-h); the wrapper goes NAKED: it zeroes
+  //     its own pad-block AND min-h-touch on the grid root, so the leaf alone
+  //     carries the floor and defines the row height (a bare <label> still
+  //     stretches to 48). This is the systemic rule — strip the outside, size
+  //     the innermost.
+  //   row-pad-block — consumer-overridable wrapper padding (LongPressRow reads it).
+  --sys-row-pad-block: var(--space-1); // wrapper vertical padding (legacy default)
+  --sys-row-cell-pad-block: 9px; // inner-cell vertical padding
+  --sys-row-cell-min-h: 48px; // LEAF tap-target floor (inner-cell rows)
+  --sys-row-min-h-touch: 48px; // WRAPPER tap-target floor (@include row-touch)
 
-  // ─── Bottom action (canon: unified bottom bar/button height) ─────────────
-  // Все нижние «действия» делят одну высоту: solo-CTA Лаборатории/Событий
-  // (AppBottomBarShell), write-пилюля FoodSchedule (--pill-h ← этот токен) и
-  // кнопки создания в поиске еды (FoodSearchEmpty). Единая высота = нижний край
-  // приложения не «прыгает» при свайпе между экранами, большой палец всегда
-  // попадает в ту же зону. Источник истины один — менять только здесь.
-  --bottom-action-h: 72px;
+  // ─── Bottom action (unified height) — #bottom-action ─────────
+  --bottom-action-h: 72px; // shared by all bottom bars/buttons (no edge "jump")
 
-  // ─── Press-feedback ──────────────────────────────────────────
-  // pre-attentive отклик интерактивных элементов: визуальное
-  // изменение должно появляться в ТОМ ЖЕ кадре, что касание (вход
-  // без easing), и мягко гаснуть после отпускания. Асимметрия —
-  // ключ: резкий вход ловится подсознанием, плавный выход через
-  // --easing-spring не выглядит дёрганым (лёгкий overshoot = «pop»).
-  --press-in: 0ms; // вход в :active — мгновенно, тот же кадр
-  --press-out: 260ms; // выход из :active — мягкое затухание
-  // Лёгкий тинт-фон для press тихих текст/иконочных кнопок (press-fill-tint).
-  // State-layer = тинт ink-цвета (M3/Apple), НЕ чистый чёрный: на тёплой бумаге
-  // rgba(0,0,0) холодит в blue-gray → тёплый-уголь rgba(34,31,25). Surface-палитры
-  // могут переопределить.
-  --press-tint-bg: rgba(34, 31, 25, 0.05);
-  // Цвет контента (текст/иконка) когда кнопка инверсируется в ink на press.
-  // Единый «белый-на-тёмном» для press-fill-ink и ручных инверсий в барах.
-  --text-on-accent: #fff;
+  // ─── Press-feedback — #press-feedback ────────────────────────
+  // Asymmetric: instant enter (same frame as touch), soft fade out.
+  --press-in: 0ms;
+  --press-out: 260ms;
+  --press-tint-bg: rgba(34, 31, 25, 0.05); // warm-coal state-layer for quiet btns
+  --text-on-accent: #fff; // content color when a button inverts to ink
 
-  // ─── Brand CTA — единый фирменный цвет primary-кнопок ──────────
-  // ОДИН источник правды цвета кнопки по проекту: тёплый бледно-жёлтый
-  // НЕПРОЗРАЧНЫЙ направленный градиент — плотный #FFF4BD слева, переходит
-  // в более светлый кремовый справа (без альфы). Тёмный тёплый-уголь ink. Читают:
-  // Button `.brand` (нижние CTA HomePage) + InsightCard/HypothesisCard
-  // `.add` (действия в карточках разбора). Перекрасить кнопку во всём
-  // приложении = правка этих токенов. (tokens.scss exempt от token-gate.)
+  // ─── Brand CTA (single primary-button color) — #brand-cta ────
   --cta-brand-fill: linear-gradient(270deg, #fffae0 0%, #fff4bd 100%);
   --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
-  --cta-brand-ink: rgba(34, 31, 25, 0.92); // тёплый-уголь (warm-soft v2; был cool navy 31,42,68 до 2026-06-24)
+  --cta-brand-ink: rgba(34, 31, 25, 0.92); // warm-coal ink
 
-  // ─── ЯРУС ref · ПРИМИТИВЫ цвета · НЕЙТРАЛЬ (warm-soft v2, СГЕНЕРИРОВАНА 2026-06-24) ──
-  // Ground truth: tds/ANALYSIS/token-canon-rename §4.0. Числа МЕРЯНЫ через scratchpad/crit.mjs
-  // (srgbToOklch + APCA-W3). Hex = oklch-производные (универсально, без @supports; chroma низкая
-  // → sRGB≈oklch визуально). Семантика (--surface/--text/--border/--color-ink в palette.scss)
-  // несёт ТЕ ЖЕ значения; rename legacy→ref — отдельный codemod. Нейтраль: {0}=бумага … {1000}=ink.
-  //
-  // ⚠️ NB (правка 2026-06-24, критика warm-soft v2): «единый hue 85» — НЕ инвариант. Фактический
-  // hue плавает 78–91° (тёплый band, не одна точка); это hue-locked НАМЕРЕНИЕ в тёплой зоне, а
-  // не математическое равенство. И лесенка НЕ перцептивно-равномерная: между 300 и 400 обрыв
-  // ΔL≈0.28 (purpose-stepping — 300 = последний светлый/бумага-граница, 400 = первый текст-ранг;
-  // ступени 0–300 «бумага», 400–1000 «чернила»). Комменты oklch() ниже = ИЗМЕРЕННЫЕ значения.
-  --ref-color-neutral-0: #fefcf9; // oklch(0.992 0.004 78) = surface-base
-  --ref-color-neutral-50: #faf9f6; // oklch(0.982 0.004 91)
-  --ref-color-neutral-100: #f5f3f0; // oklch(0.965 0.004 78) = cards-page-bg
-  --ref-color-neutral-200: #ebe9e5; // oklch(0.934 0.006 85)
-  --ref-color-neutral-300: #e2dfda; // oklch(0.905 0.008 81) = border-default  ← обрыв ΔL≈0.28 ниже
-  --ref-color-neutral-400: #817d76; // oklch(0.591 0.012 82) = text-tertiary (worst |Lc| 61.1 на #f5f3f0)
-  --ref-color-neutral-500: #757169; // oklch(0.550 0.013 85) = text-secondary (worst |Lc| 66.7)
-  --ref-color-neutral-600: #5b5850; // oklch(0.461 0.013 90)
-  --ref-color-neutral-700: #46423b; // oklch(0.381 0.013 82)
-  --ref-color-neutral-800: #312d27; // oklch(0.299 0.012 78)
-  --ref-color-neutral-900: #221f19; // oklch(0.241 0.012 85) = color-ink (тёплый-уголь, worst |Lc| 96.4)
-  --ref-color-neutral-1000: #0d0b07; // oklch(0.150 0.009 86) = color-ink-strong
+  // ─── ref · NEUTRAL (warm-soft v2, 2026-06-24) — #ref-neutral ──
+  // {0}=paper … {1000}=ink. hue floats 78–91° (warm band, NOT one point).
+  // Ladder NOT perceptually uniform: ΔL≈0.28 cliff between 300/400 (purpose-stepping:
+  // 0–300 "paper", 400–1000 "ink"). Measured oklch/APCA in tokens-rationale.md.
+  --ref-color-neutral-0: #fefcf9; // = surface-base
+  --ref-color-neutral-50: #faf9f6;
+  --ref-color-neutral-100: #f5f3f0; // = cards-page-bg
+  --ref-color-neutral-200: #ebe9e5;
+  --ref-color-neutral-300: #e2dfda; // = border-default
+  --ref-color-neutral-400: #817d76; // = text-tertiary
+  --ref-color-neutral-500: #757169; // = text-secondary
+  --ref-color-neutral-600: #5b5850;
+  --ref-color-neutral-700: #46423b;
+  --ref-color-neutral-800: #312d27;
+  --ref-color-neutral-900: #221f19; // = color-ink (warm-coal)
+  --ref-color-neutral-1000: #0d0b07; // = color-ink-strong
 
-  // ink-accent (navy) — ЕДИНСТВЕННЫЙ брендовый hue для выбрано/действие/фокус.
-  // M0: точное ТЕКУЩЕЕ значение «выбрано» (oklch-перевод — на этапе генерации, §4.2).
-  --ref-color-navy-600: rgba(24, 24, 105, 0.92); // источник --sys-color-bg-selected
-  --ref-color-navy-700: rgba(24, 24, 105, 1); // источник --sys-color-border-selected
+  // ref · ink-accent navy — only brand hue for selected/action/focus — #ref-navy
+  --ref-color-navy-600: rgba(24, 24, 105, 0.92); // → bg-selected
+  --ref-color-navy-700: rgba(24, 24, 105, 1); // → border-selected
 
-  // статусы — землисто-гербарный регистр (§4.3). ЗНАЧЕНИЯ = warm-deep (выбор юзера
-  // 2026-06-24 по предложке /suggestion_warm_navy_status; APCA scratchpad/crit.mjs p2 на
-  // тёплой бумаге #fefcf9: danger Lc 82 / success 77 / warning 68). ⚠️ Пока 0 ЖИВЫХ
-  // консумеров sys-status-* (Анализ рисует статусы локально через color-mix) → видимый
-  // свап = M4-миграция консумеров; здесь зафиксированы КАНОНИЧЕСКИЕ значения. Сырой
-  // --color-danger (#ec0000, destructive «удалить») НЕ тронут — это аффорданс, не статус.
-  --ref-color-terracotta-600: #983d1f; // danger → терракота-глубокая (text Lc 82)
-  --ref-color-moss-600: #4a6e42; // done/success → шалфей-глубокий (text Lc 77; было #5f7a4c)
-  --ref-color-sepia-500: #8a7b60; // stale → сепия
-  --ref-color-amber-earth-600: #a06f30; // warning → амбер-земля (text Lc 68; warm-deep набор)
+  // ref · accent ramps (amber ≈71°, indigo ≈289°) — #ref-accent-ramps
+  // Anchors 600/700 from /suggestion_3375f4e1; other rungs generated hue-lock OKLCH.
+  // 0–300 "tint", 400–1000 "saturated/ink". No sys consumers yet (fixed primitives).
+  --ref-color-amber-0: #fff5e6;
+  --ref-color-amber-50: #ffedd9;
+  --ref-color-amber-100: #fce4c8;
+  --ref-color-amber-200: #f2cfa8;
+  --ref-color-amber-300: #e0b581;
+  --ref-color-amber-400: #b18042;
+  --ref-color-amber-500: #9f6c22;
+  --ref-color-amber-600: #8a5700; // anchor (base light-tonal 14%)
+  --ref-color-amber-700: #6d4500; // anchor (amber-deep: chip text / deep-CTA)
+  --ref-color-amber-800: #5f3300;
+  --ref-color-amber-900: #4d2500;
+  --ref-color-amber-1000: #3b1b00;
 
-  // ─── ЯРУС sys · СЕМАНТИКА интерактивности (M0) ────────────────
-  // Ground truth: tds/interactive-tokens-system.md (§3 каталог).
-  // Семантический ярус ПОВЕРХ текущих примитивов (--color-*/--surface-*/
-  // --text-*/--radius-*) — НЕ переименование (ref-rename — опциональный финал,
-  // он не гейтит M0). Компоненты по мере миграции M1–M3 читают ТОЛЬКО эти
-  // `--sys-*`; «выбрано» получает ОДИН источник правды → консистентность по
-  // построению, перекраска/темизация = одна строка в нужном scope. Имена по
-  // CTI / Nathan Curtis (по СМЫСЛУ, не по виду): control/indicator/container —
-  // КАТЕГОРИЯ элемента, не «angular/pill». (tokens.scss exempt от token-gate.)
+  --ref-color-indigo-0: #f6f5ff;
+  --ref-color-indigo-50: #efedff;
+  --ref-color-indigo-100: #e6e4ff;
+  --ref-color-indigo-200: #d4d0fd;
+  --ref-color-indigo-300: #bcb6ef;
+  --ref-color-indigo-400: #5d5490;
+  --ref-color-indigo-500: #4c4080;
+  --ref-color-indigo-600: #3a2d6b; // anchor (cold accent / base 12%)
+  --ref-color-indigo-700: #2e2456; // anchor (border/hover)
+  --ref-color-indigo-800: #211249;
+  --ref-color-indigo-900: #150537;
+  --ref-color-indigo-1000: #0a0025;
 
-  // color · surface
+  // ref · status — earthy-herbarium, warm-deep (2026-06-24) — #ref-status
+  // ⚠️ 0 live sys-status-* consumers (Analysis draws locally via color-mix).
+  --ref-color-terracotta-600: #983d1f; // danger
+  --ref-color-moss-600: #4a6e42; // done/success (was #5f7a4c)
+  --ref-color-sepia-500: #8a7b60; // stale
+  --ref-color-amber-earth-600: #a06f30; // warning (≠ amber ramp — different hue/role)
+
+  // ─── sys · INTERACTIVITY semantics (M0) — #sys-interactive ───
+  // Semantic tier over primitives; components migrating M1–M3 read ONLY these.
+  // GT: tds/interactive-tokens-system.md. CTI names by meaning, not look.
+
   --sys-color-surface-page: var(--surface-base);
-  --sys-color-surface-bright: var(--surface-bright); // ярче бумаги — floating-поверхность всплывает над Screen
+  --sys-color-surface-bright: var(--surface-bright); // floating surface above Screen
   --sys-color-surface-raised: var(--surface-raised);
-  --sys-color-surface-sunken: var(--surface-base); // нет отдельного sunken-примитива → page-нейтраль
-  // (--sys-color-surface-overlay + примитив --surface-overlay удалены 2026-06-24 — 0 консумеров)
+  --sys-color-surface-sunken: var(--surface-base); // no separate sunken primitive
 
-  // color · surface · floating — тёмная плавающая обвязка экрана: пилюли HomeTopBar
-  // (аккаунт / центр / дата) + круглый BackButton. Канон 2026-06-23 (выбор B по
-  // предложке s_364ea3f6): ВСЕ floating-элементы = тёплый-чёрный = ink-strong (n1000
-  // #0d0b07 — warm-soft v2), контент белый, на :active — светлый флэш (заливка белым, глиф чернеет).
-  // Распустил бывший component-named бандл `--bar-*`. Scope-override: SearchFood
-  // переобъявляет surface/text в своём scope → кнопка-назад там сливается со светлой
-  // страницей (санкционированный single-token override, не per-surface бандл).
-  --sys-color-surface-floating: var(--ref-color-neutral-800); // #0d0b07 — тёплый-чёрный ink-strong (warm-soft v2; было cool #0a0a0a до 2026-06-24)
-  --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff — светлый флэш на :active
-  --sys-color-text-on-floating: var(--text-on-accent); // белый контент/глиф
+  --sys-color-surface-floating: var(--ref-color-neutral-800);
+  --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
+  --sys-color-text-on-floating: var(--text-on-accent);
 
-  // color · text (foreground)
   --sys-color-text-primary: var(--text-primary);
   --sys-color-text-secondary: var(--text-secondary);
   --sys-color-text-tertiary: var(--text-tertiary);
+  --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
 
-  // color · border (один нейтральный хайрлайн)
+  // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
 
-  // color · интенты (действие / статус — НЕ «accent»)
-  --sys-color-action-primary: var(--cta-brand-fill);
-  --sys-color-text-on-action: var(--cta-brand-ink); // тёплый-уголь ink на brand-CTA (rgba 34,31,25,.92)
-  // статусы по СМЫСЛУ = warm-deep земельный регистр (выбор юзера 2026-06-24, §4.3).
-  // ⚠️ 0 ЖИВЫХ консумеров sys-status-* (Анализ рисует статусы локально color-mix) →
-  // эти токены несут КАНОНИЧЕСКИЕ значения; видимый свап = M4-миграция консумеров.
-  --sys-color-status-danger: var(--ref-color-terracotta-600); // терракота-глубокая (был неон --color-danger)
-  --sys-color-status-warning: var(--ref-color-amber-earth-600); // амбер-земля (был неон --color-warning)
+  // color · intents (action / status)
+  --sys-color-text-on-action: var(--cta-brand-ink); // warm-coal ink on brand CTA
+  --sys-color-status-danger: var(--ref-color-terracotta-600);
+  --sys-color-status-warning: var(--ref-color-amber-earth-600);
   --sys-color-status-done: var(--ref-color-moss-600);
   --sys-color-status-stale: var(--ref-color-sepia-500);
   --sys-color-status-pending: var(--ref-color-neutral-400);
 
-  // color · интерактивные состояния (cross-element; «выбрано» — ЕДИНСТВЕННЫЙ источник)
-  --sys-color-bg-selected: var(--ref-color-navy-600); // «выбрано» → navy-ref (значение то же; M0 §4.2)
+  // color · interactive states (cross-element; "selected" = single source)
+  --sys-color-bg-selected: var(--ref-color-navy-600);
   --sys-color-text-on-selected: #fff;
   --sys-color-border-selected: var(--ref-color-navy-700);
-  --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // тёплый-уголь state-layer (был cool rgba(0,0,0) до 2026-06-24)
-  --sys-color-bg-press: var(--press-tint-bg); // press state-layer (тёплый-уголь rgba 34,31,25,.05) — алиас 1:1
-  // focus — ЕДИНЫЙ фокус-индикатор на весь app: яркий blue-кольцо инпутов (не navy
-  // выбора — на navy-кромке navy-фокус сливался; яркий --color-blue-2 читается поверх)
-  // И halo «редактируемой» строки/ячейки расписания/free-text (:focus-within, через
-  // color-mix). Прежний per-TOD зелёный --select-* распущен 2026-06-22 (один фокус-цвет,
-  // предсказуемый UX).
-  --sys-color-border-focus: var(--color-blue-2);
+  --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // warm-coal state-layer
+  --sys-color-bg-press: var(--press-tint-bg); // alias 1:1
+
+  // color · surface-action — заливки кнопок, 3 яруса × ось состояния. CTI: ярус
+  // по СМЫСЛУ действия, не по виду/CSS-классу. primary = тёплая амбра (бренд),
+  // accent = indigo (холодный акцент), system = уголь (нейтральная сплошная).
+  // pressed = следующая ступень ref-лестницы вниз (амбра — отдельный press-градиент).
+  // disabled — единая нейтральная «погасшая» заливка: выключенная кнопка теряет
+  // цветовую идентичность (один источник на все 3 яруса; per-tier имена — для API).
+  --sys-color-surface-action-disabled: rgba(0, 0, 0, 0.08);
+  --sys-color-surface-action-primary: var(--cta-brand-fill);
+  --sys-color-surface-action-primary-pressed: var(--cta-brand-fill-press);
+  --sys-color-surface-action-primary-disabled: var(--sys-color-surface-action-disabled);
+  --sys-color-surface-action-accent: var(--ref-color-indigo-600);
+  --sys-color-surface-action-accent-pressed: var(--ref-color-indigo-700);
+  --sys-color-surface-action-accent-disabled: var(--sys-color-surface-action-disabled);
+  --sys-color-surface-action-system: var(--ref-color-neutral-900);
+  --sys-color-surface-action-system-pressed: var(--ref-color-neutral-1000);
+  --sys-color-surface-action-system-disabled: var(--sys-color-surface-action-disabled);
+  // border · action (пока 1 потребитель — secondary press border; = ink-заливка)
+  --sys-color-border-action-system: var(--ref-color-neutral-900);
+  // text · faint — тихий серый ghost-link (вне тёплой neutral-лестницы — чеканка 1:1)
+  --sys-color-text-faint: rgb(193, 193, 193);
+
+  --sys-color-border-focus: var(--color-blue-2); // one focus indicator app-wide (input ring + editable halo)
   --sys-opacity-disabled: 0.4;
 
-  // color · control (сегмент-контрол: трек + сегменты). Единый источник вместо
-  // per-surface --seg-* (распущен 2026-06-22). iOS segmented / M3 connected group.
-  // Связан с нейтральной ref-шкалой (2026-06-22): track→neutral-300, неактивный
-  // текст→neutral-500 (=secondary; лёгкий дрейф с прежнего #5c6473), активный
-  // текст→neutral-1000. active-bg = чистый белый (white-рунга в ref-шкале нет) — литерал.
-  --sys-color-control-track: var(--ref-color-neutral-300); // фон группы сегментов (#e5e7eb)
-  --sys-color-control-segment-text: var(--ref-color-neutral-500); // неактивный сегмент
-  --sys-color-control-segment-active-bg: #ffffff; // активный «thumb»
-  --sys-color-control-segment-active-text: var(--ref-color-neutral-1000); // текст активного (#0a0a0a)
+  // color · control (segment-control track + segments; tied to neutral ref-scale)
+  --sys-color-control-track: var(--ref-color-neutral-300);
+  --sys-color-control-segment-text: var(--ref-color-neutral-500); // inactive
+  --sys-color-control-segment-active-bg: #ffffff; // active "thumb"
+  --sys-color-control-segment-active-text: var(--ref-color-neutral-1000);
 
-  // radius · по КАТЕГОРИИ элемента (НЕ по виду)
-  --sys-radius-control: var(--radius-sm); // 8px — radio, checkbox, input, select, field
-  --sys-radius-indicator: var(--radius-full); // chip, tag, badge, switch-трек
-  --sys-radius-container: var(--radius-md); // 12px — card, panel, surface
-  // (M2a, 2026-06-21: legacy `--sys-chip-active-fill/-border/--sys-chip-active-ink` шимы
-  // удалены — Chip + ModalShell теперь читают `--sys-color-*-selected` напрямую.)
+  // radius · by element category (not by look)
+  --sys-radius-control: var(--radius-sm); // 8 — radio/checkbox/input/select/field
+  --sys-radius-indicator: var(--radius-full); // chip/tag/badge/switch-track
+  --sys-radius-cta: var(--radius-lg); // CTA pills (separate lever from indicator)
+  --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
+  --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
-  // ─── Nutrient family ──────────────────────────────────────────
-  // (bg-main/minerals/vitamins + card-shadow deleted 2026-06-24 — 0 consumers)
+  // ─── Nutrient family — #nutrient ─────────────────────────────
   --nutrient-accent-main: var(--color-deep-blue);
   --nutrient-accent-minerals: var(--color-deep-blue);
   --nutrient-accent-vitamins: var(--color-deep-blue);
   --nutrient-progress-height: 3px;
   --nutrient-card-radius: var(--radius-sm);
-  // Едва заметная «карточная» подложка под каждым нутриентом + мягкая тень.
-  // Подложка живёт на ::before (z-index -2), чтобы цветные пилюли имён БЖУ
-  // (.name::before, z-index -1) оставались поверх неё. Полупрозрачная — на
-  // белом дровере почти невидима (тень делает работу), на тёплом фоне страницы
-  // даёт лёгкий лифт.
-  --nutrient-card-surface: rgba(255, 255, 255, 0.55);
-  // Внутренний отступ карточки нутриента — чтобы контент не липнул к краю/тени.
+  --nutrient-card-surface: rgba(255, 255, 255, 0.55); // faint card backing on ::before (z-index -2)
   --nutrient-card-padding: var(--space-2) var(--space-3);
 
-  // ─── Event / Atom family ──────────────────────────────────────
-  // accent — solid colour for caret / underline / borders / icons. The `sage`
-  // trio — dusty green → muted teal → deep teal. Palettes flip via the
-  // DesignVariantsBar anchor "AtomAccent" (see AtomBuilder.module.css).
-  // (per-atom -bg/-text deleted 2026-06-24 — 0 consumers; only -accent is read.)
+  // ─── Event / Atom family (sage trio) — #event ────────────────
+  // -accent = caret/underline/border/icon color; flips via DesignVariantsBar "AtomAccent".
   --event-scale-accent: #52784a;
   --event-tag-accent: #37786a;
   --event-relation-accent: #2c6a72;
 
-  // ─── Time-of-day card palettes ────────────────────────────────
-  // Each palette defines a gradient range (from → to) for background & outline.
-  // Cards interpolate via --item-t (0 → 1) using color-mix().
-
-  // Morning (06–12): green (current default)
+  // ─── Time-of-day card palettes — #tod ────────────────────────
+  // Cards interpolate from→to via --item-t (0→1) using color-mix().
+  // Morning (06–12) green
   --tod-morning-bg-from: #e6ffed;
   --tod-morning-bg-to: #e0faef;
   --tod-morning-outline-from: #52ffba;
   --tod-morning-outline-to: #52f0d0;
   --tod-morning-tapped: #cdfce1;
 
-  // Day (12–18): warm amber/yellow
+  // Day (12–18) warm amber
   --tod-day-bg-from: #fff8e6;
   --tod-day-bg-to: #faf0d8;
   --tod-day-outline-from: #ffd666;
   --tod-day-outline-to: #f0c850;
   --tod-day-tapped: #fcf0c8;
 
-  // Evening (18–23): soft purple/lavender
+  // Evening (18–23) soft lavender
   --tod-evening-bg-from: #f3ecff;
   --tod-evening-bg-to: #ece4fa;
   --tod-evening-outline-from: #c4a8ff;
   --tod-evening-outline-to: #b89cf0;
   --tod-evening-tapped: #e4d6fc;
 
-  // Night (23–06): deep blue/slate
+  // Night (23–06) deep blue/slate
   --tod-night-bg-from: #e8eeff;
   --tod-night-bg-to: #e0e8fa;
   --tod-night-outline-from: #8aa8ff;
@@ -469,39 +432,19 @@
   --tod-night-tapped: #d0dcfc;
 }
 
-// ─── Field / chip / card palette (app-wide tone — moved from ModalShell) ──────
-// (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
-// Single MONOCHROME tone (the «great unification», 2026-06-19): neutral-gray
-// `text`/`ink` so the field hairlines, shadows, card hairline and chip
-// separators stay achromatic; a dusty-lavender `accent` (`#877f9c`) so the one
-// chromatic signal — caret, chip-rest border, card active text — reads as a
-// barely-there lavender echo of the top glow rather than a loud hue. `pill`
-// stops are near-white with a whisper of lavender; the `dark` press stops match
-// SearchFood's `--sys-card-press-bg` (`#1f1f1f → #353535`). The active-chip mid stop
-// is the rounded per-channel average of from/to (integer rgb in the emitted CSS).
-//
-// Published UNCONDITIONALLY on `:root` — no attribute, no JS. The mixin
-// DEFINITIONS live in mixin.scss (the shared mixin home); this is the single
-// app-wide publication. ModalShell no longer owns these tokens (moved here
-// 2026-06-22 — a modal component should not own app-wide tokens). The old
-// `data-modal-fields` attribute-gate decided nothing (App.tsx hardcoded `mono`,
-// the `@each` emitted one always-matching selector); removed 2026-06-22. `:root`
-// (0,1,0) is the ancestor of every node — incl. Base UI portals — so the tokens
-// cascade everywhere; per-surface override sites are class selectors on
-// descendants and still win. Carries ONLY field/chip/card tokens, no `.wrapper`
-// ambient baggage. (tokens.scss exempt от token-gate → raw literals тут ок.)
+// ─── Field / chip / card palette (app-wide tone) — #field-chip-palette ──
+// Published UNCONDITIONALLY on :root (cascades everywhere incl. Base UI portals;
+// per-surface class overrides still win). Mixin DEFINITIONS in mixin.scss; this is
+// the single app-wide publication (moved from ModalShell 2026-06-22).
+// Single MONOCHROME tone («great unification» 2026-06-19): neutral-gray text/ink,
+// dusty-lavender accent #877f9c (the one barely-there chromatic signal).
+// Args = (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
 :root {
   @include field-chip-palette(#1d1d1f, #2c2c30, #877f9c,
     (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff);
-  // Карточки-ряды — единый канон paper-mono (выбор юзера 2026-06-22 по предложке
-  // suggestion_4c4a585a: плоский hue-free, БЕЗ лавандового градиента; лавандовый
-  // card-palette удалён). Грудированные поверхности (SearchFood/навигатор дат)
-  // локально включают `paper-mono-cards` → прозрачный ряд НАД белой inset-group и
-  // перебивают это значение. Здесь, app-wide, под рядом нет гарантии белой группы,
-  // поэтому --sys-card-bg = БЕЛЫЙ (а не transparent paper-mono-cards): standalone-ряды
-  // (flush-гипотезы / AnalysisListItem / FoodEntry-карточки) красятся сами и не
-  // растворяются. `--sys-list-bg` не публикуем — его единственный консумер SearchFood
-  // задаёт сам.
+  // Row-cards canon paper-mono (flat hue-free; lavender gradient removed 2026-06-22).
+  // app-wide --sys-card-bg = WHITE so standalone rows don't dissolve; gradient
+  // surfaces locally re-include paper-mono-cards (transparent) over a white group.
   @include paper-mono-cards;
   --sys-card-bg: #ffffff;
 }

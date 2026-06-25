@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
+import { Numeral, Text } from '@/shared/ui/atoms/Typography';
 import s from './NutrientRow.module.scss';
 
 type Props = {
@@ -29,10 +30,10 @@ export function NutrientRow({ name, unit, value, onClick, className }: Props) {
   const stacked = hasValue && !!unit;
   const body = (
     <>
-      <span className={s.name}>{name}</span>
+      <Text as="span" role="body" className={s.name}>{name}</Text>
       <span className={clsx(s.right, stacked && s.rightStacked)}>
-        {hasValue && <span className={s.value}>{value}</span>}
-        {unit ? <span className={s.unit}>{unit}</span> : null}
+        {hasValue && <Numeral as="span" size="base" weight="semibold" className={s.value}>{value}</Numeral>}
+        {unit ? <Text as="span" role="caption" className={s.unit}>{unit}</Text> : null}
       </span>
     </>
   );

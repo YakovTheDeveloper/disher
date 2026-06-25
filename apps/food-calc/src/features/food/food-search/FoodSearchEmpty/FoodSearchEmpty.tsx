@@ -1,5 +1,6 @@
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { ActionTile } from '@/shared/ui/atoms/ActionTile';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import styles from './FoodSearchEmpty.module.scss';
 
 const PRODUCT_IMG = '/art/product.png';
@@ -41,7 +42,9 @@ export const FoodSearchEmpty = ({
             По запросу <em>«{query}»</em> ничего нет
           </p>
         )}
-        <p className={styles.prompt}>Нету нужной еды? Создать в два клика</p>
+        <QuietLabel as="p" className={styles.prompt}>
+          Нету нужной еды? Создать в два клика
+        </QuietLabel>
       </div>
       <div className={styles.actions}>
         {onCreateDish && (

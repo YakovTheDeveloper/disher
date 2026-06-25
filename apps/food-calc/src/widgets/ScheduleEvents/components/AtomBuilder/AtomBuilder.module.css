@@ -30,20 +30,18 @@
   color: var(--sys-color-text-on-accent);
 }
 
+/* Типографику чипа несёт <Text role="caption">; класс — обвязка кнопки. */
 .scaleChipMain {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: var(--text-sm);
-  font-weight: 500;
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-.scaleChipMain b {
-  font-weight: 700;
-}
+/* Числовой ридаут значения шкалы — жирность несёт сам семантический <b>
+   (UA-дефолт bold), отдельное font-weight:700 было избыточным (снято 2026-06-25). */
 
 .scaleChipRemove {
   display: inline-flex;

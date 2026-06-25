@@ -8,6 +8,7 @@ import {
 import { HypothesisWriteBar } from '@/features/analysis/HypothesisWriteBar';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { pluralHypotheses } from '@/shared/lib/text/pluralHypotheses';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
 import styles from './DiscoveriesSlides.module.scss';
 
 // Stable fallbacks — список read-only здесь (selectable=false), но панель всё
@@ -64,13 +65,15 @@ const HypothesesSlide = ({ topSlot }: Props) => {
         <div ref={topAnchorRef} className={styles.topAnchor} aria-hidden />
 
         {hypotheses.length > 0 && (
-          <p className={styles.count}>
+          <Text role="caption" className={styles.count}>
             {hypotheses.length} {pluralHypotheses(hypotheses.length)}
-          </p>
+          </Text>
         )}
         {hypotheses.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>Пока нет гипотез</p>
+            <Heading as="h3" role="title" className={styles.emptyTitle}>
+              Пока нет гипотез
+            </Heading>
             <p className={styles.emptyBody}>
               Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
               <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.

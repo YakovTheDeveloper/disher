@@ -66,12 +66,12 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: var(--sys-field-font-family, var(--font-sans));
+  font-family: var(--sys-field-font-family);
   font-weight: var(--sys-field-font-weight, 500);
   font-size: var(--sys-field-font-size, 16px);
   font-style: var(--sys-field-font-style, normal);
   line-height: var(--sys-field-line-height, 22px);
-  letter-spacing: -0.005em;
+  letter-spacing: var(--sys-field-letter-spacing);
   color: var(--sys-field-text, rgb(31, 31, 31));
   // Vertical insets are vars so a rich-placeholder overlay can mirror them
   // exactly (and consumers — e.g. WriteFoodInput — retune them in one place).
@@ -125,11 +125,11 @@
   position: absolute;
   inset: 0;
   padding: var(--sys-field-pad-top, 14px) 0 var(--sys-field-pad-bottom, 3px);
-  font-family: var(--sys-field-font-family, var(--font-sans));
+  font-family: var(--sys-field-font-family);
   font-weight: var(--sys-field-font-weight);
   font-size: var(--sys-field-font-size, 16px);
   line-height: var(--sys-field-line-height, 22px);
-  letter-spacing: -0.005em;
+  letter-spacing: var(--sys-field-letter-spacing);
   color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
   white-space: nowrap;
   pointer-events: none;

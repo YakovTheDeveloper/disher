@@ -107,7 +107,11 @@ const InsightCard = ({
             )}
             {title}
           </Heading>
-          {strengthLabel && <span className={styles.strength}>{strengthLabel}</span>}
+          {strengthLabel && (
+            <Text as="span" role="caption" className={styles.strength}>
+              {strengthLabel}
+            </Text>
+          )}
         </div>
         <Text role="body" className={styles.detail}>
           {detail}
@@ -115,19 +119,19 @@ const InsightCard = ({
         {hasEvidence && (
           <div className={styles.evidence}>
             {days.map((d) => (
-              <span key={`d-${d}`} className={styles.chipDay}>
+              <Text as="span" role="caption" key={`d-${d}`} className={styles.chipDay}>
                 {formatDay(d)}
-              </span>
+              </Text>
             ))}
             {foods.map((f) => (
-              <span key={`f-${f}`} className={styles.chipFood}>
+              <Text as="span" role="caption" key={`f-${f}`} className={styles.chipFood}>
                 {f}
-              </span>
+              </Text>
             ))}
             {events.map((e) => (
-              <span key={`e-${e}`} className={styles.chipEvent}>
+              <Text as="span" role="caption" key={`e-${e}`} className={styles.chipEvent}>
                 {e}
-              </span>
+              </Text>
             ))}
           </div>
         )}
@@ -141,10 +145,11 @@ const InsightCard = ({
             aria-label={added ? 'Инсайт сохранён' : 'Сохранить инсайт'}
           >
             {added ? (
-              '✓ сохранено'
+              <Text as="span" role="caption">✓ сохранено</Text>
             ) : (
               <>
-                <PlusIcon aria-hidden />Сохранить инсайт
+                <PlusIcon aria-hidden />
+                <Text as="span" role="caption">Сохранить инсайт</Text>
               </>
             )}
           </button>

@@ -3,6 +3,7 @@ import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import Button from '@/shared/ui/atoms/Button/Button';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
 import { useDishAnalysis } from '../../api/queries';
 import { runDishAnalysis, type DishAnalysisResult } from '../../api/runDishAnalysis';
 import styles from './DishAnalysisScreen.module.scss';
@@ -77,7 +78,7 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
     return (
       <div className={styles.root}>
         <div className={styles.streamingHeader}>
-          <span>Загрузка…</span>
+          <Text as="span" role="caption">Загрузка…</Text>
         </div>
       </div>
     );
@@ -103,12 +104,12 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
   if (!hasContent && status !== 'error') {
     return (
       <div className={styles.emptyHero}>
-        <p className={styles.emptyTitle}>Разбор блюда</p>
-        <p className={styles.emptyHint}>
+        <Heading as="h3" role="title" className={styles.emptyTitle}>Разбор блюда</Heading>
+        <Text as="p" role="body" className={styles.emptyHint}>
           AI прочитает рецепт и расскажет про профиль БЖУ, гликемическое
           ощущение, для каких целей блюдо подходит, плюс отметит удачные и
           неудачные связки нутриентов.
-        </p>
+        </Text>
         <Button
           variant="brand"
           onClick={handleRun}
@@ -117,14 +118,14 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
           Проанализировать
         </Button>
         {!hasIngredients && (
-          <p className={styles.disabledHint}>
+          <Text as="p" role="caption" className={styles.disabledHint}>
             Добавьте хотя бы один ингредиент.
-          </p>
+          </Text>
         )}
         {!isOnline && (
-          <p className={styles.disabledHint}>
+          <Text as="p" role="caption" className={styles.disabledHint}>
             Нет сети — разбор требует подключения.
-          </p>
+          </Text>
         )}
       </div>
     );
@@ -132,7 +133,11 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
 
   return (
     <div className={styles.root}>
-      {error && <div className={styles.error}>{error}</div>}
+      {error && (
+        <Text as="div" role="caption" className={styles.error}>
+          {error}
+        </Text>
+      )}
       {hasContent && shown && (
         <AnalysisResult
           summary={shown.summary}

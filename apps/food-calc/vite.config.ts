@@ -6,11 +6,114 @@ import path from 'path';
 import { patchCssModules } from 'vite-css-modules';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
+import type { Plugin } from 'vite';
 import { readFileSync, existsSync } from 'fs';
 
 const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
 ) as { version: string };
+
+// open-in-editor целимся на CLI `code`, а не на автодетект.
+//
+// Vite дёргает `/__open-in-editor` через bundled `launch-editor`. На Windows его
+// автодетект сканирует процессы, находит ЗАПУЩЕННЫЙ GUI-бинарь `Code.exe` и
+// спавнит ИМЕННО его с `-r -g file:line:col` → GUI-exe так не умеет и выходит с
+// `code 9` («Could not open … in the editor»). CLI-обёртка `code` (через шелл →
+// `code.cmd`) эти аргументы понимает. `??=` оставляет приоритет за реальным env.
+process.env.LAUNCH_EDITOR ??= 'code';
+
+// Alt+Click → открыть .tsx-компонент в редакторе (dev-only удобство).
+//
+// Завендорено вместо npm `vite-plugin-react-click-to-component`: его 4.x требует
+// vite ^7 и грузит клиент через виртуальный модуль на object-form filter-хуках
+// `resolveId`/`load`, которых нет в нашем vite 6.3.7 → сломало бы резолв модулей.
+// А 3.x на React 19.2.5 падал `ReferenceError: source is not defined`, потому что
+// React 19.2 выкинул аргумент `source` из dev-рантайма. Берём ТУ ЖЕ заплатку из
+// 4.x (дописывает `source` обратно в jsxDEVImpl/ReactElement/jsxDEV), но через
+// классический `transform`-хук + инлайн-инъекцию клиента (механизм 3.x) — оба
+// поддержаны на любой vite. Только `serve`, прод не трогает.
+const reactClickToComponentLocal = (): Plugin => {
+  let root = '';
+  let base = '';
+  let clientCode = '';
+  return {
+    name: 'react-click-to-component-local',
+    apply: 'serve',
+    configResolved(config) {
+      root = config.root;
+      base = config.base;
+      clientCode = readFileSync(
+        path.resolve(__dirname, 'vite-plugins/click-to-component.client.js'),
+        'utf-8',
+      );
+    },
+    configureServer(server) {
+      // Shift+клик в меню → сюда прилетает путь .tsx. Ищем рядом одноимённый
+      // стиль-файл (scss/css, модульный или нет) и редиректим на встроенный
+      // /__open-in-editor — он и откроет редактор. Нет файла → 204 (тишина).
+      server.middlewares.use('/__open-style', (req, res) => {
+        const src = new URL(req.url ?? '', 'http://x').searchParams.get('file') ?? '';
+        const tsx = src.replace(/:\d+(:\d+)?$/, ''); // срезать :line:col
+        const dir = path.dirname(tsx);
+        const stem = path.basename(tsx).replace(/\.(tsx|jsx|ts|js)$/i, '');
+        const found = ['.module.scss', '.module.css', '.scss', '.css']
+          .map((ext) => path.join(dir, stem + ext))
+          .find((f) => existsSync(f));
+        if (!found) {
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+        res.statusCode = 302;
+        res.setHeader(
+          'Location',
+          `${base}__open-in-editor?file=${encodeURIComponent(found + ':1:1')}`,
+        );
+        res.end();
+      });
+    },
+    transform(code, id) {
+      // Чиним dev-рантайм React: возвращаем `source` в jsxDEV, чтобы fiber нёс
+      // `_debugInfo = {fileName,lineNumber,columnNumber}` для open-in-editor.
+      if (!id.includes('jsx-dev-runtime.js')) return;
+      if (code.includes('_source')) return;
+      const defineIndex = code.indexOf('"_debugInfo"');
+      if (defineIndex === -1) return;
+      const valueIndex = code.indexOf('value: null', defineIndex);
+      if (valueIndex === -1) return;
+      let next =
+        code.slice(0, valueIndex) + 'value: source' + code.slice(valueIndex + 11);
+      // Старый рантайм уже имел параметр `source` — больше ничего не нужно.
+      if (code.includes('function ReactElement(type, key, self, source,')) {
+        return next;
+      }
+      // React 19.2: протягиваем `source` через списки параметров jsxDEVImpl /
+      // ReactElement / публичного jsxDEV (он ловит 5-й арг, что Babel уже шлёт).
+      next = next.replace(
+        /maybeKey,\s*isStaticChildren/gu,
+        'maybeKey, isStaticChildren, source',
+      );
+      next = next.replace(
+        /(\w+)?,\s*debugStack,\s*debugTask/gu,
+        (m, previousArg) =>
+          previousArg === 'source' ? m : m.replace('debugTask', 'debugTask, source'),
+      );
+      return next;
+    },
+    transformIndexHtml() {
+      // replaceAll, НЕ replace: плейсхолдеры встречаются и в комментарии клиента,
+      // а replace заменил бы только первое (комментарийное) вхождение, оставив
+      // боевые `var root/base` плейсхолдерами → fetch уходил бы в никуда.
+      return [
+        {
+          tag: 'script',
+          attrs: { type: 'module' },
+          children: clientCode.replaceAll('__ROOT__', root).replaceAll('__BASE__', base),
+        },
+      ];
+    },
+  };
+};
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -60,6 +163,7 @@ export default defineConfig({
       },
     }),
     patchCssModules(),
+    reactClickToComponentLocal(),
     svgr({
       // svgr options: https://react-svgr.com/docs/options/
       svgrOptions: { exportType: "default", ref: true, svgo: false, titleProp: true },

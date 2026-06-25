@@ -74,15 +74,11 @@
 }
 
 // Подзаголовок-строка под заголовком (дата разбора и т.п.) — serif italic,
-// мельче и тише заголовка.
+// мельче и тише заголовка. Голос (serif-italic/размер/цвет) владеет примитив
+// <QuietLabel>; здесь только раскладка (типо-инкапсуляция, перенос 2026-06-24).
 .subtitle {
   margin-top: 2px;
   max-width: 100%;
-  font-family: var(--heading-font);
-  font-style: var(--heading-style);
-  font-size: var(--text-sm);
-  line-height: 1.1;
-  color: var(--text-secondary);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;

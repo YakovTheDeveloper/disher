@@ -6,7 +6,7 @@
 
 import { Atom, isScaleAtom, isTagAtom, isRelationAtom } from '@/entities/schedule-event';
 import styles from './AtomList.module.css';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
 export interface AtomListProps {
   atoms: Atom[];
@@ -60,7 +60,9 @@ export const AtomList = ({ atoms, onRemove, className = '' }: AtomListProps) => 
             <div className={styles.chips}>
               {group.map(({ atom, index }) => (
                 <div key={index} className={styles.atomChip} data-kind={kind}>
-                  <span className={styles.atomValue}>{formatAtom(atom)}</span>
+                  <Text as="span" role="caption" className={styles.atomValue}>
+                    {formatAtom(atom)}
+                  </Text>
                   <button
                     className={styles.removeButton}
                     onClick={() => onRemove(index)}

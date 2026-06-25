@@ -51,11 +51,7 @@
     background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 500;
     line-height: 1.1;
-    letter-spacing: -0.005em;
     color: var(--sys-color-control-segment-text);
     transition:
         background var(--press-out) ease,
@@ -75,7 +71,6 @@
 .segmentActive {
     background: var(--sys-color-control-segment-active-bg);
     color: var(--sys-color-control-segment-active-text);
-    font-weight: 600;
     box-shadow: var(--sys-elevation-action-rest);
 }
 
@@ -156,10 +151,10 @@
     padding-right: 8px;
     line-height: 1.2;
     caret-color: var(--sys-field-caret, #b76d1a);
-    font-family: var(--font-sans);
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    font-family: var(--sys-field-font-family);
+    font-size: var(--sys-field-font-size);
+    font-weight: var(--sys-field-font-weight);
+    letter-spacing: var(--sys-field-letter-spacing);
     color: var(--sys-field-text, rgb(31, 31, 31));
     outline: transparent;
     background: transparent;
@@ -275,11 +270,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    font-weight: 600;
     line-height: 1.1;
-    letter-spacing: -0.005em;
 }
 
 // Крестик отмены фильтра.

@@ -6,13 +6,10 @@
 // расписания. Числа ТЁМНЫЕ (--color-ink напрямую), подписи СЕРЫЕ
 // (--sys-color-text-secondary) — цифра не сливается с сокращением. Отделена от еды
 // тающей волосяной бровкой (как `Masthead::after`) с воздухом до/после. Весь блок
-// кликабелен → дровер. Облик зафиксирован — design-variants сняты. Локальная
-// типошкала — SCSS-переменные (мелко = бонус, не основа; цвета — sys-роли напрямую).
-
-// Локальная типошкала «как gofmt»: число + капс-подпись. SCSS-переменные (compile-time)
-// проходят token-gate (strict-value принимает $scss) и не плодят bespoke `--nt-*`-проксей.
-$num-size: 17px; //   размер числа
-$cap-size: 10.5px; // капс-подпись
+// кликабелен → дровер. Облик зафиксирован — design-variants сняты. Типошкала «как
+// gofmt» (число + капс-подпись) берёт sys-токены: число = `--sys-text-size-title`
+// (17, reuse tile-title), капс = bespoke `--sys-text-size-bar-cap` (10.5px). SCSS-$vars
+// сняты — sys-only token-gate (2026-06-24) флагает `$scss` в font-size.
 
 .root {
     position: relative;
@@ -57,7 +54,7 @@ $cap-size: 10.5px; // капс-подпись
     background: transparent;
     text-align: left;
     cursor: pointer;
-    border-radius: var(--radius-md);
+    border-radius: var(--sys-radius-container);
     -webkit-tap-highlight-color: transparent;
     transition:
         background var(--press-out) var(--easing-default),
@@ -65,9 +62,9 @@ $cap-size: 10.5px; // капс-подпись
 }
 
 .block:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     transform: scale(0.99);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
 }
 
 // Шеврон-намёк «открыть» — тихий, flex-сосед справа от колонки чисел (не absolute).
@@ -96,10 +93,8 @@ $cap-size: 10.5px; // капс-подпись
 }
 
 .label {
-    font-family: var(--font-sans);
+    // Капс-подпись = <Text role="caption">; типографику владеет примитив.
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: $cap-size;
     color: var(--sys-color-text-secondary);
     line-height: 1;
 }
@@ -107,11 +102,7 @@ $cap-size: 10.5px; // капс-подпись
 // Число — правым краем колонки → единицы выравниваются друг под другом.
 .value {
     justify-self: end;
-    font-family: var(--font-big-numeric);
-    font-weight: 800;
-    font-size: $num-size;
-    letter-spacing: -0.01em;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: var(--color-ink);
+    // Число = <Numeral size="md" weight="black"> (family/tnum/lnum от примитива).
+    color: var(--sys-color-text-primary);
     line-height: 1;
 }

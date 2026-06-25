@@ -8,6 +8,7 @@ import Button from '@/shared/ui/atoms/Button/Button';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import CreateDailyNormModal from './CreateDailyNormModal';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import styles from './EditDailyNormModal.module.scss';
 
 // chrome:
@@ -55,7 +56,7 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
             <ArrowLeftIcon />
           </button>
           <div className={styles.titleWrap}>
-            <span className={styles.title}>{USER_NORM_NAME}</span>
+            <Heading as="span" role="headline" className={styles.title}>{USER_NORM_NAME}</Heading>
           </div>
         </div>
       )}
@@ -63,7 +64,7 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
         {isLoading ? (
           <div className={styles.loadingState} aria-live="polite">
             <Spinner size={20} />
-            <span className={styles.loadingText}>Загружаем норму…</span>
+            <Text as="span" role="caption" className={styles.loadingText}>Загружаем норму…</Text>
           </div>
         ) : (
           <NutrientTable

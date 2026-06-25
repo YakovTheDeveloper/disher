@@ -8,6 +8,7 @@ import {
   type AnalysisRowStatus,
   type Analysis,
 } from '../api';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import styles from './AnalysisListItem.module.scss';
 
 const STATUS_LABEL: Record<AnalysisRowStatus, string> = {
@@ -61,21 +62,21 @@ const AnalysisListItem = ({ analysis, onOpen }: Props) => {
       onClick={() => onOpen(analysis.id)}
     >
       <span className={styles.main}>
-        <span className={styles.period}>
+        <QuietLabel className={styles.period}>
           {formatRange(analysis.windowStart, analysis.windowEnd)}
-        </span>
-        <span className={styles.meta}>
+        </QuietLabel>
+        <Text as="span" role="caption" className={styles.meta}>
           {hypothesisCount > 0
             ? `${hypothesisCount} ${pluralHypotheses(hypothesisCount)}`
             : 'без гипотез'}
-        </span>
+        </Text>
       </span>
-      <span className={styles.status} data-status={status}>
+      <Text as="span" role="caption" className={styles.status} data-status={status}>
         {status === 'running' && (
           <span className={styles.statusDot} aria-hidden="true" />
         )}
         {STATUS_LABEL[status]}
-      </span>
+      </Text>
     </button>
   );
 };

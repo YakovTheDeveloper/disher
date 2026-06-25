@@ -5,20 +5,9 @@ import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './DetailsChips.module.scss';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
-
-// DesignBar-проба стиля текстового поля (см. .root[data-dv-v=…] в .module.scss).
-// baseline = текущий градиентный вид; journal/well/card = резолюции A/B/C.
-const FIELD_VARIANTS = [
-  'baseline', // текущий градиент
-  'flat-warm', // форк baseline: плоский тёплый bg (без градиента)
-  'journal', // Res A: подчёркивание, очень subtle
-  'journal-plus', // форк journal: чуть «материальнее», читается как поле
-  'well', // Res B: утопленный слот
-  'card', // Res C: белый листок
-] as const;
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 
 type Props = {
   value: string;
@@ -59,7 +48,6 @@ export function DetailsChips({
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
-  const { anchor } = useDesignVariant('FieldStyle', FIELD_VARIANTS);
 
   const { suggestionChips, customChips } = useMemo(() => {
     const categories = readCategories(product);
@@ -94,7 +82,7 @@ export function DetailsChips({
   };
 
   return (
-    <div className={styles.root} {...anchor}>
+    <div className={styles.root}>
       <div className={styles.inputArea}>
         <AutoGrowSearch
           id={textareaId}
@@ -130,7 +118,7 @@ export function DetailsChips({
 
       {customChips.length > 0 && (
         <div className={styles.customGroup}>
-          <div className={styles.customLabel}>Ваши теги</div>
+          <QuietLabel as="div" className={styles.customLabel}>Ваши теги</QuietLabel>
           <div className={styles.chips} role="group" aria-label="Ваши теги">
             {customChips.map(({ tag }) => (
               <CustomChip
@@ -142,7 +130,7 @@ export function DetailsChips({
               />
             ))}
           </div>
-          <p className={styles.hint}>Зажмите чтобы удалить</p>
+          <Text as="p" role="caption" className={styles.hint}>Зажмите чтобы удалить</Text>
         </div>
       )}
     </div>

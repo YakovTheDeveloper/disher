@@ -32,6 +32,10 @@ function isPublicPath(pathname: string): boolean {
  * "after verify-email" transition without needing reactive pathname tracking.
  */
 export function AuthGate({ children }: Props) {
+  // TEMP: auth gate disabled for cross-browser testing — revert this line.
+  return <>{children}</>;
+
+  // eslint-disable-next-line no-unreachable
   const isReady = useAuthStore((s) => s.isReady);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';

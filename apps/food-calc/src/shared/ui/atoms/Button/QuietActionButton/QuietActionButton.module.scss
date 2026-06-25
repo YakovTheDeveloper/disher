@@ -12,14 +12,10 @@
     padding: 6px 4px;
     border: none;
     background: none;
-    color: var(--text-muted);
-    font-family: var(--font-sans);
+    color: var(--sys-color-text-muted);
     text-align: right;
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
     cursor: pointer;
-    border-radius: var(--radius-sm);
+    border-radius: var(--sys-radius-control);
     -webkit-tap-highlight-color: transparent;
 
     // Цветной отклик: текст + значок (currentColor) красятся в surface-акцент
@@ -32,10 +28,15 @@
     }
 
     &:focus-visible {
-        outline: 2px solid var(--text-muted);
+        outline: 2px solid var(--sys-color-text-muted);
         outline-offset: 3px;
-        border-radius: var(--radius-sm);
+        border-radius: var(--sys-radius-control);
     }
+}
+
+// Label — текст-роль несёт примитив <Text role="caption">; здесь только раскладка.
+.label {
+    min-width: 0;
 }
 
 .icon {

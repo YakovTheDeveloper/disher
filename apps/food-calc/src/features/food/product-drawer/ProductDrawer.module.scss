@@ -78,9 +78,8 @@
     border: none;
     border-radius: var(--radius-sm);
     background: none;
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
-    font-weight: 500;
+    // Типографику несёт <Text role="body"> (миграция в примитив). Класс держит
+    // раскладку/палитру.
     color: var(--text-primary);
     text-align: left;
     cursor: pointer;
@@ -125,19 +124,9 @@ $pill-radius: 14px;
     gap: var(--space-1);
 }
 
-.portionsTitle {
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-weight: var(--heading-weight);
-    font-size: var(--text-lg);
-    letter-spacing: var(--heading-letter);
-}
-
 // Счётчик порций — закрытый аккордеон сообщает, есть ли в нём что-то.
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит цвет.
 .portionsCount {
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 400;
     color: var(--text-tertiary);
 }
 
@@ -181,9 +170,7 @@ $pill-radius: 14px;
     border: 1.5px dashed $sky-stripe;
     border-radius: $pill-radius;
     background: none;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
+    // Типографику метки несёт <Text role="caption"> (миграция в примитив).
     color: $sky-ink-soft;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -209,10 +196,10 @@ $pill-radius: 14px;
 }
 
 // ─── Количество ──────────────────────────────────────────────────
+// Типографику несёт <Text role="body"> (миграция в примитив). Класс держит
+// отступ + цвет.
 .servingComposition {
     margin: var(--space-2) 0;
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
     color: var(--text-secondary);
 }
 
@@ -276,9 +263,8 @@ $pill-radius: 14px;
     margin-bottom: var(--sys-stack-row);
 }
 
+// Типографику несёт <Text role="body"> (миграция в примитив). Класс держит цвет.
 .quantityUnit {
-    font-family: var(--font-sans);
-    font-size: var(--text-base);
     color: var(--text-secondary);
 }
 
@@ -296,10 +282,10 @@ $pill-radius: 14px;
     text-align: center;
 }
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+// сброс отступа + цвет.
 .emptyNutrientsCaption {
     margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
     color: var(--text-secondary);
 }
 
@@ -309,8 +295,7 @@ $pill-radius: 14px;
     border: none;
     background: none;
     padding: var(--space-1) var(--space-2);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
+    // Типографику несёт <Text role="caption"> (миграция в примитив).
     color: var(--text-tertiary);
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -337,12 +322,8 @@ $pill-radius: 14px;
     padding: var(--space-2) 0;
 }
 
+// Типографику несёт <Heading role="title"> (миграция в примитив). Класс держит цвет.
 .editTitle {
-    font-family: var(--heading-font);
-    font-style: var(--heading-style);
-    font-weight: var(--heading-weight);
-    font-size: var(--text-lg);
-    letter-spacing: var(--heading-letter);
     color: var(--text-primary);
 }
 
@@ -379,9 +360,8 @@ $pill-radius: 14px;
     border-radius: var(--radius-sm);
     background: var(--color-warning-surface);
     border: 1px solid var(--color-warning-border);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
+    // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+    // подложку/палитру/межстрочный.
     color: var(--color-warning);
     line-height: 1.4;
 }

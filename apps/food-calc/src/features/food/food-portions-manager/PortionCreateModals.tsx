@@ -10,6 +10,7 @@ import {
   PORTION_STEPS,
   PORTION_STEP_LABELS,
 } from './usePortionFlow';
+import { Text } from '@/shared/ui/atoms/Typography';
 import s from './PortionCreateModals.module.scss';
 
 type Props = {
@@ -140,7 +141,9 @@ const PortionCreateModals = ({ existingLabels, unit, onCreate }: Props) => {
                   size="big"
                   onChange={updateGrams}
                 />
-                <span className={s.gramsUnit}>{unit}</span>
+                <Text as="span" role="label" className={s.gramsUnit}>
+                  {unit}
+                </Text>
               </div>
               <ModalShell.ActionButtons
                 debugId="portion-grams"

@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 import clsx from 'clsx';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './Chip.module.scss';
 
 export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -16,13 +17,17 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
  * задаёт вызывающий код через `onClick`. Консумеры: NutrientPickerDrawer,
  * DetailsChips «Особенности приёма», ProductQuantity, AtomBuilder.
  */
-export function Chip({ active = false, className, type = 'button', ...rest }: ChipProps) {
+export function Chip({ active = false, className, type = 'button', children, ...rest }: ChipProps) {
   return (
     <button
       type={type}
       className={clsx(styles.chip, active && styles.active, className)}
       {...rest}
-    ></button>
+    >
+      <Text role="label" as="span">
+        {children}
+      </Text>
+    </button>
   );
 }
 

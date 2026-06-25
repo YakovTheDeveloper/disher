@@ -5,6 +5,7 @@ import { LongPressRow } from '@/features/shared/long-press-item';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
 import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {
@@ -190,15 +191,19 @@ export const FreeTextFoodReviewItem = ({
             onTouchStart={() => onStartEdit(uid, 'search')}
             title="Заменить продукт"
           >
-            <span
+            <Text
+              as="span"
+              role="body"
               className={clsx(styles.name, showOriginalFallback && styles.nameOriginal)}
             >
               {showOriginalFallback ? item.originalName : item.name}
-            </span>
+            </Text>
           </label>
 
           {showOriginalHint && (
-            <span className={styles.nameOriginalHint}>«{item.originalName}»</span>
+            <Text as="span" role="caption" className={styles.nameOriginalHint}>
+              «{item.originalName}»
+            </Text>
           )}
 
           {hasNote && (
@@ -209,7 +214,7 @@ export const FreeTextFoodReviewItem = ({
               onTouchStart={() => onStartEdit(uid, 'details')}
               title="Изменить заметку"
             >
-              {item.details}
+              <QuietLabel>{item.details}</QuietLabel>
             </label>
           )}
 
@@ -237,15 +242,15 @@ export const FreeTextFoodReviewItem = ({
               min={1}
               maxLength={4}
             />
-            <span className={styles.qtyUnit}>г</span>
+            <Text as="span" role="caption" className={styles.qtyUnit}>г</Text>
           </span>
         ) : (
           <span
             className={styles.qtyEdit}
             onClick={() => setEditingQty(true)}
           >
-            {qtyDisplay}
-            <span className={styles.qtyUnit}>г</span>
+            <Numeral as="span" size="base" weight="semibold">{qtyDisplay}</Numeral>
+            <Text as="span" role="caption" className={styles.qtyUnit}>г</Text>
           </span>
         )}
 

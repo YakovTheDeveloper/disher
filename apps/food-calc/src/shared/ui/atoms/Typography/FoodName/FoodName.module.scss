@@ -1,5 +1,5 @@
 .active {
-    color: rgb(149, 143, 255);
+    color: var(--sys-color-bg-selected); // was rgb(149,143,255) лаванда → ближайший sys (акцент «выбрано/активно»)
 
     &::before {
         opacity: 1;

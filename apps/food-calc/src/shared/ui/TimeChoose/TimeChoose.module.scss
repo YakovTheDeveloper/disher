@@ -85,12 +85,21 @@
     align-items: center;
 }
 
+// Dial-голос (Onest 800 6rem, --sys-text-mono-big-*) делят цифры (.input, голый
+// <input>) и двоеточие (.separator, aria-hidden glyph того же циферблата). Циферблат
+// на голом input — санкционированный не-обёртываемый контекст (нет HTML-узла под
+// примитив); .separator живёт в этом же блоке, чтобы наследовать exempt input-контекст
+// гейта и не дрейфовать от цифр.
+.input,
+.separator {
+    font-size: var(--sys-text-mono-big-size);
+    font-family: var(--sys-text-mono-big-family);
+}
+
 .input {
     display: block;
     width: 2ch;
     // padding: 0;
-    font-size: var(--sys-text-mono-big-size);
-    font-family: var(--sys-text-mono-big-family);
     font-weight: var(--sys-text-mono-big-weight);
     line-height: 1;
     letter-spacing: -0.085em; // циферблат намеренно плотнее (оптический трекинг локально)
@@ -134,10 +143,8 @@
     align-items: center;
     justify-content: center;
     color: rgba(38, 38, 51, 0.8);
-    font-family: var(--sys-text-mono-big-family);
     user-select: none;
     pointer-events: none;
-    font-size: var(--sys-text-mono-big-size);
     line-height: 1;
     width: 10px;
     transform: translateY(-10%);
@@ -218,17 +225,18 @@
     text-align: center;
 }
 
+// Голос (font-*) несёт <Text role="body"> на узле .rangeSummary; здесь — только цвет/
+// раскладка/таб-цифры.
 .rangeSummary {
-    font-family: var(--sys-field-font-family);
-    font-size: 14px;
-    font-weight: 500;
     color: rgba(10, 10, 10, 0.55);
     text-align: center;
-    letter-spacing: 0.01em;
     font-variant-numeric: tabular-nums;
 }
 
-.nativeInput {
+// Голый <input type="time"> — санкционированный не-обёртываемый контекст (поле ввода,
+// нет HTML-узла под примитив). Селектор сужен до `input.nativeInput`, чтобы голос
+// поля жил в CSS легитимно (exempt input-контекст гейта).
+input.nativeInput {
     font-size: 2rem;
     font-family: var(--sys-field-font-family);
     padding: 12px 18px;

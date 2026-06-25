@@ -1,5 +1,6 @@
 import { FC, useState } from 'react';
 import { useLongPress } from '@/shared/lib/hooks/useLongPress';
+import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import s from './FoodPortionsManager.module.scss';
 
 type Portion = { label: string; grams: number };
@@ -95,9 +96,9 @@ const PortionEditRow = ({
           onBlur={finishLabel}
         />
       ) : (
-        <span className={s.cellLabel} onClick={() => setEditing('label')}>
+        <Text as="span" role="label" className={s.cellLabel} onClick={() => setEditing('label')}>
           {portion.label}
-        </span>
+        </Text>
       )}
 
       {editing === 'grams' ? (
@@ -110,12 +111,12 @@ const PortionEditRow = ({
           onBlur={finishGrams}
         />
       ) : (
-        <span className={s.cellGrams} onClick={() => setEditing('grams')}>
+        <Numeral as="span" size="sm" weight="regular" className={s.cellGrams} onClick={() => setEditing('grams')}>
           {portion.grams || '—'}
-        </span>
+        </Numeral>
       )}
 
-      <span className={s.portionUnitSuffix}>{unit}</span>
+      <Text as="span" role="caption" className={s.portionUnitSuffix}>{unit}</Text>
     </div>
   );
 };
@@ -175,20 +176,28 @@ const FoodPortionsManager: FC<Props> = ({
 
   return (
     <div className={s.container}>
-      {editable && showHint && <p className={s.hint}>{hintText}</p>}
+      {editable && showHint && (
+        <Text as="p" role="caption" className={s.hint}>
+          {hintText}
+        </Text>
+      )}
 
       {portions.length === 0 && !implicitPortion && !editable && (
-        <div className={s.empty}>нет порций</div>
+        <Text as="div" role="caption" className={s.empty}>
+          нет порций
+        </Text>
       )}
 
       <div className={s.list}>
         {implicitPortion && (
           <div className={s.portion}>
             <div className={s.portionInfo}>
-              <span className={s.portionLabel}>{implicitPortion.label}</span>
-              <span className={s.portionGrams}>
+              <Text as="span" role="label" className={s.portionLabel}>
+                {implicitPortion.label}
+              </Text>
+              <Numeral as="span" size="sm" weight="thin" className={s.portionGrams}>
                 {implicitPortion.grams} {unit}
-              </span>
+              </Numeral>
             </div>
           </div>
         )}
@@ -207,10 +216,12 @@ const FoodPortionsManager: FC<Props> = ({
           ) : (
             <div key={p.label} className={s.portion}>
               <div className={s.portionInfo}>
-                <span className={s.portionLabel}>{p.label}</span>
-                <span className={s.portionGrams}>
+                <Text as="span" role="label" className={s.portionLabel}>
+                  {p.label}
+                </Text>
+                <Numeral as="span" size="sm" weight="thin" className={s.portionGrams}>
                   {p.grams} {unit}
-                </span>
+                </Numeral>
               </div>
             </div>
           ),

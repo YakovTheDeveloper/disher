@@ -12,10 +12,10 @@
     min-height: 48px;
     padding: var(--space-2);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--sys-radius-control);
     background: transparent;
     text-align: left;
-    font-family: var(--font-sans);
+    // Типографику владеют примитивы детей (<Text>/<Numeral>) — родитель font-* не задаёт.
 
     &::after {
         content: '';
@@ -54,9 +54,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: var(--text-base);
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    // Имя нутриента = <Text role="body">; типографику владеет примитив.
     color: var(--sys-card-text-rest);
 }
 
@@ -80,23 +78,18 @@
         top: 100%;
         right: 0;
         margin-top: 1px;
-        font-size: var(--text-xs);
-        font-weight: 500;
+        // size несёт <Text role="caption">; тут раскладка+opacity.
         opacity: 0.7;
     }
 }
 
 .value {
-    font-size: var(--text-base);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    // Значение = <Numeral size="base" weight="semibold"> (tnum/lnum от примитива).
     line-height: 1.1;
     color: var(--sys-card-text-rest);
 }
 
 .unit {
-    font-size: var(--text-sm);
-    font-weight: 600;
+    // Юнит = <Text role="caption">; типографику владеет примитив.
     color: var(--sys-card-rich-unit);
 }

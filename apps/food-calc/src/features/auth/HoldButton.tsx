@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './HoldButton.module.scss';
 
 type Props = {
@@ -133,7 +134,9 @@ export function HoldButton({
       aria-label={label}
     >
       <span ref={fillRef} className={styles.fill} aria-hidden />
-      <span className={styles.holdLabel}>{text}</span>
+      <Text as="span" role="body" className={styles.holdLabel}>
+        {text}
+      </Text>
     </button>
   );
 }

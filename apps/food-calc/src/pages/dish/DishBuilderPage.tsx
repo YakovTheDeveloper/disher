@@ -24,6 +24,7 @@ import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import { Quantity } from '@/shared/ui/Quantity';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -362,7 +363,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                   >
                     <FoodName content={{ name: item.product?.name ?? item.productId }} />
                     {item.details ? (
-                      <span className={styles.detailsSubtitle}>{item.details}</span>
+                      <QuietLabel className={styles.detailsSubtitle}>{item.details}</QuietLabel>
                     ) : null}
                   </label>
                   <Quantity

@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { SwitcherTab } from '@/shared/ui/SwitcherTab';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
 
-// Номера таблиц для индикатора-варианта `tab-numerals` (см. .swipeDot::before).
+// Номера таблиц для индикатора-варианта `tab-numerals` (рендерятся в <QuietLabel>).
 const PLATE_NUMERALS = ['I', 'II', 'III', 'IV', 'V'];
 
 export type ScreenEntry = {
@@ -107,8 +108,11 @@ export const ScreenIndicator = ({
           <span
             key={screen.label}
             className={clsx(s.swipeDot, i === displayIndex && s.swipeDotActive)}
-            data-num={PLATE_NUMERALS[i] ?? String(i + 1)}
-          />
+          >
+            <QuietLabel as="span" className={s.swipeDotNum}>
+              {PLATE_NUMERALS[i] ?? String(i + 1)}
+            </QuietLabel>
+          </span>
         ))}
       </div>
 

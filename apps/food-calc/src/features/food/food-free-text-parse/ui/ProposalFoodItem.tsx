@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
@@ -122,10 +123,12 @@ export const ProposalFoodItem = ({
           htmlFor={searchInputId}
         />
         {showOriginalHint && (
-          <span className={styles.nameOriginalHint}>«{item.originalName}»</span>
+          <Text as="span" role="caption" className={styles.nameOriginalHint}>
+            «{item.originalName}»
+          </Text>
         )}
         {item.details ? (
-          <span className={styles.detailsSubtitle}>{item.details}</span>
+          <QuietLabel className={styles.detailsSubtitle}>{item.details}</QuietLabel>
         ) : null}
       </span>
 

@@ -119,6 +119,8 @@
     transform: translateY(0);
 }
 
+// Голос (caption-ярус) несёт примитив <Text role="caption">; здесь — раскладка,
+// поверхность, цвет и числовой font-feature (tnum/lnum для счётчиков в подсказке).
 .focusHintInner {
     max-width: 100%;
     padding: 4px var(--space-3);
@@ -126,21 +128,16 @@
     background: var(--sys-color-surface-raised);
     box-shadow: var(--sys-elevation-action-rest);
     color: var(--hint-fg);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    line-height: 1.4;
-    letter-spacing: -0.005em;
     text-align: center;
     white-space: pre-line;
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
+// Акцентное первое слово — serif-italic голос несёт примитив <QuietLabel>; здесь
+// только контекстный цвет + возврат полной непрозрачности (акцент, не «тихий»).
 .focusHintAccent {
-    font-family: var(--heading-font);
-    font-style: italic;
-    font-weight: 500;
     color: var(--hint-accent);
+    opacity: 1;
 }
 
 // ─── Bar line: glass pill (flex-fill) + detached medal sibling ─────────────
@@ -281,10 +278,10 @@
     padding: 0;
 }
 
+// serif-italic голос несёт примитив <QuietLabel>; placeholder-акцент не «тихий»,
+// поэтому возвращаем полную непрозрачность (цвет наследуется от placeholder).
 .placeholderAccent {
-    font-family: var(--heading-font);
-    font-style: italic;
-    font-weight: 500;
+    opacity: 1;
 }
 
 // Send coin — rides in the right slot, taking the medal's footprint (the medal
@@ -484,8 +481,6 @@
     border-radius: var(--radius-full);
     background: var(--wb-send);
     color: var(--wb-send-fg);
-    font-size: var(--text-xs);
-    font-weight: 600;
     line-height: 1;
 }
 

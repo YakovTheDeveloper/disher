@@ -1,7 +1,7 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import styles from './NutrientPickerDrawer.module.scss';
 
@@ -31,9 +31,9 @@ export function NutrientPickerDrawer({ onClose, activeId }: Props) {
   return (
     <DrawerLayout title="Выбери нутриенты">
       <div className={styles.root}>
-        <p className={styles.intro}>
+        <Text role="caption" className={styles.intro}>
           Еда в поиске покажет, сколько в ней выбранного нутриента
-        </p>
+        </Text>
         <ChoiceGroup
           className={styles.choiceGroups}
           aria-label="Нутриенты"

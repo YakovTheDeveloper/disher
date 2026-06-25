@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import HypothesisListItem from './HypothesisListItem';
 import styles from './HypothesisListPanel.module.scss';
@@ -123,9 +123,9 @@ const HypothesisListPanel = ({
               Гипотезы
             </Heading>
           )}
-          <span className={styles.headerCount}>
+          <Text as="span" role="caption" className={styles.headerCount}>
             {selectable ? `${selectedCount} выбрано из ${total}` : total}
-          </span>
+          </Text>
         </div>
       )}
 
@@ -166,7 +166,9 @@ const HypothesisListPanel = ({
       </div>
 
       {capReached && (
-        <p className={styles.capHint}>В один разбор берётся максимум {MAX_SELECTED} гипотез.</p>
+        <Text as="p" role="caption" className={styles.capHint}>
+          В один разбор берётся максимум {MAX_SELECTED} гипотез.
+        </Text>
       )}
     </section>
   );

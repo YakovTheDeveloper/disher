@@ -14,6 +14,7 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
 import { catalog } from '@/shared/data/catalog';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './AddToListPopover.module.scss';
 
 interface DuplicateMatch {
@@ -110,7 +111,10 @@ export const AddToListPopover = ({
           />
           {duplicate && (
             <p className={styles.dupHint}>
-              Уже есть: <span className={styles.dupName}>{duplicate.name}</span>
+              Уже есть:{' '}
+              <Text as="span" role="caption" className={styles.dupName}>
+                {duplicate.name}
+              </Text>
               <span className={styles.dupSource}>
                 · {duplicate.source === 'system' ? 'каталог' : 'мой список'}
               </span>
@@ -118,19 +122,25 @@ export const AddToListPopover = ({
           )}
           <div className={styles.actions}>
             <button type="button" className={styles.btnGhost} onClick={onClose}>
-              Отмена
+              <Text as="span" role="caption">
+                Отмена
+              </Text>
             </button>
             {duplicate ? (
               <>
                 <button type="button" className={styles.btnSecondary} onClick={submitNew}>
-                  Создать новый
+                  <Text as="span" role="caption">
+                    Создать новый
+                  </Text>
                 </button>
                 <button
                   type="button"
                   className={styles.btnPrimary}
                   onClick={() => onUseExisting(duplicate.id, duplicate.name)}
                 >
-                  Использовать
+                  <Text as="span" role="caption">
+                    Использовать
+                  </Text>
                 </button>
               </>
             ) : (
@@ -140,7 +150,9 @@ export const AddToListPopover = ({
                 onClick={submitNew}
                 disabled={!trimmed}
               >
-                Добавить
+                <Text as="span" role="caption">
+                  Добавить
+                </Text>
               </button>
             )}
           </div>

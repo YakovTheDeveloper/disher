@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
+import { Numeral } from '@/shared/ui/atoms/Typography';
 
 export type Portion = { label: string; grams: number };
 
@@ -104,7 +105,7 @@ const ProductQuantity = ({
                 maxLength={5}
               />
             </span>
-            <span className={style.unit}>{'г'}</span>
+            <Numeral as="span" size="md" weight="medium" className={style.unit}>{'г'}</Numeral>
           </div>
         </div>
 
@@ -121,7 +122,7 @@ const ProductQuantity = ({
               className={style.multiplierBtn}
               onClick={() => handleMultiplierChange(multiplier + 0.5)}
             >
-              +
+              <Numeral as="span" size="lg" weight="semibold">+</Numeral>
             </button>
             <NumberInput
               className={style.multiplierInput}
@@ -134,7 +135,7 @@ const ProductQuantity = ({
               className={style.multiplierBtn}
               onClick={() => handleMultiplierChange(multiplier - 0.5)}
             >
-              −
+              <Numeral as="span" size="lg" weight="semibold">−</Numeral>
             </button>
           </div>
         )}

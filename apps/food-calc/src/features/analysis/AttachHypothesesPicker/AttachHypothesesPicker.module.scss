@@ -7,8 +7,8 @@
 }
 
 .empty {
-    color: var(--text-secondary);
-    font-size: var(--text-sm);
+    // font-size now owned by <Text role="caption">.
+    color: var(--sys-color-text-secondary);
     text-align: center;
     padding: var(--space-6) var(--space-2);
 }

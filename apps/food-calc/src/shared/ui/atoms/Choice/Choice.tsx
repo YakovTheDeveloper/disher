@@ -10,6 +10,7 @@ import {
 } from 'react';
 import clsx from 'clsx';
 import TickIcon from '@/shared/assets/icons/tick.svg?react';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './Choice.module.scss';
 
 type Orientation = 'horizontal' | 'vertical';
@@ -168,7 +169,9 @@ export function ChoiceItem({
       }}
       {...rest}
     >
-      <span className={styles.content}>{children}</span>
+      <Text role="label" as="span" className={styles.content}>
+        {children}
+      </Text>
       <span className={styles.marker} aria-hidden>
         <TickIcon className={styles.markerTick} />
       </span>

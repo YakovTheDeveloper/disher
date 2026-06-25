@@ -53,24 +53,32 @@
 /* Value number — text type so the numeric keyboard shows. Sized down ~1.5×
    from the old 72px hero so it sits beside the text field; its own
    border-bottom carries the underline (no separate element). */
-.scaleNumberInput {
+/* input-scoped: bespoke hero-числовой ВВОД (48px/300) — типографика поля живёт в
+   CSS, обернуть <input> в примитив нельзя (typo-gate selector-exempt). */
+input.scaleNumberInput {
   flex: 0 0 auto;
-  width: 1.6em;
+  width: 2.2em;
+  box-sizing: border-box;
   text-align: center;
   font-size: 48px;
   font-weight: 300;
   line-height: 1;
-  color: #000;
+  color: var(--sys-field-text, var(--text-primary));
   letter-spacing: -0.02em;
-  border: none;
-  border-bottom: 2px solid #000;
-  background: transparent;
-  padding: 0;
-  caret-color: #000;
+  /* Field-slot (well) — единый тон поля app: плоская тёплая заливка + inset-тень,
+     бровка только в фокусе. Раньше был underline (border-bottom 2px #000). */
+  border: 1px solid var(--sys-field-hairline, transparent);
+  border-radius: var(--sys-field-radius, var(--radius-sm));
+  background: var(--sys-field-bg-from, #f4efe6);
+  box-shadow: var(--sys-field-shadow, inset 0 1px 2px rgba(124, 65, 15, 0.1));
+  padding: var(--space-2) var(--space-3);
+  caret-color: var(--sys-field-caret, #877f9c);
 }
 
 .scaleNumberInput:focus {
   outline: none;
+  border-color: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.32));
+  box-shadow: var(--sys-field-shadow-focus, inset 0 1px 3px rgba(124, 65, 15, 0.16));
 }
 
 /* Phenomenon text field (unified AutoGrowSearch pill) — fills the rest of

@@ -41,17 +41,25 @@
     --sys-field-font-size: 16px;
     --sys-field-font-style: normal;
     --sys-field-line-height: 22px;
-    --sys-field-bg-from: #{list.nth($pill, 1)};
-    --sys-field-bg-mid: #{list.nth($pill, 2)};
-    --sys-field-bg-to: #{list.nth($pill, 3)};
-    --sys-field-text: #{$text};
-    --sys-field-placeholder: #{rgba($ink, 0.45)};
-    --sys-field-adornment: #{rgba($ink, 0.55)};
-    --sys-field-hairline: #{rgba($ink, 0.18)};
-    --sys-field-hairline-focus: #{rgba($ink, 0.36)};
-    --sys-field-shadow: 0 1px 3px #{rgba($ink, 0.06)};
-    --sys-field-shadow-focus: 0 1px 8px #{rgba($ink, 0.12)};
-    --sys-field-digit-shadow: 0 1px 2px #{rgba($ink, 0.14)};
+    // ── Поле = «утопленный слот» (well) — единственная база поля с 2026-06-24 ──
+    // Плоская тёплая заливка (~4% темнее бумаги) + мягкая ВНУТРЕННЯЯ тень; поле
+    // узнаётся контрастом заливки, без рамки и градиента, бровка только в фокусе.
+    // Это бывший «well»-вариант DesignBar-пробы FieldStyle — выбран и поднят в
+    // базу, от остальных вариантов отказались (локальный DetailsChips override снят).
+    // Тон поля НАМЕРЕННО тёплый и РАЗВЯЗАН с $ink: warm-brown (124·65·15) несёт
+    // глубину/фокус-бровку, warm-coal (34·31·25) — плейсхолдер/adornment. $pill и
+    // $ink больше НЕ питают поле — только чипы ниже (моно-тон app сохранён).
+    --sys-field-bg-from: #f4efe6;
+    --sys-field-bg-mid: #f4efe6;
+    --sys-field-bg-to: #f4efe6;
+    --sys-field-text: var(--text-primary);
+    --sys-field-placeholder: rgba(34, 31, 25, 0.4);
+    --sys-field-adornment: rgba(34, 31, 25, 0.55);
+    --sys-field-hairline: transparent;
+    --sys-field-hairline-focus: rgba(124, 65, 15, 0.32);
+    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.1);
+    --sys-field-shadow-focus: inset 0 1px 3px rgba(124, 65, 15, 0.16);
+    --sys-field-digit-shadow: 0 1px 2px rgba(124, 65, 15, 0.14);
     --sys-field-caret: #{$accent};
 
     --sys-chip-bg: linear-gradient(135deg,
@@ -414,8 +422,10 @@
 // сами являются единым кликабельным элементом ИЛИ wrapper-driven
 // (padding-block на wrapper'е, без cell-canon).
 //
-// Для cell-driven рядов (ScheduleFoodItem) min-height живёт на ячейках
-// через --row-cell-min-h — этот mixin не нужен.
+// Для cell-driven рядов (ScheduleFoodItem) пол живёт на ЛИСТЕ (ячейке) через
+// --sys-row-cell-min-h, а обёртка идёт голой — обнуляет свой --sys-row-min-h-touch
+// (и pad-block) на grid-руте. Этот mixin там не несёт нагрузки. См. tokens.scss
+// #row-geometry (leaf-floor canon).
 //
 // `align-content: center` — современная (CSS Box Alignment Level 3) альтернатива
 // flex-centering: работает одновременно на block, grid, и flex layout'ах. НЕ
@@ -430,7 +440,7 @@
 //   - chip-row'ы (DetailsChips)
 //   - inline-toggle / pill-кнопки
 @mixin row-touch() {
-    min-height: var(--row-min-h-touch);
+    min-height: var(--sys-row-min-h-touch);
     align-content: center;
 }
 

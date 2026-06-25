@@ -9,7 +9,7 @@ import s from './NutrientTable.module.scss';
 import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Numeral, Text } from '@/shared/ui/atoms/Typography';
 
 interface Props {
   getValue: (id: string) => number;
@@ -134,19 +134,19 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
           </Heading>
           <span className={s.dots} />
           {showPctView && (
-            <span className={s.pct}>
+            <Numeral as="span" size="base" weight="regular" className={s.pct}>
               {pct}
-              <span className={s.pctSign}>%</span>
-            </span>
+              <Numeral as="span" size="sm" weight="thin" className={s.pctSign}>%</Numeral>
+            </Numeral>
           )}
         </div>
         <div className={clsx(s.rowBottom, isView && s.rowBottomBar)}>
           {isView && (
             <>
-              <span className={clsx(s.value, s.valueLeft)}>
+              <Numeral as="span" size="sm" className={clsx(s.value, s.valueLeft)}>
                 <span>{Math.round(value)}</span>
-                <span className={s.unit}>{nutrient.unitRu}</span>
-              </span>
+                <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+              </Numeral>
               {showProgress && (
                 <div className={s.progressTrack}>
                   <div
@@ -156,10 +156,10 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                 </div>
               )}
               {hasNorm && (
-                <span className={`${s.value} ${s.valueRight}`}>
+                <Numeral as="span" size="sm" className={`${s.value} ${s.valueRight}`}>
                   <span>{norm}</span>
-                  <span className={s.unit}>{nutrient.unitRu}</span>
-                </span>
+                  <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+                </Numeral>
               )}
             </>
           )}
@@ -170,7 +170,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                 onChange={(v) => onValueChange?.(nutrient.id, v)}
                 className={s.editInput}
               />
-              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+              <Text as="span" role="label" className={s.unitProminent}>{nutrient.unitRu}</Text>
             </div>
           )}
           {isEditValues && (
@@ -182,7 +182,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                   onBlur={(v) => handleEditBlur(nutrient.id, v)}
                   className={s.editInput}
                 />
-                <span className={s.unitProminent}>{nutrient.unitRu}</span>
+                <Text as="span" role="label" className={s.unitProminent}>{nutrient.unitRu}</Text>
               </div>
             </div>
           )}
@@ -197,7 +197,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                 setOverlayOpen(null);
               }}
             >
-              Богатые продукты
+              <Text as="span" role="caption">Богатые продукты</Text>
             </button>
           </div>
         )}
@@ -231,15 +231,19 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
           <Heading as="span" role="title" className={s.name}>
             {nutrient.displayNameRu}
           </Heading>
-          {showPctView && <span className={s.pct}>{norm ? `${pct}%` : ''}</span>}
+          {showPctView && (
+            <Numeral as="span" size="base" weight="regular" className={s.pct}>
+              {norm ? `${pct}%` : ''}
+            </Numeral>
+          )}
         </div>
         <div className={clsx(s.rowBottom, isView && s.rowBottomBar)}>
           {isView && (
             <>
-              <span className={clsx(s.value, s.valueLeft)}>
+              <Numeral as="span" size="sm" className={clsx(s.value, s.valueLeft)}>
                 <span>{nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}</span>
-                <span className={s.unit}>{nutrient.unitRu}</span>
-              </span>
+                <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+              </Numeral>
               {showProgress && norm > 0 && (
                 <div className={s.progressTrack}>
                   <div
@@ -249,16 +253,16 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                 </div>
               )}
               {hasNorm && (
-                <span className={`${s.value} ${s.valueRight}`}>
+                <Numeral as="span" size="sm" className={`${s.value} ${s.valueRight}`}>
                   {norm ? (
                     <>
                       <span>{norm}</span>
-                      <span className={s.unit}>{nutrient.unitRu}</span>
+                      <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
                     </>
                   ) : (
                     ''
                   )}
-                </span>
+                </Numeral>
               )}
             </>
           )}
@@ -269,7 +273,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                 onChange={(v) => onValueChange?.(nutrient.id, v)}
                 className={s.editInput}
               />
-              <span className={s.unitProminent}>{nutrient.unitRu}</span>
+              <Text as="span" role="label" className={s.unitProminent}>{nutrient.unitRu}</Text>
             </div>
           )}
           {isEditValues && (
@@ -284,7 +288,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
                   onBlur={(v) => handleEditBlur(nutrient.id, v)}
                   className={s.editInput}
                 />
-                <span className={s.unitProminent}>{nutrient.unitRu}</span>
+                <Text as="span" role="label" className={s.unitProminent}>{nutrient.unitRu}</Text>
               </div>
             </div>
           )}

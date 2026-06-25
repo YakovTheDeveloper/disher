@@ -18,10 +18,6 @@
   border-radius: var(--sys-radius-control);
   background: var(--sys-color-surface-raised);
   color: var(--sys-color-text-primary);
-  font-size: var(--text-base);
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.005em;
   cursor: pointer;
   transition:
     border-color var(--press-out) ease,
@@ -37,7 +33,7 @@
 
 .choice:active {
   transform: scale(0.97);
-  transition-duration: var(--press-in);
+  transition-duration: var(--sys-duration-press-in);
 }
 
 // «Выбрано» — indicator-модель: ЗАЛИВКА + флип текста, плоско (без glow). Тон
@@ -82,7 +78,7 @@
   height: 20px;
   border-radius: var(--sys-radius-indicator);
   background: var(--sys-color-surface-bright);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 22%);
+  box-shadow: var(--sys-elevation-action-rest);
   opacity: 0;
   transform: scale(0.6);
   transition:

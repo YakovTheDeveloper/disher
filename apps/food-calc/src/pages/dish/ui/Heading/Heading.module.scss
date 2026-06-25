@@ -6,15 +6,15 @@
 }
 
 .createText {
-    font-weight: 800;
-    font-size: 35px;
     line-height: normal;
     opacity: 0.04;
     text-transform: uppercase;
     white-space: nowrap;
 }
 
-.nameText {
+// Голос ввода названия блюда живёт на CSS-инпуте (нечего оборачивать в примитив);
+// селектор привязан к `input`, чтобы typo-encapsulation gate exempt'ил его.
+input.nameText {
     padding: 4px 6px;
     font-size: 22px;
     font-weight: 400;

@@ -22,6 +22,7 @@ import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-
 // который импортит ProductDrawer → иначе цикл product-drawer ↔ item-actions-drawer.
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
@@ -111,8 +112,10 @@ const PortionsAccordion = ({
       aria-expanded={open}
     >
       <span className={s.portionsTitleWrap}>
-        <span className={s.portionsTitle}>Порции</span>
-        {portions.length > 0 && <span className={s.portionsCount}>· {portions.length}</span>}
+        <Heading as="span" role="title">Порции</Heading>
+        {portions.length > 0 && (
+          <Text as="span" role="caption" className={s.portionsCount}>· {portions.length}</Text>
+        )}
       </span>
       <ChevronIcon className={clsx(s.chevron, open && s.chevronOpen)} />
     </button>
@@ -129,7 +132,7 @@ const PortionsAccordion = ({
         )}
         <button type="button" className={s.addPortionGhost} onClick={onAdd}>
           <PlusIcon />
-          Добавить порцию
+          <Text as="span" role="caption">Добавить порцию</Text>
         </button>
       </div>
     </div>
@@ -383,7 +386,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                     className={s.editMenuItem}
                     role="menuitem"
                   >
-                    Редактировать название
+                    <Text as="span" role="body">Редактировать название</Text>
                   </label>
                   <button
                     type="button"
@@ -394,7 +397,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                       setMenuOpen(false);
                     }}
                   >
-                    Редактировать нутриенты
+                    <Text as="span" role="body">Редактировать нутриенты</Text>
                   </button>
                 </div>
               </>
@@ -411,7 +414,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
           // база (на 100 г / 1 единицу), скейл тут не нужен.
           <section className={s.editSection}>
             <div className={s.editHeader}>
-              <span className={s.editTitle}>Редактирование</span>
+              <Heading as="span" role="title" className={s.editTitle}>Редактирование</Heading>
               <button
                 type="button"
                 className={s.editClose}
@@ -438,7 +441,9 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
             </div>
             {massWarningGrams != null && (
               <p className={s.massWarning} role="status">
-                Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+                <Text as="span" role="caption">
+                  Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+                </Text>
               </p>
             )}
             <NutrientTable
@@ -467,7 +472,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
               // карандашом: крупная CTA AI-подбора (конструктивно, без confirm) +
               // тихий путь ручного ввода (открывает инлайн-режим правки).
               <div className={s.emptyNutrients}>
-                <p className={s.emptyNutrientsCaption}>У продукта пока нет состава</p>
+                <Text as="p" role="caption" className={s.emptyNutrientsCaption}>У продукта пока нет состава</Text>
                 <SuggestActionButton
                   label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
                   onClick={() => runSuggest(false)}
@@ -478,7 +483,9 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                   className={s.manualLink}
                   onClick={() => setEditOpen(true)}
                 >
-                  Ввести вручную
+                  <Text as="span" role="caption">
+                    Ввести вручную
+                  </Text>
                 </button>
               </div>
             ) : (
@@ -492,7 +499,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                     <div className={s.normRowFull}>
                       <DailyNormButton className={s.normButtonFull} />
                     </div>
-                    <p className={s.servingComposition}>Состав на одну единицу:</p>
+                    <Text as="p" role="body" className={s.servingComposition}>Состав на одну единицу:</Text>
                   </>
                 ) : (
                   <>
@@ -519,7 +526,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                           className={s.quantityInput}
                           onChange={(val) => setQuantity(val)}
                         />
-                        <span className={s.quantityUnit}>г</span>
+                        <Text as="span" role="body" className={s.quantityUnit}>г</Text>
                       </div>
                     )}
                   </>

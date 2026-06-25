@@ -29,9 +29,9 @@
 
   // Цветной отклик: тинт-подсветка на касание (quiet icon-button archetype)
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.9);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }

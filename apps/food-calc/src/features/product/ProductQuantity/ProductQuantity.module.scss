@@ -149,13 +149,8 @@
 }
 
 .unit {
-    font-family: var(--sys-field-font-family);
-    font-size: 1.125rem;
-    font-weight: 500;
-    letter-spacing: 0;
     text-transform: none;
     color: rgba(38, 38, 51, 0.55);
-    font-variant-numeric: tabular-nums;
     white-space: nowrap;
     pointer-events: none;
 }
@@ -168,11 +163,9 @@
     gap: var(--sys-stack-row);
 }
 
+// Orphan layout/color slot — typo-голос несёт <Text role="label"> у консумера
+// (класс сейчас не применён ни к одному узлу; font-* вынесены при миграции).
 .sectionLabel {
-    font-family: var(--sys-field-font-family);
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0;
     text-transform: none;
     color: var(--color-ink);
     opacity: 0.75;
@@ -240,9 +233,6 @@
     background: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    font-family: var(--sys-field-font-family);
-    font-size: 1.25rem;
-    font-weight: 600;
     color: var(--color-ink);
     display: flex;
     align-items: center;
@@ -263,7 +253,10 @@
     }
 }
 
-.multiplierInput {
+// Селектор привязан к `input` — это реальное <input> (NumberInput), типографику
+// которого нельзя обернуть в примитив; гейт exempt'ит input-контекст (крупный
+// числовой ввод степпера, 24px/700 — bespoke, вне field-токенов).
+input.multiplierInput {
     width: 4rem;
     text-align: center;
     font-family: var(--sys-field-font-family);

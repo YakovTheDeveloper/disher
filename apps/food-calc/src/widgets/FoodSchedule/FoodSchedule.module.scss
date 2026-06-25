@@ -44,45 +44,6 @@ div.foodListAnchor.foodListAnchor [data-tod='night'] {
   @include dv-text($dv-text-graphite);
 }
 
-.minimalButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  min-height: 40px;
-  border-radius: 999px;
-  background: transparent;
-  border: none;
-  color: var(--sys-color-text-secondary);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  user-select: none;
-  transition: color var(--press-out) var(--easing-default), background var(--press-out) var(--easing-default), transform 0.12s ease;
-
-  &:hover,
-  &:focus-visible {
-    color: var(--sys-color-text-primary);
-    outline: none;
-  }
-
-  // Цветной отклик: тихая тинт-подсветка на касание (quiet icon-button archetype)
-  &:active {
-    background: var(--press-tint-bg);
-    color: var(--sys-field-caret, var(--color-ink));
-    transform: scale(0.97);
-    transition-duration: var(--press-in);
-  }
-}
-
-.minimalIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  color: currentColor;
-}
 
 .analyticsDot {
   display: inline-block;

@@ -29,11 +29,12 @@
     outline: var(--row-rest-outline-w, 1px) solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
 
     position: relative;
-    // Vertical padding is consumer-overridable via --row-pad-block. Default
-    // keeps legacy 9px so existing rows render unchanged; the FoodSchedule
-    // pilot (and other text-driven row families) set --row-pad-block: 0 on
-    // the grid root and grow each cell to --row-cell-min-h instead.
-    padding-block: var(--space-1);
+    // Vertical padding is consumer-overridable via --sys-row-pad-block. Default
+    // (= --space-1, 4px) keeps existing rows unchanged; the FoodSchedule pilot
+    // and ScheduleEventCard set --sys-row-pad-block: 0 on the grid root so the
+    // container owns no decorative vertical padding — cell padding-block (food)
+    // or the min-h-touch floor (events) carries the rhythm instead.
+    padding-block: var(--sys-row-pad-block);
     padding-inline: var(--space-4);
     transition: background-color 0.3s ease, padding 0.3s ease, transform 0.12s ease;
     border-radius: 9px;
@@ -117,7 +118,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border-radius: 32px;
     padding: 12px 24px;
-    font-size: 1rem;
 
     &:hover {
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);

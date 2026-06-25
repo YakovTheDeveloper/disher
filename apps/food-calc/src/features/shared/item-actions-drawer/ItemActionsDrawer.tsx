@@ -1,4 +1,5 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Text } from '@/shared/ui/atoms/Typography';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './ItemActionsDrawer.module.scss';
 
@@ -59,7 +60,9 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
             onClick={() => handleAction(action)}
           >
             {action.icon && <span className={s.icon}>{action.icon}</span>}
-            {action.label}
+            <Text as="span" role="body">
+              {action.label}
+            </Text>
           </button>
         ))}
       </div>

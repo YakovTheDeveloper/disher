@@ -7,6 +7,13 @@
   grid-template-rows: auto auto;
   gap: 4px 10px;
   align-items: center;
+
+  // Container owns no decorative vertical padding (parity with ScheduleFoodItem,
+  // 2026-06-24). Unlike food the two cells are STACKED (.text over .atomsZone),
+  // so the parallel-cell min-h pattern doesn't transfer — the row's vertical
+  // rhythm stays on LongPressRow's legitimate min-h-touch floor + align-content
+  // centering, not on wrapper padding.
+  --sys-row-pad-block: 0;
 }
 
 // Baked gutter-time (2026-06-22, was the RowBoundary `gutter-time` design-variant
@@ -31,10 +38,7 @@
 
 .text {
   grid-column: 1;
-  font-size: 0.9rem;
-  font-weight: 500;
   color: var(--text-primary);
-  line-height: 1.3;
   cursor: pointer;
 
   display: -webkit-box;
@@ -62,8 +66,6 @@
 }
 
 .atomsPlaceholder {
-  font-size: 0.75rem;
-  font-style: italic;
   color: var(--text-muted);
 }
 
@@ -79,9 +81,6 @@
   gap: 3px;
   padding: 2px 8px;
   border-radius: 12px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  line-height: 1.4;
   white-space: nowrap;
 }
 

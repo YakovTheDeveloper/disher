@@ -5,12 +5,12 @@
   background: none;
   border: none;
   padding: 0 4px;
-  font-size: 24px;
+  font-size: var(--sys-icon-size-md);
   line-height: 1;
-  color: var(--color-ink);
+  color: var(--sys-color-text-primary);
   opacity: 0.4;
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--sys-radius-control);
   -webkit-tap-highlight-color: transparent;
   transition: background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
@@ -23,8 +23,8 @@
 
 /* Цветной отклик: тинт фона иконки-крестика при нажатии. */
 .close:active {
-  background: var(--press-tint-bg);
+  background: var(--sys-color-bg-press);
   color: var(--sys-field-caret, var(--color-ink));
   opacity: 1;
-  transition-duration: var(--press-in);
+  transition-duration: var(--sys-duration-press-in);
 }

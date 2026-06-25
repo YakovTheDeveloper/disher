@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
+import { Text } from '@/shared/ui/atoms/Typography';
 import {
   MAX_WINDOW_DAYS,
   MIN_WINDOW_DAYS,
@@ -58,7 +59,9 @@ const RangePickerWithFallback = ({ value, onChange }: Props) => {
         </div>
       </div>
 
-      <p
+      <Text
+        as="p"
+        role="caption"
         className={
           spanKnown && isValidWindow(value) && !future
             ? styles.summary
@@ -74,15 +77,18 @@ const RangePickerWithFallback = ({ value, onChange }: Props) => {
           'Введи даты окна'
         )}
         {spanKnown && !isValidWindow(value) && (
-          <span className={styles.summaryHint}>
+          <Text as="span" role="caption" className={styles.summaryHint}>
             {' '}
             — окно должно быть от {MIN_WINDOW_DAYS} до {MAX_WINDOW_DAYS} дней
-          </span>
+          </Text>
         )}
         {spanKnown && isValidWindow(value) && future && (
-          <span className={styles.summaryHint}> — конец не может быть в будущем</span>
+          <Text as="span" role="caption" className={styles.summaryHint}>
+            {' '}
+            — конец не может быть в будущем
+          </Text>
         )}
-      </p>
+      </Text>
     </div>
   );
 };

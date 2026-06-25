@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './Quantity.module.scss';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
+import { Numeral } from '@/shared/ui/atoms/Typography';
 
 type Props = {
   id: string | number;
@@ -47,9 +48,9 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г', htmlFor }: Props) =
       className={`${styles.container} ${hide ? styles.hide : ''}`}
     >
       {diff && (
-        <span key={diff.key} className={styles.diff} aria-hidden="true">
+        <Numeral as="span" size="sm" key={diff.key} className={styles.diff} aria-hidden="true">
           {diff.from} → {diff.to}
-        </span>
+        </Numeral>
       )}
       <ChangeHighlight
         trigger={quantity}

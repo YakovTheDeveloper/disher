@@ -59,8 +59,8 @@
     --sys-chip-text: var(--event-relation-on, #fff);
 }
 
+/* Типографику несёт <Text role="caption">; класс — контекстный цвет чипа. */
 .atomValue {
-    font-weight: 500;
     color: var(--sys-chip-text, #fff);
 }
 
@@ -76,7 +76,7 @@
     border: none;
     color: color-mix(in srgb, var(--sys-chip-text, #fff) 55%, transparent);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--sys-icon-size-xs);
     transition: color var(--duration-fast, 120ms);
     border-radius: 0;
 }

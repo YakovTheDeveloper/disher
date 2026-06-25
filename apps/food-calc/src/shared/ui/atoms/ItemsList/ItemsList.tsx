@@ -1,6 +1,7 @@
 import styles from './ItemsList.module.scss';
 import { useRef } from 'react';
 import clsx from 'clsx';
+import { Text } from '@/shared/ui/atoms/Typography/Text';
 
 type Props = {
   children: React.ReactNode;
@@ -15,7 +16,11 @@ const PLACEHOLDER_LINES = 6;
 const EmptyLines = ({ content }: { content?: React.ReactNode }) => {
   return (
     <div className={clsx(styles.emptyState, styles.empty_v0)}>
-      {content ?? <p className={styles.emptyMessage}>список пуст</p>}
+      {content ?? (
+        <Text as="p" role="caption" className={styles.emptyMessage}>
+          список пуст
+        </Text>
+      )}
       {Array.from({ length: PLACEHOLDER_LINES }, (_, i) => (
         <div
           key={i}

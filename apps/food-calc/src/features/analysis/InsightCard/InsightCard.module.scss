@@ -67,7 +67,6 @@
 .strength {
     flex-shrink: 0;
     font-size: var(--ic-fs-meta);
-    font-weight: 500;
     line-height: 1;
     white-space: nowrap;
     color: var(--ic-ink-faint);
@@ -95,9 +94,7 @@
 .chipEvent {
     padding: 2px 8px;
     border-radius: var(--ic-chip-radius);
-    font-family: var(--font-sans);
     font-size: var(--ic-fs-meta);
-    font-weight: 500;
     line-height: 1.4;
     color: var(--ic-ink-soft);
     background: var(--ic-chip-bg);
@@ -106,9 +103,10 @@
 // ── valence (без цвета, F3) ───────────────────────────────────────────────
 // Хорошо/плохо несёт монохромный знак ＋/− у заголовка. Оттенка нет (баком
 // 2026-06-22 сняты форки 'label'/'plain', 'sign' был живым дефолтом).
+// Знак ＋/− — глиф-указатель валентности внутри <Heading role="title">. Вес
+// несёт примитив-заголовок (миграция typo: класс держит только отступ+цвет).
 .valenceSign {
     margin-right: var(--space-1);
-    font-weight: 700;
     color: var(--ic-ink-soft);
 }
 
@@ -136,7 +134,6 @@
     box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A: парит только слой над страницей)
     color: var(--cta-brand-ink);
     font-size: var(--ic-fs-meta);
-    font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;

@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import TickIcon from '@/shared/assets/icons/tick.svg?react';
+import { Text } from '@/shared/ui/atoms/Typography';
 import {
   USER_THEMES,
   USER_THEME_LABELS,
@@ -33,7 +34,9 @@ const ThemePicker = () => {
             <span className={styles.tick} aria-hidden>
               <TickIcon />
             </span>
-            <span className={styles.label}>{USER_THEME_LABELS[t]}</span>
+            <Text as="span" role="caption" className={styles.label}>
+              {USER_THEME_LABELS[t]}
+            </Text>
           </button>
         );
       })}

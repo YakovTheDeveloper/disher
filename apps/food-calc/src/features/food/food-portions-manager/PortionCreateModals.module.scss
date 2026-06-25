@@ -6,10 +6,8 @@
     padding-block: var(--space-4);
 }
 
+// Типографику несёт <Text role="label">; класс — контекстный цвет + non-select.
 .gramsUnit {
-    font-family: var(--font-sans);
-    font-size: var(--text-lg);
-    font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
     user-select: none;
 }

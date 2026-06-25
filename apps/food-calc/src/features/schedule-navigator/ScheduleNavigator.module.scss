@@ -24,7 +24,6 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   min-height: 0;
   overflow: hidden;
   color: var(--sys-card-text-rest);
-  font-family: var(--font-sans);
   // Стандартный белый дровер — фон отдаёт DrawerLayout `.content` (2026-06-20).
   background: transparent;
 }
@@ -109,14 +108,9 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   display: flex;
   top: 0;
   left: var(--space-1);
-  font-family: var(--sys-text-family-serif);
   gap: var(--space-1);
-  font-style: normal;
-  font-weight: 400;
-  font-size: var(--text-sm);
   width: 90%;
   text-transform: capitalize;
-  letter-spacing: 0.01em;
   line-height: 1;
   color: var(--text-muted);
 }
@@ -166,21 +160,14 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 }
 
 .dayChipNumber {
-  font-family: var(--sys-text-family-serif);
   font-style: italic;
-  font-size: 30px;
-  font-weight: 400;
   color: var(--sys-card-text-rest);
   line-height: 1;
-  letter-spacing: -0.02em;
   font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .dayChipWeekday {
-  font-size: 9px;
-  font-weight: 500;
   text-transform: lowercase;
-  letter-spacing: 0.06em;
   color: $ink-faint;
   line-height: 1;
 }
@@ -200,7 +187,6 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   .dayChipNumber {
     color: var(--sys-card-text-active);
     font-style: italic;
-    font-weight: 600;
   }
 
   .dayChipWeekday {
@@ -214,9 +200,6 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   z-index: 1;
   padding: var(--space-8) var(--space-4);
   text-align: center;
-  font-family: var(--sys-text-family-serif);
-  font-style: italic;
-  font-size: var(--text-sm);
   color: $ink-faint;
 }
 

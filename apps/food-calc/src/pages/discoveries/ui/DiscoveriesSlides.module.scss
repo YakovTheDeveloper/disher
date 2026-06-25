@@ -53,10 +53,9 @@
     height: 0;
 }
 
+// Голос (мелкая мета) — примитив <Text role="caption"> (Hypotheses/InsightsSlide).
 .count {
     margin: 0;
-    font-size: var(--d-fs-count);
-    font-weight: 500;
     color: var(--d-ink-faint);
 }
 
@@ -68,10 +67,9 @@
     text-align: center;
 }
 
+// Голос (заголовок 17px) — примитив <Heading role="title"> (Hypotheses/InsightsSlide).
 .emptyTitle {
     margin: 0;
-    font-size: var(--d-fs-title);
-    font-weight: 600;
     color: var(--d-ink);
 }
 

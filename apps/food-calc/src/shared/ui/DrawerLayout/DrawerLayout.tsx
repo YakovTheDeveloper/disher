@@ -5,6 +5,7 @@ import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -192,13 +193,21 @@ const DrawerLayout = ({
             {showVisibleTitle &&
               (subtitle != null ? (
                 <div className={styles.titleStack}>
-                  <Drawer.Title className={styles.titleCenter}>
+                  <Drawer.Title
+                    className={styles.titleCenter}
+                    render={<Heading role="headline" as="h2">{title}</Heading>}
+                  >
                     {title}
                   </Drawer.Title>
-                  <p className={styles.titleSubtitle}>{subtitle}</p>
+                  <Text as="p" role="caption" className={styles.titleSubtitle}>
+                    {subtitle}
+                  </Text>
                 </div>
               ) : (
-                <Drawer.Title className={styles.titleCenter}>
+                <Drawer.Title
+                  className={styles.titleCenter}
+                  render={<Heading role="headline" as="h2">{title}</Heading>}
+                >
                   {title}
                 </Drawer.Title>
               ))}

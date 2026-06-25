@@ -75,8 +75,6 @@
     border: none;
     background: var(--sys-color-bg-selected); // navy-brand action (token: flip-able tone, C1 2026-06-24)
     color: var(--sys-color-text-on-selected);
-    font-size: var(--text-base);
-    font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform var(--press-out) var(--easing-default),

@@ -1,4 +1,5 @@
 import { memo, type CSSProperties } from 'react';
+import { Numeral } from '@/shared/ui/atoms/Typography';
 import styles from './FabricLoader.module.scss';
 
 // Лоадер анализа дня. Над бледной гравюрой-библиотекой (art) анимация работает с
@@ -42,7 +43,9 @@ const FabricLoader = ({ day, art, caption = 'Разбираем день…', ef
         ) : (
           day && (
             <div className={styles.digit}>
-              <span className={styles.day}>{day}</span>
+              <Numeral size="display" weight="black" className={styles.day}>
+                {day}
+              </Numeral>
             </div>
           )
         )}

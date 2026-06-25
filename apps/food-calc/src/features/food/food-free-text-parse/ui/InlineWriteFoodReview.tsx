@@ -9,7 +9,7 @@ import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
 import { AddToListPopover } from './AddToListPopover';
 import styles from './InlineWriteFoodReview.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
 
 const REVIEW_INPUT_IDS = {
   // Уникальные id (отличаются от WriteFoodModal.REVIEW_INPUT_IDS) — на
@@ -155,7 +155,11 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         data-state="loading"
         data-write-food-anchor=""
       >
-        {inputText && <div className={styles.originalText}>{inputText}</div>}
+        {inputText && (
+          <Text as="p" role="caption" className={styles.originalText}>
+            {inputText}
+          </Text>
+        )}
         <div className={styles.skeleton} aria-live="polite" aria-busy="true">
           <div className={styles.skeletonRow} />
           <div className={styles.skeletonRow} />
@@ -197,7 +201,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
             onClick={() => cancel()}
             disabled={isSubmitting}
           >
-            Отменить
+            <Text as="span" role="body">
+              Отменить
+            </Text>
           </button>
           <button
             type="button"
@@ -205,18 +211,24 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
             onClick={() => void commit()}
             disabled={isSubmitting || totalToAdd === 0}
           >
-            {isSubmitting ? 'Добавляем…' : `Добавить ${totalToAdd}`}
+            <Text as="span" role="body">
+              {isSubmitting ? 'Добавляем…' : `Добавить ${totalToAdd}`}
+            </Text>
           </button>
         </>
       }
     >
-      {showOriginalText && inputText && <div className={styles.originalText}>{inputText}</div>}
+      {showOriginalText && inputText && (
+        <Text as="p" role="caption" className={styles.originalText}>
+          {inputText}
+        </Text>
+      )}
 
       {isReviewEmpty ? (
         <div className={styles.empty}>
-          <p className={styles.emptyText}>
+          <Text as="p" role="body" className={styles.emptyText}>
             Ничего не распозналось. Попробуйте описать подробнее.
-          </p>
+          </Text>
         </div>
       ) : (
         <div className={styles.sections}>
@@ -261,7 +273,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
             <section className={styles.section}>
               <Heading as="h3" role="title" className={styles.sectionTitle}>
                 Уточните
-                <span className={styles.sectionCount}>{ambiguous.length}</span>
+                <Numeral as="span" size="sm" weight="bold" className={styles.sectionCount}>
+                  {ambiguous.length}
+                </Numeral>
               </Heading>
               <ul className={styles.list}>
                 {ambiguous.map((a) => {
@@ -314,7 +328,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
             <section className={styles.section}>
               <Heading as="h3" role="title" className={styles.sectionTitle}>
                 Не распознано
-                <span className={styles.sectionCount}>{unresolved.length}</span>
+                <Numeral as="span" size="sm" weight="bold" className={styles.sectionCount}>
+                  {unresolved.length}
+                </Numeral>
               </Heading>
               <ul
                 className={styles.list}

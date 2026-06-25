@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './ModalHeader.module.scss';
 
 export type ModalHeaderProps = {
@@ -48,7 +48,7 @@ export const ModalHeader = ({
       <Heading role="headline" as="h2" className={s.title}>
         {title}
       </Heading>
-      {subtitle != null && <span className={s.subtitle}>{subtitle}</span>}
+      {subtitle != null && <QuietLabel className={s.subtitle}>{subtitle}</QuietLabel>}
     </div>
     {trailing != null && <div className={s.trailing}>{trailing}</div>}
   </header>

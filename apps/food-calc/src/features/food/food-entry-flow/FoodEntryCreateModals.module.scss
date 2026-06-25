@@ -13,7 +13,6 @@
 
 .createHint {
   margin: 0;
-  font-size: 0.85rem;
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -37,10 +36,7 @@
 
 .supplementUnit {
   margin: 0;
-  font-size: 0.85rem;
   color: rgba(0, 0, 0, 0.55);
-  font-family: var(--sys-text-family-serif);
-  font-style: italic;
 }
 
 .nutrientsToggle {
@@ -52,11 +48,7 @@
   padding: 14px 16px 14px 18px;
   background: transparent;
   border: none;
-  // Source Serif italic — канон display/section title из project_design_dna.
-  font-family: var(--sys-text-family-serif);
-  font-style: italic;
-  font-size: 1.05rem;
-  font-weight: 500;
+  // Source Serif italic голос section-title живёт в <QuietLabel> (текст внутри).
   color: rgba(0, 0, 0, 0.78);
   cursor: pointer;
   text-align: left;
@@ -72,10 +64,7 @@
 }
 
 .nutrientsToggleHint {
-  font-size: 0.78rem;
-  font-weight: 400;
   color: rgba(0, 0, 0, 0.4);
-  font-family: var(--font-sans);
 }
 
 .nutrientGroupsList {
@@ -175,10 +164,11 @@
 
   // span внутри product-edit карточки = .name (см. NutrientCardEditor.tsx).
   // Hashed CSS module class не таргетируется, используем тип-селектор.
+  // Голос лейбла нутриента инкапсулирован в <Text role="caption"> внутри
+  // NutrientCardEditor — размер/tracking сюда НЕ выносим. Здесь оставляем
+  // только не-типографические оверрайды (transform/color) под warm-stripe.
   > span {
     text-transform: none !important;
-    letter-spacing: 0 !important;
-    font-size: 0.95rem !important;
     color: rgba(0, 0, 0, 0.7) !important;
   }
 }
@@ -192,8 +182,6 @@
   padding-top: 28px;
   color: var(--color-ink);
   font-family: var(--font-mono, monospace);
-  font-size: 1.1rem;
-  font-weight: 500;
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
   text-underline-offset: 4px;

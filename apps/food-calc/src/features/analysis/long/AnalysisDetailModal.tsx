@@ -11,7 +11,7 @@ import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
 import styles from './AnalysisDetailModal.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 
 // The modal resolves with a freshly-started analysis when the user restarts a
 // stale/failed run, so AnalysesPage can show the new pending row. Plain close
@@ -61,9 +61,9 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
       <header className={styles.header}>
         <div className={styles.headerText}>
           <Heading role="title" className={styles.title}>Разбор по неделям</Heading>
-          <p className={styles.range}>
+          <Text as="p" role="caption" className={styles.range}>
             {formatRange(analysis.windowStart, analysis.windowEnd)}
-          </p>
+          </Text>
         </div>
         <CloseButton onClick={() => onClose()} />
       </header>
@@ -72,27 +72,27 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
         {status === 'running' && (
           <div className={styles.pending}>
             <Spinner />
-            <p className={styles.pendingText}>
+            <Text as="p" role="caption" className={styles.pendingText}>
               Разбор ещё идёт — это займёт пару минут. Можно закрыть окно и
               вернуться позже.
-            </p>
+            </Text>
           </div>
         )}
 
         {status === 'stale' && (
           <div className={styles.failed}>
-            <p className={styles.failedTitle}>Разбор, похоже, не удался</p>
-            <p className={styles.failedBody}>
+            <Text as="p" role="label" className={styles.failedTitle}>Разбор, похоже, не удался</Text>
+            <Text as="p" role="caption" className={styles.failedBody}>
               Он завис надолго без результата. Обычно это сбой на сервере —
               можно запустить его заново за то же окно.
-            </p>
+            </Text>
           </div>
         )}
 
         {status === 'failed' && (
           <div className={styles.failed}>
-            <p className={styles.failedTitle}>Разбор не удался</p>
-            <p className={styles.failedBody}>{analysis.summary}</p>
+            <Text as="p" role="label" className={styles.failedTitle}>Разбор не удался</Text>
+            <Text as="p" role="caption" className={styles.failedBody}>{analysis.summary}</Text>
           </div>
         )}
 
@@ -114,23 +114,25 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
             disabled={restarting}
             onClick={handleRestart}
           >
-            {restarting ? 'Запускаем…' : 'Запустить заново'}
+            <Text as="span" role="body">
+              {restarting ? 'Запускаем…' : 'Запустить заново'}
+            </Text>
           </button>
         )}
 
         <section className={styles.section}>
-          <p className={styles.sectionTitle}>Гипотезы в этом разборе</p>
+          <QuietLabel as="p" className={styles.sectionTitle}>Гипотезы в этом разборе</QuietLabel>
           {appliedHypotheses.length === 0 ? (
-            <p className={styles.snapshotEmpty}>
+            <Text as="p" role="caption" className={styles.snapshotEmpty}>
               Разбор запускался без выбранных гипотез.
-            </p>
+            </Text>
           ) : (
             <ul className={styles.snapshotList}>
               {appliedHypotheses.map((h, idx) => (
                 <li key={h.id || idx} className={styles.snapshotItem}>
-                  <span className={styles.snapshotItemTitle}>{h.title}</span>
+                  <Text as="span" role="label" className={styles.snapshotItemTitle}>{h.title}</Text>
                   {h.body && (
-                    <span className={styles.snapshotItemBody}>{h.body}</span>
+                    <Text as="span" role="caption" className={styles.snapshotItemBody}>{h.body}</Text>
                   )}
                 </li>
               ))}

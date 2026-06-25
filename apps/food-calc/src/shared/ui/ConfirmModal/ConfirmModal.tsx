@@ -34,14 +34,18 @@ const ConfirmModal = ({
     </Text>
     <div className={styles.actions}>
       <button type="button" className={styles.cancel} onClick={() => onClose(false)}>
-        {cancelLabel}
+        <Text role="label" as="span">
+          {cancelLabel}
+        </Text>
       </button>
       <button
         type="button"
         className={tone === 'danger' ? styles.confirmDanger : styles.confirm}
         onClick={() => onClose(true)}
       >
-        {confirmLabel}
+        <Text role="label" as="span">
+          {confirmLabel}
+        </Text>
       </button>
     </div>
   </ModalLayout>

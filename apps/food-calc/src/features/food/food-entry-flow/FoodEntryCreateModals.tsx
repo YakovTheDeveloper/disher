@@ -10,6 +10,7 @@ import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import {
   type FoodEntryFlow,
   CREATE_STEPS_WITH_DETAILS,
@@ -169,9 +170,9 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                   placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
                   autoComplete="off"
                 />
-                <p className={styles.createHint}>
+                <Text as="p" role="caption" className={styles.createHint}>
                   Сейчас создадим — детали можно будет добавить позже.
-                </p>
+                </Text>
                 {showSupplementOption && (
                   <div className={styles.createSupplementRow}>
                     <LabeledCheckbox
@@ -183,7 +184,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                 )}
                 {showSupplementOption && isSupplement && (
                   <div className={styles.supplementBlock}>
-                    <p className={styles.supplementUnit}>1 приём = 1 шт</p>
+                    <QuietLabel as="p" className={styles.supplementUnit}>1 приём = 1 шт</QuietLabel>
                     <div className={styles.nutrientGroupsList}>
                       {nutrientGroups.map((group) => {
                         const isOpen = openGroup === group.name;
@@ -202,12 +203,12 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                               onClick={() => toggleGroup(group.name)}
                               aria-expanded={isOpen}
                             >
-                              <span>
+                              <QuietLabel as="span">
                                 {isOpen ? '−' : '+'} {group.displayName}
-                              </span>
-                              <span className={styles.nutrientsToggleHint}>
+                              </QuietLabel>
+                              <Text as="span" role="caption" className={styles.nutrientsToggleHint}>
                                 {filledCount > 0 ? `${filledCount} запис.` : 'per 1 шт'}
-                              </span>
+                              </Text>
                             </button>
                             {isOpen && (
                               <div className={styles.nutrientsGrid}>
@@ -291,9 +292,9 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                     <ModalShell.ActionButtons
                       debugId="create-qty"
                       left={
-                        <label htmlFor={DETAILS_INPUT} className={styles.detailsOptIn}>
+                        <Text as="label" role="body" htmlFor={DETAILS_INPUT} className={styles.detailsOptIn}>
                           + деталь
-                        </label>
+                        </Text>
                       }
                       right={<ModalNextButton onClick={handleCommit} variant="finish" />}
                     />

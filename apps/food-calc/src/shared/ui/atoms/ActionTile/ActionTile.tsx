@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import s from './ActionTile.module.scss';
 
 // ── ActionTile — унифицированный примитив «быстрое действие / выбор из небольшого
@@ -65,7 +66,9 @@ export function ActionTile({
         </span>
       ) : null}
       <span className={s.main}>
-        <span className={s.top}>{top}</span>
+        <Heading role="title" as="span" className={s.top}>
+          {top}
+        </Heading>
         {bottom ? (
           <span className={s.bottomRow}>
             <span className={s.bottom}>{bottom}</span>

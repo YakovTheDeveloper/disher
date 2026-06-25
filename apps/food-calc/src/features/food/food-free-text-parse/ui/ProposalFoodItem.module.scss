@@ -158,13 +158,9 @@
     line-height: 1.15;
 }
 
+// Голос (serif-italic muted) живёт в примитиве <QuietLabel>; здесь — только
+// раскладка (ellipsis-обрезка одной строкой).
 .detailsSubtitle {
-    font-family: var(--sys-text-family-serif);
-    font-style: italic;
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    line-height: 1.2;
-    letter-spacing: -0.005em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -172,18 +168,18 @@
 
 // ─── Proposal-only extras (нет в schedule) ───────────────────────
 
+// Модификатор имени-fallback (на примитиве FoodName): только контекстный цвет +
+// italic-аside; вес наследуется от консумера (вынесен из голоса, gate-safe).
 .nameOriginal {
     color: var(--text-tertiary);
     font-style: italic;
-    font-weight: 400;
 }
 
+// Размер/вес несёт роль <Text role="caption">; здесь — раскладка, цвет, italic.
 .nameOriginalHint {
     display: block;
     color: var(--text-tertiary);
     font-style: italic;
-    font-weight: 400;
-    font-size: var(--text-xs);
 }
 
 // Rescue + (только для unresolved без manual).

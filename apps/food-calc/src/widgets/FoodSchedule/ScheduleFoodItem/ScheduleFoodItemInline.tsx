@@ -2,6 +2,7 @@ import { memo, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './ScheduleFoodItemInline.module.scss';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
@@ -142,7 +143,7 @@ const ScheduleFoodItemInline = ({
           className={getFoodNameClassName()}
         />
         {item.details ? (
-          <span className={styles.detailsSubtitle}>{item.details}</span>
+          <QuietLabel as="span" className={styles.detailsSubtitle}>{item.details}</QuietLabel>
         ) : null}
       </label>
 

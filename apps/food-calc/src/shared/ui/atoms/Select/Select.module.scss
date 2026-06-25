@@ -20,10 +20,10 @@
         inset 0 0 0 1px var(--sys-field-hairline),
         var(--sys-field-shadow);
     color: var(--sys-field-text);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    font-family: var(--sys-field-font-family);
+    font-size: var(--sys-field-font-size-compact);
+    font-weight: var(--sys-field-font-weight);
+    letter-spacing: var(--sys-field-letter-spacing);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: box-shadow 0.14s ease;
@@ -94,10 +94,10 @@
     padding: var(--space-2) var(--space-3);
     border-radius: var(--radius-sm);
     color: var(--sys-field-text);
-    font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: -0.005em;
+    font-family: var(--sys-field-font-family);
+    font-size: var(--sys-field-font-size-compact);
+    font-weight: var(--sys-field-font-weight);
+    letter-spacing: var(--sys-field-letter-spacing);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;

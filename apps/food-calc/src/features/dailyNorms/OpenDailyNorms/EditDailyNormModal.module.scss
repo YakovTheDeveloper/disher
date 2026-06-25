@@ -68,12 +68,9 @@
   min-width: 0;
 }
 
+// Типографику несёт <Heading role="headline" as="span"> (миграция в примитив).
+// Класс держит цвет + обрезку в одну строку.
 .title {
-  font-family: var(--heading-font);
-  font-style: var(--heading-style);
-  font-size: var(--heading-size-modal);
-  font-weight: var(--heading-weight);
-  letter-spacing: var(--heading-letter);
   color: var(--sys-field-text, var(--text-primary));
   overflow: hidden;
   text-overflow: ellipsis;
@@ -164,8 +161,8 @@
   color: var(--text-secondary);
 }
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Цвет —
+// от родителя .loadingState.
 .loadingText {
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  color: inherit;
 }

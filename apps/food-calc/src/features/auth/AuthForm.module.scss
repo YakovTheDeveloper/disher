@@ -1,17 +1,8 @@
 // ─── Auth form (AuthScreen) ────────
-// Two-step: email → password.
-//
-// Stylesheet contract (don't violate this):
-//   • Base rules below own ALL geometry: padding, margin, gap, height,
-//     border-radius, font-size, font-weight, max-width, align-self.
-//   • Theme overrides ([data-auth-theme=...]) own ONLY palette: color,
-//     background, border-color, box-shadow, text-shadow, caret-color.
-//   • Per-variant layout tweaks (stretch vs centered card, fullscreen vs
-//     drawer) live in AuthScreen.module.scss under [data-auth-variant=...]
-//     using :global(.<className>) — NOT in this file.
-//
-// This is what fixes "dark theme overrides paddings": themes can no
-// longer touch geometry, full stop.
+// Two-step: email → password. App-тон (2026-06-24): форма читает поле-токены
+// (--sys-field-*) для палитры; геометрию держат base + layout-блоки ниже.
+// Бывшие dark/photo `data-auth-theme` темы сняты (экран входа переведён на
+// общий тон приложения); layout-пресеты (stretch / card) остались.
 
 .container {
   display: flex;
@@ -46,7 +37,8 @@
   border-radius: var(--radius-full);
   background: transparent;
   color: var(--text-primary);
-  font-size: 22px;
+  // Глиф-кнопка «Назад» (←) — размер несёт icon-токен, не сырой font-size.
+  font-size: var(--sys-icon-size-md);
   line-height: 1;
   cursor: pointer;
   transition:
@@ -70,12 +62,11 @@
   text-align: right;
 }
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+// раскладку (отступ/перенос) и контекстный цвет.
 .subheading {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
   color: var(--text-tertiary);
   margin: var(--space-2) 0 0;
-  line-height: 1.45;
   word-break: break-word;
 }
 
@@ -103,31 +94,31 @@
 }
 
 .input {
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
+  font-family: var(--sys-field-font-family);
+  font-size: var(--sys-field-font-size);
   width: 100%;
   height: 56px;
   padding: 0 var(--space-5);
-  border: 1.5px solid transparent;
+  // Field-slot (well) — единый тон поля app. Раньше: серый bg + #111 focus-рамка
+  // (base) поверх dark-тема-оверрайда. Тема снята 2026-06-24 → форма на app-тоне.
+  border: 1.5px solid var(--sys-field-hairline, transparent);
   border-radius: var(--radius-lg);
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--text-primary);
+  background: var(--sys-field-bg-from, #f4efe6);
+  box-shadow: var(--sys-field-shadow, inset 0 1px 2px rgba(124, 65, 15, 0.1));
+  color: var(--sys-field-text, var(--text-primary));
+  caret-color: var(--sys-field-caret);
   outline: none;
   transition:
-    background var(--duration-fast) var(--easing-default),
-    border-color var(--duration-fast) var(--easing-default);
+    border-color var(--duration-fast) var(--easing-default),
+    box-shadow var(--duration-fast) var(--easing-default);
 
   &::placeholder {
-    color: var(--text-tertiary);
-  }
-
-  &:hover:not(:disabled) {
-    background: rgba(0, 0, 0, 0.06);
+    color: var(--sys-field-placeholder, rgba(34, 31, 25, 0.4));
   }
 
   &:focus {
-    background: #fff;
-    border-color: #111;
+    border-color: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.32));
+    box-shadow: var(--sys-field-shadow-focus, inset 0 1px 3px rgba(124, 65, 15, 0.16));
   }
 
   &[aria-invalid='true'] {
@@ -140,19 +131,17 @@
   }
 }
 
+// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
+// раскладку (отступ) и контекстный красный цвет.
 .fieldError {
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
   color: #dc2626;
   margin: 0;
   padding-left: var(--space-2);
-  line-height: 1.4;
 }
 
+// Типографику метки несёт <Button> (внутр. <Text role="label">). Класс держит
+// геометрию + палитру.
 .submitBtn {
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 600;
   width: 100%;
   height: 56px;
   border: none;
@@ -193,13 +182,11 @@
 }
 
 .switchBtn {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  // Через Button variant="link": размер пробрасываем токеном, чтобы не зависеть
-  // от порядка каскада (.link vs .switchBtn — обе single-class). Палитру держит
-  // .switchBtn + theme-блоки [data-auth-theme] (выше по специфичности).
+  // Типографику метки несёт <Button> (внутр. <Text role="body">). Размер
+  // пробрасываем токеном `--btn-font-size`, чтобы не зависеть от порядка каскада
+  // (.link vs .switchBtn — обе single-class). Палитру держит .switchBtn
+  // (тема-блоки [data-auth-theme] сняты 2026-06-24 — app-тон).
   --btn-font-size: var(--text-sm);
-  font-weight: 500;
   padding: var(--space-3) var(--space-4);
   border: none;
   background: transparent;
@@ -274,7 +261,6 @@
   .submitBtn {
     height: 60px;
     border-radius: 14px;
-    font-weight: 700;
   }
 }
 
@@ -290,205 +276,5 @@
     margin: 0 auto var(--space-4);
     padding: var(--space-6) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
     border-radius: var(--radius-2xl, 24px);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//   THEME OVERRIDES — palette only (color / background / border /
-//   shadow / caret). NEVER set padding, margin, gap, height, width,
-//   max-width, border-radius, font-size, font-weight, align-self,
-//   or flex here. Geometry belongs to the base + layout rules above.
-// ═══════════════════════════════════════════════════════════════
-
-// ─── Dark theme (V1 photo) ────────────────────────────────────
-
-[data-auth-theme='dark'] {
-  .heading {
-    color: #fff;
-  }
-
-  .subheading {
-    color: rgba(245, 243, 255, 0.72);
-  }
-
-  .backBtn {
-    color: #fff;
-
-    &:active {
-      background: rgba(255, 255, 255, 0.12);
-    }
-  }
-
-  .input {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    caret-color: #c7b8ff;
-
-    &::placeholder {
-      color: rgba(245, 243, 255, 0.45);
-    }
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    &:focus {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(199, 184, 255, 0.7);
-      box-shadow: 0 0 0 3px rgba(140, 100, 255, 0.18);
-    }
-
-    &[aria-invalid='true'] {
-      border-color: #ff7a8a;
-    }
-  }
-
-  .fieldError {
-    color: #ff9aa6;
-  }
-
-  .submitBtn {
-    background: linear-gradient(135deg, #8c64ff 0%, #c7b8ff 100%);
-    color: #1a1330;
-    box-shadow:
-      0 8px 24px -8px rgba(140, 100, 255, 0.65),
-      0 0 0 1px rgba(255, 255, 255, 0.12) inset;
-
-    &:disabled {
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.35);
-      box-shadow: none;
-    }
-
-    &:not(:disabled):hover {
-      background: linear-gradient(135deg, #9a76ff 0%, #d4c8ff 100%);
-    }
-  }
-
-  .switchBtn {
-    color: rgba(255, 255, 255, 0.95);
-
-    &:hover:not(:disabled) {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.08);
-    }
-  }
-}
-
-// ─── Yandex light (V2) ────────────────────────────────────────
-
-[data-auth-theme='yandex-light'] {
-  .subheading {
-    color: rgba(0, 0, 0, 0.55);
-  }
-
-  .input {
-    background: rgba(0, 0, 0, 0.04);
-    border-color: transparent;
-
-    &:focus {
-      background: #fff;
-      border-color: #111;
-      box-shadow: none;
-    }
-  }
-
-  .submitBtn {
-    background: #fc3f1d; // Yandex orange-red
-    color: #fff;
-
-    &:not(:disabled):hover {
-      background: #e8351a;
-    }
-
-    &:disabled {
-      background: rgba(0, 0, 0, 0.06);
-      color: rgba(0, 0, 0, 0.3);
-    }
-  }
-
-  .switchBtn {
-    color: rgba(0, 0, 0, 0.55);
-
-    &:hover:not(:disabled) {
-      color: #111;
-      background: rgba(0, 0, 0, 0.04);
-    }
-  }
-}
-
-// ─── Yandex on-photo (V3, V4) ─────────────────────────────────
-
-[data-auth-theme='yandex-photo'] {
-  .heading {
-    color: #fff;
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.4);
-  }
-
-  .subheading {
-    color: rgba(255, 255, 255, 0.78);
-  }
-
-  .backBtn {
-    color: #fff;
-
-    &:active {
-      background: rgba(255, 255, 255, 0.14);
-    }
-  }
-
-  .input {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.16);
-    color: #fff;
-    caret-color: #fc3f1d;
-
-    &::placeholder {
-      color: rgba(255, 255, 255, 0.55);
-    }
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.18);
-    }
-
-    &:focus {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.45);
-      box-shadow: none;
-    }
-
-    &[aria-invalid='true'] {
-      border-color: #ff7a8a;
-    }
-  }
-
-  .fieldError {
-    color: #ffb3bb;
-  }
-
-  .submitBtn {
-    background: #fc3f1d;
-    color: #fff;
-    box-shadow: 0 10px 30px -10px rgba(252, 63, 29, 0.6);
-
-    &:not(:disabled):hover {
-      background: #e8351a;
-    }
-
-    &:disabled {
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.35);
-      box-shadow: none;
-    }
-  }
-
-  .switchBtn {
-    color: rgba(255, 255, 255, 0.95);
-
-    &:hover:not(:disabled) {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.1);
-    }
   }
 }

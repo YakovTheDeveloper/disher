@@ -13,6 +13,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
+import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import { formatNormPercent } from './formatNormPercent';
 
 type Props = {
@@ -196,7 +197,9 @@ const FoodActionCard = ({
         content={
           <div className={styles.popoverContent}>
             <button className={styles.popoverAction} type="button" onClick={handleDelete}>
-              Удалить {variant === 'product' ? 'продукт' : 'блюдо'}
+              <Text as="span" role="label">
+                Удалить {variant === 'product' ? 'продукт' : 'блюдо'}
+              </Text>
             </button>
           </div>
         }
@@ -248,11 +251,19 @@ const FoodActionCard = ({
               aria-hidden
             />
           )}
-          {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
+          <Numeral size="sm" weight="semibold">
+            {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
+          </Numeral>
           {richNutrientValue > 0 && richNutrientUnit && (
-            <span className={styles.richUnit}>{richNutrientUnit}</span>
+            <Text as="span" role="caption" className={styles.richUnit}>
+              {richNutrientUnit}
+            </Text>
           )}
-          {normPercent && <span className={styles.richPercent}>{normPercent}</span>}
+          {normPercent && (
+            <Numeral as="span" size="sm" weight="semibold" className={styles.richPercent}>
+              {normPercent}
+            </Numeral>
+          )}
         </span>
       )}
       {deleteButton}
@@ -266,8 +277,10 @@ const FoodActionCard = ({
           {...pressProps}
         >
           {thumb}
-          <span className={styles.name}>{item.name}</span>
-          {subtitle && <span className={styles.kindLabel}>{subtitle}</span>}
+          <Text as="span" role="body" className={styles.name}>
+            {item.name}
+          </Text>
+          {subtitle && <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>}
         </label>
       ) : (
         <p
@@ -278,8 +291,10 @@ const FoodActionCard = ({
           {...pressProps}
         >
           {thumb}
-          <span className={styles.name}>{item.name}</span>
-          {subtitle && <span className={styles.kindLabel}>{subtitle}</span>}
+          <Text as="span" role="body" className={styles.name}>
+            {item.name}
+          </Text>
+          {subtitle && <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>}
         </p>
       )}
       {onInfoClick &&

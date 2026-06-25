@@ -12,6 +12,7 @@ import {
   AnalysisDetailModal,
   CreateLongAnalysisModal,
 } from '@/features/analysis/long';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import styles from './AnalysesSlide.module.scss';
 
 // AnalysesPage slide 1 — the long-analyses list. The list is NOT polled;
@@ -91,19 +92,21 @@ const AnalysesSlide = () => {
           </div>
         ) : failedToLoad ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>Не удалось загрузить</p>
-            <p className={styles.emptyBody}>Список разборов не подгрузился — проверь сеть.</p>
+            <QuietLabel as="p" className={styles.emptyTitle}>Не удалось загрузить</QuietLabel>
+            <Text as="p" role="caption" className={styles.emptyBody}>
+              Список разборов не подгрузился — проверь сеть.
+            </Text>
             <button type="button" className={styles.retry} onClick={() => refetch()}>
-              Повторить
+              <Text as="span" role="caption">Повторить</Text>
             </button>
           </div>
         ) : analyses.length === 0 ? (
           <div className={styles.empty}>
-            <p className={styles.emptyTitle}>Разборов пока нет</p>
-            <p className={styles.emptyBody}>
+            <QuietLabel as="p" className={styles.emptyTitle}>Разборов пока нет</QuietLabel>
+            <Text as="p" role="caption" className={styles.emptyBody}>
               Длительный разбор смотрит на 1–5 недель сразу — еду, события и выбранные гипотезы.
               Запусти первый кнопкой «+ Анализ».
-            </p>
+            </Text>
           </div>
         ) : (
           <div className={styles.listWrap}>

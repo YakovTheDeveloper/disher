@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './TimeChoose.module.scss';
 import clsx from 'clsx';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { TimeNow } from './TimeNow';
 import { useTimeRange, type RangeTab, type TimeRangeState } from './useTimeRange';
 import TimeInput, { type TimePickerVariant } from './TimeInput';
@@ -169,10 +170,10 @@ const TimeChoose = ({
           )}
         </div>
         {isRange && timeRange.toExplicit && (
-          <div className={styles.rangeSummary} aria-live="polite">
+          <Text as="div" role="body" className={styles.rangeSummary} aria-live="polite">
             {timeRange.fromTime} – {timeRange.toTime} ·{' '}
             {formatDurationLabel(timeRange.durationMinutes)}
-          </div>
+          </Text>
         )}
         <div className={styles.buttonsWrapper}>
           <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
