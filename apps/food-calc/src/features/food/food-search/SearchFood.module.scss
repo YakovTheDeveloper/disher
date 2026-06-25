@@ -1,43 +1,51 @@
 @import '@/shared/assets/style/mixin.scss';
 
+// ══════════════════════════════════════════════════════════════════════════
+// SearchMono — единственный тон экрана поиска (монохром paper-mono, iOS «inset
+// grouped»): белая card-группа на тёплом сером фоне (n100), тёмные контролы шапки,
+// нижний док действий (FoodSearchEmpty) на стеклянной полке (стилит себя сам).
+// Палитру карточек/группы/состояний несёт общий `paper-mono-cards` (mixin.scss),
+// единый с навигатором дат. Сегмент `Еда|Мое` + нутриент-icon-btn читают app-wide
+// `--sys-color-control-*` / `--sys-color-surface-action-system` напрямую (бывшие
+// экранные `--seg-*` / `--icon-btn-*` бандлы распущены).
+// ══════════════════════════════════════════════════════════════════════════
 .content {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
     position: relative;
-    // Own stacking context so the ambient layer (z-index:-1) sits above the
-    // screen's solid base but below all in-flow content — and never escapes to
-    // interfere with the modal/drawer behind this screen.
-    isolation: isolate;
     min-height: 0;
     width: 100%;
     height: 100%;
-    // Solid monochrome base — decouples the screen from the app-wide tone
-    // (body[data-modal-fields]). Per-variant value below; transparent fallback
-    // keeps non-mono contexts unchanged.
-    background: var(--search-page-bg, transparent);
-}
 
-// Ambient glow — the only colour allowed on the otherwise monochrome screen.
-// Two soft radial glows (top + bottom edges); colour comes from per-variant
-// tokens (transparent → no glow). Behind all content (z-index:-1)
-// but above .content's solid base (isolation context above).
-.ambient {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse 92% 46% at 50% 0%,
-            var(--search-ambient-top, transparent), transparent 66%),
-        radial-gradient(ellipse 92% 46% at 50% 100%,
-            var(--search-ambient-bottom, transparent), transparent 66%);
+    // Card palette (surface + group + states + rich/info + --cards-page-bg) —
+    // единый источник правды в mixin.scss. Поле/чипы наследуют :root mono.
+    @include paper-mono-cards;
+
+    // Тёплый-soft фон страницы (n100) под белой группой.
+    background: var(--sys-color-surface-grouped);
+
+    // Скрим парящей шапки (.header::before) — из фона страницы, чтобы верхняя
+    // плотная зона была бесшовной с .listContainer (92%: без блюра прячет контент).
+    --search-bar-scrim: color-mix(in srgb, var(--cards-page-bg) 92%, transparent);
+
+    // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
+    // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
+    // серым кружком над белыми карточками при скролле), ink-шеврон. Border тянется
+    // за surface (1px того же серого) → визуально без рамки. Санкционированный
+    // single-token scope-override (не per-surface бандл).
+    --sys-color-surface-floating: var(--cards-page-bg);
+    // On-color floating-роли flip'ается вместе с surface (выше): светлая подложка
+    // → тёмный ink-шеврон BackButton. Раньше был bespoke-кноб --back-fg.
+    --sys-color-text-on-floating: var(--color-ink-strong);
+
+    // (Нижний док FoodSearchEmpty больше НЕ темится отсюда — bespoke per-surface
+    //  бандл распущен; док стилит себя сам на sys-токенах. Не заводить тут заново.)
 }
 
 // Wrapper around SearchFoodHeavy: replicates .content's flex/positioning so
-// absolute children (filterWrapper, filterButtonWrapper) still anchor correctly,
-// and fades in one frame after isActive flips. Pure opacity (no translate) so
-// reduced-motion is safe; Material 3 "Emphasized" easing.
+// absolute children still anchor correctly, and fades in one frame after isActive
+// flips. Pure opacity (no translate) so reduced-motion is safe; M3 "Emphasized".
 .heavyFade {
     display: flex;
     flex-direction: column;
@@ -90,50 +98,14 @@
         position: absolute;
         inset: 0;
         z-index: -1;
-        // Плотно в цвет страницы сверху → прозрачно книзу. Скрим должен совпадать
-        // с фоном страницы (--search-bar-scrim задаётся per-variant ниже), чтобы
-        // верхняя зона была бесшовной, а строки таяли в неё.
+        // Плотно в цвет страницы сверху → прозрачно книзу: верхняя зона бесшовна
+        // с .listContainer, строки тают в неё. --search-bar-scrim = фон страницы.
         background: linear-gradient(to bottom,
-                var(--search-bar-scrim, rgba(255, 255, 255, 0.92)) 0%,
-                var(--search-bar-scrim, rgba(255, 255, 255, 0.92)) 42%,
+                var(--search-bar-scrim) 0%,
+                var(--search-bar-scrim) 42%,
                 transparent 100%);
         pointer-events: none;
     }
-}
-
-.tabBar {
-    display: flex;
-    gap: var(--space-1);
-    padding: var(--space-1);
-    margin: var(--space-2) var(--space-3);
-    background: #f2f4f7;
-    border-radius: var(--radius-full);
-}
-
-.tabBarItem {
-    flex: 1;
-    padding: var(--space-2) 14px;
-    border: none;
-    border-radius: var(--radius-full);
-    background: transparent;
-    text-transform: none;
-    color: #5c6473;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.tabBarItem_active {
-    background: #ffffff;
-    color: #0a0a0a;
-    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.08);
-}
-
-.filterButtonWrapper {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    z-index: 50;
 }
 
 .bottomLeft {
@@ -143,65 +115,17 @@
     z-index: 50;
 }
 
-
-.filterWrapper {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.filterWrapper_hidden {
-    pointer-events: none;
-}
-
-
-.filterChips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: var(--space-2) 14px var(--space-3);
-    border-bottom: none;
-}
-
-.filterChip {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-    padding: var(--space-2) var(--space-4);
-    text-transform: none;
-    color: #0a0a0a;
-    background: #eef1f5;
-    border: none;
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    transition:
-        color 0.15s ease,
-        background 0.15s ease;
-    min-height: var(--space-8);
-    -webkit-tap-highlight-color: transparent;
-
-    &:active {
-        background: #e6eaf0;
-        color: #0a0a0a;
-    }
-}
-
 // ─── Inline list (replaces VirtualList) ──────────────────────────────────────
-
+// Фон прозрачный — видно тёплый фон страницы (.content), ряды садятся на белую
+// inset-группу (.list). M3 integrated-dock: контент кончается НАД нижним баром.
 .listContainer {
     overflow-y: auto;
-    border-radius: var(--radius-sm);
+    border-radius: var(--sys-radius-container);
     position: relative;
     flex-grow: 1;
     min-height: 0;
-    // M3 integrated-dock pattern: scroll content ends ABOVE the fixed bottom bar.
-    // 60px = .actions min-height in FoodSearchEmpty; +8px breathing room.
+    background: transparent;
+    // 60px = .actions min-height в FoodSearchEmpty; +8px воздуха.
     padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
 }
 
@@ -225,91 +149,4 @@
     // navigator. Side margins are the consumer's concern (inset offset).
     @include inset-group;
     margin: 0 var(--space-3) var(--space-3);
-}
-
-.filterChipActive {
-    background: #3370ff;
-    color: #ffffff;
-    border-color: transparent;
-
-    &:active {
-        background: #2a5fdb;
-        border-color: transparent;
-        color: #ffffff;
-    }
-}
-
-// ─── List container backdrop (surface-driven) ──────────────────────
-// Backdrop gradient harmonises with the stripe-fork row palette and is
-// driven by the app-wide tone (body[data-modal-fields], the live variant) —
-// or, in a SearchMono variant, by the local monochrome --sys-list-bg below.
-.listContainer {
-    background: var(--sys-list-bg);
-}
-
-// ══════════════════════════════════════════════════════════════════════════
-// SearchMono — единственный тон экрана поиска (монохром paper-mono). Три бывших
-// stacked-`.content`-блока (SearchMono base + paper-mono + INK-TOP тест 2026-06-19)
-// СЛИТЫ в один 2026-06-22: dv-анкер ретайрнут 2026-06-14, а частичный роспуск
-// бандла --sys-field-* оставил INK-TOP с БЕЛЫМИ контролами шапки под уже-светлой
-// пилюлей (белое-на-светлом → таб «Еда|Мое» и фильтр-иконка были невидимы) —
-// слияние убрало каскад-ловушку, контролы шапки тёмные. Эти правила локально
-// переопределяют унаследованные от :root mono `--sys-card-*`/`--sys-field-*`/`--list-*` и
-// задают экранные `--icon-btn-*`/`--search-*`/`--fse-*` (сегмент `Еда|Мое` теперь
-// читает app-wide `--sys-color-control-*`, не экранный `--seg-*`).
-// Облик: белая card-группа + светлое mono-поле на бледно-сером фоне (iOS «inset
-// grouped»), тёмные контролы шапки, lavender-cream нижний док со светлым стеклом.
-// ══════════════════════════════════════════════════════════════════════════
-.content {
-    // Card palette (surface + group + states + rich/info) — единый источник
-    // правды в mixin.scss, общий с навигатором дат. Поле/чипы наследуют :root mono.
-    @include paper-mono-cards;
-
-    // Скрим парящей шапки (.header::before) — из фона страницы, чтобы верхняя
-    // плотная зона была бесшовной с .listContainer (92%: без блюра прячет контент).
-    --search-bar-scrim: color-mix(in srgb, var(--search-page-bg, #f0f1f4) 92%, transparent);
-
-    // Фон страницы = общий inset-grouped paper-mono токен (mixin.scss); ряды на нём.
-    --search-page-bg: var(--cards-page-bg);
-    --search-ambient-top: rgba(225, 215, 245, 0.32);
-    --search-ambient-bottom: transparent;
-    --sys-list-bg: transparent;
-
-    // (Сегмент Еда|Мое больше НЕ темится отсюда — per-surface --seg-* распущен
-    //  2026-06-22; SearchFoodControls читает --sys-color-control-* напрямую.)
-
-    // Нутриент-фильтр icon-btn — тёмный ghost, белая подложка; активный = тёмная
-    // пилюля + белый глиф. Бывшие белые INK-TOP значения убраны.
-    --icon-btn-fg: #5c6473;
-    --icon-btn-bg: #ffffff;
-    --icon-btn-border: rgba(10, 10, 10, 0.12);
-    --icon-btn-active-bg: #1a1a1a;
-    --icon-btn-active-fg: #ffffff;
-
-    // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
-    // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
-    // серым кружком над белыми карточками при скролле), ink-шеврон. Border тянется
-    // за surface (1px того же серого) → визуально без рамки. Санкционированный
-    // single-token scope-override (не per-surface бандл).
-    --sys-color-surface-floating: var(--search-page-bg);
-    --back-fg: var(--color-ink-strong);
-
-    // Нижний док (FoodSearchEmpty): lavender-cream ambient (--fse-bg, лаванда слева
-    // + крем справа, высокие glow'ы заполняют док, тонкий белый пол снизу) + светло-
-    // матовое стекло шапки/действий с тёмным текстом, полупрозрачные «Создать»-пилюли.
-    --fse-bg:
-        linear-gradient(to top, #ffffff 0%, #ffffff 7%, transparent 22%),
-        radial-gradient(ellipse 115% 155% at 0% 105%, rgba(219, 206, 246, 0.82), transparent 74%),
-        radial-gradient(ellipse 115% 155% at 100% 105%, rgba(252, 242, 212, 0.82), transparent 74%),
-        #f7f2fc;
-    --fse-ramp: #ece2f8;
-    --fse-header-bg: rgba(255, 255, 255, 0.55);
-    --fse-header-blur: blur(16px) saturate(1.3);
-    --fse-actions-bg: rgba(242, 242, 246, 0.62);
-    --fse-actions-blur: blur(16px) saturate(1.3);
-    --fse-pill-bg: rgba(255, 255, 255, 0.42);
-    --fse-border: 1px solid rgba(0, 0, 0, 0.12);
-    --fse-msg: rgba(0, 0, 0, 0.45);
-    --fse-msg-strong: rgba(0, 0, 0, 0.68);
-    --fse-prompt: rgba(0, 0, 0, 0.5);
 }

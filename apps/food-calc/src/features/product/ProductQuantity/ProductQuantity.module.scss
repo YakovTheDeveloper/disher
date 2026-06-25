@@ -37,9 +37,9 @@
     // the mirror's box.
     .mirror,
     .input {
-        font-family: var(--sys-text-mono-big-family);
-        font-size: var(--sys-text-mono-big-size);
-        font-weight: var(--sys-text-mono-big-weight);
+        font-family: var(--sys-numeral-dial-family);
+        font-size: var(--sys-numeral-dial-size);
+        font-weight: var(--sys-numeral-dial-weight);
         letter-spacing: -0.06em; // оптический трекинг крупного количества (локально)
         line-height: 1;
         font-variant-numeric: tabular-nums;
@@ -48,7 +48,7 @@
     }
 
     .input {
-        color: var(--color-ink);
+        color: var(--sys-color-text-system);
         background: transparent;
         border: none;
         border-radius: 0;
@@ -150,7 +150,7 @@
 
 .unit {
     text-transform: none;
-    color: rgba(38, 38, 51, 0.55);
+    color: var(--sys-color-text-secondary);
     white-space: nowrap;
     pointer-events: none;
 }
@@ -167,7 +167,7 @@
 // (класс сейчас не применён ни к одному узлу; font-* вынесены при миграции).
 .sectionLabel {
     text-transform: none;
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     opacity: 0.75;
     padding-left: 0;
 }
@@ -230,10 +230,10 @@
     height: 2.5rem;
     border-radius: 50%;
     border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.18);
+    background: var(--sys-color-on-floating-faint);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -241,15 +241,15 @@
     cursor: pointer;
 
     &:hover {
-        background: rgba(255, 255, 255, 0.26);
+        background: var(--sys-color-on-floating-faint);
     }
 
     // Цветной отклик: на нажатии степпер заливается ink + белый знак.
     &:active {
-        background: var(--color-ink);
-        color: var(--text-on-accent);
+        background: var(--sys-color-surface-action-system);
+        color: var(--sys-color-text-on-accent);
         transform: scale(0.97);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -260,9 +260,9 @@ input.multiplierInput {
     width: 4rem;
     text-align: center;
     font-family: var(--sys-field-font-family);
-    font-size: 1.5rem;
+    font-size: var(--sys-numeral-xl);
     font-weight: 700;
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     border: none;
     border-bottom: 2px solid rgba(38, 38, 51, 0.15);
     border-radius: 0;
@@ -272,7 +272,7 @@ input.multiplierInput {
 
     &:focus {
         outline: none;
-        border-bottom-color: var(--color-ink);
+        border-bottom-color: var(--sys-color-border-action-system);
     }
 
     &::-webkit-inner-spin-button,

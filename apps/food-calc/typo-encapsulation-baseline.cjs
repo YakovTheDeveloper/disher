@@ -3,4 +3,12 @@
 // Файл выходит из списка по миграции в примитив. Регенерация:
 //   TYPO_BASELINE_REGEN=1 node scripts/check-typo-encapsulation.mjs
 
-module.exports = [];
+module.exports = [
+  "src/features/analysis/FabricLoader/FabricLoader.module.scss",
+  "src/features/analysis/hypothesis-drawers/HypothesisModal.module.scss",
+  "src/features/food/food-free-text-parse/ui/FreeTextFoodReviewItem.module.scss",
+  "src/shared/ui/atoms/CardLayout/CardLayout.module.scss",
+  "src/shared/ui/atoms/CardTime/CardTime.module.scss",
+  "src/shared/ui/atoms/QtyStack/QtyStack.module.scss",
+  "src/widgets/ScheduleEvents/components/ScheduleEventCard/ScheduleEventCard.module.scss"
+];

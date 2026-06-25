@@ -55,13 +55,13 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
   const ariaLabel = isFinish ? 'Готово' : 'Далее';
   const trailingIcon = isFinish ? doneIcon : arrowIcon;
 
-  // Канон сплошной CTA — `Button variant="primary"` (та же тёмная заливка/press,
+  // Канон сплошной CTA — `Button variant="system"` (та же тёмная заливка/press,
   // что у submitBtn авторизации). `.nextArrow` оставляет только footer-раскладку
   // (safe-area снизу). Стрелка/галка — ведомая иконка.
   if (props.as === 'label') {
     return (
       <Button
-        variant="primary"
+        variant="system"
         as="label"
         htmlFor={props.htmlFor}
         onClick={props.onClick}
@@ -75,7 +75,7 @@ export const ModalNextButton = (props: ModalNextButtonProps) => {
   }
   return (
     <Button
-      variant="primary"
+      variant="system"
       onClick={props.onClick}
       disabled={props.disabled === true}
       className={s.nextArrow}

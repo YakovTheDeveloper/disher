@@ -1,7 +1,7 @@
 .overlay {
     position: fixed;
     inset: 0;
-    background: #000000b3;
+    background: var(--sys-color-scrim-strong);
     z-index: 6000;
 
     opacity: 0.9;

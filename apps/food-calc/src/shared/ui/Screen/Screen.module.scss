@@ -8,7 +8,7 @@
     overflow-y: auto;
     // Off-white поверхность всего экрана: за листом, в его боковых полях и в зоне
     // под прозрачной нижней панелью (куда растворяется маска скроллера) — один тон.
-    background: var(--screen-surface);
+    background: var(--sys-color-screen-surface);
 
     // #3 — `-webkit-overflow-scrolling: touch` снят (эксперимент 2026-05-16):
     // на Android это no-op, на iOS — deprecated и форсит лишний accelerated-
@@ -22,7 +22,7 @@
     // Сидит на семантической роли «бумага» (--sys-color-surface-page = #FAFAF7):
     // одна бумага на весь app, лист и фон-страницы унифицированы. Раньше был
     // холодноватый rgba(250,250,252) — теперь тёплый канон (elevation-plan §6.5).
-    --screen-surface: var(--sys-color-surface-page);
+    --sys-color-screen-surface: var(--sys-color-surface-page);
 }
 
 // (Focus-scrim удалён 2026-06-23: затемнение всего экрана при фокусе write-бара
@@ -78,12 +78,12 @@
     position: relative;
     z-index: 2;
     // Фон бара по умолчанию ПРОЗРАЧНЫЙ — за баром сквозит off-white поверхность
-    // экрана (`.screen`/`.scrollWrap` = `--screen-surface`), куда растворяется
+    // экрана (`.screen`/`.scrollWrap` = `--sys-color-screen-surface`), куда растворяется
     // нижняя маска скроллера. Своего «белого» бар не несёт. Страница может
-    // переопределить `--bottom-bar-bg` (сплошной цвет). Внутренние обёртки
+    // переопределить `--sys-color-bottom-bar-bg` (сплошной цвет). Внутренние обёртки
     // (AppBottomBar `.writeDock`/`.shellSolo`) фон НЕ красят — источник тут.
-    --bottom-bar-scrim: transparent;
-    background: var(--bottom-bar-bg, var(--bottom-bar-scrim));
+    --sys-color-bottom-bar-scrim: transparent;
+    background: var(--sys-color-bottom-bar-bg, var(--sys-color-bottom-bar-scrim));
     padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -97,7 +97,7 @@
     right: 0;
     bottom: 100%;
     height: var(--bottom-bar-scrim-h, 40px);
-    background: linear-gradient(to top, var(--bottom-bar-bg, var(--bottom-bar-scrim)), transparent);
+    background: linear-gradient(to top, var(--sys-color-bottom-bar-bg, var(--sys-color-bottom-bar-scrim)), transparent);
     pointer-events: none;
 }
 
@@ -294,8 +294,8 @@
     // Непрозрачный фон обязателен: между «залипанием» и моментом когда
     // `headerOverlap` накрывает индикатор есть прозрачные пиксели через
     // которые виден контент. Дефолт — белый; родитель может переопределить
-    // через `--sticky-top-bg` (например на ambient-страницах).
-    background: var(--sticky-top-bg, #fff);
+    // через `--sys-color-sticky-top-bg` (например на ambient-страницах).
+    background: var(--sys-color-sticky-top-bg, var(--sys-color-surface-bright));
 }
 
 .headerOverlap {
@@ -319,7 +319,7 @@
     border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
     border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
 
-    --header-overlap-logo-color-default: rgba(0, 0, 0, 0.08);
+    --sys-color-header-overlap-logo-default: rgba(0, 0, 0, 0.08);
 
     &::before {
         content: '';
@@ -344,7 +344,7 @@
         top: var(--space-1);
         width: var(--header-overlap-logo-w, 70px);
         height: var(--header-overlap-logo-h, 20px);
-        background-color: var(--header-overlap-logo-color, var(--header-overlap-logo-color-default));
+        background-color: var(--sys-color-header-overlap-logo, var(--sys-color-header-overlap-logo-default));
         filter: var(--header-overlap-logo-shadow, none);
         -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
         mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;

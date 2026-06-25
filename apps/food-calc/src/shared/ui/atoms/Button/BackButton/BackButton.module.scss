@@ -4,9 +4,6 @@
 // default). SearchFood scope-overrides the role so its back button blends with
 // the light page (gray fill, ink chevron) instead of a dark pill.
 .back {
-  --back-fg: var(--sys-color-text-on-floating);
-  --back-glyph-size: 26px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -15,13 +12,15 @@
   height: 48px;
   padding: 0;
   border: 1px solid var(--sys-color-surface-floating);
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   background: var(--sys-color-surface-floating);
   box-shadow: var(--sys-elevation-flat); // back-кнопка elevation не несёт
   backdrop-filter: none; // непрозрачная пилюля — blur снят
   -webkit-backdrop-filter: none;
-  color: var(--back-fg);
-  font-size: var(--back-glyph-size);
+  // Шеврон = on-color floating-подложки (роль flip'ается вместе с surface:
+  // SearchFood scope-override делает обе светлыми → тёмный ink-шеврон).
+  color: var(--sys-color-text-on-floating);
+  font-size: var(--sys-icon-size-md);
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -35,8 +34,8 @@
   // подложки нет, см. tds/button-press-unification.)
   &:active {
     background: var(--sys-color-surface-floating-pressed);
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     transform: scale(0.94);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }

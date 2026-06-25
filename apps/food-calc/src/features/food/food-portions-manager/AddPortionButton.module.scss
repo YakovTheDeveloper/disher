@@ -1,8 +1,5 @@
-// Sky-pill CTA «Добавить порцию». Идиома согласована с sky-палитрой
-// FoodPortionsManager; цвет несут local $sky-* SCSS-vars (token-gate: color
-// должен быть var()/$, не raw literal).
-$sky-bg: #c7dbf3;
-$sky-ink: rgb(31, 50, 95);
+// Accent-pill CTA «Добавить порцию». Бывшая sky-палитра сведена на indigo-ярус
+// (--sys-color-surface-accent-soft / --sys-color-text-accent; «indigo вместо navy» 2026-06-25).
 
 // Геометрия повторяет нижний док (AppBottomBar), чтобы слайд читался как
 // единый page-level бар.
@@ -20,10 +17,10 @@ $sky-ink: rgb(31, 50, 95);
     gap: var(--space-1);
     padding: var(--space-3) var(--space-4);
     min-height: 44px;
-    border-radius: var(--radius-full);
+    border-radius: var(--sys-radius-indicator);
     border: none;
-    background: $sky-bg;
-    color: $sky-ink;
+    background: var(--sys-color-surface-accent-soft);
+    color: var(--sys-color-text-accent);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.12s ease, filter var(--press-out) var(--easing-default);
@@ -32,7 +29,7 @@ $sky-ink: rgb(31, 50, 95);
     &:active {
         filter: brightness(0.9);
         transform: scale(0.97);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 

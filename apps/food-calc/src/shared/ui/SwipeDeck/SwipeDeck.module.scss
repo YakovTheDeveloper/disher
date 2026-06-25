@@ -25,7 +25,7 @@
     // Ambient свечение живёт на app-уровне (`.main` в App.module.scss):
     // проступает только через chrome (sticky-индикатор + нижний dock), а
     // контент-плашка `.headerOverlap` остаётся opaque.
-    --sticky-top-bg: transparent;
+    --sys-color-sticky-top-bg: transparent;
 }
 
 .swipeArea {
@@ -59,7 +59,7 @@
 // верхних углов, гармонируя с заголовком-табами (баком 2026-06-22, DesignBar-ось
 // снята). `--header-overlap-radius` наследуется вниз по DOM к листу.
 .swipeArea {
-    --header-overlap-radius: var(--radius-2xl);
+    --header-overlap-radius: var(--sys-radius-sheet);
 }
 
 
@@ -73,7 +73,7 @@
 // hero-less страницах (Dish/Discoveries) белый знак утонул бы в светлом контенте,
 // поэтому там оставляем дефолтный тихий тёмный watermark (Screen.module.scss).
 .container[data-deck-hero] {
-    --header-overlap-logo-color: #fff;
+    --sys-color-header-overlap-logo: #fff;
     --header-overlap-logo-z: 1;
     --header-overlap-logo-w: 92px;
     --header-overlap-logo-h: 26px;

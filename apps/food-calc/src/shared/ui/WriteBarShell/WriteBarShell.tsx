@@ -4,15 +4,14 @@ import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { RotatingPlaceholder } from './RotatingPlaceholder';
 import s from './WriteBarShell.module.scss';
 
-// Поверхность бара ЗАФИКСИРОВАНА на `frost` (2026-06-24) — выбор сделан, живой
-// 🎨-перебор `WriteBarSurface` больше не нужен. Раньше это был DesignBar-анкор
-// (field/cta/bright/frost); теперь атрибуты `data-dv*` проставлены статически на
-// `.wrap`, поэтому CSS-гейт `[data-dv='WriteBarSurface'][data-dv-v='frost']`
-// (внизу WriteBarShell.module.scss) применяется всегда, а сам ключ из бара ушёл
-// (useDesignVariant больше не регистрируется). Остальные форки (field/cta/bright)
-// в scss мёртвы — выпилить вместе с гейтом отдельным проходом.
+// Поверхность бара = стандартное поле формы проекта (warm well + внутренняя тень)
+// со скруглением пилюли (--radius-full), на приподнятой док-подложке. Мёртвый
+// DesignBar-анкор `WriteBarSurface` (field/cta/bright/frost) и статические
+// `data-dv*` выпилены 2026-06-24 — свойства живут в базовых классах
+// WriteBarShell.module.scss.
 
 // Минималистичный «бумажный самолётик» — канон send-иконки (Telegram-стиль,
 // уже стандарт мессенджер-инпута). Залит currentColor (на тёмной монете читается
@@ -22,21 +21,6 @@ const SendPlaneIcon = () => (
     <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>
 );
-
-// First word → serif-italic accent (canon --heading-font); rest plain. Split on
-// the first space; leading space of the remainder is preserved.
-function renderAccent(text: string): ReactNode {
-  const spaceIdx = text.indexOf(' ');
-  if (spaceIdx === -1) return text;
-  return (
-    <>
-      <QuietLabel as="em" className={s.placeholderAccent}>
-        {text.slice(0, spaceIdx)}
-      </QuietLabel>
-      {text.slice(spaceIdx)}
-    </>
-  );
-}
 
 function renderHint(text: string): ReactNode {
   const spaceIdx = text.indexOf(' ');
@@ -98,9 +82,24 @@ export interface WriteBarShellProps {
    */
   onSubmit: (value: string) => void | boolean | Promise<void | boolean>;
   inputId: string;
+  /**
+   * Стабильный нативный placeholder (для скринридера + `:placeholder-shown`).
+   * Виден как обычный плейсхолдер, когда карусель примеров не активна.
+   */
   placeholder: string;
-  /** Serif-accent the first placeholder word. Default true. */
-  accentPlaceholder?: boolean;
+  /**
+   * Строки-примеры для анимированной карусели в ПУСТОМ баре (см.
+   * RotatingPlaceholder). Карусель показывается только когда есть примеры И
+   * `examplesActive` (инпут пуст И список айтемов пуст). Иначе виден обычный
+   * `placeholder`.
+   */
+  placeholderExamples?: string[];
+  /**
+   * Caller-гейт «список айтемов пуст» (онбординг-подсказка для свежего экрана).
+   * Часть условия показа карусели; вторую часть («инпут пуст») бар считает сам.
+   * Default true (если consumer не управляет списком — крутим, когда есть примеры).
+   */
+  examplesActive?: boolean;
   maxLength?: number;
   /** Rows the field grows to on focus. Default 4. */
   maxRowsFocused?: number;
@@ -156,7 +155,8 @@ export const WriteBarShell = ({
   onSubmit,
   inputId,
   placeholder,
-  accentPlaceholder = true,
+  placeholderExamples,
+  examplesActive = true,
   maxLength,
   maxRowsFocused = 4,
   readOnly,
@@ -180,6 +180,12 @@ export const WriteBarShell = ({
 
   const expanded = focused && !fieldOverride;
   const hasText = value.trim().length > 0;
+
+  // Карусель примеров: монтируется, когда переданы примеры И caller-гейт
+  // `examplesActive` (список айтемов пуст). Сам цикл крутится только пока инпут
+  // пуст (`active={!hasText}`); как только появляется текст — оверлей всё равно
+  // прячется CSS-ом `:placeholder-shown`, а цикл замирает.
+  const showExamples = !fieldOverride && !!placeholderExamples?.length && examplesActive;
 
   const send: SendState = computeSend
     ? computeSend({ focused: expanded, hasText, online })
@@ -217,11 +223,12 @@ export const WriteBarShell = ({
 
   return (
     <div
-      // Поверхность залочена на `frost` (см. шапку файла) — статический гейт.
-      data-dv="WriteBarSurface"
-      data-dv-v="frost"
       className={clsx(s.wrap, className)}
       data-write-state={writeState}
+      // `data-expanded` rides the wrap so the detached medal — now a wrap-level
+      // sibling of `.barLine` (moved out 2026-06-25 so it floats at the screen
+      // edge while the pill takes the wrap's side inset) — still reads collapse.
+      data-expanded={expanded || undefined}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
       data-write-bar=""
     >
@@ -232,16 +239,14 @@ export const WriteBarShell = ({
           </Text>
         </div>
       ) : null}
-      {/* barLine = flex row of the glass pill + the detached medal sibling.
-          `data-expanded` rides here (not only the pill) so the medal — now
-          OUTSIDE the pill — still reads the collapse state cross-module.
-          `data-detached` (rightSlot present = food medal) mirrors the medal's
-          footprint as a left margin on the pill, so the pill sits dead-centre on
-          screen regardless of the medal sitting at the right. */}
+      {/* barLine = the glass pill row (left slot + field + send). The medal is no
+          longer here — it moved up to `.wrap` (below) so it anchors to the
+          full-width wrap edge, not the side-inset pill row. The pill is full-
+          width; the absolute medal floats over its right end (no flex/margin
+          interplay — the old `data-detached` margin knob was never wired). */}
       <div
         className={s.barLine}
         data-expanded={expanded || undefined}
-        data-detached={rightSlot ? '' : undefined}
       >
         <div
           className={s.writeBarRow}
@@ -269,7 +274,11 @@ export const WriteBarShell = ({
                   }}
                   onBlur={() => setFocused(false)}
                   placeholder={placeholder}
-                  renderPlaceholder={accentPlaceholder ? renderAccent(placeholder) : undefined}
+                  renderPlaceholder={
+                    showExamples ? (
+                      <RotatingPlaceholder examples={placeholderExamples!} active={!hasText} />
+                    ) : undefined
+                  }
                   maxRows={focused ? maxRowsFocused : 1}
                   maxLength={maxLength}
                   collapseOnBlur={false}
@@ -302,10 +311,12 @@ export const WriteBarShell = ({
             </button>
           ) : null}
         </div>
-        {/* Detached medal — sits OUTSIDE the pill, kept in place at the far right.
-            Collapses on focus (reads `[data-expanded]` off `.barLine`). */}
-        {rightSlot}
       </div>
+      {/* Detached medal — wrap-level sibling of `.barLine` (moved out 2026-06-25).
+          Anchored absolute to `.wrap` so it floats at the screen edge, ignoring
+          the wrap's side inset that the pill row takes. Collapses on focus (reads
+          `[data-expanded]` off `.wrap`). */}
+      {rightSlot}
     </div>
   );
 };

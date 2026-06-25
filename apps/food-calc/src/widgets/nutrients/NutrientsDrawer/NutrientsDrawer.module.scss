@@ -23,7 +23,7 @@
     gap: 8px;
     min-height: 48px;
     padding: 0 var(--sys-inset-panel) 8px;
-    background: white;
+    background: var(--sys-color-surface-bright);
     flex-shrink: 0;
     transition: box-shadow 180ms ease;
 }
@@ -31,8 +31,7 @@
 // 1. Modern scroll-state query (Chrome 133+, Feb 2025).
 @container scroll-state(stuck: top) {
     .header {
-        box-shadow: 0 1px 0 var(--sys-card-hairline),
-                    0 6px 12px -6px color-mix(in srgb, var(--sys-card-text-rest) 8%, transparent);
+        box-shadow: var(--sys-elevation-seam);
     }
 }
 
@@ -49,13 +48,11 @@
 // state (CSS Animations requires matching shadow-list lengths to lerp).
 @keyframes header-stuck-shadow {
     0% {
-        box-shadow: 0 0 0 transparent,
-                    0 0 0 transparent;
+        box-shadow: var(--sys-elevation-seam-rest);
     }
 
     3%, 100% {
-        box-shadow: 0 1px 0 var(--sys-card-hairline),
-                    0 6px 12px -6px color-mix(in srgb, var(--sys-card-text-rest) 8%, transparent);
+        box-shadow: var(--sys-elevation-seam);
     }
 }
 

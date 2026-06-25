@@ -15,7 +15,7 @@
     bottom: calc(100% + 2px);
     left: 0;
     line-height: 1;
-    color: rgba(0, 0, 0, 0.35);
+    color: var(--sys-color-text-tertiary);
     white-space: nowrap;
     pointer-events: none;
     // Mirrors the previous Framer Motion animation:

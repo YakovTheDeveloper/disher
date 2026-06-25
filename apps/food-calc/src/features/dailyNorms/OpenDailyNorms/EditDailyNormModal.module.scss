@@ -41,7 +41,7 @@
   border: none;
   cursor: pointer;
   padding: var(--space-1);
-  border-radius: var(--radius-xs);
+  border-radius: var(--sys-radius-tmp); /* was 4px */
   color: var(--sys-field-text, #111);
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -50,9 +50,9 @@
 
   // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 
   svg {
@@ -158,7 +158,7 @@
   justify-content: center;
   gap: 10px;
   padding: 28px 0;
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
 }
 
 // Типографику несёт <Text role="caption"> (миграция в примитив). Цвет —

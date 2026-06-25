@@ -16,9 +16,7 @@
         var(--sys-field-bg-from) 0%,
         var(--sys-field-bg-mid) 55%,
         var(--sys-field-bg-to) 100%);
-    box-shadow:
-        inset 0 0 0 1px var(--sys-field-hairline),
-        var(--sys-field-shadow);
+    box-shadow: var(--sys-field-shadow-hairline);
     color: var(--sys-field-text);
     font-family: var(--sys-field-font-family);
     font-size: var(--sys-field-font-size-compact);
@@ -30,9 +28,7 @@
 
     &:hover,
     &[data-popup-open] {
-        box-shadow:
-            inset 0 0 0 1px var(--sys-field-hairline-focus),
-            var(--sys-field-shadow-focus);
+        box-shadow: var(--sys-field-shadow-hairline-focus);
     }
 
     &:focus-visible {
@@ -68,11 +64,9 @@
     max-height: var(--available-height);
     overflow-y: auto;
     padding: var(--space-1);
-    border-radius: var(--radius-md);
+    border-radius: var(--sys-radius-container);
     background: linear-gradient(180deg, var(--sys-field-bg-from) 0%, var(--sys-field-bg-to) 100%);
-    box-shadow:
-        inset 0 0 0 1px var(--sys-field-hairline),
-        var(--sys-elevation-overlay);
+    box-shadow: var(--sys-field-shadow-popup);
     transform-origin: var(--transform-origin);
     transition:
         transform 0.16s ease,
@@ -92,7 +86,7 @@
     gap: var(--space-2);
     min-height: 44px; // touch-floor для пунктов списка
     padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-sm);
+    border-radius: var(--sys-radius-control);
     color: var(--sys-field-text);
     font-family: var(--sys-field-font-family);
     font-size: var(--sys-field-font-size-compact);
@@ -103,7 +97,7 @@
     -webkit-tap-highlight-color: transparent;
 
     &[data-highlighted] {
-        background: color-mix(in srgb, var(--sys-field-text) 7%, transparent);
+        background: var(--sys-field-bg-highlight);
     }
 
     &[data-selected] {

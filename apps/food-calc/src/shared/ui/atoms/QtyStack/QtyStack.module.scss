@@ -1,0 +1,64 @@
+// QtyStack — стопка количества: значение / единица-под-началом. Тап = правка.
+// См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
+
+.qty {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start; // единица под ЛЕВЫМ краем значения
+  line-height: 1;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  // тёплый press-chip (token, не литерал) + focus-ring правки
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: var(--sys-radius-control);
+  transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
+
+  &:active {
+    background-color: var(--sys-color-bg-press-warm);
+    transition-duration: var(--sys-duration-press-in);
+  }
+
+  &:focus-within {
+    background-color: var(--sys-color-bg-focus-ring);
+    box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- focus-ring (colored, не elevation) */
+  }
+}
+
+// Значение: мин-ширина = ширине input'а правки (4ch) → при свопе число↔input
+// строка не дёргается, единица под ним не прыгает.
+.value {
+  display: inline-flex;
+  min-width: 4ch;
+  font-size: var(--sys-numeral-base);
+  line-height: 1.15; // совпасть с первой строкой имени в кластере
+}
+
+// NumberInput в правке — визуально как статичное значение (левый край).
+.value input {
+  width: 4ch;
+  padding: 0 !important;
+  margin: 0;
+  font-size: var(--sys-field-font-size) !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  text-align: left;
+  letter-spacing: 0;
+  line-height: 1.15;
+
+  &:focus {
+    outline: none;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+}
+
+.unit {
+  color: var(--sys-color-text-muted);
+  font-size: var(--sys-numeral-xs);
+  line-height: 1;
+}

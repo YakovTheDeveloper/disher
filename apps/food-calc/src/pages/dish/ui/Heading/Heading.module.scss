@@ -16,13 +16,13 @@
 // селектор привязан к `input`, чтобы typo-encapsulation gate exempt'ил его.
 input.nameText {
     padding: 4px 6px;
-    font-size: 22px;
+    font-size: var(--sys-text-size-lg); /* was 22px (input — typo-exempt) */
     font-weight: 400;
     line-height: normal;
     width: 100%;
-    border-color: rgba(0, 0, 0, 0.021);
+    border-color: var(--sys-color-border-subtle);
     height: 100%;
-    color: rgb(70, 70, 70);
+    color: var(--sys-color-text-system);
     top: 0;
     font-style: italic;
     left: 0;

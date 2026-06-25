@@ -1,10 +1,7 @@
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
-import { ActionTile } from '@/shared/ui/atoms/ActionTile';
-import { QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
+import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import styles from './FoodSearchEmpty.module.scss';
-
-const PRODUCT_IMG = '/art/product.png';
-const DISH_IMG = '/art/dish.png';
 
 type Props = {
   query: string;
@@ -31,16 +28,18 @@ export const FoodSearchEmpty = ({
   const ref = useKeyboardStick<HTMLDivElement>();
   const hasQuery = query.length > 0;
 
-  // Равновесная пара: оба слова существительные (noun сверху, «Создать» снизу),
-  // без primary/secondary иерархии. createInputHtmlFor → плитка рендерится как
-  // <label htmlFor> (делегирование фокуса в create-input).
+  // Равновесная пара: две одинаковые primary-secondary кнопки без иерархии (глагол
+  // «Создать» несёт подсказка выше). `flat` — кнопки лежат НА поверхности дока как
+  // часть смыслового блока (тень снята). createInputHtmlFor → кнопка рендерится как
+  // <label htmlFor> (делегирование фокуса в create-input, паттерн ModalByLabel).
+  const asTag = createInputHtmlFor ? 'label' : 'button';
   return (
     <div ref={ref} className={styles.root}>
       <div className={styles.header}>
         {showMessage && hasQuery && (
-          <p className={styles.message}>
+          <Text as="p" role="caption" className={styles.message}>
             По запросу <em>«{query}»</em> ничего нет
-          </p>
+          </Text>
         )}
         <QuietLabel as="p" className={styles.prompt}>
           Нету нужной еды? Создать в два клика
@@ -48,22 +47,26 @@ export const FoodSearchEmpty = ({
       </div>
       <div className={styles.actions}>
         {onCreateDish && (
-          <ActionTile
+          <Button
+            variant="primary-secondary"
+            flat
+            as={asTag}
             htmlFor={createInputHtmlFor}
-            top="Блюдо"
-            bottom="Создать"
-            art={<img src={DISH_IMG} alt="" />}
             onClick={onCreateDish}
-          />
+          >
+            Блюдо
+          </Button>
         )}
         {onCreateProduct && (
-          <ActionTile
+          <Button
+            variant="primary-secondary"
+            flat
+            as={asTag}
             htmlFor={createInputHtmlFor}
-            top="Продукт"
-            bottom="Создать"
-            art={<img src={PRODUCT_IMG} alt="" />}
             onClick={onCreateProduct}
-          />
+          >
+            Продукт
+          </Button>
         )}
       </div>
     </div>

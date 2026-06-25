@@ -187,7 +187,7 @@ const ANATOMY: AnatomyEntity[] = [
         role: 'главное действие формы / подтверждения',
         css: 'width:100%, ink-заливка, белый текст, высота 56px',
         why: 'заливка-акцент = «это основной путь»',
-        preview: <Button variant="primary">Сохранить</Button>,
+        preview: <Button variant="system">Сохранить</Button>,
       },
       {
         part: 'brand',
@@ -195,7 +195,7 @@ const ANATOMY: AnatomyEntity[] = [
         css: 'pill, заливка --cta-brand-fill (дефолт sage-жёлтый), ink-текст, высота 56px (как primary)',
         why: 'один вариант, цвет через --cta-brand-* — DishPage перекрашивает в sky, не плодя второй вариант',
         preview: (
-          <Button variant="brand" icon={<PlusGlyph />}>
+          <Button variant="primary" icon={<PlusGlyph />}>
             Разобрать
           </Button>
         ),
@@ -205,7 +205,7 @@ const ANATOMY: AnatomyEntity[] = [
         role: 'вторичное действие рядом с primary',
         css: 'белая пилюля, ink-окаёмка 16%, мягкая тень, min-height 40px, ink press-fill',
         why: 'тише primary по заливке (белый, не ink) — «второй путь», не навигация; база — bannerButton «Повторить»',
-        preview: <Button variant="secondary">Повторить</Button>,
+        preview: <Button variant="system-secondary">Повторить</Button>,
       },
       {
         part: 'link',
@@ -554,18 +554,18 @@ const PRIMITIVE_COMPS: KitComp[] = [
     rows: [
       {
         variant: 'primary',
-        preview: <Button variant="primary">Подтвердить</Button>,
+        preview: <Button variant="system">Подтвердить</Button>,
         essence: 'Главное действие формы — заливка-акцент во всю ширину.',
       },
       {
         variant: 'secondary',
-        preview: <Button variant="secondary">Повторить</Button>,
+        preview: <Button variant="system-secondary">Повторить</Button>,
         essence: 'Вторичное действие рядом с primary — тише по заливке.',
       },
       {
         variant: 'brand',
         preview: (
-          <Button variant="brand" icon={<PlusGlyph />}>
+          <Button variant="primary" icon={<PlusGlyph />}>
             Разобрать
           </Button>
         ),
@@ -590,13 +590,13 @@ const PRIMITIVE_COMPS: KitComp[] = [
         essence: 'isLoading блокирует + спиннер · disabled · ведущий значок before / icon.',
         preview: (
           <>
-            <Button variant="primary" isLoading>
+            <Button variant="system" isLoading>
               loading
             </Button>
-            <Button variant="primary" disabled>
+            <Button variant="system" disabled>
               disabled
             </Button>
-            <Button variant="brand" before={<PlusGlyph />}>
+            <Button variant="primary" before={<PlusGlyph />}>
               before
             </Button>
           </>
@@ -662,10 +662,10 @@ const PRIMITIVE_COMPS: KitComp[] = [
         essence: 'Каркас нижнего дока без своей поверхности — раскладывает CTA (left / right / split).',
         preview: (
           <AppBottomBarShell side="split">
-            <Button variant="brand" icon={<PlusGlyph />}>
+            <Button variant="primary" icon={<PlusGlyph />}>
               Добавить
             </Button>
-            <Button variant="brand">Разобрать</Button>
+            <Button variant="primary">Разобрать</Button>
           </AppBottomBarShell>
         ),
       },
@@ -716,7 +716,7 @@ const SEMANTIC_COMPS: KitComp[] = [
     rows: [
       {
         builtOn: '← Button primary',
-        preview: <Button variant="primary">Войти</Button>,
+        preview: <Button variant="system">Войти</Button>,
         essence: 'Отправка формы авторизации.',
       },
     ],
@@ -727,7 +727,7 @@ const SEMANTIC_COMPS: KitComp[] = [
     rows: [
       {
         builtOn: '← Button secondary',
-        preview: <Button variant="secondary">Повторить</Button>,
+        preview: <Button variant="system-secondary">Повторить</Button>,
         essence: 'Повтор после ошибки разбора дня.',
       },
     ],
@@ -738,14 +738,14 @@ const SEMANTIC_COMPS: KitComp[] = [
     rows: [
       {
         builtOn: '← Button brand',
-        preview: <Button variant="brand">Проанализировать</Button>,
+        preview: <Button variant="primary">Проанализировать</Button>,
         essence: 'Запустить / перезапустить разбор блюда (sky-тон через --cta-brand-*).',
       },
     ],
   },
   {
     name: 'readyCta',
-    note: 'WriteFoodInput',
+    note: 'FoodWriteBar',
     rows: [
       {
         builtOn: '← Button link',
@@ -885,7 +885,7 @@ function DemoDrawer({ onClose }: BaseDrawerProps) {
     <DrawerLayout
       a11yLabel="Демонстрация Drawer"
       footer={
-        <Button variant="primary" center onClick={() => onClose()}>
+        <Button variant="system" center onClick={() => onClose()}>
           Закрыть
         </Button>
       }

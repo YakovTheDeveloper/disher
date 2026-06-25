@@ -12,7 +12,7 @@
 
     // Свечение проступает сквозь обвязку; контент-лист остаётся белым. Нижний
     // бар прозрачен по умолчанию (источник истины — Screen `.bottomBar`).
-    --sticky-top-bg: transparent;
+    --sys-color-sticky-top-bg: transparent;
 
     // Высота плавающего HomeTopBar (absolute поверх `.ambient`) — тот же расчёт,
     // что на HomePage. `.swipeArea` сдвигает лист на эту высоту вниз.

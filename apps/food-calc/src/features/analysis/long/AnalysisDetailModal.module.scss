@@ -29,7 +29,7 @@
 
 .range {
     margin: 0;
-    color: rgba(15, 23, 42, 0.5);
+    color: var(--sys-color-text-tertiary);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
@@ -54,25 +54,25 @@
 .pendingText {
     margin: 0;
     line-height: 1.5;
-    color: rgba(15, 23, 42, 0.55);
+    color: var(--sys-color-text-secondary);
     max-width: 320px;
 }
 
 .failed {
     padding: 14px 16px;
-    border-radius: 12px;
-    background: rgba(192, 57, 43, 0.07);
+    border-radius: var(--sys-radius-container);
+    background: var(--sys-color-status-danger-surface);
 }
 
 .failedTitle {
     margin: 0 0 4px;
-    color: #a5281c;
+    color: var(--sys-color-status-danger);
 }
 
 .failedBody {
     margin: 0;
     line-height: 1.5;
-    color: rgba(15, 23, 42, 0.62);
+    color: var(--sys-color-text-secondary);
     word-break: break-word;
 }
 
@@ -85,10 +85,10 @@
     min-height: 46px;
     margin-top: 14px;
     padding: 11px 22px;
-    border-radius: 13px;
+    border-radius: var(--sys-radius-cta);
     border: none;
-    background: var(--sys-color-bg-selected); // navy-brand action (token: flip-able tone, C1 2026-06-24)
-    color: var(--sys-color-text-on-selected);
+    background: var(--sys-color-surface-action-accent); // brand action → indigo accent (M4 navy→indigo, 2026-06-25)
+    color: var(--sys-color-on-accent);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform var(--press-out) var(--easing-default),
@@ -98,7 +98,7 @@
     &:active {
         filter: brightness(0.9);
         transform: scale(0.98);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 
     &:disabled {
@@ -128,7 +128,7 @@
 
 .snapshotEmpty {
     margin: 0;
-    color: rgba(15, 23, 42, 0.45);
+    color: var(--sys-color-text-tertiary);
 }
 
 .snapshotList {
@@ -145,15 +145,15 @@
     flex-direction: column;
     gap: 2px;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: var(--sys-radius-container);
     background: linear-gradient(90deg, #fffdff 0%, #f7f4fb 100%);
 }
 
 .snapshotItemTitle {
-    color: rgba(36, 26, 60, 0.9);
+    color: var(--sys-color-text-system);
 }
 
 .snapshotItemBody {
     line-height: 1.45;
-    color: rgba(36, 26, 60, 0.58);
+    color: var(--sys-color-text-secondary);
 }

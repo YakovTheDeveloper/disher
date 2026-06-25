@@ -13,12 +13,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--sys-stack-row);
-  // `--sheet-bg` / `--sheet-shadow` — точки переопределения для консьюмера: дом
-  // на liquid-glass листе делает секции белыми + лёгкий подъём (см. Laboratory
-  // `.ambientSheet`). Дефолт — off-white pearl, без тени.
-  background: var(--sheet-bg, #f7f5f7);
-  box-shadow: var(--sheet-shadow, none);
-  border-radius: var(--radius-2xl);
+  // Дефолт — off-white pearl, без тени (бывшие --sheet-bg/--sheet-shadow override-
+  // точки выпилены: фактически не переопределялись, sys-токен прямой).
+  background: var(--sys-color-surface-page);
+  box-shadow: none;
+  border-radius: var(--sys-radius-sheet);
   overflow: hidden;
 
   // pearl-глянец (база): яркий верхне-левый угол + еле заметный прохладный блик

@@ -57,7 +57,7 @@ const AttachHypothesesPicker = ({ hypotheses, initialSelectedIds, onChange, onCl
       footer={
         selectedIds.size > 0 ? (
           <div className={s.footer}>
-            <Button variant="primary" center onClick={() => onClose()}>
+            <Button variant="system" center onClick={() => onClose()}>
               Подтвердить
             </Button>
           </div>

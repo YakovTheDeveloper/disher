@@ -1,5 +1,5 @@
-export { WriteFoodInput } from './ui/WriteFoodInput';
-export type { WriteFoodInputProps } from './ui/WriteFoodInput';
+export { FoodWriteBar } from './ui/FoodWriteBar';
+export type { FoodWriteBarProps } from './ui/FoodWriteBar';
 export { InlineWriteFoodReview } from './ui/InlineWriteFoodReview';
 export { FreeTextFoodReviewItem } from './ui/FreeTextFoodReviewItem';
 export { useWriteFoodFlow } from './model/useWriteFoodFlow';

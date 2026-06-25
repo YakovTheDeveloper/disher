@@ -10,12 +10,12 @@
     background: transparent;
     border: none;
     text-align: center;
-    font-size: 13px;
+    font-size: var(--sys-numeral-sm); /* was 13px — числовой ввод */
     font-weight: 600;
 
     &::selection {
-        background-color: rgb(172, 172, 172);
-        color: white;
+        background-color: var(--sys-color-control-track);
+        color: var(--sys-color-text-on-accent);
     }
 }
 

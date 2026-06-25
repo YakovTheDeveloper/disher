@@ -1,0 +1,7 @@
+.tap {
+  // Вертикальный пол тап-зоны через padding (а не height): растёт с контентом,
+  // соседние зоны идут впритык. См. tokens.scss #row-geometry → --sys-tap-pad-block.
+  padding-block: var(--sys-tap-pad-block);
+  // Убирает 300ms-задержку тапа и double-tap-zoom внутри зоны.
+  touch-action: manipulation;
+}

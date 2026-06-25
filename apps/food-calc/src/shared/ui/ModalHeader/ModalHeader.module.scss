@@ -29,8 +29,8 @@
   border: none;
   cursor: pointer;
   padding: var(--space-1);
-  border-radius: var(--radius-xs);
-  color: #111;
+  border-radius: var(--sys-radius-tmp); /* was 4px (radius-xs) — icon button */
+  color: var(--sys-color-text-system);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
@@ -38,9 +38,9 @@
 
   // Цветной отклик: на нажатии глиф → surface-акцент + лёгкий тинт-фон.
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 
   svg {

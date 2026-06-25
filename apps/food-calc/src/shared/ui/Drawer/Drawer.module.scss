@@ -13,14 +13,14 @@
     position: fixed;
     inset: 0;
     min-height: 100dvh;
-    background-color: black;
+    background-color: var(--sys-color-scrim-strong);
     z-index: 5000;
     // Opacity линкована со swipe-progress: backdrop progressively
     // transparent во время свайпа закрытия.
     opacity: calc(var(--overlay-opacity, 0.2) * (1 - var(--drawer-swipe-progress, 0)));
-    transition-duration: 450ms;
+    transition-duration: var(--sys-duration-drawer);
     transition-property: opacity;
-    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    transition-timing-function: var(--sys-easing-ios);
 
     // iOS 26+: position:absolute обеспечивает покрытие visible viewport'а
     // (fixed на iOS не всегда корректно расширяется до URL bar area).
@@ -37,9 +37,9 @@
         transition-duration: 0ms;
     }
 
-    // Скорость закрытия = скорости свайпа (быстрый свайп → быстрое закрытие).
+    // Статическая длительность закрытия (бывш. swipe-strength множитель — упрощено).
     &[data-ending-style] {
-        transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
+        transition-duration: var(--sys-duration-drawer);
     }
 }
 

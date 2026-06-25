@@ -64,12 +64,10 @@
 
 // Лид-абзац (summary): чистый Apple-lead без тёплой канон-полосы слева.
 .ambientSheet :global([data-analysis-summary]) {
-    --ap-fs-lead: 16.5px;
-
     padding: 0;
-    font-size: var(--ap-fs-lead);
+    font-size: var(--sys-text-size-base);
     line-height: 1.55;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 88%, transparent);
+    color: var(--sys-card-text-strong);
 
     &::before {
         display: none;
@@ -81,14 +79,12 @@
 // `.ambientSheet [data-analysis-section] > h3` (0,2,1) перебивает serif-канон
 // Heading (`.heading.drawer`, 0,1,0).
 .ambientSheet :global([data-analysis-section])>h3 {
-    --ap-fs-head: 17px;
-
     justify-content: flex-start;
     padding: 0 0 var(--space-3);
     font-family: var(--font-sans);
     font-style: normal;
     font-weight: 600;
-    font-size: var(--ap-fs-head);
+    font-size: var(--sys-text-size-base);
     letter-spacing: -0.01em;
     line-height: 1.2;
     color: var(--sys-card-text-rest);

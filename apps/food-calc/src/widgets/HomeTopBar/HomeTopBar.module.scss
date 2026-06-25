@@ -67,7 +67,7 @@ $pill-h: 44px;
   max-width: calc(100% - 156px);
   text-align: center;
   line-height: 1;
-  color: rgba(0, 0, 0, 0.78);
+  color: var(--sys-color-text-system);
   pointer-events: none;
   // Перенос до 2 строк включительно; всё свыше — троеточие.
   display: -webkit-box;
@@ -108,7 +108,7 @@ $pill-h: 44px;
   -webkit-tap-highlight-color: transparent;
 
   &:active {
-    color: rgba(0, 0, 0, 0.55);
+    color: var(--sys-color-text-secondary);
   }
 }
 
@@ -125,10 +125,10 @@ $pill-h: 44px;
   min-height: $pill-h;
   box-sizing: border-box;
   margin-right: 4px;
-  background: var(--sys-color-surface-floating);
-  border: 1px solid var(--sys-color-surface-floating);
+  background: var(--sys-color-surface-action-system-soft);
+  border: 1px solid var(--sys-color-surface-action-system-soft);
   box-shadow: var(--sys-elevation-action-rest);
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   // transform/opacity — для scroll-hide (см. блок `data-topbar-hide` внизу).
   transition:
     transform var(--duration-normal) var(--easing-default),
@@ -147,7 +147,7 @@ $pill-h: 44px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   white-space: nowrap;
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -159,8 +159,8 @@ $pill-h: 44px;
   // контент чернеет. Вход мгновенный (--press-in), выход мягкий (--press-out).
   &:active {
     background: var(--sys-color-surface-floating-pressed);
-    color: var(--color-ink);
-    transition-duration: var(--press-in);
+    color: var(--sys-color-text-system);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -173,19 +173,16 @@ $pill-h: 44px;
   // сетке с account/center и не «вырастает» из-за serif-дня.
   --date-pad-y: 4px;
 
-  // Контент date-пилюли: белый день/цифры, приглушённый разделитель. Сама
-  // поверхность теперь общая с остальными пилюлями (--sys-color-surface-floating —
-  // 2026-06-23 кнопка даты перестала быть исключением, весь бар тёмный).
-  --inline-day: #fff;
-  --inline-num: rgba(255, 255, 255, 0.92);
-  --inline-divider: rgba(255, 255, 255, 0.22);
-
+  // Контент date-пилюли: белый день/цифры, приглушённый разделитель — читаются
+  // через on-floating-роли напрямую (бывшие --inline-* кнобы выпилены). Поверхность
+  // общая с остальными пилюлями (--sys-color-surface-floating). Press-флэш (ink) —
+  // оверрайдом on-floating-ролей в `.dateSegment:active` (one-place flip).
   min-height: $pill-h;
   box-sizing: border-box;
   background: var(--sys-color-surface-floating);
   border: 1px solid var(--sys-color-surface-floating);
   box-shadow: var(--sys-elevation-action-rest);
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   padding: var(--date-pad-y) var(--date-pad-x);
   margin-left: auto;
   // Перебивает transition из `.segment` — добавляет transform/opacity для
@@ -221,7 +218,7 @@ $pill-h: 44px;
   // День «Пн» — основной (полная непрозрачность), перебивает тихий opacity:0.5
   // примитива <QuietLabel>, чей serif-italic голос мы здесь переиспользуем.
   opacity: 1;
-  color: var(--inline-day);
+  color: var(--sys-color-text-on-floating);
 
   &::first-letter {
     text-transform: uppercase;
@@ -234,8 +231,7 @@ $pill-h: 44px;
   align-items: baseline;
   width: auto;
   padding-left: 8px;
-  border-left: 1px solid var(--inline-divider);
-  font-size: var(--text-meta);
+  border-left: 1px solid var(--sys-color-on-floating-divider);
   line-height: 1.2;
 }
 
@@ -247,7 +243,7 @@ $pill-h: 44px;
 // dd.mm — приглушённые моноширинные цифры.
 .dateDdmm {
   // Числовой голос (размер/вес/tnum/lnum) несёт <Numeral size="base" weight="semibold">.
-  color: var(--inline-num);
+  color: var(--sys-color-on-floating-strong);
 }
 
 // Плавный выход цвета dd.mm в темпе с фоном пилюли (вход мгновенный --press-in).
@@ -259,10 +255,12 @@ $pill-h: 44px;
 // divider / dd.mm красятся через --inline-*) чернеет, чтобы читаться на белой
 // заливке. Flip одним местом — вместо перекраски каждого глифа.
 .dateSegment:active {
-  --inline-day: var(--color-ink);
-  --inline-num: var(--color-ink);
-  --inline-divider: rgba(10, 10, 10, 0.22);
-  transition-duration: var(--press-in);
+  // Press-флэш: пилюля белеет (surface-floating-pressed) → контент чернеет.
+  // Оверрайдим on-floating-роли в одном месте (вместо перекраски каждого глифа).
+  --sys-color-text-on-floating: var(--sys-color-text-system);
+  --sys-color-on-floating-strong: var(--sys-color-text-system);
+  --sys-color-on-floating-divider: var(--sys-color-border-subtle);
+  transition-duration: var(--sys-duration-press-in);
 }
 
 // ─── Scroll-hide (направление-зависимое) ───────────────────────────────────

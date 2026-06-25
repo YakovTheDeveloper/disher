@@ -10,7 +10,7 @@
     gap: 12px;
     width: 100%;
     padding: 12px 16px;
-    border-radius: 18px;
+    border-radius: var(--sys-field-radius, var(--radius-sm)); /* was 18px — snap to field family */
     background: linear-gradient(
         90deg,
         var(--sys-field-bg-from) 0%,
@@ -68,7 +68,7 @@
     width: 20px;
     height: 20px;
     border: 1.5px solid var(--sys-chip-border);
-    border-radius: 5px;
+    border-radius: var(--sys-radius-control); /* was 5px */
     background: transparent;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
@@ -95,7 +95,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
+        outline: 2px solid var(--sys-card-text-active-muted);
         outline-offset: 2px;
     }
 }

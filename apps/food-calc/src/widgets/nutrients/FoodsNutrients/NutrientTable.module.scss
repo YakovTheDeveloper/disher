@@ -1,12 +1,10 @@
 .container {
-  // Палитра запечена из бывшего mist-форка (радуга + форки vivid/graphite/paper
-  // убраны): один бледный wash под именами БЖУ + один акцент на прогресс-барах.
-  --nt-wash: linear-gradient(120deg, transparent 0%, rgba(95, 120, 150, 0.06) 50%, transparent 100%);
+  // Прогресс-бар accent (gradient-knob, читается через background-image, image не
+  // гейтится) + затухающая бровка-хайрлайн (gradient, разрешён). Текст/% — нейтральные
+  // sys-токены: bespoke cool-slate «mist»-палитра выпилена (per-surface theming вне
+  // канона, см. no-per-surface-theming).
   --nt-accent: linear-gradient(45deg, transparent 0%, rgba(104, 128, 158, 0.5) 100%);
-  --nt-pct: rgba(40, 54, 76, 1);
   --nt-hairline: rgba(44, 56, 74, 0.1);
-  --text-primary: rgba(30, 40, 56, 1);
-  --text-secondary: rgba(44, 56, 74, 0.5);
 
   display: flex;
   flex-direction: column;
@@ -70,7 +68,7 @@
   padding: var(--nutrient-card-padding);
   padding-left: var(--space-1);
   margin-bottom: var(--sys-stack-row);
-  border-radius: var(--nutrient-card-radius);
+  border-radius: var(--sys-radius-control);
   // overflow НЕ скрываем — юнит значения спущен под число (absolute, top:100%)
   // и садится в нижний margin карточки; overflow:hidden обрезал бы его (и листик
   // клетчатки).
@@ -82,8 +80,8 @@
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: var(--nutrient-card-radius);
-    background: var(--nutrient-card-surface);
+    border-radius: var(--sys-radius-control);
+    background: var(--sys-color-surface-bright);
     z-index: -2;
   }
 }
@@ -175,17 +173,18 @@
 
   margin-top: -3px;
   height: 8px;
-  border-radius: 2px;
+  border-radius: var(--sys-radius-tmp); /* was 2px */
   // Empty-track contrast bumped 0.12 → 0.17 so the bar reads as a clear
   // line from the name to the percent even at low fill.
-  background: rgba(128, 128, 128, 0.1);
+  background: var(--sys-color-bg-sunk);
   overflow: hidden;
 }
 
 .progressBar {
   height: 100%;
-  border-radius: 2px;
-  background: var(--nt-accent);
+  border-radius: var(--sys-radius-tmp); /* was 2px */
+  // gradient-knob через background-image (image не гейтится; canon split-pattern).
+  background-image: var(--nt-accent);
   transition: width 0.3s ease;
 }
 
@@ -193,7 +192,7 @@
 
 .name {
   position: relative;
-  border-radius: 6px;
+  border-radius: var(--sys-radius-control); /* was 6px */
   // Имя нутриента = роль Title — типографику (family/size/weight/lh/tracking)
   // владеет примитив <Heading role="title"> (см. NutrientTable.tsx, решение
   // 2026-06-22). Здесь только раскладка; цвет + line-height вынесены в
@@ -209,7 +208,7 @@
 }
 
 .rowTop .name {
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   line-height: 24px;
 }
 
@@ -218,7 +217,7 @@
   gap: 2px;
   position: relative;
   // Типографику (family/size/tnum) владеет <Numeral size="sm">; тут раскладка+цвет.
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   opacity: 0.9;
   line-height: 1;
   align-self: flex-end;
@@ -257,7 +256,7 @@
   // % нормы = <Numeral size="base">; тут раскладка+цвет.
   text-align: right;
   line-height: 28px;
-  color: var(--nt-pct);
+  color: var(--sys-color-text-primary);
 }
 
 // Значок «%» вынесен из потока вправо (left:100% → в правый padding карточки),
@@ -308,18 +307,18 @@
   font-size: var(--sys-field-font-size);
   font-weight: var(--sys-field-font-weight);
   font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   padding: 2px 4px;
   transition: border-color 0.15s ease;
 
   &:focus {
     outline: none;
-    border-bottom-color: var(--text-primary);
+    border-bottom-color: var(--sys-color-text-primary);
   }
 
   &::selection {
-    background-color: rgb(172, 172, 172);
-    color: white;
+    background-color: var(--sys-color-bg-selected);
+    color: var(--sys-color-text-on-selected);
   }
 }
 
@@ -332,7 +331,7 @@
 
 .unitProminent {
   // Юнит у инпута = <Text role="label">; тут только цвет+opacity.
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   opacity: 0.7;
 }
 
@@ -353,7 +352,7 @@
   transition: background-color 0.15s ease;
 
   &:active {
-    background-color: rgba(0, 0, 0, 0.03);
+    background-color: var(--sys-color-bg-press);
   }
 }
 
@@ -364,7 +363,8 @@
   align-items: center;
   justify-content: flex-end;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: var(--sys-radius-control); /* was 8px */
+  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- frosted-glass overlay (полупрозрачный белый + backdrop-blur); sys не моделирует translucent surface */
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -377,15 +377,15 @@
   justify-content: center;
   padding: 6px 12px;
   border: none;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.65);
+  border-radius: var(--sys-radius-control); /* was 8px */
+  background: var(--sys-color-surface-action-system-soft);
+  color: var(--sys-color-text-system);
   cursor: pointer;
   // Подпись кнопки = <Text role="caption">; типографику владеет примитив.
   transition: background 0.15s;
 
   &:active {
-    background: rgba(0, 0, 0, 0.12);
+    background: var(--sys-color-surface-action-system-soft-pressed);
   }
 }
 

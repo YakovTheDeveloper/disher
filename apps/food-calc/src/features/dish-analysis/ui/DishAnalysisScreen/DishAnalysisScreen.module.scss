@@ -1,4 +1,4 @@
-// Sky-тон для `Button variant="brand"`: единый бренд-вариант, перекрашенный в
+// Sky-тон для `Button variant="primary"`: единый бренд-вариант, перекрашенный в
 // небесную палитру DishPage через override-точки --cta-brand-* (как .primary
 // перекрашивает auth-темы). brand-2 слит в brand 2026-06-19. Заливка сплошная
 // (не градиент) — press через filter brightness базового .brand.
@@ -36,7 +36,7 @@
     margin: 0;
 }
 
-// Sky-CTA вынесена в общий `Button variant="brand"` (sky-тон через --cta-brand-*
+// Sky-CTA вынесена в общий `Button variant="primary"` (sky-тон через --cta-brand-*
 // override выше, 2026-06-19). Здесь остаётся только раскладка кнопки перезапуска
 // в flex-колонке .root — чтобы pill не растягивался на всю ширину (align-items:
 // stretch у .root).
@@ -48,7 +48,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--sys-color-text-secondary);
     text-transform: uppercase;
 }
 
@@ -60,7 +60,7 @@
         width: 5px;
         height: 5px;
         border-radius: 50%;
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: var(--sys-color-text-tertiary);
         animation: pulse 1.4s infinite ease-in-out;
 
         &:nth-child(2) { animation-delay: 0.2s; }
@@ -75,9 +75,9 @@
 
 .error {
     padding: 12px 14px;
-    border-radius: 10px;
-    background-color: rgba(220, 38, 38, 0.08);
-    color: rgb(170, 30, 30);
+    border-radius: var(--sys-radius-container); /* was 10px */
+    background-color: var(--sys-color-status-danger-surface);
+    color: var(--sys-color-status-danger);
     line-height: 1.45;
 }
 

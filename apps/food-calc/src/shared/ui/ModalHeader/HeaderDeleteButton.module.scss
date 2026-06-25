@@ -11,8 +11,8 @@
     padding: 0;
     border: none;
     background: transparent;
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
+    border-radius: var(--sys-radius-tmp); /* was 8px (radius-sm) — icon button */
+    color: var(--sys-color-text-secondary);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform var(--press-out) var(--easing-default),
@@ -20,9 +20,9 @@
 
     // Отклик на нажатии: лёгкий нейтральный (не danger) тинт-фон.
     &:active {
-        background: rgba(0, 0, 0, 0.06);
+        background: var(--sys-color-bg-press);
         transform: scale(0.94);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 
     &:disabled {

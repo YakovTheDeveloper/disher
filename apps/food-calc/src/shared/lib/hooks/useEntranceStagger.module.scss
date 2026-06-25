@@ -5,7 +5,12 @@
 // `--enter-i` per row so the list cascades in instead of popping all at once.
 
 .entrance {
-    animation: list-item-entrance 320ms cubic-bezier(0, 0, 0.2, 1) both;
+    // fill: backwards (not `both`) — applies the `from` frame during the start
+    // delay, but RELEASES `transform`/`opacity` back to the base once finished.
+    // `both` would permanently hold `translateY(0)` with animation precedence,
+    // which blocks a co-located press `transform: scale()` (the entrance now
+    // shares its node with the press feedback — LongPressRow collapse 2026-06-25).
+    animation: list-item-entrance 320ms cubic-bezier(0, 0, 0.2, 1) backwards;
     // Each item starts a beat after the previous one. Capped via min() so a
     // long list finishes quickly (12 × 32ms ≈ 0.38s) instead of crawling.
     animation-delay: calc(min(var(--enter-i, 0), 12) * 32ms);

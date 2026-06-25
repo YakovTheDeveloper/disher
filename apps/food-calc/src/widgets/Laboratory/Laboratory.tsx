@@ -30,7 +30,7 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
   // тихая подчёркнутая ссылка-кнопка с ведущей иконкой), не белая пилюля.
   const discoveriesButton = (
     <Button
-      variant="link"
+      variant="system-secondary"
       icon={<ListIcon width={18} height={18} />}
       onClick={() => navigate('/discoveries')}
     >
@@ -43,7 +43,11 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
       className={styles.ambientSheet}
       stickyTop={topSlot}
       headerOverlap
-      bottomBar={hasDaily ? undefined : <AppBottomBarShell width="auto">{discoveriesButton}</AppBottomBarShell>}
+      bottomBar={
+        hasDaily ? undefined : (
+          <AppBottomBarShell width="auto">{discoveriesButton}</AppBottomBarShell>
+        )
+      }
       afterContent={
         hasDaily ? (
           <div className={styles.flowActions}>
@@ -57,14 +61,16 @@ const Laboratory = ({ date, topSlot, topBarHide }: Props) => {
       topBarHide={topBarHide}
     >
       <div className={styles.container}>
-        <Heading role="display" masthead as="h2">Анализ</Heading>
+        <Heading role="display" masthead as="h2">
+          Анализ
+        </Heading>
         {hasDaily ? (
           /* Лоадер анализа (гравюрный, канон tds/art-loader-canon.md) вшит в
              DailyAnalysisSection и показывается при status==='loading'. */
           <DailyAnalysisSection date={date} />
         ) : (
           <div className={styles.startCta}>
-            <AnalysisCtaButton date={date} label="Начать" />
+            <AnalysisCtaButton date={date} label="Анализировать" />
           </div>
         )}
       </div>

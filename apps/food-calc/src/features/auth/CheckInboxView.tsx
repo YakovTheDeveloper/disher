@@ -46,7 +46,7 @@ export function CheckInboxView({ email, layout }: Props) {
       <div className={styles.formWrap}>
         <div className={styles.form}>
           <Button
-            variant="primary"
+            variant="system"
             className={styles.submitBtn}
             onClick={handleResend}
             disabled={isLoading}

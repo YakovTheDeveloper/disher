@@ -9,10 +9,10 @@
   flex: 0 0 33%;
   max-width: 33%;
   padding: 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--sys-radius-cta); /* was 0.5rem */
   background: transparent;
   border: 1.5px solid rgba(0, 0, 0, 0.8);
-  color: rgba(0, 0, 0, 0.8);
+  color: var(--sys-color-text-system);
   cursor: pointer;
   transition:
     background var(--press-out) var(--easing-default),
@@ -20,17 +20,17 @@
     color var(--press-out) var(--easing-default);
 
   &:hover {
-    border-color: rgba(0, 0, 0, 0.25);
-    color: rgba(0, 0, 0, 0.6);
+    border-color: var(--sys-color-border-subtle);
+    color: var(--sys-color-text-secondary);
   }
 
   // Цветной отклик: на нажатии светлая outline-кнопка заливается ink + белый текст.
   &:active {
-    background: var(--color-ink);
-    border-color: var(--color-ink);
-    color: var(--text-on-accent);
+    background: var(--sys-color-surface-action-system);
+    border-color: var(--sys-color-border-action-system);
+    color: var(--sys-color-text-on-accent);
     transform: translateY(1px);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -58,8 +58,8 @@
   cursor: pointer;
   padding: var(--space-5) 0 calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
   font-family: var(--sys-field-font-family);
-  background: rgba(38, 38, 51, 0.1);
-  color: var(--color-ink);
+  background: var(--sys-color-bg-press);
+  color: var(--sys-color-text-system);
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
@@ -77,9 +77,9 @@
 
 // Цветной отклик: светлая «Назад» заливается ink + белый текст.
 .prevArrow:active {
-  background: var(--color-ink);
-  color: var(--text-on-accent);
-  transition-duration: var(--press-in);
+  background: var(--sys-color-surface-action-system);
+  color: var(--sys-color-text-on-accent);
+  transition-duration: var(--sys-duration-press-in);
 }
 
 // «Далее/Готово» — Button primary; здесь только footer-раскладка: зазор под

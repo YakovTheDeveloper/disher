@@ -14,18 +14,19 @@ import {
 } from '@/entities/dish';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 import { Screen } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
   InlineWriteFoodReview,
+  FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
-import { LongPressRow } from '@/features/shared/long-press-item';
+import { CardShell } from '@/features/shared/card-shell';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { QuietLabel } from '@/shared/ui/atoms/Typography';
-import { Quantity } from '@/shared/ui/Quantity';
+import { QtyStack } from '@/shared/ui/atoms/QtyStack';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
@@ -46,7 +47,6 @@ import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
@@ -313,18 +313,16 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                 <FoodEntryEditModals flow={editFlow} />
               </div>
               {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
-                  теперь живёт прямо в AppBottomBar через WriteFoodInput.
-                  Дубликат `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
+                  теперь живёт прямо в FoodWriteBar. Дубликат
+                  `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
             </>
           }
           bottomBar={
-            <AppBottomBar
-              writeFoodFlow={writeFoodFlow}
-              writeFoodInputId={writeFoodInputId}
+            <FoodWriteBar
+              flow={writeFoodFlow}
+              inputId={writeFoodInputId}
               searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
-              searchLabel="Найти продукт"
-              searchText="выбрать из списка"
-              writeFoodPlaceholder="Опишите ингредиенты…"
+              examplesActive={items.length === 0}
             />
           }
           afterContent={
@@ -337,45 +335,65 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           }
         >
           <div className={styles.dishItemsGroup}>
-            <ItemsList offsetTop>
-              {items.map((item, index) => (
-                <LongPressRow
-                  key={item.id}
-                  id={item.id}
-                  index={index}
-                  className={styles.group}
-                  innerClassName={styles.dishFoodListItem}
-                  data-row-id={item.id}
-                  onLongPress={() => openActionsDrawer(item)}
-                >
-                  {/* Колонка = <label htmlFor={DETAILS_INPUT}>: тап по имени ИЛИ
-                      по сабтайтлу уточнения открывает редактор деталей (паритет
-                      с HomePage foodCol). FoodName БЕЗ htmlFor → рендерит <p>, не
-                      вложенный <label> (иначе невалидный HTML). onPointerDown
-                      стэшит activeItemId до focus — его читает handleEditFocusCapture. */}
-                  <label
-                    className={styles.foodCol}
-                    htmlFor={editIds.DETAILS_INPUT}
-                    onPointerDown={() => {
-                      const trigger = document.getElementById(editIds.DETAILS_INPUT);
-                      if (trigger) trigger.dataset.activeItemId = item.id;
-                    }}
-                  >
-                    <FoodName content={{ name: item.product?.name ?? item.productId }} />
-                    {item.details ? (
-                      <QuietLabel className={styles.detailsSubtitle}>{item.details}</QuietLabel>
-                    ) : null}
-                  </label>
-                  <Quantity
-                    htmlFor={editIds.QUANTITY_INPUT}
+            <ItemsList>
+              {items.map((item, index) => {
+                // onPointerDown стэшит activeItemId на DETAILS_INPUT ДО фокуса —
+                // его читает handleEditFocusCapture (primeEdit). Тап по имени ИЛИ
+                // по деталям открывает редактор деталей (паритет с HomePage).
+                const stashDetails = () => {
+                  const trigger = document.getElementById(editIds.DETAILS_INPUT);
+                  if (trigger) trigger.dataset.activeItemId = item.id;
+                };
+                return (
+                  <CardShell
+                    key={item.id}
                     id={item.id}
-                    onClick={() => handleEditQuantity(item)}
-                    hide={false}
-                    unit="г"
-                    content={{ quantity: item.quantity }}
+                    index={index}
+                    innerClassName={styles.dishFoodListItem}
+                    data-row-id={item.id}
+                    onLongPress={() => openActionsDrawer(item)}
+                    // title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы) —
+                    // много-голосый узел → node-escape. qty правится модалкой:
+                    // label htmlFor QUANTITY_INPUT + onClick handleEditQuantity —
+                    // контракт прежнего <Quantity> (ряд не размонтируется, поэтому
+                    // setStep-из-клика безопасен). Имя/детали → DETAILS_INPUT.
+                    title={{
+                      node: (
+                        <div className={styles.titleCluster}>
+                          <QtyStack
+                            as="label"
+                            htmlFor={editIds.QUANTITY_INPUT}
+                            onClick={() => handleEditQuantity(item)}
+                            unit="г"
+                          >
+                            {item.quantity}
+                          </QtyStack>
+                          <TapTarget
+                            as="label"
+                            className={styles.foodName}
+                            htmlFor={editIds.DETAILS_INPUT}
+                            onPointerDown={stashDetails}
+                          >
+                            <FoodName content={{ name: item.product?.name ?? item.productId }} />
+                          </TapTarget>
+                        </div>
+                      ),
+                    }}
+                    // meta = детали (CardLayout строит caption + label htmlFor); тот
+                    // же htmlFor что имя → тап по деталям тоже редактирует детали.
+                    meta={
+                      item.details
+                        ? {
+                            content: item.details,
+                            htmlFor: editIds.DETAILS_INPUT,
+                            onPointerDown: stashDetails,
+                            className: styles.detailsSubtitle,
+                          }
+                        : undefined
+                    }
                   />
-                </LongPressRow>
-              ))}
+                );
+              })}
             </ItemsList>
           </div>
           {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с

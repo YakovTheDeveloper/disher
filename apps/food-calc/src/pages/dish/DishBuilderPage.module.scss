@@ -1,25 +1,35 @@
-// ── Dish Items (экран «Ингредиенты») — borderless boundary + плоский sky-оттенок ──
+@import '@/shared/assets/style/design-variant-palettes.scss';
+
+// ── Dish Items (экран «Ингредиенты») — borderless boundary + бледный ЛИМОН ──
 // База = RowBoundary-вариант `borderless` (TimeGroup.module.scss): без рамки,
-// рейла, тени и скруглений — строки читаются мягкими sky-тинт-блоками, разделёнными
+// рейла, тени и скруглений — строки читаются мягкими лимон-тинт-блоками, разделёнными
 // одним шёпотным затухающим хайрлайном (как на HomePage-рационе). Сводка нутриентов
 // блюда — отдельной полосой NutrientsBar под списком (паритет с HomePage).
-// Зелёный TOD-градиент расписания заменён ПЛОСКОЙ (без градиента) sky-заливкой в
-// тон 3-му экрану «Порции» (FoodPortionsManager sky-палитра).
-$dish-sky-fill: #f3f8ff; // плоская подложка строки (subtle, почти белый)
-$dish-sky-hairline: rgba(122, 167, 224, 0.28); // шов между строками (смягчаем до «шёпота» ниже)
-$dish-sky-tapped: #e6f1ff; // фон строки в момент нажатия
+// Цвет 2026-06-25 (CardShell unification, решение A): sky → ЕДИНЫЙ бледный лимон —
+// тот же `dv-palette-lemon` + graphite-текст, что у еды и событий. Один жёлтый
+// голос на все карточки. У ингредиентов нет data-tod → строка падает на morning-
+// шаг лимона (LongPressRow default :17), т.е. ровный бледно-жёлтый без TOD-сдвига.
+$dish-lemon-hairline: rgba(206, 174, 78, 0.24); // тёплый шов между строками (в тон лимону)
 
 .dishFoodListItem {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
+    // CardLayout (внутри CardShell) сам раскладывает title/meta-строки — grid снят
+    // (CardShell unification 2026-06-25). Leaf-floor canon: контейнер без
+    // декоративного паддинга и без touch-пола; тап-пол живёт на листьях
+    // (<QtyStack>/<TapTarget> padding-block), как у ScheduleFoodItemInline.
+    --sys-row-pad-block: 0;
+    --sys-row-min-h-touch: 0;
 }
 
 // Обёртка вокруг ItemsList на экране «Ингредиенты». Геометрию rail-soft и sky-
 // заливку держим локально здесь (не трогая shared ItemsList/LongPressRow и не
 // затрагивая расписание) — через CSS-переменные, которые LongPressRow публикует
-// как override-точки (--row-rest-outline-w / --row-last-shadow / --_bg-from…).
+// как override-точки (--row-rest-outline-w / --sys-elevation-row-last / --_bg-from…).
 .dishItemsGroup {
+    // Единый лимон-голос (решение A): палитра + graphite-текст из одного места —
+    // как у FoodSchedule/ScheduleEvents. data-tod нет → строки берут morning-шаг.
+    @include dv-palette-lemon;
+    @include dv-text($dv-text-graphite);
+
     // Слить строки в один блок: погасить gap shared-ItemsList между обёртками строк.
     > ul {
         gap: 0;
@@ -27,22 +37,19 @@ $dish-sky-tapped: #e6f1ff; // фон строки в момент нажатия
 
     // Каждая строка-ингредиент (.dishFoodListItem = inner <li> из LongPressRow).
     .dishFoodListItem {
-        // Плоский sky-фон вместо зелёного TOD-color-mix: обе точки = один цвет,
-        // тогда и base-фон, и highlight-keyframe резолвятся в sky, а не в зелёный.
-        --_bg-from: #{$dish-sky-fill};
-        --_bg-to: #{$dish-sky-fill};
-        --tod-tapped: #{$dish-sky-tapped};
         // borderless (RowBoundary-канон): ни per-row рамки, ни тени, ни рамок
-        // группы, ни рейла, ни скруглений — только мягкий sky-тинт-блок.
+        // группы, ни рейла, ни скруглений — только мягкий лимон-тинт-блок.
+        // Фон/tapped больше НЕ переопределяем — текут из morning-шага лимона.
         --row-rest-outline-w: 0;
-        --row-last-shadow: none;
         border: 0;
         border-radius: 0;
     }
 
     // Единственный шов: шёпотный затухающий хайрлайн между строками (как в
-    // borderless-каноне — color-mix смягчает sky-hairline почти до прозрачного).
-    > ul > div:not(:first-child) .dishFoodListItem::before {
+    // borderless-каноне — color-mix смягчает лимон-hairline почти до прозрачного).
+    // Строки теперь — голые `<li>.dishFoodListItem` прямые дети `<ul>` (LongPressRow
+    // single-node collapse 2026-06-25): обёртка `<div>` ушла, целимся в сам `<li>`.
+    > ul > .dishFoodListItem:not(:first-child)::before {
         content: '';
         position: absolute;
         top: 0;
@@ -51,32 +58,39 @@ $dish-sky-tapped: #e6f1ff; // фон строки в момент нажатия
         height: 1px;
         background: linear-gradient(90deg,
                 transparent 0%,
-                color-mix(in oklch, #{$dish-sky-hairline} 55%, transparent) 30%,
-                color-mix(in oklch, #{$dish-sky-hairline} 55%, transparent) 70%,
+                color-mix(in oklch, #{$dish-lemon-hairline} 55%, transparent) 30%,
+                color-mix(in oklch, #{$dish-lemon-hairline} 55%, transparent) 70%,
                 transparent 100%);
         pointer-events: none;
         z-index: 2;
     }
 }
 
-// Ингредиент-строка: имя + (опц.) сабтайтл «уточнений» в колонку — зеркалит
-// FoodSchedule (ScheduleFoodItemInline.foodCol / .detailsSubtitle), чтобы
-// детали были видны на экране «Ингредиенты», как в дневном рационе на HomePage.
-.foodCol {
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
+// title-кластер: [qty][имя] — qty ПЕРЕД именем, упакованы вплотную (НЕ
+// space-between). Зеркалит ScheduleFoodItemInline.titleCluster (HomePage-канон).
+.titleCluster {
+    display: flex;
+    align-items: baseline; // value qty встаёт на базовую линию имени
+    gap: 8px;
     min-width: 0;
-    gap: 1px;
+}
+
+// имя: растягивается на остаток строки → тап-зона на всю ширину справа от qty.
+.foodName {
+    flex: 1;
+    min-width: 0;
     line-height: 1.15;
 }
 
-// Голос (serif-italic тихий) — примитив <QuietLabel> (DishBuilderPage.tsx).
-// Здесь остаётся ТОЛЬКО раскладка: однострочный эллипсис.
+// meta-слот: детали уточнения. CardLayout даёт caption-голос (.meta цвет/тип);
+// тут — контекстный muted + однострочный эллипсис. Тот же htmlFor что имя.
 .detailsSubtitle {
+    color: var(--sys-color-text-muted);
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
 }
 
 // Кнопка «Предложить ингредиенты» переехала в `Screen.headerAction` (слева над

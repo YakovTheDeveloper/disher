@@ -76,7 +76,7 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
       {/* Парящая ActionBar-кнопка справа-снизу (sticky над контентом). */}
       <div className={clsx(styles.recalcBar, isPanel && styles.recalcBarFloat)}>
         <Button
-          variant="brand"
+          variant="primary"
           onClick={handleRecalc}
           icon={<span className={styles.recalcGlyph}>↻</span>}
         >

@@ -34,7 +34,7 @@
     align-items: center;
     gap: 2px;
     padding: 3px;
-    border-radius: 9999px;
+    border-radius: var(--sys-radius-indicator);
     background: var(--sys-color-control-track);
 }
 
@@ -47,7 +47,7 @@
     min-height: 32px;
     padding: 0 12px;
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--sys-radius-indicator);
     background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -64,7 +64,7 @@
 
     &:active {
         transform: scale(0.96);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -173,14 +173,14 @@
         font-weight: 500;
         color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
         font-style: normal;
-        font-size: 1rem;
+        font-size: var(--sys-field-font-size);
         letter-spacing: -0.005em;
     }
 
     &:-internal-autofill-selected {
         background-image: none !important;
         background-color: transparent !important;
-        box-shadow: 0 0 0 100px transparent inset !important;
+        box-shadow: 0 0 0 100px transparent inset !important; /* stylelint-disable-line scale-unlimited/declaration-strict-value -- autofill-killer (функциональный inset, не elevation) */
         -webkit-text-fill-color: inherit !important;
     }
 }
@@ -193,9 +193,9 @@
     height: 22px;
     padding: 0;
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--sys-radius-indicator);
     background: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36));
-    color: #ffffff;
+    color: var(--sys-color-text-on-accent); // white ×-глиф на тёплой полупрозрачной заливке (был text-on-selected по конфляции, M4 2026-06-25)
     cursor: pointer;
     transition: background 0.15s ease;
     flex-shrink: 0;
@@ -233,9 +233,9 @@
     margin-left: var(--space-1);
     margin-right: var(--space-1);
     padding: 0 3px 0 9px;
-    border-radius: 9999px;
-    background: var(--icon-btn-active-bg, #1a1a1a);
-    color: var(--icon-btn-active-fg, #fff);
+    border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-surface-action-system);
+    color: var(--sys-color-text-on-accent);
 }
 
 // Иконка + название — тап открывает drawer-выбор (меняет нутриент).
@@ -284,7 +284,7 @@
     height: 26px;
     padding: 0;
     border: none;
-    border-radius: 9999px;
+    border-radius: var(--sys-radius-indicator);
     background: transparent;
     color: inherit;
     cursor: pointer;
@@ -304,7 +304,8 @@
 // Иконка-кнопка «Нутриенты» — отдельное действие-фильтр (открывает боковой
 // drawer-выбор нутриента), НЕ сегмент. Поэтому ghost-вид (тонкая рамка, без
 // заливки), визуально отличный от сегмент-контрола `Еда|Мое`. Выбранный нутриент
-// → тёмная заливка (active state). Token-driven (--icon-btn-*); fallback серый.
+// → тёмная заливка (active state). Sys-driven: idle глиф = --sys-color-control-segment-text,
+// active = --sys-color-surface-action-system + --text-on-accent.
 // Lives INSIDE the common pill now → a borderless ghost adornment at the field's
 // right end (a bordered circle would double-chrome against the pill). Selected
 // nutrient still fills dark (active state below).
@@ -318,9 +319,9 @@
     height: 36px;
     padding: 0;
     border: none;
-    border-radius: var(--radius-full);
+    border-radius: var(--sys-radius-indicator);
     background: transparent;
-    color: var(--icon-btn-fg, #5c6473);
+    color: var(--sys-color-text-secondary);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -339,10 +340,10 @@
     }
 
     &:active {
-        background: var(--icon-btn-active-bg, #1a1a1a);
+        background: var(--sys-color-surface-action-system);
         border-color: transparent;
-        color: var(--icon-btn-active-fg, #fff);
+        color: var(--sys-color-text-on-accent);
         transform: scale(0.94);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }

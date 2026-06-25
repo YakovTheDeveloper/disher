@@ -105,8 +105,8 @@
 .dot {
     width: 6px;
     height: 6px;
-    border-radius: 100px;
-    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: var(--sys-radius-indicator);
+    background-color: var(--sys-color-text-faint);
     border: none;
     cursor: pointer;
     padding: 0;
@@ -115,13 +115,13 @@
         background-color 0.35s ease;
 
     &:hover {
-        background-color: rgba(0, 0, 0, 0.25);
+        background-color: var(--sys-color-text-tertiary);
     }
 }
 
 .dotActive {
     width: 20px;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: var(--sys-color-text-secondary);
 }
 
 .background {

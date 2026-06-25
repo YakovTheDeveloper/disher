@@ -1,0 +1,75 @@
+// CardLayout — геометрия + типографика-по-роли карточки-сообщения. Фон/цвет
+// подложки держит LongPressRow. 2 строки, каждая = [start: течёт (flex:1) | end:
+// прибит (shrink:0)]. Роль-по-слоту (title=body, meta=caption, qty/time=число)
+// задаёт ТИП (через <Text>) и ЦВЕТ здесь — единственный источник типографики карточек.
+// См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.titleRow,
+.metaRow {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Верхняя строка: имя + qty по общей базовой линии.
+.titleRow {
+  align-items: baseline;
+}
+
+// Нижняя строка: вторичка + время. flex-end роняет время в правый-НИЖНИЙ угол —
+// на уровень последней строки вторички (timestamp-канон).
+.metaRow {
+  align-items: flex-end;
+}
+
+// Левая ячейка тянется и отдаёт всю ширину единственному содержимому
+// (тап-зоне/узлу) — так зона занимает всю строку, а не только текст.
+.start {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Правая ячейка держит свою ширину (qty/время не жмутся).
+.end {
+  flex-shrink: 0;
+}
+
+// Текст-ячейка (TapTarget) — даём сжиматься для эллипсиса; раскладку/клэмп
+// конкретного слота задаёт className потребителя.
+.cell {
+  min-width: 0;
+}
+
+// ── Цвет/размер по роли (тип прозы задаёт <Text>; число — sans в один голос с
+//    QtyStack/CardTime; цвет всегда здесь, т.к. Text/Numeral его не ставят) ──
+.title {
+  color: var(--sys-color-text-primary);
+}
+
+.meta {
+  color: var(--sys-color-text-muted);
+}
+
+.qty {
+  font-size: var(--sys-numeral-base);
+  color: var(--sys-color-text-primary);
+}
+
+.time {
+  font-size: var(--sys-numeral-sm);
+  color: var(--sys-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

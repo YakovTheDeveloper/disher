@@ -34,9 +34,9 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   background: transparent;
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   // Глиф-кнопка «Назад» (←) — размер несёт icon-токен, не сырой font-size.
   font-size: var(--sys-icon-size-md);
   line-height: 1;
@@ -47,9 +47,9 @@
 
   // Цветной отклик: кнопка «Назад» → тинт с изменением цвета иконки
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -57,7 +57,7 @@
 // примитиве). Контракт ниже: для заголовка типографика теперь в примитиве,
 // класс держит только выравнивание/цвет/отступ (палитру по-прежнему правят темы).
 .heading {
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   margin: 0;
   text-align: right;
 }
@@ -65,7 +65,7 @@
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
 // раскладку (отступ/перенос) и контекстный цвет.
 .subheading {
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
   margin: var(--space-2) 0 0;
   word-break: break-word;
 }
@@ -102,7 +102,7 @@
   // Field-slot (well) — единый тон поля app. Раньше: серый bg + #111 focus-рамка
   // (base) поверх dark-тема-оверрайда. Тема снята 2026-06-24 → форма на app-тоне.
   border: 1.5px solid var(--sys-field-hairline, transparent);
-  border-radius: var(--radius-lg);
+  border-radius: var(--sys-radius-cta);
   background: var(--sys-field-bg-from, #f4efe6);
   box-shadow: var(--sys-field-shadow, inset 0 1px 2px rgba(124, 65, 15, 0.1));
   color: var(--sys-field-text, var(--text-primary));
@@ -122,7 +122,7 @@
   }
 
   &[aria-invalid='true'] {
-    border-color: #dc2626;
+    border-color: var(--sys-color-status-danger);
   }
 
   &:disabled {
@@ -134,7 +134,7 @@
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
 // раскладку (отступ) и контекстный красный цвет.
 .fieldError {
-  color: #dc2626;
+  color: var(--sys-color-status-danger);
   margin: 0;
   padding-left: var(--space-2);
 }
@@ -145,9 +145,9 @@
   width: 100%;
   height: 56px;
   border: none;
-  border-radius: var(--radius-lg);
-  background: #111;
-  color: #fff;
+  border-radius: var(--sys-radius-cta);
+  background: var(--sys-color-surface-action-system);
+  color: var(--sys-color-on-system); // white on coal action (был text-on-selected по ошибке конфляции, M4 2026-06-25)
   cursor: pointer;
   transition:
     background var(--press-out) var(--easing-default),
@@ -156,20 +156,20 @@
     opacity var(--press-out) var(--easing-default);
 
   &:disabled {
-    background: rgba(0, 0, 0, 0.08);
-    color: rgba(0, 0, 0, 0.35);
+    background: var(--sys-color-surface-action-disabled);
+    color: var(--sys-color-text-tertiary);
     cursor: default;
   }
 
   &:not(:disabled):hover {
-    background: #000;
+    background: var(--sys-color-surface-action-system-pressed);
   }
 
   // Цветной отклик: основная CTA кнопка (тёмная заливка) → потемнение
   &:not(:disabled):active {
     filter: brightness(0.9);
     transform: scale(0.97);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -190,9 +190,9 @@
   padding: var(--space-3) var(--space-4);
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: var(--sys-radius-container);
   text-decoration: underline;
   text-underline-offset: 4px;
   text-decoration-thickness: 1px;
@@ -201,15 +201,15 @@
     color var(--press-out) var(--easing-default);
 
   &:hover:not(:disabled) {
-    color: var(--text-primary);
-    background: rgba(0, 0, 0, 0.04);
+    color: var(--sys-color-text-primary);
+    background: var(--sys-color-bg-hover);
   }
 
   // Цветной отклик: текстовая ссылка-кнопка → тинт фона + цвет текста
   &:not(:disabled):active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 
   &:disabled {
@@ -245,7 +245,6 @@
   // это выбор роли (display), а не bespoke font-size здесь.
 
   .subheading {
-    font-size: var(--text-base);
     margin-top: var(--sys-stack-row);
   }
 
@@ -255,12 +254,12 @@
 
   .input {
     height: 60px;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-cta);
   }
 
   .submitBtn {
     height: 60px;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-cta);
   }
 }
 
@@ -275,6 +274,6 @@
     min-height: auto;
     margin: 0 auto var(--space-4);
     padding: var(--space-6) var(--space-5) calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
-    border-radius: var(--radius-2xl, 24px);
+    border-radius: var(--sys-radius-overlay);
   }
 }

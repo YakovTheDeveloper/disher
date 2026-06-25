@@ -14,8 +14,6 @@
 // Layout: flex column. A tab row on top switches the body between the anchor
 // block (the quick tab) and the scrollable active-days section (chips by month).
 
-$ink-faint: rgba(0, 0, 0, 0.4);
-
 .shell {
   position: relative;
   display: flex;
@@ -112,7 +110,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   width: 90%;
   text-transform: capitalize;
   line-height: 1;
-  color: var(--text-muted);
+  color: var(--sys-color-text-muted);
 }
 
 // Past chips — flex-wrap of cells, gap-aligned. Compact enough to fit many
@@ -137,7 +135,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   width: 53px;
   padding: 5px 0 6px;
   background: transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--sys-radius-control);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -150,7 +148,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
     background: var(--sys-card-press-bg);
     color: var(--sys-card-press-fg);
     transform: scale(0.94);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
 
     .dayChipNumber,
     .dayChipWeekday {
@@ -168,7 +166,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
 
 .dayChipWeekday {
   text-transform: lowercase;
-  color: $ink-faint;
+  color: var(--sys-color-text-tertiary);
   line-height: 1;
 }
 
@@ -200,7 +198,7 @@ $ink-faint: rgba(0, 0, 0, 0.4);
   z-index: 1;
   padding: var(--space-8) var(--space-4);
   text-align: center;
-  color: $ink-faint;
+  color: var(--sys-color-text-tertiary);
 }
 
 // ─── Anchor list (quick tab) ───────────────────────────────────────────────

@@ -30,11 +30,11 @@ const InsightsSlide = ({ topSlot }: Props) => {
             <Heading as="h3" role="title" className={styles.emptyTitle}>
               Пока нет инсайтов
             </Heading>
-            <p className={styles.emptyBody}>
+            <Text as="p" role="caption" className={styles.emptyBody}>
               Инсайты появляются на разборе дня или блюда — это связки и
               предостережения по твоей еде. Нажми «Добавить к себе» на разборе, и
               они окажутся здесь.
-            </p>
+            </Text>
           </div>
         ) : (
           <InsightListPanel insights={insights} onDelete={handleDelete} />

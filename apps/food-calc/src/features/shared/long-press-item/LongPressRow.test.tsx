@@ -52,23 +52,28 @@ const firePointer = (
 };
 
 describe('LongPressRow', () => {
-  it('a sustained press fires onLongPress and NOT onClick', () => {
+  it('a sustained press fires onLongPress and suppresses the following click', () => {
     const { row, onClick, onLongPress } = setup();
 
     firePointer(row, 'pointerdown', 50, 50);
     act(() => vi.advanceTimersByTime(LONG_PRESS_DELAY));
     firePointer(row, 'pointerup', 50, 50);
+    // The browser dispatches a real click after pointer-up; it must be suppressed
+    // (50ms disarm timer not advanced → preventClick still armed).
+    fireEvent.click(row);
 
     expect(onLongPress).toHaveBeenCalledTimes(1);
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('a short tap fires onClick and NOT onLongPress', () => {
+  it('a short tap fires onClick (native) and NOT onLongPress', () => {
     const { row, onClick, onLongPress } = setup();
 
     firePointer(row, 'pointerdown', 50, 50);
     act(() => vi.advanceTimersByTime(100)); // released before the long-press threshold
     firePointer(row, 'pointerup', 50, 50);
+    // Tap = a real click now (not synthesized from pointer-up).
+    fireEvent.click(row);
 
     expect(onClick).toHaveBeenCalledTimes(1);
     expect(onLongPress).not.toHaveBeenCalled();
@@ -90,8 +95,30 @@ describe('LongPressRow', () => {
     firePointer(row, 'pointerdown', 50, 50);
     act(() => vi.advanceTimersByTime(LONG_PRESS_DELAY));
     firePointer(row, 'pointerup', 50, 50);
+    fireEvent.click(row);
 
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('keyboard: Enter activates onClick; Shift+F10 opens the long-press action', () => {
+    const onClick = vi.fn();
+    const onLongPress = vi.fn();
+    const { container } = render(
+      <LongPressRow id="r" onClick={onClick} onLongPress={onLongPress}>
+        <span>content</span>
+      </LongPressRow>,
+    );
+    const row = container.querySelector('li') as HTMLLIElement;
+
+    expect(row.getAttribute('tabindex')).toBe('0');
+    expect(row.getAttribute('aria-haspopup')).toBe('menu');
+
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(onLongPress).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(row, { key: 'F10', shiftKey: true });
+    expect(onLongPress).toHaveBeenCalledTimes(1);
   });
 
   it('ignores non-primary buttons (right-click never starts a press)', () => {
@@ -136,17 +163,19 @@ describe('LongPressRow', () => {
     expect(clickEv.defaultPrevented).toBe(true); // preventDefault → no <label htmlFor> focus
   });
 
-  it('wires the staggered CSS entrance: wrapper carries the class + --enter-i index', () => {
+  it('wires the staggered CSS entrance: the <li> carries the class + --enter-i index', () => {
     const { container } = render(
       <LongPressRow id="row-1" index={3}>
         <span>content</span>
       </LongPressRow>,
     );
 
-    // The outer wrapper <div> is the element the entrance animation runs on.
-    const wrapper = container.firstElementChild as HTMLElement;
+    // Single-node collapse (2026-06-25): the <li> IS the root and the element the
+    // entrance animation runs on (no more wrapper <div>).
+    const row = container.firstElementChild as HTMLElement;
 
-    expect(wrapper.className).toContain(entranceStyles.entrance);
-    expect(wrapper.style.getPropertyValue('--enter-i')).toBe('3');
+    expect(row.tagName).toBe('LI');
+    expect(row.className).toContain(entranceStyles.entrance);
+    expect(row.style.getPropertyValue('--enter-i')).toBe('3');
   });
 });

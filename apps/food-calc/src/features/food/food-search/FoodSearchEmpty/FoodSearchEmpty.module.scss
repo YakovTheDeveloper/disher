@@ -1,18 +1,16 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
-// Pills borrow the SwitcherTab visual language: warm chip surface + a muted ghost
-// art image (product.png / dish.png) bleeding from the right edge + a two-line
-// serif-italic label (verb «Создать» over the noun). Equal weight, no
-// primary/secondary hierarchy — the two actions are equivalent choices.
+// Pills are ActionTile (shared atom, ink-fill + white text — its own styling). The dock
+// styles itself entirely on sys-tokens (no bespoke per-surface bundle handed down from
+// the screen): ОДНА плоская тёплая поверхность (`--sys-color-surface-page` #fefcf9),
+// закруглённая как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-
+// blur + полупрозрачные зоны) выпилено 2026-06-25 — было холодное и пёстрое; список
+// больше НЕ просвечивает под доком (намеренный trade-off ради спокойствия). `.header`
+// и `.actions` остались только как зоны раскладки (padding), фон несёт `.root`.
 //
 // position: fixed; bottom: 0 — useKeyboardStick translates this element up by the
 // visualViewport offset when the keyboard opens so the pills stay tappable.
 
 .root {
-    // Ambient-скрим вместо плоского белого бара: низ поиска «дышит» той же
-    // поверхностью, что и app-wide тон (живой ModalShell-вариант), а не
-    // выглядит чужим тулбаром. Светлый стоп поля = мягкий тон-tinted скрим.
-    --fse-scrim: var(--sys-field-bg-to);
-
     position: fixed;
     bottom: 0;
     left: 0;
@@ -21,58 +19,39 @@
     display: flex;
     flex-direction: column;
 
-    // Док прозрачный: фон несут ЗОНЫ — стеклянный `.header` (просвечивает список)
-    // и непрозрачная серая `.actions`. Будь у root собственный непрозрачный фон, он
-    // перекрыл бы список, и backdrop-filter в `.header` размывал бы сам root, а не
-    // строки, скроллящиеся под фиксированным доком. overflow:hidden клипит стеклянный
-    // верх к скруглённым углам (box-shadow рисуется снаружи border-box и не режется).
-    background: transparent;
-    border-radius: var(--space-3) var(--space-3) 0 0;
+    // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root может
+    // нести непрозрачный фон, ничего не размывая). overflow:hidden клипит контент
+    // к скруглённым углам (box-shadow рисуется снаружи border-box и не режется).
+    background: var(--sys-color-surface-page);
+    border-radius: var(--sys-radius-overlay) var(--sys-radius-overlay) 0 0;
     overflow: hidden;
-    box-shadow: 0 -1px 6px rgba(45, 38, 28, 0.1);
+    box-shadow: var(--sys-elevation-dock);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
-
-    // TEMP (2026-06-13 colour-test): fading ramp above the bar disabled with the
-    // background. Restore the block below to melt the list into the dock again.
-    // &::before {
-    //     content: '';
-    //     position: absolute;
-    //     left: 0;
-    //     right: 0;
-    //     bottom: 100%;
-    //     height: 44px;
-    //     background: linear-gradient(to top, var(--fse-ramp, var(--fse-scrim)), transparent);
-    //     pointer-events: none;
-    // }
 }
 
-// Верхняя зона дока — «стеклянная полка» в духе Screen `headerOverlap`/`sheetBand`:
-// полупрозрачный матовый фон + backdrop-blur, сквозь который размыто просвечивает
-// список, скроллящийся ПОД фиксированным доком. Тон/блюр приходят сверху из
-// SearchFood `.content` (--fse-header-*). Несёт подсказку (+ message при пустом
-// поиске); текст на стекле — тёмный (см. --fse-prompt/-msg в SearchFood).
+// Верхняя зона — только раскладка (padding): несёт подсказку (+ message при пустом
+// поиске). Фон/стекло сняты — поверхность теперь у `.root`.
 .header {
-    background: var(--fse-header-bg, rgba(255, 255, 255, 0.55));
-    backdrop-filter: var(--fse-header-blur, blur(16px));
-    -webkit-backdrop-filter: var(--fse-header-blur, blur(16px));
     padding-bottom: var(--space-2);
 }
 
 .message {
-    font-size: var(--text-sm);
-    color: var(--fse-msg, rgba(0, 0, 0, 0.35));
+    // Размер несёт примитив <Text role="caption"> у консумера (канон инкапсуляции
+    // типографики). Здесь — только раскладка + цвет.
+    color: var(--sys-color-text-secondary);
     text-align: center;
     margin: 0;
     padding: 10px 16px 0;
 
     em {
         font-style: normal;
-        color: var(--fse-msg-strong, rgba(0, 0, 0, 0.6));
+        color: var(--sys-color-text-system);
     }
 }
 
+// Цвет/голос несёт примитив QuietLabel (serif-italic, text-primary @ opacity 0.5) —
+// не переопределяем здесь (канон инкапсуляции типографики). Только раскладка.
 .prompt {
-    color: var(--fse-prompt, rgba(0, 0, 0, 0.45));
     text-align: center;
     margin: 0;
     padding: var(--space-2) var(--space-1) 0;
@@ -82,18 +61,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    // safe-area уехала сюда с root (root прозрачный) — фон зоны дотягивается под
-    // home-indicator.
+    // Нижняя зона — только раскладка кнопок + safe-area-вынос под home-indicator
+    // (поверхность/фон у `.root`). Высоту задают сами кнопки (48px) + padding —
+    // фикс. min-height сняли (был под 76px плитки ActionTile).
     padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
-    min-height: var(--bottom-action-h);
     box-sizing: border-box;
-    // Нижняя зона — светло-серое матовое стекло (в духе верха хедера): полупрозрачный
-    // тон + blur, сквозь который размыто просвечивает список. Тон/блюр приходят сверху.
-    background: var(--fse-actions-bg, #2a2a2a);
-    backdrop-filter: var(--fse-actions-blur, none);
-    -webkit-backdrop-filter: var(--fse-actions-blur, none);
 
-    // Две плитки ActionTile равной ширины (равновесная пара без иерархии).
+    // Две primary-secondary кнопки равной ширины (равновесная пара без иерархии).
     > * {
         flex: 1;
         min-width: 0;

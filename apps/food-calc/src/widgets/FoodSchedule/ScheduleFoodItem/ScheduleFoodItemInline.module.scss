@@ -1,285 +1,55 @@
+// ScheduleFoodItemInline — карточка еды на CardShell (cardshell-unification план).
+// Колонку + строки title/meta держит CardLayout; qty-стопку — <QtyStack>; время —
+// <CardTime>. Здесь только специфика карточки: title-кластер, имя, детали.
+
 .group {
-    // ─── Text-driven row geometry (leaf-floor canon) ──────────────────
-    // The wrapper (.commonListItemInner) keeps its bg / outline / radius /
-    // TOD-gradient but goes NAKED on size: zero vertical padding AND zero
-    // wrapper touch-floor. The 48px floor lives on the LEAF cells instead
-    // (min-block-size below), so a bare tap-cell — even a single <label> —
-    // stretches to 48 and DEFINES the row height. One floor, on the thing you
-    // actually tap. See tokens.scss #row-geometry + CLAUDE.md touch floor.
-    --sys-row-pad-block: 0; // no wrapper padding
-    --sys-row-min-h-touch: 0; // no wrapper floor — the leaf carries it
-
-    display: grid;
-    // Baked gutter-time (2026-06-22): the leading time track is dropped — the
-    // time is taken out of flow into the wrapper's left gutter (see the time
-    // rules below). Name + qty fill the card.
-    grid-template-columns: 1fr 5ch;
-    gap: var(--space-3);
-    // Leaf cells carry the 48px floor (min-block-size below) → they set the row
-    // height. align-items: stretch only equalizes the two cells to the tallest
-    // sibling; each centers its own content via inline-flex below.
-    align-items: stretch;
-    position: relative;
-
-    // ─── Color boundary (industry pattern: shadcn / Radix Themes / Pigment) ───
-    // Ground row text color in the semantic --text-primary token here at the
-    // component root. Every descendant either:
-    //   • inherits naturally (e.g. .qtyEdit { color: inherit })
-    //   • reads a sibling token directly (e.g. .timeDisplay → --text-secondary,
-    //     .qtyUnit → --text-muted)
-    //
-    // Result: switching theme (or per-period overrides like tropic night's
-    // white text) re-flows through inheritance without leaf-level color rules
-    // shadowing it. The leaf-level color reads on .foodTitle / .dishTitle /
-    // .customTitle below are technically redundant after this; kept for now
-    // to preserve italic/weight modifiers without disturbing class shape.
-    color: var(--text-primary);
+  // Подложка LongPressRow голая по размеру: нулевой декоративный паддинг + нулевой
+  // wrapper-floor. Тап-пол живёт на листьях (<TapTarget> padding-block) — leaf-floor canon.
+  --sys-row-pad-block: 0;
+  --sys-row-min-h-touch: 0;
+  color: var(--sys-color-text-primary);
 }
 
-// ─── Time placement: baked gutter-time (2026-06-22, was the RowBoundary
-//     `gutter-time` design-variant — DesignBar anchor retired). The time leaves
-//     the tinted card backing and hangs in the wrapper's left gutter (opened by
-//     LongPressRow via `data-row-gutter='time'`), messenger-timestamp style: out
-//     of flow (absolute), right-aligned against the card's left edge, growing
-//     leftward. The leading grid track is already dropped on `.group`, so name +
-//     qty fill the card. Read-as-metadata — glanced at to confirm "when", tapped
-//     to edit.
-.timeDisplay,
-.timeEdit {
-    position: absolute;
-    right: calc(100% + var(--space-3)); // just left of the card, grow leftward
-    top: 50%;
-    transform: translateY(-50%);
-    margin-inline: 0;
-    padding-block: 0;
-    min-block-size: 0;
-    display: inline-flex;
-    align-items: center;
-    line-height: 1.15; // match the food name so first lines align
-    font-size: var(--text-sm);
-    // Tabular-nums so the time column keeps equal width across adjacent rows
-    // (proportional `08:00` vs `11:11` would otherwise shift the name).
-    font-variant-numeric: tabular-nums;
-    // Fixed page-context ink, NOT the card's --text-* tokens: in the gutter the
-    // time sits on the page, but it's a DOM descendant of the card, so a dark
-    // palette (twilight) would otherwise paint it white → invisible on the light
-    // page. `--color-light-gray` is :root-only, palette-stable.
-    color: var(--color-light-gray);
+// title-слот: [qty][имя] — qty ПЕРЕД именем, упакованы вплотную (НЕ space-between).
+.titleCluster {
+  display: flex;
+  align-items: baseline; // value qty встаёт на базовую линию имени
+  gap: 8px;
+  min-width: 0;
 }
 
-.timeDisplay {
-    cursor: pointer;
+// имя: растягивается на остаток строки → тап-зона на всю ширину справа от qty.
+.foodName {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.15;
 }
 
-// Two-line rows (name + details subtitle) center the name+subtitle BLOCK, so a
-// card-centered time would hang below the name. Pin the time to the name's first
-// line instead. Single-line rows (no subtitle) keep the card-center default.
-.group:has(.detailsSubtitle) {
-
-    .timeDisplay,
-    .timeEdit {
-        top: calc(var(--sys-row-cell-pad-block) + 9px); // name pad-top + ~half its 16px/1.15 line-box
-        transform: none;
-    }
-}
-
-// Dedup: on a row whose time equals the row above it, the time is heavily
-// faded (not gone) — repetition drops away but you can still glance down and
-// confirm the time, which is the whole point of showing it. The element stays
-// tappable; tapping flips InlineTimeEditor into its full-opacity edit state.
-.timeDup {
-    opacity: 0.3;
-}
-
-// Whole time block lights up while either HH/MM input is focused. The time is
-// out of flow (absolute, in the gutter), so the focus tint is a small chip —
-// padding-inline gives it breathing room; no negative margin (the cell no longer
-// participates in the row grid).
-.timeEdit {
-    padding-inline: 6px;
-    margin-inline: 0;
-    border-radius: 6px;
-    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
-
-    // Мгновенный тёплый flash на тап — pre-attentive отклик до того,
-    // как доедет focus-within (зелёный) ниже.
-    &:active {
-        background-color: rgba(216, 140, 40, 0.16);
-        transition-duration: var(--press-in);
-    }
-
-    &:focus-within {
-        background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
-        box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
-    }
-}
-
-// Override TimeChoose CSS vars on the TimeInput root <div>.
-// TimeInput renders: <div.wrapper><label.inputWrapper><input.input></label>:<label>...
-// We don't have .tc-root here, so target * inside .timeEdit instead.
-.timeEdit * {
-    --tc-input-size: var(--text-sm);
-    --tc-input-weight: 400;
-    --tc-input-letter-spacing: 0;
-    --tc-input-pad: 0;
-    --tc-bg: transparent;
-    // Pin to page-context ink (see the gutter color note above) so the edit
-    // state stays readable in the gutter under any palette.
-    --tc-fg: var(--color-light-gray);
-    --tc-border: 0;
-    --tc-border-radius: 0;
-    --tc-shadow-focus: none;
-}
-
-// Strip wrapper visual chrome (the .wrapper div has padding/border/bg/shadow).
-.timeEdit>div {
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    gap: 0;
-}
-
-.timeEdit input {
-    width: 2ch;
-    padding: 0;
-    font-size: var(--text-sm);
-    font-weight: 400;
-    color: var(--color-light-gray);
-    background: transparent;
-    border: 0;
-    text-align: center;
-    letter-spacing: 0;
-    line-height: 1;
-
-    &:focus {
-        outline: none;
-        animation: none;
-        box-shadow: none;
-        background: transparent;
-    }
-}
-
-.timeEdit span {
-    font-size: var(--text-sm);
-    color: var(--color-light-gray);
-    line-height: 1;
-}
-
-.qtyEdit {
-    display: inline-flex;
-    // `center`, not `baseline`: an <input>'s baseline differs from a plain
-    // text node's, so a baseline-aligned cell grew taller the moment the
-    // static qty was swapped for the NumberInput. The old `height: calc(1em + 4px)`
-    // fixed-height workaround is gone — the leaf floor (min-block-size) +
-    // padding-block keep display/edit states identical.
-    align-items: center;
-    justify-content: flex-end;
-    gap: 2px;
-    cursor: pointer;
-    font-size: inherit;
-    color: inherit;
-    line-height: 1;
-    box-sizing: border-box;
-    padding-block: var(--sys-row-cell-pad-block);
-    padding-inline: 6px;
-    margin-inline: -6px;
-    min-block-size: var(--sys-row-cell-min-h);
-    border-radius: 6px;
-    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
-
-    &:active {
-        background-color: rgba(216, 140, 40, 0.16);
-        transition-duration: var(--press-in);
-    }
-
-    &:focus-within {
-        background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
-        box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
-    }
-}
-
-// Make NumberInput visually identical to the static qty display.
-.qtyEdit input {
-    width: 4ch;
-    padding: 0 !important;
-    margin: 0;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    color: inherit !important;
-    background: transparent !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    text-align: right;
-    letter-spacing: 0;
-    line-height: 1;
-
-    &:focus {
-        outline: none;
-        border: 0 !important;
-        box-shadow: none !important;
-        background: transparent !important;
-    }
-}
-
-.qtyUnit {
-    color: var(--text-muted);
-    font-size: var(--text-sm); // quieter than the number it trails
-}
-
-.foodCol {
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0;
-    gap: 1px;
-    line-height: 1.15;
-    // Leaf-floor canon: this cell IS the tap target (a <label
-    // htmlFor={DETAILS_EDIT_INPUT}>), so it carries the 48px floor + its own
-    // padding. Tap anywhere in the column (name, subtitle, empty floor) → the
-    // label delegates focus and opens the details modal.
-    padding-block: var(--sys-row-cell-pad-block);
-    min-block-size: var(--sys-row-cell-min-h);
-}
-
+// meta-слот: детали (тап → правка еды, тот же htmlFor что имя).
 .detailsSubtitle {
-    color: var(--text-muted);
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  color: var(--sys-color-text-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
 }
 
-.rightStack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 2px;
-}
-
-
+// ── Имя: цвет/голос по типу записи (на FoodName) ──
 .customProduct {
-    border-left: 2px solid var(--text-tertiary);
-    padding-left: var(--space-2);
+  border-left: 2px solid var(--sys-color-text-tertiary);
+  padding-left: var(--space-2);
 }
 
-// «Недавно добавлен» marker переехал в LongPressRow (правый жёлоб вне подложки,
-// recent-dot canon) — передаётся пропом `recent`, не рендерится здесь.
-
-// Weights lifted 2026-06-14: names were weight 400 (below the body canon of
-// 500), so on the warm tinted row surfaces the thin glyphs washed out — the
-// single biggest legibility lever on a coloured background is stroke weight,
-// not text alpha. 600 for the headline names, 500 for the quieter custom label.
 .customTitle {
-    color: var(--text-secondary);
-    font-style: italic;
+  color: var(--sys-color-text-secondary);
+  font-style: italic;
 }
 
 .dishTitle {
-    color: var(--text-primary);
+  color: var(--sys-color-text-primary);
 }
 
 .foodTitle {
-    color: var(--text-primary);
+  color: var(--sys-color-text-primary);
 }

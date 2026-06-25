@@ -66,7 +66,7 @@
 // Serif-italic голос несёт <QuietLabel> (миграция в примитив). Класс держит
 // контекстный цвет + отступ.
 .customLabel {
-  color: var(--dc-label-color, var(--sys-color-text-secondary));
+  color: var(--sys-color-text-secondary);
   padding-inline: var(--space-4);
 }
 

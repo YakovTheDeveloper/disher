@@ -6,10 +6,10 @@
   overflow: hidden;
   width: 100%;
   height: 50px;
-  border-radius: 14px;
+  border-radius: var(--sys-radius-cta); /* was 14px */
   border: 1.5px solid rgba(176, 52, 35, 0.38);
-  background: #fff;
-  color: #b03423;
+  background: var(--sys-color-surface-bright);
+  color: var(--sys-color-status-danger);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
@@ -24,7 +24,7 @@
 }
 
 .holding {
-  border-color: rgba(176, 52, 35, 0.7);
+  border-color: var(--sys-color-status-danger);
 }
 
 .fill {
@@ -32,7 +32,7 @@
   inset: 0;
   transform-origin: left center;
   transform: scaleX(0);
-  background: rgba(176, 52, 35, 0.18);
+  background: var(--sys-color-status-danger-surface);
   pointer-events: none;
 }
 

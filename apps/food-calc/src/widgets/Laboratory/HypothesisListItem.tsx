@@ -76,7 +76,11 @@ const HypothesisListItem = ({
           {hypothesis.body}
         </Text>
       )}
-      {meta && <span className={styles.meta}>{meta}</span>}
+      {meta && (
+        <Text as="span" role="caption" className={styles.meta}>
+          {meta}
+        </Text>
+      )}
     </>
   );
 

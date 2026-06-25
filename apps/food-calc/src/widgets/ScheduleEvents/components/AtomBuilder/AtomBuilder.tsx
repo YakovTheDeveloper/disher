@@ -87,15 +87,15 @@ export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: 
           for the next state); the panel stays open (close is via the chevron).
           Gated by `touched` so an untouched default never attaches a phantom 5/10. */}
       {pendingTouched && (
-        <Button variant="primary" className={styles.addState} onClick={commitPendingScale}>
+        <Button variant="system" className={styles.addState} onClick={commitPendingScale}>
           Готово
         </Button>
       )}
 
       {scales.length === 0 && legacy.length === 0 && (
-        <p className={styles.bottomHint}>
+        <Text as="p" role="caption" className={styles.bottomHint}>
           Оцените состояние по шкале — или просто опишите событие словами.
-        </p>
+        </Text>
       )}
     </div>
   );

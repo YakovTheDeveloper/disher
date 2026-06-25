@@ -30,16 +30,16 @@
 .emptyBody {
     margin: 0;
     line-height: 1.5;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
+    color: var(--sys-card-text-muted);
 }
 
 .retry {
     align-self: flex-start;
     margin-top: 6px;
     padding: 9px 18px;
-    border-radius: 999px;
+    border-radius: var(--sys-radius-indicator);
     border: 1px solid var(--sys-chip-border);
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--sys-color-surface-bright);
     color: var(--sys-card-text-rest);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -50,11 +50,11 @@
 
     // Цветной отклик: светлая retry-пилюля заполняется ink при нажатии
     &:active {
-        background: var(--color-ink);
-        border-color: var(--color-ink);
-        color: var(--text-on-accent);
+        background: var(--sys-color-surface-action-system);
+        border-color: var(--sys-color-border-action-system);
+        color: var(--sys-color-text-on-accent);
         transform: scale(0.97);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -62,13 +62,13 @@
 // Flat: список лежит прямо на листе Screen, без card-тени (та же логика, что
 // `.empty` — не плодим подложку-на-подложке). Скругление рядов держит `.listBody`.
 .listWrap {
-    border-radius: 14px;
+    border-radius: var(--sys-radius-container);
 }
 
 .listBody {
     display: flex;
     flex-direction: column;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-container);
     overflow: hidden;
 }
 

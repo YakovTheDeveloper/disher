@@ -1,12 +1,12 @@
-// AppBottomBar — bottom dock для HomePage / FoodSchedule / DishBuilderPage.
+// AppBottomBar.module.scss — геометрия solo-CTA дока (AppBottomBarShell).
 //
 // Сидит в Screen.bottomBar slot (часть flex flow, НЕ position: absolute над
 // контентом). Wrapper даёт только геометрию ряда; кнопки внутри владеют обликом
-// сами (Button variant brand/link, AnalysisCtaButton, WriteFoodInput).
+// сами (Button variant brand/link, AnalysisCtaButton).
 //
-// 2026-05-23: вся messenger-style write-field разметка и 9 chat-* дизайн-вариантов
-// уехали в `features/food/food-free-text-parse/ui/WriteFoodInput/WriteFoodInput.module.scss`.
-// Этот файл оставляет только wrapper-геометрию + shellSolo (AppBottomBarShell).
+// 2026-06-25: write-вариант `AppBottomBar` поглощён `FoodWriteBar` (бар еды
+// строит `WriteBarShell` напрямую). Здесь остался только `.shellSolo` —
+// chrome-only обёртка одиночного/split CTA (Laboratory, Анализ, События).
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -27,66 +27,9 @@
     justify-content: space-between;
 }
 
-// Modifier для write-режима (HomePage / DishBuilderPage): убираем толстый
-// padding и min-height — WriteFoodInput сам владеет своим внутренним
-// padding'ом и высотой пилюли. Фон бара НЕ красим — источник истины один:
-// Screen `.bottomBar` (`--bottom-bar-bg`, прозрачный по умолчанию; пилюля
-// «парит» на фоне страницы).
-.writeDock {
-    align-items: stretch;
-    padding: 0;
-    min-height: 0;
-}
-
-.writeBarSlot {
-    flex: 1;
-}
-
-// Generic ghost icon button — для leading/trailing affordance'ов, которые
-// caller'ы прокидывают через leadingSlot.
-.iconButton {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: var(--sys-radius-indicator);
-    background: transparent;
-    border: none;
-    color: var(--sys-color-text-primary);
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease;
-
-    &:hover,
-    &:focus-visible {
-        color: var(--sys-color-text-primary);
-        background: var(--sys-color-bg-hover);
-        outline: none;
-    }
-
-    // Цветной отклик: на нажатии значок темнеет + лёгкий тинт-фон.
-    &:active {
-        color: var(--sys-color-text-primary);
-        background: var(--sys-color-bg-press);
-        transform: scale(0.94);
-        transition-duration: var(--sys-duration-press-in);
-    }
-}
-
-.leadingIcon {
-    @extend .iconButton;
-}
-
-// (Стили leadingSlot-сводки `.nutrientsBtn/.nutrientsLine/.nutrientsMacros/.dot`
-// удалены 2026-06-19 вместе с NutrientsSummaryButton — сводка теперь полоса
-// NutrientsBar в конце списка.)
-
 // ─── Shell — chrome-only wrapper for slides without 3-slot dock ───────
 // Used by Laboratory + ScheduleEvents (HomePage screens 1 & 3). Фон бара НЕ
-// красим — источник истины один: Screen `.bottomBar` (`--bottom-bar-bg`,
+// красим — источник истины один: Screen `.bottomBar` (`--sys-color-bottom-bar-bg`,
 // прозрачный по умолчанию). Только layout — кнопки внутри (Button variant
 // brand/link, AnalysisCtaButton) владеют своим обликом сами.
 .shellSolo {
@@ -97,7 +40,7 @@
 // Одиночный CTA (не split) тянется на всю ширину бара с боковыми инсетами —
 // крупная outline-пилюля «во всю строку», как на write-баре экрана 2.
 .dockV2.shellSolo:not([data-shell-side='split']) {
-    // Левый инсет = write-пилюля FoodSchedule (`--space-8`, см. WriteFoodInput
+    // Левый инсет = write-пилюля FoodWriteBar (`--space-8`, см. WriteBarShell
     // `.wrap`). Канон 2026-06-08: solo-CTA выравнивается по левому краю с
     // write-баром экрана 2 на всех экранах. Правый — `--space-4` (асимметрия
     // намеренна: у write-пилюли справа медальон, у solo-CTA его нет).

@@ -29,7 +29,8 @@
     top: 14%;
     bottom: 14%;
     width: 3px;
-    border-radius: 2px;
+    border-radius: var(--sys-radius-tmp); /* was 2px */
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- data-carrying декор-кант: цвет статуса из STATUS_PALETTE (--accent-stripe), bespoke warm/coral палитра вне sys */
     background: var(--accent-stripe, var(--tod-day-outline-to, #f0c850));
     pointer-events: none;
   }
@@ -78,8 +79,8 @@
 
 .timeDisplay,
 .timeEdit {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+  font-size: var(--sys-numeral-sm); /* время HH:MM = число */
+  color: var(--sys-color-text-secondary);
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -88,28 +89,32 @@
 
 .timeDisplay {
   cursor: pointer;
-  padding: 2px 6px;
-  margin: -2px -6px;
-  border-radius: 6px;
+  // Время — тап-зона: вертикальный пол через тот же токен, что у <TapTarget>.
+  padding-block: var(--sys-tap-pad-block);
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: var(--sys-radius-control); /* was 6px */
   transition: background-color var(--press-out, 0.2s) ease;
 
   &:active {
-    background-color: rgba(216, 140, 40, 0.16);
+    background-color: var(--sys-color-bg-press-warm);
   }
 }
 
 .timeEdit {
-  padding: 2px 6px;
-  margin: -2px -6px;
-  border-radius: 6px;
+  padding-block: var(--sys-tap-pad-block);
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: var(--sys-radius-control); /* was 6px */
   transition: background-color var(--press-out, 0.2s) ease, box-shadow var(--press-out, 0.2s) ease;
 
   &:active {
-    background-color: rgba(216, 140, 40, 0.16);
+    background-color: var(--sys-color-bg-press-warm);
   }
 
   &:focus-within {
-    background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
+    background-color: var(--sys-color-bg-focus-ring);
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- цветной focus-ring (inset 1.5px), не elevation-рунг */
     box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
   }
 }
@@ -138,9 +143,9 @@
 .timeEdit input {
   width: 2ch;
   padding: 0;
-  font-size: var(--text-sm);
+  font-size: var(--sys-numeral-sm);
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   background: transparent;
   border: 0;
   text-align: center;
@@ -156,30 +161,29 @@
 }
 
 .timeEdit span {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+  font-size: var(--sys-numeral-sm);
+  color: var(--sys-color-text-secondary);
   line-height: 1;
 }
 
 // ─── Name + details column ──────────────────────────────────────
 
 .nameCell {
-  display: inline-flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 2px;
+  // <Column> уже даёт flex-column + min-width:0. Здесь gap 0 — две <TapTarget>
+  // (имя/детали) идут впритык, их padding-block сам держит вертикальный ритм.
+  gap: 0;
   line-height: 1.15;
 }
 
 .nameBtn {
   background: transparent;
   border: 0;
-  padding: 0;
+  // padding-block floor владеет <TapTarget>; padding-inline 0 (текстовая кнопка).
   min-width: 0;
   max-width: 100%;
   text-align: left;
   cursor: pointer;
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   line-height: 1.25;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -188,15 +192,15 @@
 
   &:hover,
   &:focus-visible {
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     outline: none;
   }
 
   // Цветной отклик: тихая текстовая кнопка — тинт фон + акцент
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -205,17 +209,15 @@
 }
 
 .nameOriginal {
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
   font-style: italic;
-  font-size: var(--text-sm);
 }
 
 // Details = serif italic subtitle (как HomePage .detailsSubtitle).
 .detailsSubtitle {
-  // serif-italic голос инкапсулирован в <QuietLabel>; здесь только раскладка +
-  // компактный размер (var(--text-xs)) и контекстный приглушённый цвет.
-  font-size: var(--text-xs);
-  color: var(--text-muted);
+  // serif-italic голос + размер инкапсулированы в <QuietLabel> (role владеет);
+  // здесь только раскладка + контекстный приглушённый цвет.
+  color: var(--sys-color-text-muted);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -226,16 +228,15 @@
 
   &:hover,
   &:focus-visible {
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
     outline: none;
   }
 }
 
 .nameOriginalHint {
   display: block;
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
   font-style: italic;
-  font-size: var(--text-xs);
   margin-top: 1px;
 }
 
@@ -247,24 +248,26 @@
   justify-content: flex-end;
   gap: 2px;
   cursor: pointer;
-  font-size: var(--text-base);
-  color: var(--text-primary);
+  font-size: var(--sys-numeral-base); /* qty = число */
+  color: var(--sys-color-text-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
   box-sizing: border-box;
-  height: calc(1em + 6px);
-  padding: 3px 6px;
-  margin: -3px -6px;
-  border-radius: 6px;
+  // padding-block floor владеет <TapTarget>; убран фикс height (он ломал
+  // baseline при свопе на NumberInput — та же причина, что в ScheduleFoodItem).
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: var(--sys-radius-control); /* was 6px */
   min-width: 56px;
   transition: background-color var(--press-out, 0.2s) ease, box-shadow var(--press-out, 0.2s) ease;
 
   &:active {
-    background-color: rgba(216, 140, 40, 0.16);
+    background-color: var(--sys-color-bg-press-warm);
   }
 
   &:focus-within {
-    background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
+    background-color: var(--sys-color-bg-focus-ring);
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- цветной focus-ring (inset 1.5px), не elevation-рунг */
     box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
   }
 }
@@ -292,8 +295,7 @@
 }
 
 .qtyUnit {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
+  color: var(--sys-color-text-muted);
 }
 
 
@@ -307,9 +309,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--sys-radius-control);
   padding: 0;
   transition: background-color var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
@@ -322,17 +324,18 @@
 
   &:hover,
   &:focus-visible {
-    background-color: var(--border-hairline);
+    background-color: var(--sys-color-bg-hover);
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- bespoke honey status-accent (parity с .inner accent-stripe), raw fallback намеренный */
     color: var(--tod-day-outline-to, #f0c850);
     outline: none;
   }
 
   // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.9);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -343,11 +346,11 @@
   height: 28px;
   display: grid;
   place-items: center;
-  font-size: var(--text-lg);
+  font-size: var(--sys-icon-size-sm); /* глиф ×, было text-lg 20px */
   line-height: 1;
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  border-radius: var(--sys-radius-control);
   padding: 0;
   transition: background-color var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default);
@@ -366,22 +369,22 @@
 
   .iconUndo {
     opacity: 0;
-    font-size: var(--text-base);
+    font-size: var(--sys-icon-size-sm); /* глиф ↶, унифицирован с × */
   }
 
   &:hover,
   &:focus-visible {
-    background-color: var(--border-hairline);
-    color: var(--text-primary);
+    background-color: var(--sys-color-bg-hover);
+    color: var(--sys-color-text-primary);
     outline: none;
   }
 
   // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.9);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 

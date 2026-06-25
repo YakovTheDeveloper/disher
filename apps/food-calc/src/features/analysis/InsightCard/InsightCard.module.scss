@@ -7,25 +7,9 @@
 // напрямую. Token-driven app-wide тоном (`--sys-card-*`); local `--ic-*` props
 // алиасят их, чтобы правила читались.
 .card {
-    --ic-ink: var(--sys-card-text-rest);
-    // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
-    // 62% выцветает (~3:1), дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
-    --ic-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-soft-amt, 62%), transparent);
-    --ic-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-faint-amt, 50%), transparent);
-    // Тело — near-black на полную силу (гармоничная композиция 2026-06-21): тело
-    // должно читаться, а не выцветать как soft. Контексты могут поднять/опустить
-    // через `--analysis-body-amt` (дом уже держит soft на 80%).
-    --ic-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    --ic-chip-bg: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
-    --ic-radius: var(--radius-md);
-    --ic-chip-radius: var(--radius-sm);
-    // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
-    // мета 12.8 (`--text-sm`). Сид `--analysis-*` = тот же грид (дом «Открытия»).
-    // Заголовок больше НЕ здесь — рендерится примитивом <Heading role="title">
-    // (17px = Apple Title3 register, вес 600, монохром; канон Открытий).
-    --ic-fs-detail: var(--analysis-fs-detail, var(--text-base));
-    --ic-fs-meta: var(--analysis-fs-meta, var(--text-sm));
-
+    // Ink-рампа (faint/soft/strong) и chip-bg несёт card-слой (плоские sys-токены,
+    // эмфазис-плотность homes переопределяют через --analysis-soft-amt). Кегли — у
+    // примитивов <Text>/<Heading> (миграция typo); font-size в scss мёртв.
     position: relative;
     display: flex;
     align-items: flex-start;
@@ -66,18 +50,16 @@
 
 .strength {
     flex-shrink: 0;
-    font-size: var(--ic-fs-meta);
     line-height: 1;
     white-space: nowrap;
-    color: var(--ic-ink-faint);
+    color: var(--sys-card-text-faint);
 }
 
 // Тело — Onest near-black на полную силу. Вторая (и последняя) гарнитура.
 .detail {
     margin: 0;
-    font-size: var(--ic-fs-detail);
     line-height: var(--analysis-lh-detail, 1.5);
-    color: var(--ic-ink-body);
+    color: var(--sys-card-text-strong);
 }
 
 .evidence {
@@ -93,11 +75,10 @@
 .chipFood,
 .chipEvent {
     padding: 2px 8px;
-    border-radius: var(--ic-chip-radius);
-    font-size: var(--ic-fs-meta);
+    border-radius: var(--sys-radius-control);
     line-height: 1.4;
-    color: var(--ic-ink-soft);
-    background: var(--ic-chip-bg);
+    color: var(--sys-card-text-soft);
+    background: var(--sys-card-bg-sunk);
 }
 
 // ── valence (без цвета, F3) ───────────────────────────────────────────────
@@ -107,7 +88,7 @@
 // несёт примитив-заголовок (миграция typo: класс держит только отступ+цвет).
 .valenceSign {
     margin-right: var(--space-1);
-    color: var(--ic-ink-soft);
+    color: var(--sys-card-text-soft);
 }
 
 // ── действия: «+ к себе» (результат) / шеврон-удаление (сохранённый список) ──
@@ -117,9 +98,6 @@
 // светло-жёлтом). Градиент в `background` токен-гейтом не проверяется (канон
 // stripe-fork). ≥40px (touch-floor inner control).
 .add {
-    --ic-btn-added-ink: rgba(38, 110, 64, 0.92);
-    --ic-btn-radius: var(--radius-full);
-
     align-self: flex-end;
     flex-shrink: 0;
     display: inline-flex;
@@ -129,11 +107,10 @@
     padding: var(--space-2) var(--space-4); // высоту держит min-height (touch-floor)
     min-height: 40px;
     border: none;
-    border-radius: var(--ic-btn-radius);
-    background: var(--cta-brand-fill);
+    border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-surface-action-primary);
     box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A: парит только слой над страницей)
-    color: var(--cta-brand-ink);
-    font-size: var(--ic-fs-meta);
+    color: var(--sys-color-text-on-action);
     line-height: 1.2;
     white-space: nowrap;
     cursor: pointer;
@@ -158,9 +135,9 @@
 
     // Сохранено — гасим градиент в спокойную выцветшую пилюлю с зелёным ink.
     &[data-added] {
-        background: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
+        background: var(--sys-card-bg-sunk);
         box-shadow: none;
-        color: var(--ic-btn-added-ink);
+        color: var(--sys-color-status-success);
     }
 }
 
@@ -182,9 +159,9 @@
     margin: 0 calc(-1 * var(--space-4)) calc(-1 * var(--space-3)) 6px;
     padding: 0;
     border: none;
-    border-radius: var(--ic-chip-radius);
+    border-radius: var(--sys-radius-control);
     background: transparent;
-    color: var(--ic-ink-faint);
+    color: var(--sys-card-text-faint);
     cursor: pointer;
     transition:
         transform 0.12s ease,

@@ -89,7 +89,7 @@ const DailyAnalysisSection = ({ date }: Props) => {
           <Text as="p" role="caption" className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Что-то пошло не так.'}
           </Text>
-          <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
+          <Button variant="system-secondary" className={styles.bannerButton} onClick={handleRetry}>
             Повторить
           </Button>
         </div>
@@ -103,7 +103,7 @@ const DailyAnalysisSection = ({ date }: Props) => {
           <Text as="p" role="caption" className={styles.bannerBody}>
             {reason ? REASON_TEXT[reason] : 'Разбор не завершился.'}
           </Text>
-          <Button variant="secondary" className={styles.bannerButton} onClick={handleRetry}>
+          <Button variant="system-secondary" className={styles.bannerButton} onClick={handleRetry}>
             Запустить заново
           </Button>
         </div>

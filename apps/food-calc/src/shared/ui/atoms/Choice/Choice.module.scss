@@ -95,7 +95,7 @@
 .markerTick {
   width: 10px;
   height: 10px;
-  color: var(--sys-color-bg-selected);
+  color: var(--sys-color-text-on-selected); // галочка = selected-hue как foreground (deep amber, M4 2026-06-25)
 }
 
 .markerTick path {

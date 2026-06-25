@@ -45,7 +45,11 @@ module.exports = {
         '/color$/', //           color, background-color, border-color, outline-color, …
         '/^(fill|stroke)$/', //  SVG paint
         'background', //         shorthand — solid raw colors caught, gradients allowed
-        'border-radius',
+        // border-radius shorthand + the 4 corner longhands. A bare literal key
+        // ('border-radius') matched the shorthand ONLY — the per-corner longhands
+        // (border-top-left-radius …) slipped the gate entirely (DrawerLayout shipped
+        // `border-top-left-radius: var(--radius-2xl)` past it). Regex closes that hole.
+        '/^border(-(top|bottom)-(left|right))?-radius$/',
         'box-shadow',
         'font-size',
         '/duration$/', //        transition-duration, animation-duration
@@ -74,7 +78,7 @@ module.exports = {
           // gradients (stripe-fork canon) allowed; solid raw colors + legacy var() rejected.
           // currentColor blessed (фон-хайрлайн/точка красится текстом — §batch.2).
           background: ['/gradient/i', '/^var\\(--sys-/', 'none', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
-          'border-radius': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '0', '50%', 'inherit', 'initial', 'unset'],
+          '/^border(-(top|bottom)-(left|right))?-radius$/': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '0', '50%', 'inherit', 'initial', 'unset'],
           'box-shadow': ['/^var\\(--sys-elevation-/', '/^var\\(--sys-field-shadow/', 'none', 'inherit', 'initial', 'unset'],
           // --sys-text-size-* (escape для не-прозовых размеров) + --sys-field-font-size (поля #1)
           // + --sys-numeral-* (числовой ярус примитива <Numeral>) + --sys-icon-size-* (глиф-иконки).
@@ -112,7 +116,20 @@ module.exports = {
         '**/app/ui/DesignVariantsBar/**/*.{scss,css}',
         '**/pages/suggestion/**/*.{scss,css}',
         '**/pages/ui-kit/**/*.{scss,css}',
+        // features/dev/** — dev-only инструменты (BugReportModal: тёмная bespoke
+        // сцена + ReactMarkdown-вывод + mono технический текст, непереносимый в
+        // sans-примитивы). Отдельная dev-редсистема как и витрины выше (решение
+        // юзера 2026-06-25). Exempt навсегда, масштабируется на будущие dev-тулзы.
+        '**/features/dev/**/*.{scss,css}',
       ],
+      rules: { 'scale-unlimited/declaration-strict-value': null },
+    },
+    {
+      // third-party library chrome — стилизация ЧУЖОГО DOM (sonner-тостер) через
+      // :global(.toast*) + !important. Не компоненты приложения (обернуть в примитив
+      // нечего), своя toast-брендовая палитра (--toast-success/error/… — яркие, ≠
+      // app-status). genuinely-системный exempt (как dev-редсистема). Решение 2026-06-25.
+      files: ['**/shared/assets/style/toaster.scss'],
       rules: { 'scale-unlimited/declaration-strict-value': null },
     },
     {

@@ -11,17 +11,15 @@
   padding: var(--space-4);
   background: linear-gradient(135deg, #fffefb 0%, #fef8ec 100%);
   border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
-  border-radius: var(--radius-lg);
+  border-radius: var(--sys-radius-cta);
   box-shadow: var(--sys-elevation-overlay);
   // Block touch swipes from bubbling to surrounding Drawer (Base UI swipe-ignore).
 }
 
+// Голос несёт примитив <Heading role="title"> (Onest bold-sans, канон); здесь — раскладка + цвет.
 .title {
   margin: 0;
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: var(--text-lg);
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   line-height: 1.2;
 }
 
@@ -58,21 +56,20 @@
   flex-wrap: wrap;
   margin: 0;
   padding: var(--space-2) var(--space-3);
-  background: rgba(240, 200, 80, 0.16);
+  background: var(--sys-color-bg-press-warm);
   border-left: 2px solid var(--tod-day-outline-to, #f0c850);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+  border-radius: var(--sys-radius-control);
+  color: var(--sys-color-text-secondary);
   line-height: 1.35;
 }
 
 .dupName {
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
 }
 
+// Размер несёт <Text role="caption">; здесь — цвет + табличные цифры.
 .dupSource {
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -89,7 +86,7 @@
   background: transparent;
   border: 0;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  border-radius: var(--sys-radius-container);
   cursor: pointer;
   white-space: nowrap;
   transition: background-color var(--press-out) var(--easing-default),
@@ -98,26 +95,26 @@
 }
 
 .btnGhost {
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
 
   &:hover,
   &:focus-visible {
-    background-color: var(--border-hairline);
-    color: var(--text-secondary);
+    background-color: var(--sys-color-border-subtle);
+    color: var(--sys-color-text-secondary);
     outline: none;
   }
 
   // Цветной отклик: тихая кнопка — тинт фон + акцент
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.96);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
 .btnSecondary {
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
   transition: background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
@@ -126,23 +123,23 @@
 
   &:hover,
   &:focus-visible {
-    background-color: var(--border-hairline);
+    background-color: var(--sys-color-border-subtle);
     outline: none;
   }
 
   // Цветной отклик: обводочная кнопка — заливка чернилами
   &:active {
-    background: var(--color-ink);
-    border-color: var(--color-ink);
-    color: var(--text-on-accent);
+    background: var(--sys-color-surface-action-system);
+    border-color: var(--sys-color-surface-action-system);
+    color: var(--sys-color-text-on-accent);
     transform: scale(0.96);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
 .btnPrimary {
-  color: var(--color-white);
-  background-color: var(--color-ink);
+  color: var(--sys-color-on-system); // white on coal action (был text-on-selected по ошибке конфляции, M4 2026-06-25)
+  background-color: var(--sys-color-surface-action-system);
   padding-left: var(--space-4);
   padding-right: var(--space-4);
   transition: background-color var(--press-out) var(--easing-default),
@@ -152,7 +149,7 @@
 
   &:hover,
   &:focus-visible {
-    background-color: color-mix(in oklch, var(--color-ink) 88%, white);
+    background-color: var(--sys-color-surface-action-system-hover);
     outline: none;
   }
 
@@ -160,7 +157,7 @@
   &:active {
     filter: brightness(0.9);
     transform: scale(0.96);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 
   &:disabled {

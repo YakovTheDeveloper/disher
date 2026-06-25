@@ -51,10 +51,14 @@
             outline: none;
             animation: none;
             // Visible focus indicator that doesn't shift layout.
-            // Box-shadow underline works on both iOS and Android.
-            box-shadow: inset 0 -2px 0 0 var(--accent, #2b6cb0);
-            background: rgba(43, 108, 176, 0.06);
-            border-radius: 2px;
+            // Box-shadow underline works on both iOS and Android. Это ЦВЕТНОЙ
+            // фокус-индикатор (inset-подчёркивание), НЕ elevation → стрикт-гейт
+            // exempt'ится точечно (прецедент: focus-ring NumberInput / glow Chip).
+            // Цвет = indigo-accent (консолидация cool-tone → indigo).
+            // stylelint-disable-next-line scale-unlimited/declaration-strict-value
+            box-shadow: inset 0 -2px 0 0 var(--accent, var(--sys-color-text-accent));
+            background: var(--sys-color-bg-focus-ring);
+            border-radius: var(--sys-radius-tmp);
         }
     }
 

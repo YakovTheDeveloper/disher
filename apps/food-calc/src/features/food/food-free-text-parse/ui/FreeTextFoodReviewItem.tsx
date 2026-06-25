@@ -6,6 +6,8 @@ import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
 import NumberInput from '@/shared/ui/atoms/input/NumberInput/NumberInput';
 import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
 import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
+import { Column } from '@/shared/ui/atoms/Column';
 import styles from './FreeTextFoodReviewItem.module.scss';
 
 interface MatchCandidate {
@@ -183,8 +185,9 @@ export const FreeTextFoodReviewItem = ({
         )}
 
         {/* Name + (optional original hint) + details */}
-        <div className={styles.nameCell}>
-          <label
+        <Column className={styles.nameCell}>
+          <TapTarget
+            as="label"
             htmlFor={searchInputId}
             className={styles.nameBtn}
             onMouseDown={() => onStartEdit(uid, 'search')}
@@ -198,7 +201,7 @@ export const FreeTextFoodReviewItem = ({
             >
               {showOriginalFallback ? item.originalName : item.name}
             </Text>
-          </label>
+          </TapTarget>
 
           {showOriginalHint && (
             <Text as="span" role="caption" className={styles.nameOriginalHint}>
@@ -207,7 +210,8 @@ export const FreeTextFoodReviewItem = ({
           )}
 
           {hasNote && (
-            <label
+            <TapTarget
+              as="label"
               htmlFor={detailsInputId}
               className={styles.detailsSubtitle}
               onMouseDown={() => onStartEdit(uid, 'details')}
@@ -215,14 +219,15 @@ export const FreeTextFoodReviewItem = ({
               title="Изменить заметку"
             >
               <QuietLabel>{item.details}</QuietLabel>
-            </label>
+            </TapTarget>
           )}
 
-        </div>
+        </Column>
 
         {/* Quantity (inline) */}
         {editingQty ? (
-          <span
+          <TapTarget
+            as="span"
             className={styles.qtyEdit}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -243,15 +248,16 @@ export const FreeTextFoodReviewItem = ({
               maxLength={4}
             />
             <Text as="span" role="caption" className={styles.qtyUnit}>г</Text>
-          </span>
+          </TapTarget>
         ) : (
-          <span
+          <TapTarget
+            as="span"
             className={styles.qtyEdit}
             onClick={() => setEditingQty(true)}
           >
             <Numeral as="span" size="base" weight="semibold">{qtyDisplay}</Numeral>
             <Text as="span" role="caption" className={styles.qtyUnit}>г</Text>
-          </span>
+          </TapTarget>
         )}
 
         {/* Rescue (+) — only on unresolved without manual */}

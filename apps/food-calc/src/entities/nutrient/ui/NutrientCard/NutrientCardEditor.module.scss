@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   padding: var(--space-2) var(--space-3);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border-radius: var(--sys-radius-container);
+  box-shadow: var(--sys-elevation-action-rest);
   background: var(--sys-color-surface-bright);
   transition: opacity 0.2s;
   position: relative;
@@ -47,7 +47,7 @@
 
 .value {
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--sys-color-text-secondary);
   align-self: flex-end;
   padding-bottom: 0.15em;
   opacity: 0.3;
@@ -60,16 +60,16 @@
 .percentLabel {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  border-radius: var(--radius-xs);
+  border-radius: var(--sys-radius-tmp);
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default);
 
   // Цветной отклик: кликабельный процент (тихая кнопка) → тинт фона
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
@@ -79,33 +79,29 @@
 }
 
 .percent.low {
-  color: var(--text-tertiary);
+  color: var(--sys-color-text-tertiary);
 }
 
-.percent.medium {
-  color: #4a8ec4;
-}
-
-.percent.optimal {
-  color: #2d8a3e;
-}
-
+// Триада статуса % (medium/optimal/excess) сведена в ОДИН нейтральный цвет
+// (решение юзера: убрать blue/green/orange-валентность).
+.percent.medium,
+.percent.optimal,
 .percent.excess {
-  color: #c07020;
+  color: var(--sys-color-text-secondary);
 }
 
 // --- Progress bar ---
 .progressBar {
   height: var(--nutrient-progress-height, 3px);
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: var(--radius-full);
+  background: var(--sys-color-bg-sunk);
+  border-radius: var(--sys-radius-indicator);
   overflow: hidden;
   margin-top: var(--space-1);
 }
 
 .progressFill {
   height: 100%;
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   background: var(--sys-card-accent);
   transition: width 0.3s ease;
 }
@@ -147,7 +143,7 @@
 }
 
 .normModalTitle {
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
 }
 
 .normModalClose {
@@ -156,7 +152,7 @@
   color: var(--sys-card-accent, #007aff);
   cursor: pointer;
   padding: var(--space-2) var(--space-3);
-  border-radius: 8px;
+  border-radius: var(--sys-radius-control);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
@@ -164,9 +160,9 @@
 
   // Цветной отклик: кнопка закрытия нормы (тихая) → тинт фона + цвет
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 

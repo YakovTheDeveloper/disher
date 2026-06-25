@@ -135,6 +135,8 @@
   --sys-field-font-size: 1rem; // 16 — стандартное поле (NumberInput, AutoGrowSearch)
   --sys-field-font-size-compact: 0.8rem; // 12.8 — Select (плотный список)
   --sys-field-font-size-hero: 48px; // крупный числовой ввод (AtomBuilder scale)
+  --sys-field-font-size-lg: 2rem; // 32 — крупное native-поле времени (TimeChoose.nativeInput)
+  --sys-field-font-size-md: 1.5rem; // 24 — серифное число-поле (CreateDailyNormModal kcal)
 
   // 1:1 scale aliases of the legacy --text-* scale — sanctioned escape for non-prose
   // элементов (числа/единицы/таблицы), которые НЕ ложатся в <Text>-роли. Value-equal к
@@ -149,6 +151,7 @@
   // ридауты (значения/количества/таблицы) — НЕ прозовый текст: своя size-шкала,
   // family --font-big-numeric. НЕ под --sys-text-* (typo-gate не флагает): числа —
   // отдельный примитив. Решение юзера 2026-06-25.
+  --sys-numeral-xs: var(--text-xs); // 10.2 — крошечная единица под значением (QtyStack .unit)
   --sys-numeral-sm: 13px; // табличная ячейка / мелкий ридаут
   --sys-numeral-base: 16px; // 1rem
   --sys-numeral-md: 18px; // 1.125rem
@@ -156,11 +159,15 @@
   --sys-numeral-xl: 24px; // 1.5rem
   --sys-numeral-display: 31px; // BalanceSection баланс (≈2xl)
   --sys-numeral-hero: 48px; // крупный числовой герой
+  --sys-numeral-loader-day: clamp(28px, 16vw, 62px); // FabricLoader fallback day-digit (responsive)
 
   // Mono — hero numerals + tabular — #mono
-  --sys-text-mono-big-family: var(--font-big-numeric);
-  --sys-text-mono-big-size: 6rem; // ≈96 — TimeChoose dial + big quantity
-  --sys-text-mono-big-weight: 800;
+  // Dial-ярус числового примитива: крупный циферблат (TimeChoose) + big quantity
+  // (ProductQuantity). Имя в --sys-numeral-* (а не --sys-text-) — это число, не проза,
+  // и size попадает в font-size-whitelist гейта (--sys-numeral-*).
+  --sys-numeral-dial-family: var(--font-big-numeric);
+  --sys-numeral-dial-size: 6rem; // ≈96 — TimeChoose dial + big quantity
+  --sys-numeral-dial-weight: 800;
   --sys-text-mono-tab-size: 13px; // Ubuntu Mono tabular (nutrients)
 
   // ─── Border radius — #radius ─────────────────────────────────
@@ -193,6 +200,19 @@
   --sys-elevation-overlay: var(--ref-shadow-3); // drawer/modal/popover/dropdown/sheet
   --sys-elevation-dragging: var(--ref-shadow-4); // long-press lift
 
+  // Scroll-seam — тень-шов под sticky-заголовком при scroll-state(stuck). Двух-
+  // стоповый список (hairline + soft drop): -seam-rest = прозрачный близнец той же
+  // длины, чтобы keyframe/scroll-timeline лерпил box-shadow чисто (CSS требует
+  // совпадения длины списка теней). NutrientsDrawer header-stuck.
+  --sys-elevation-seam-rest: 0 0 0 transparent, 0 0 0 transparent;
+  --sys-elevation-seam: 0 1px 0 var(--sys-card-hairline),
+    0 6px 12px -6px color-mix(in srgb, var(--sys-card-text-rest) 8%, transparent);
+
+  // Dock — нижний прикреплённый лист (position:fixed bottom:0) приподнимается НАД
+  // контентом: тень светит ВВЕРХ (отрицательный y), чего нет у drop-рунгов.
+  // FoodSearchEmpty bottom-dock.
+  --sys-elevation-dock: 0 -1px 6px rgba(45, 38, 28, 0.1);
+
   // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
   // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
   --plate-fill: #ebecf0; // grey fill inside frame
@@ -217,6 +237,8 @@
   --sys-duration-normal: var(--duration-normal);
   --sys-duration-slow: var(--duration-slow);
   --sys-duration-ios: var(--duration-ios);
+  --sys-duration-drawer: 400ms; // статический backdrop/sheet close (бывш. calc(swipe-strength*400ms) — упрощено 2026-06-25)
+  --sys-duration-instant: 1ms; // reduced-motion «мгновенно, но animationend срабатывает» (не 0ms)
   --sys-duration-press-in: var(--press-in); // 0ms
   --sys-duration-press-out: var(--press-out); // 260ms
   --sys-easing-default: var(--easing-default);
@@ -224,21 +246,21 @@
   --sys-easing-ios: var(--easing-ios);
 
   // ─── Row geometry (list-item cells) — #row-geometry ──────────
-  // ONE 48px touch floor (canon 2026-05-24), placed on whatever element IS the
-  // tap target — never doubled, never on a non-tappable wrapper:
-  //   • Whole-row-clickable rows (SelectableListItem, dish ingredient) — the
-  //     wrapper is the tap target → min-h-touch on it via @include row-touch.
-  //   • Rows with inner tap-cells (ScheduleFoodItem: name | qty) — the floor
-  //     lives on each LEAF cell (cell-min-h); the wrapper goes NAKED: it zeroes
-  //     its own pad-block AND min-h-touch on the grid root, so the leaf alone
-  //     carries the floor and defines the row height (a bare <label> still
-  //     stretches to 48). This is the systemic rule — strip the outside, size
-  //     the innermost.
+  // Touch floor (Apple HIG 44 / Material 3 48 / WCAG 2.2), placed on whatever
+  // element IS the tap target — never doubled, never on a non-tappable wrapper:
+  //   • Whole-row-clickable rows (SelectableListItem) — the wrapper is the tap
+  //     target → min-h-touch on it via @include row-touch.
+  //   • Rows with inner tap-cells (ScheduleEventCard, ScheduleFoodItem, dish,
+  //     предложка) — each tap CELL is a <TapTarget> that owns its floor through
+  //     PADDING (--sys-tap-pad-block), not a fixed height: the floor grows with
+  //     content and lets stacked tap-zones sit flush (gap 0). The wrapper goes
+  //     NAKED (zeroes its own pad-block + min-h-touch). Component-level canon —
+  //     replaced the old per-card min-h discipline (--sys-row-cell-*, removed
+  //     2026-06-25). See shared/ui/atoms/TapTarget.
   //   row-pad-block — consumer-overridable wrapper padding (LongPressRow reads it).
   --sys-row-pad-block: var(--space-1); // wrapper vertical padding (legacy default)
-  --sys-row-cell-pad-block: 9px; // inner-cell vertical padding
-  --sys-row-cell-min-h: 48px; // LEAF tap-target floor (inner-cell rows)
   --sys-row-min-h-touch: 48px; // WRAPPER tap-target floor (@include row-touch)
+  --sys-tap-pad-block: 12px; // <TapTarget> per-cell vertical floor (padding-driven)
 
   // ─── Bottom action (unified height) — #bottom-action ─────────
   --bottom-action-h: 72px; // shared by all bottom bars/buttons (no edge "jump")
@@ -272,9 +294,8 @@
   --ref-color-neutral-900: #221f19; // = color-ink (warm-coal)
   --ref-color-neutral-1000: #0d0b07; // = color-ink-strong
 
-  // ref · ink-accent navy — only brand hue for selected/action/focus — #ref-navy
-  --ref-color-navy-600: rgba(24, 24, 105, 0.92); // → bg-selected
-  --ref-color-navy-700: rgba(24, 24, 105, 1); // → border-selected
+  // ref · navy RETIRED 2026-06-25 (M4): «выбрано» → warm amber, brand-action → indigo.
+  // navy-600/700 had 0 consumers after the split; removed. See #ref-accent-ramps below.
 
   // ref · accent ramps (amber ≈71°, indigo ≈289°) — #ref-accent-ramps
   // Anchors 600/700 from /suggestion_3375f4e1; other rungs generated hue-lock OKLCH.
@@ -317,19 +338,36 @@
   // GT: tds/interactive-tokens-system.md. CTI names by meaning, not look.
 
   --sys-color-surface-page: var(--surface-base);
-  --sys-color-surface-bright: var(--surface-bright); // floating surface above Screen
+  --sys-color-surface-bright: var(--ref-color-neutral-0); // floating surface above Screen
   --sys-color-surface-raised: var(--surface-raised);
   --sys-color-surface-sunken: var(--surface-base); // no separate sunken primitive
+  --sys-color-surface-grouped: var(--cards-page-bg); // n100 — фон страницы под inset-grouped списком (SearchFood)
 
   --sys-color-surface-floating: var(--ref-color-neutral-800);
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
+  // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
+  // сырых rgba(255,255,255,α) сюда). strong=осн. текст, muted=вторич., faint=
+  // ghost/disabled, divider=хайрлайн.
+  --sys-color-on-floating-strong: rgba(255, 255, 255, 0.92);
+  --sys-color-on-floating-muted: rgba(255, 255, 255, 0.6);
+  --sys-color-on-floating-faint: rgba(255, 255, 255, 0.28);
+  --sys-color-on-floating-divider: rgba(255, 255, 255, 0.12);
 
-  --sys-color-text-primary: var(--text-primary);
+  // color · scrim — бэкдропы modal/drawer/popover. Тёплый-уголь n1000 (НЕ холодный
+  // чёрный — warm-soft канон). Снап сырых rgba(0,0,0,α)-бэкдропов к ближайшему рунгу.
+  --sys-color-scrim-soft: rgba(13, 11, 7, 0.4);
+  --sys-color-scrim: rgba(13, 11, 7, 0.55);
+  --sys-color-scrim-strong: rgba(13, 11, 7, 0.72);
+
+  --sys-color-text-primary: var(--text-primary); // бренд-primary (станет амброй в будущем) — НЕ для нейтрального чёрного текста
+  --sys-color-text-system: var(--ref-color-neutral-900); // нейтральный чёрный/ink текст (текстовый парный к surface-action-system); #221f19
+  --sys-color-text-accent: var(--ref-color-indigo-600); // акцентный (холодный) текст — indigo
   --sys-color-text-secondary: var(--text-secondary);
   --sys-color-text-tertiary: var(--text-tertiary);
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
+  --sys-color-text-sepia: #6b4a23; // FabricLoader gravure ink — sepia art-слой (бледная гравюра)
 
   // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
@@ -341,36 +379,97 @@
   --sys-color-status-done: var(--ref-color-moss-600);
   --sys-color-status-stale: var(--ref-color-sepia-500);
   --sys-color-status-pending: var(--ref-color-neutral-400);
+  --sys-color-status-success: var(--ref-color-moss-600); // = done value; имя для positive-status семантики
+  // status · faint surface tints (баннеры/чипы статуса). OKLCH-смесь якоря статуса
+  // с тёплой бумагой — снап сырых red/amber/green washes сюда.
+  --sys-color-status-danger-surface: color-mix(in oklch, var(--ref-color-terracotta-600) 9%, var(--surface-base));
+  --sys-color-status-warning-surface: color-mix(in oklch, var(--ref-color-amber-earth-600) 11%, var(--surface-base));
+  --sys-color-status-success-surface: color-mix(in oklch, var(--ref-color-moss-600) 11%, var(--surface-base));
 
   // color · interactive states (cross-element; "selected" = single source)
-  --sys-color-bg-selected: var(--ref-color-navy-600);
-  --sys-color-text-on-selected: #fff;
-  --sys-color-border-selected: var(--ref-color-navy-700);
+  // «выбрано» = warm amber light-tonal (2026-06-25, M4 navy→amber). text-on-selected =
+  // deep amber: works AS text on the pale fill AND as a standalone selected-hue glyph/tick.
+  --sys-color-bg-selected: color-mix(in srgb, var(--ref-color-amber-600) 14%, var(--ref-color-neutral-0));
+  --sys-color-text-on-selected: var(--ref-color-amber-700);
+  --sys-color-border-selected: var(--ref-color-amber-700);
   --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // warm-coal state-layer
   --sys-color-bg-press: var(--press-tint-bg); // alias 1:1
+  // Утопленная плашка (6% warm-ink wash) — глобальный спутник scoped --sys-card-bg-sunk
+  // для rest/hover/badge-фонов вне paper-mono-карточек (бейджи-счётчики, тихие pill-rest).
+  --sys-color-bg-sunk: rgba(34, 31, 25, 0.06);
+  // Нижняя панель Screen.bottomBar прозрачна по умолчанию; страница может переопределить (override-слот).
+  --sys-color-bottom-bar-bg: transparent;
+  // Тёплый амбер-press-флэш на строках расписания/еды (:active food/schedule rows).
+  // НЕ нейтральный bg-press (warm-coal) и НЕ status — отдельный honey press-feedback.
+  --sys-color-bg-press-warm: rgba(216, 140, 40, 0.16);
+  --sys-color-bg-press-warm-faint: rgba(216, 140, 40, 0.08);
+  // Chip-тинт событий: color-mix на --text-primary живёт в exempt, резолвится в
+  // контексте dv-palette [data-dv=ScheduleEvents] → ПОЛИМОРФИЗМ сохранён (lemon/graphite/twilight).
+  --sys-color-chip-tint: color-mix(in oklch, var(--text-primary) 10%, transparent);
+  --sys-color-chip-tint-strong: color-mix(in oklch, var(--text-primary) 14%, transparent);
+  // Polymorphic TOD-фон строки: color-mix живёт в exempt, компонент ссылается на
+  // плоский токен — --_bg-from/--_bg-to/--t резолвятся в контексте строки →
+  // ПОЛИМОРФИЗМ сохранён (паттерн --sys-card-text-soft). LongPressRow.
+  --sys-color-row-bg: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t, 0)) * 100%), var(--_bg-to));
+  --sys-color-row-bg-focus: color-mix(in oklch, var(--sys-color-border-focus) 18%, var(--_bg-from));
 
   // color · surface-action — заливки кнопок, 3 яруса × ось состояния. CTI: ярус
   // по СМЫСЛУ действия, не по виду/CSS-классу. primary = тёплая амбра (бренд),
   // accent = indigo (холодный акцент), system = уголь (нейтральная сплошная).
-  // pressed = следующая ступень ref-лестницы вниз (амбра — отдельный press-градиент).
+  // pressed = следующая ступень ref-лестницы вниз (все 3 яруса — сплошной ref-рунг).
   // disabled — единая нейтральная «погасшая» заливка: выключенная кнопка теряет
   // цветовую идентичность (один источник на все 3 яруса; per-tier имена — для API).
   --sys-color-surface-action-disabled: rgba(0, 0, 0, 0.08);
-  --sys-color-surface-action-primary: var(--cta-brand-fill);
-  --sys-color-surface-action-primary-pressed: var(--cta-brand-fill-press);
+  --sys-color-surface-action-primary: var(--ref-color-amber-500); // #e0b581 — медовый brand-fill (ref-рунг, не cta)
+  --sys-color-surface-action-primary-pressed: var(--ref-color-amber-600); // #b18042 — ступень ref-лестницы вниз
   --sys-color-surface-action-primary-disabled: var(--sys-color-surface-action-disabled);
   --sys-color-surface-action-accent: var(--ref-color-indigo-600);
   --sys-color-surface-action-accent-pressed: var(--ref-color-indigo-700);
   --sys-color-surface-action-accent-disabled: var(--sys-color-surface-action-disabled);
+  // Soft (светлая) indigo-подложка + accent-text рампа — consolidation бывшей sky-палитры
+  // ($sky-bg/$sky-ink) на indigo-ярус (решение юзера «indigo вместо navy» 2026-06-25).
+  --sys-color-surface-accent-soft: var(--ref-color-indigo-100);
+  --sys-color-text-accent-muted: color-mix(in srgb, var(--sys-color-text-accent) 55%, transparent);
+  --sys-color-text-accent-faint: color-mix(in srgb, var(--sys-color-text-accent) 35%, transparent);
   --sys-color-surface-action-system: var(--ref-color-neutral-900);
   --sys-color-surface-action-system-pressed: var(--ref-color-neutral-1000);
+  --sys-color-surface-action-system-hover: color-mix(in oklch, var(--ref-color-neutral-900) 88%, white); // lighten-hover solid-dark кнопки (AddToListPopover .btnPrimary:hover)
   --sys-color-surface-action-system-disabled: var(--sys-color-surface-action-disabled);
-  // border · action (пока 1 потребитель — secondary press border; = ink-заливка)
+
+  // color · ON-action — контент (текст/иконка) ПОВЕРХ залитой кнопки. `on-*`
+  // читается «НА surface этого тона»: парный foreground к surface-action-<tone>.
+  // (Отдельно от текстовых ролей `text-*`, которые красят свободный текст на
+  // странице — их перекраска не должна тащить за собой кнопки, и наоборот.)
+  --sys-color-on-system: var(--text-on-accent); // #fff на угле
+  --sys-color-on-primary: var(--cta-brand-ink); // warm-coal на амбре
+  --sys-color-on-accent: var(--text-on-accent); // #fff на индиго
+
+  // color · surface-action SECONDARY (тихий ярус кнопки) — те же 3 тона, но soft:
+  // светлая тональная подложка + тональный текст + опц. тональный бордюр. Press =
+  // тональная подложка на ступень темнее (видимый «вдав», текст не меняется). Ось
+  // «заливка vs бордюр» — DesignBar `ButtonSecondary` (`<html data-btn-secondary>`),
+  // дефолт = заливка. Тональный текст здесь = `text-*` роль (НЕ on-*: это не белый
+  // контент на сплошной заливке, а тёмно-тональный foreground на светлом soft).
+  --sys-color-surface-action-system-soft: var(--ref-color-neutral-100); // #f5f3f0
+  --sys-color-surface-action-primary-soft: var(--ref-color-amber-50); // #ffedd9
+  --sys-color-surface-action-accent-soft: var(--sys-color-surface-accent-soft); // indigo-100
+  --sys-color-surface-action-system-soft-pressed: var(--ref-color-neutral-300); // #e2dfda
+  --sys-color-surface-action-primary-soft-pressed: var(--ref-color-amber-200); // #f2cfa8
+  --sys-color-surface-action-accent-soft-pressed: var(--ref-color-indigo-300); // #bcb6ef
+  --sys-color-text-action-system-soft: var(--sys-color-text-system); // warm-coal ink
+  --sys-color-text-action-primary-soft: var(--ref-color-amber-700); // deep amber #6d4500
+  --sys-color-text-action-accent-soft: var(--sys-color-text-accent); // indigo-600
+  --sys-color-border-action-system-soft: var(--ref-color-neutral-300); // #e2dfda
+  --sys-color-border-action-primary-soft: var(--ref-color-amber-300); // #e0b581
+  --sys-color-border-action-accent-soft: var(--ref-color-indigo-300); // #bcb6ef
+
+  // border · action (secondary press border (system) = ink-заливка)
   --sys-color-border-action-system: var(--ref-color-neutral-900);
   // text · faint — тихий серый ghost-link (вне тёплой neutral-лестницы — чеканка 1:1)
   --sys-color-text-faint: rgb(193, 193, 193);
 
   --sys-color-border-focus: var(--color-blue-2); // one focus indicator app-wide (input ring + editable halo)
+  --sys-color-bg-focus-ring: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent); // фокус-кольцо :focus-within (плоский токен вместо повторяемого color-mix)
   --sys-opacity-disabled: 0.4;
 
   // color · control (segment-control track + segments; tied to neutral ref-scale)
@@ -384,6 +483,8 @@
   --sys-radius-indicator: var(--radius-full); // chip/tag/badge/switch-track
   --sys-radius-cta: var(--radius-lg); // CTA pills (separate lever from indicator)
   --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
+  --sys-radius-overlay: var(--radius-xl); // 24 — drawer/bottom-sheet top corner, headerOverlap
+  --sys-radius-sheet: var(--radius-2xl); // 40 — крупная sheet/предложка-карточка (SheetCard)
   --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
   // ─── Nutrient family — #nutrient ─────────────────────────────

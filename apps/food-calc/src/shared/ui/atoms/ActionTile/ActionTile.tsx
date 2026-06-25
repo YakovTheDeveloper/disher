@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
-import { Heading } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import s from './ActionTile.module.scss';
 
 // ── ActionTile — унифицированный примитив «быстрое действие / выбор из небольшого
@@ -71,11 +71,11 @@ export function ActionTile({
         </Heading>
         {bottom ? (
           <span className={s.bottomRow}>
-            <span className={s.bottom}>{bottom}</span>
+            <Text as="span" role="caption" className={s.bottom}>{bottom}</Text>
             {dot ? <span className={s.dot} aria-hidden /> : null}
           </span>
         ) : null}
-        {hint ? <span className={s.hint}>{hint}</span> : null}
+        {hint ? <Text as="span" role="caption" className={s.hint}>{hint}</Text> : null}
       </span>
     </>
   );

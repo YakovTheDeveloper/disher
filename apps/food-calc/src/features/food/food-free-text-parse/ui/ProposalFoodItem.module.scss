@@ -1,166 +1,44 @@
-// ProposalFoodItem — копия ScheduleFoodItemInline.module.scss 1:1 чтобы
-// айтем предложки читался идентично schedule-row. Доп. элементы
-// (.nameOriginal, .nameOriginalHint, .rescueBtn) — мелкие
-// надстройки специфичные для парсера предложки, не присутствующие в
-// schedule.
+// ProposalFoodItem — карточка предложки на CardLayout (CardShell unification
+// 2026-06-25). Зеркалит ScheduleFoodItemInline.module.scss + proposal-only
+// надстройки (.nameWrap с «оригиналом», .nameOriginal/.nameOriginalHint).
+// Колонку и строки title/meta держит CardLayout; qty-стопку — <QtyStack>; время —
+// <CardTime>. Здесь только специфика карточки: title-кластер, имя+хинт, детали.
+// (Время/qty-chrome классы сняты — их несут CardTime/QtyStack. rescue/delete живут
+//  СНАРУЖИ ряда, в InlineWriteFoodReview.)
 
 .group {
-    display: grid;
-    grid-template-columns: auto 1fr 5ch;
-    gap: var(--space-3);
-    align-items: center;
-    position: relative;
-    color: var(--text-primary);
+    // Leaf-floor canon: контейнер без декоративного паддинга/пола; тап-пол живёт
+    // на листьях (<QtyStack>/<FoodName> padding-block). Раскладку строк — CardLayout.
+    --sys-row-pad-block: 0;
+    --sys-row-min-h-touch: 0;
+    color: var(--sys-color-text-primary);
 }
 
-.timeDisplay,
-.timeEdit {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    // `08:00` (0 узкий) и `11:11` (1 ещё уже) имеют разные ширины при
-    // proportional figures → grid-колонка `auto` плавает, name стартует
-    // с разной позиции в соседних рядах. Tabular-nums фиксит выравнивание.
-    font-variant-numeric: tabular-nums;
-}
-
-.timeDisplay {
-    cursor: pointer;
-}
-
-.timeEdit {
-    padding: 2px 6px;
-    margin: -2px -6px;
-    border-radius: 6px;
-    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
-
-    &:active {
-        background-color: rgba(216, 140, 40, 0.16);
-        transition-duration: var(--press-in);
-    }
-
-    &:focus-within {
-        background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
-        box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
-    }
-}
-
-.timeEdit * {
-    --tc-input-size: var(--text-sm);
-    --tc-input-weight: 400;
-    --tc-input-letter-spacing: 0;
-    --tc-input-pad: 0;
-    --tc-bg: transparent;
-    --tc-fg: var(--text-secondary);
-    --tc-border: 0;
-    --tc-border-radius: 0;
-    --tc-shadow-focus: none;
-}
-
-.timeEdit > div {
-    padding: 0;
-    background: transparent;
-    border: 0;
-    box-shadow: none;
-    gap: 0;
-}
-
-.timeEdit input {
-    width: 2ch;
-    padding: 0;
-    font-size: var(--text-sm);
-    font-weight: 400;
-    color: var(--text-secondary);
-    background: transparent;
-    border: 0;
-    text-align: center;
-    letter-spacing: 0;
-    line-height: 1;
-
-    &:focus {
-        outline: none;
-        animation: none;
-        box-shadow: none;
-        background: transparent;
-    }
-}
-
-.timeEdit span {
-    font-size: var(--text-sm);
-    color: var(--text-secondary);
-    line-height: 1;
-}
-
-// ─── Quantity (1:1 как ScheduleFoodItemInline) ───────────────────
-
-.qtyEdit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 2px;
-    cursor: pointer;
-    font-size: inherit;
-    color: inherit;
-    line-height: 1;
-    box-sizing: border-box;
-    height: calc(1em + 4px);
-    padding: 2px 6px;
-    margin: -2px -6px;
-    border-radius: 6px;
-    transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
-
-    &:active {
-        background-color: rgba(216, 140, 40, 0.16);
-        transition-duration: var(--press-in);
-    }
-
-    &:focus-within {
-        background-color: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent);
-        box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus);
-    }
-}
-
-.qtyEdit input {
-    width: 4ch;
-    padding: 0 !important;
-    margin: 0;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    color: inherit !important;
-    background: transparent !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    text-align: right;
-    letter-spacing: 0;
-    line-height: 1;
-
-    &:focus {
-        outline: none;
-        border: 0 !important;
-        box-shadow: none !important;
-        background: transparent !important;
-    }
-}
-
-.qtyUnit {
-    color: var(--text-muted);
-}
-
-// ─── Name column ─────────────────────────────────────────────────
-
-.foodCol {
-    display: inline-flex;
-    flex-direction: column;
+// title-слот: [qty][имя] — qty ПЕРЕД именем, упакованы вплотную (НЕ space-between).
+.titleCluster {
+    display: flex;
+    align-items: baseline; // value qty встаёт на базовую линию имени
+    gap: 8px;
     min-width: 0;
+}
+
+// имя + «оригинал»: тянется на остаток строки (тап-зона на всю ширину справа от
+// qty). Колонка — чтобы тихий «оригинал» лёг строкой ПОД именем.
+.nameWrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
     gap: 1px;
     line-height: 1.15;
 }
 
-// Голос (serif-italic muted) живёт в примитиве <QuietLabel>; здесь — только
-// раскладка (ellipsis-обрезка одной строкой).
+// meta-слот: детали. CardLayout даёт caption-голос (.meta цвет/тип); тут —
+// контекстный muted + однострочный эллипсис. Раньше serif <QuietLabel> — теперь
+// sans-caption (решение B: детали = meta caption).
 .detailsSubtitle {
+    color: var(--sys-color-text-muted);
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -171,58 +49,13 @@
 // Модификатор имени-fallback (на примитиве FoodName): только контекстный цвет +
 // italic-аside; вес наследуется от консумера (вынесен из голоса, gate-safe).
 .nameOriginal {
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
     font-style: italic;
 }
 
-// Размер/вес несёт роль <Text role="caption">; здесь — раскладка, цвет, italic.
+// «оригинал» под именем — размер/вес несёт <Text role="caption">; тут раскладка/цвет.
 .nameOriginalHint {
     display: block;
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
     font-style: italic;
-}
-
-// Rescue + (только для unresolved без manual).
-.rightStack {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-2);
-}
-
-.rescueBtn {
-    background: transparent;
-    border: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: var(--radius-sm);
-    padding: 0;
-    transition: background-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-in, 0.1s) ease;
-
-    svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    &:hover,
-    &:focus-visible {
-        background-color: var(--border-hairline);
-        color: var(--text-primary);
-        outline: none;
-    }
-
-    // Цветной отклик: тихая иконка-кнопка — тинт фон + акцентный цвет
-    &:active {
-        background: var(--press-tint-bg);
-        color: var(--sys-field-caret, var(--color-ink));
-        transform: scale(0.9);
-        transition-duration: var(--press-in);
-    }
 }

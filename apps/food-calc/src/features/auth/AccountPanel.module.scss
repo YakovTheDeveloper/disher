@@ -3,7 +3,7 @@
 .avatarButton {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-full);
+  border-radius: var(--sys-radius-indicator);
   border: none;
   background: transparent;
   display: flex;
@@ -13,7 +13,7 @@
   // Шестерёнка живёт в тёмной floating-пилюле бара (--sys-color-surface-floating):
   // приглушённый БЕЛЫЙ глиф (бывш. приглушённый чёрный rgba(0,0,0,0.2) под белую
   // пилюлю; канон тёмной обвязки 2026-06-23).
-  color: color-mix(in srgb, var(--sys-color-text-on-floating) 55%, transparent);
+  color: var(--sys-color-on-floating-muted);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
@@ -24,9 +24,9 @@
   // иконка чернеет.
   &:active {
     background: var(--sys-color-surface-floating-pressed);
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     transform: scale(0.94);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 

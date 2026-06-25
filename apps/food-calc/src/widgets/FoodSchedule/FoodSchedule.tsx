@@ -14,7 +14,6 @@ import {
   FoodEntryEditModals,
   useFoodEntryFlow,
 } from '@/features/food/food-entry-flow';
-import { AppBottomBar } from '@/shared/ui/AppBottomBar';
 import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
@@ -25,6 +24,7 @@ import {
   useWriteFoodFlow,
   getWriteFoodInputId,
   InlineWriteFoodReview,
+  FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 
 // HomePage держит свою пилюлю нутриентов (HomeTopBar leadingSlot). FoodSchedule
@@ -147,30 +147,25 @@ const FoodSchedule = ({
                 <FoodEntryEditModals flow={editFlow} />
               </div>
               {/* WriteFoodModals overlay removed: real AutoGrowSearch теперь
-                  живёт прямо в AppBottomBar (writeFoodInputLike). Лишний
-                  `<input id={writeFoodInputId}>` тут дал бы дубль id'а. */}
+                  живёт прямо в FoodWriteBar. Лишний `<input id={writeFoodInputId}>`
+                  тут дал бы дубль id'а. */}
             </>
           ) : null}
         </>
       }
       bottomBar={
-        <AppBottomBar
-          writeFoodFlow={writeFoodFlow}
-          writeFoodInputId={writeFoodInputId}
+        <FoodWriteBar
+          flow={writeFoodFlow}
+          inputId={writeFoodInputId}
           searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
-          searchLabel="Найти еду"
-          searchText="выбрать из списка"
-          writeFoodPlaceholder="Напишите, что вы ели"
-          // Переносы регулируются `\n` прямо в строке (CSS white-space: pre-line);
-          // без них длинные строки переносит auto-wrap по ширине 80%.
-          writeFoodHint={'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30'}
+          examplesActive={isEmpty}
         />
       }
       afterContent={
         /* Предложка живёт в afterContent-слоте Screen (2026-06-08): результат
            разбора плавает на фоне страницы ПОД листом со списком, рядом с
            write-баром (chat-pattern). Несёт [data-write-food-anchor] —
-           auto-scroll из AppBottomBar.handleSubmit находит её по селектору.
+           auto-scroll из FoodWriteBar.handleSubmit находит её по селектору.
            Loading рисует skeleton-блок со спиннером. */
         <InlineWriteFoodReview flow={writeFoodFlow} />
       }

@@ -35,7 +35,7 @@
 .chip:active {
   background: var(--sys-color-bg-selected);
   color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано», temp-exempt #4 (флипается тон-тестером C1) */
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (amber), color-mix не снапается на --sys-elevation-* */
   transform: scale(0.96);
   transition-duration: var(--sys-duration-press-in);
 }
@@ -43,5 +43,5 @@
 .chip.active {
   background: var(--sys-color-bg-selected);
   color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано», temp-exempt #4 (флипается тон-тестером C1) */
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (amber), color-mix не снапается на --sys-elevation-* */
 }

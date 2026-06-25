@@ -35,8 +35,8 @@
     background: var(--sys-chip-bg, #333);
     color: var(--sys-chip-text, #fff);
     border: none;
-    border-radius: var(--radius-xs, 4px);
-    font-size: var(--text-sm, 0.8rem);
+    border-radius: var(--sys-radius-indicator);
+    font-size: var(--sys-field-font-size-compact);
     transition: opacity var(--duration-fast, 120ms);
 }
 
@@ -74,7 +74,7 @@
     margin-left: 2px;
     background: transparent;
     border: none;
-    color: color-mix(in srgb, var(--sys-chip-text, #fff) 55%, transparent);
+    color: var(--sys-chip-text-muted);
     cursor: pointer;
     font-size: var(--sys-icon-size-xs);
     transition: color var(--duration-fast, 120ms);

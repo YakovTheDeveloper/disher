@@ -24,12 +24,10 @@
 // ─── Резюме разбора ────────────────────────────────────────────────────────
 // Lead-абзац над первой плашкой. Тихий левый акцент (тающий 2px) привязывает
 // его к монохромному «rail»-языку — раньше абзац висел в воздухе между дилом и
-// плашкой. Локальный --ar-lead-radius держит token-gate (border-radius gated).
+// плашкой. Тонкий 2px-акцент — некатегоризируемая декорация → radius-tmp.
 .summary {
-    --ar-lead-radius: 2px;
-
+    // font-size/family → <Text role="body"> (typo-encapsulation); здесь только layout.
     position: relative;
-    font-size: var(--text-base);
     line-height: 1.6;
     padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
 
@@ -40,7 +38,7 @@
         top: 5px;
         bottom: 5px;
         width: 2px;
-        border-radius: var(--ar-lead-radius);
+        border-radius: var(--sys-radius-tmp); /* was 2px */
         background: linear-gradient(180deg,
                 transparent 0%,
                 color-mix(in srgb, var(--sys-card-text-rest) 22%, transparent) 18%,

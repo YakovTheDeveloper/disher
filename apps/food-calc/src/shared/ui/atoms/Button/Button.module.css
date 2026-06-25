@@ -2,9 +2,10 @@
   padding: 5px 9px;
   background-color: transparent;
   border: 1px solid transparent;
-  width: fit-content;
-  border-radius: var(--sys-radius-tmp);
-  /* was 7px */
+  /* width — НЕ роль кнопки: ширину задаёт консумер (flex / fullWidth / className).
+     auto кооперируется с flex-stretch и flex:1 (fit-content ломал бы stretch). */
+  width: auto;
+  border-radius: var(--sys-radius-cta);
   transition: opacity 0.2s;
   /* Подпись несёт типографику через <Text> (label/body) — font-size/weight здесь
      более не задаются. Размер иконок — width/height на svg, не font-size. */
@@ -14,34 +15,46 @@
   }
 }
 
-/* ─── primary — канон сплошной CTA (база — submitBtn авторизации) ────────────
-   Тёмная ink-заливка, 56px, вес 600, скруглённая. Слоты иконок — `icon`
-   (ведущая) и `trailingIcon` (ведомая, напр. стрелка «Далее» в футере модалки).
-   Press: brightness + scale (canon press-darken для сплошных/светлых CTA).
-   (2026-06-22: мёртвые `--cta-fill/-ink/-shadow`-хуки сняты — их никто не публиковал;
-   auth темит свой `.submitBtn` классом, не этими токенами.) */
-.primary {
+/* Ширина — ортогональна тону (роль ≠ layout). Полноширинную кнопку объявляет
+   консумер пропом `fullWidth` (или родительским flex). */
+.fullWidth {
+  width: 100%;
+}
+
+/* ─── FILLED тона ────────────────────────────────────────────────────────────
+   Один каркас (flex/56px/pill/press-darken+scale), различие — заливка + on-текст:
+   · system — уголь (neutral-900) + белый on-текст. Строгий монохром.
+   · primary — амбра (бледно-жёлтый бренд-градиент) + warm-coal on-текст. Бизнес-CTA.
+   · accent — индиго (indigo-600) + белый on-текст. Холодный акцент.
+   Press: brightness + scale (canon press-darken для сплошных/светлых CTA). */
+.system,
+.primary,
+.accent {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  width: 100%;
   min-height: 56px;
-  padding: 0 1.5rem;
-  background: var(--sys-color-surface-action-system);
-  color: var(--sys-color-text-on-accent);
+  padding: 0 var(--space-6);
   border: none;
-  border-radius: var(--sys-radius-tmp);
-  /* was 16px (radius-lg) — .primary CTA, не пилюля */
+  border-radius: var(--sys-radius-cta);
+  color: var(--sys-color-on-system);
+  box-shadow: var(--sys-elevation-action-rest);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  text-align: center;
   transition: background var(--press-out) var(--easing-default),
     filter var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  /* база .button:hover гасит opacity — сплошной CTA это не нужно */
+  /* база .button:hover гасит opacity — сплошному CTA это не нужно */
   &:hover {
     opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sys-color-border-focus);
+    outline-offset: 2px;
   }
 
   &:not(:disabled):active {
@@ -51,38 +64,174 @@
   }
 
   &:disabled {
-    background: var(--sys-color-surface-action-system-disabled);
+    background: var(--sys-color-surface-action-disabled);
     color: var(--sys-color-text-tertiary);
     box-shadow: none;
     cursor: default;
+    filter: none;
   }
 }
 
-.primary .icon svg {
+.system {
+  background: var(--sys-color-surface-action-system);
+}
+
+.primary {
+  background: var(--sys-color-surface-action-primary);
+  color: var(--sys-color-on-primary);
+  /* warm-coal ink на светлой амбре */
+}
+
+.primary:not(:disabled):active {
+  /* press = ступень ref-лестницы вниз; bg-swap И ЕСТЬ сигнал — без доп.
+     brightness (как .accent), иначе двойное затемнение поверх базового 0.9 */
+  background: var(--sys-color-surface-action-primary-pressed);
+  filter: none;
+}
+
+.accent {
+  background: var(--sys-color-surface-action-accent);
+  color: var(--sys-color-on-accent);
+}
+
+.accent:not(:disabled):active {
+  background: var(--sys-color-surface-action-accent-pressed);
+  filter: none;
+}
+
+.system .icon svg,
+.primary .icon svg,
+.accent .icon svg {
   width: 20px;
   height: 20px;
 }
 
-.disabled {
-  opacity: 0.5;
+/* ─── SECONDARY тона (тихий ярус) ─────────────────────────────────────────────
+   Тот же тон, но soft: светлая тональная подложка + тональный текст. Каждый тон
+   публикует локальные `--sec-*` (soft-bg / text / border / press), общий блок их
+   потребляет. Ось «заливка vs бордюр» — `:root[data-btn-secondary]` (DesignBar
+   `ButtonSecondary`): дефолт = soft-заливка без бордюра; `border` = прозрачный +
+   тональный бордюр; `soft-border` = и подложка, и бордюр. Press = подложка на
+   ступень темнее (видимый «вдав», текст/бордюр не меняются). Тень по умолчанию
+   есть (standalone), снимается пропом `flat` (кнопка на поверхности как часть
+   смыслового блока — напр. нижний бар дока). */
+.systemSecondary {
+  --sec-soft: var(--sys-color-surface-action-system-soft);
+  --sec-press: var(--sys-color-surface-action-system-soft-pressed);
+  --sec-text: var(--sys-color-text-action-system-soft);
+  --sec-border: var(--sys-color-border-action-system-soft);
+}
+
+.primarySecondary {
+  --sec-soft: var(--sys-color-surface-action-primary-soft);
+  --sec-press: var(--sys-color-surface-action-primary-soft-pressed);
+  --sec-text: var(--sys-color-text-action-primary-soft);
+  --sec-border: var(--sys-color-border-action-primary-soft);
+}
+
+.accentSecondary {
+  --sec-soft: var(--sys-color-surface-action-accent-soft);
+  --sec-press: var(--sys-color-surface-action-accent-soft-pressed);
+  --sec-text: var(--sys-color-text-action-accent-soft);
+  --sec-border: var(--sys-color-border-action-accent-soft);
+}
+
+.systemSecondary,
+.primarySecondary,
+.accentSecondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* tap-floor 48px — действие, не чип; читается как кнопка */
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: var(--sys-radius-cta);
+  /* --sec-* — publish-consume локали: каждая присвоена из --sys-color-* в блоке
+     тона выше (.systemSecondary/.primarySecondary/.accentSecondary). Sys-only гейт
+     не следует за индирекцией → 5 потребителей помечены disable вручную (канон
+     кодовой базы для неизбежных не-прямых-sys значений). */
+  background: var(--sec-soft); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-surface-action-*-soft */
+  color: var(--sec-text); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-text-action-*-soft */
+  box-shadow: var(--sys-elevation-action-rest);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
 
   &:hover {
-    cursor: auto;
-    opacity: 0.5;
-    user-select: none;
+    opacity: 1;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--sys-color-border-focus);
+    outline-offset: 2px;
+  }
+
+  &:not(:disabled):active {
+    background: var(--sec-press); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-surface-action-*-soft-pressed */
+    transform: scale(0.97);
+    transition-duration: var(--sys-duration-press-in);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+/* Ось заливка/бордюр — DesignBar `ButtonSecondary` (<html data-btn-secondary>). */
+:root[data-btn-secondary='border'] .systemSecondary,
+:root[data-btn-secondary='border'] .primarySecondary,
+:root[data-btn-secondary='border'] .accentSecondary {
+  background: transparent;
+  border-color: var(--sec-border); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-border-action-*-soft */
+}
+
+:root[data-btn-secondary='soft-border'] .systemSecondary,
+:root[data-btn-secondary='soft-border'] .primarySecondary,
+:root[data-btn-secondary='soft-border'] .accentSecondary {
+  border-color: var(--sec-border); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-border-action-*-soft */
+}
+
+.systemSecondary .icon svg,
+.primarySecondary .icon svg,
+.accentSecondary .icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Плоский режим — кнопка на поверхности (часть смыслового блока, напр. нижний
+   бар). Снимает тень; standalone-кнопка остаётся приподнятой. */
+.flat {
+  box-shadow: none;
+}
+
+/* Единый «выключенный» класс — вешается на props.disabled И isLoading (clsx).
+   pointer-events:none гасит взаимодействие даже в as="label" режиме (у <label>
+   нет disabled-атрибута) и для link/ghost (у них нет :disabled-правила). */
+.disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
 }
 
 .ghost {
   background-color: transparent;
   color: var(--sys-color-text-faint);
   /* Тихая «отмена»: italic + underline + faint поверх НАСЛЕДОВАННОГО body-голоса
-     (Onest, был bespoke thin-200/16px — снят 2026-06-25, голос не хардкодим в
-     компоненте; typo-encapsulation). font-style:italic не гейтится. */
+     (Onest). font-style:italic не гейтится. */
   font-style: italic;
   text-decoration: underline;
   padding: 0 2px;
   transition: color var(--press-out) var(--easing-default);
+
+  &:focus-visible {
+    outline: 2px solid var(--sys-color-border-focus);
+    outline-offset: 2px;
+  }
 
   &:active {
     color: var(--sys-color-text-primary);
@@ -91,10 +240,7 @@
 }
 
 /* ─── link — навигация/скролл: тихая подчёркнутая ссылка-кнопка ──────────────
-   Семантика «ведёт куда-то» (другой экран / скролл к контенту), НЕ действие.
-   Прозрачная, подчёркнутая, опц. ведущая иконка (через prop `icon`). Размер —
-   через --btn-font-size (дефолт base), flex/раскладку задаёт консумер. База —
-   readyCta «Посмотреть варианты» / discoveriesBtn «Мои открытия». */
+   Семантика «ведёт куда-то» (другой экран / скролл к контенту), НЕ действие. */
 .link {
   display: inline-flex;
   align-items: center;
@@ -119,6 +265,11 @@
   opacity: 1;
 }
 
+.link:focus-visible {
+  outline: 2px solid var(--sys-color-border-focus);
+  outline-offset: 2px;
+}
+
 .link:active {
   transform: scale(0.98);
   color: var(--sys-color-text-primary);
@@ -132,48 +283,6 @@
   opacity: 0.7;
 }
 
-/* ─── secondary — белая вторичная пилюля (действие, не навигация) ─────────────
-   Белый фон + ink-окаёмка + мягкая тень + ink press-fill (canon press-fill-ink).
-   Размещение (align-self / margin) задаёт консумер. База — bannerButton
-   «Повторить» в баннере ошибки разбора. */
-.secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  min-height: 40px;
-  padding: 0 18px;
-  border: 1px solid rgba(31, 42, 68, 0.16);
-  border-radius: var(--sys-radius-cta);
-  /* пилюля-CTA (=full, render-safe) */
-  background: var(--sys-color-surface-bright);
-  box-shadow: var(--sys-elevation-action-rest);
-  color: var(--sys-color-text-primary);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    transform var(--press-out) var(--easing-default);
-}
-
-.secondary:hover {
-  opacity: 1;
-}
-
-.secondary:active {
-  background: var(--sys-color-surface-action-system);
-  color: var(--sys-color-text-on-accent);
-  border-color: var(--sys-color-border-action-system);
-  transform: scale(0.97);
-  transition-duration: var(--sys-duration-press-in);
-}
-
-.secondary .icon svg {
-  width: 18px;
-  height: 18px;
-}
-
 .center {
   display: flex;
   align-self: center;
@@ -181,68 +290,37 @@
   margin: 0 auto;
 }
 
-/* ─── brand — фирменная sage-CTA (единый цвет primary-действий) ─────────────
-   Один фирменный цвет кнопки по проекту: бледный шалфейно-жёлтый направленный
-   градиент (плотный слева → растворяется в полупрозрачный крем справа, сквозь
-   правый край просвечивает ambient-подложка). Тёмный ink-текст. Pill, высота
-   выровнена с `.primary` (56px, ревизия 2026-06-19 — была --bottom-action-h
-   72px). Источник правды цвета — этот блок; чтобы
-   перекрасить кнопку по всему проекту, правится один градиент здесь.
-   Press: заливка светлая, инверсией не залить → тон через затемнение градиента
-   + фильтр (canon press-darken для сплошных/светлых CTA). */
-.brand {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: auto;
-  min-height: 56px;
-  padding: 0 var(--space-6);
-  border: none;
-  border-radius: var(--sys-radius-cta);
-  /* brand пилюля-CTA (999px→full, render-safe) */
-  background: var(--sys-color-surface-action-primary);
-
-  color: var(--sys-color-text-on-action);
-  box-shadow: var(--sys-elevation-action-rest);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  text-align: center;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform var(--press-out) var(--easing-default),
-    background var(--press-out) var(--easing-default),
-    filter var(--press-out) var(--easing-default);
-
-  /* Не гасим прозрачностью (базовый .button:hover это делает). */
-  &:hover {
-    opacity: 1;
-  }
-
-  &:active {
-    transform: scale(0.97);
-    background: var(--sys-color-surface-action-primary-pressed);
-    filter: brightness(0.97);
-    transition-duration: var(--sys-duration-press-in);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.brand .icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Ведущая иконка (currentColor). Размер — фиксированный в баре, не зависит от
+/* Ведущая иконка (currentColor). Размер — фиксированный, не зависит от
    width/height, проброшенных в сам svg. */
 .icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* Reduced-motion — глушим press-scale/переходы (новая моторная поверхность:
+   старый Button не анимировал transform). Цвет/тень переключаются мгновенно. */
+@media (prefers-reduced-motion: reduce) {
+
+  .system,
+  .primary,
+  .accent,
+  .systemSecondary,
+  .primarySecondary,
+  .accentSecondary,
+  .link,
+  .ghost {
+    transition: none;
+  }
+
+  .system:active,
+  .primary:active,
+  .accent:active,
+  .systemSecondary:active,
+  .primarySecondary:active,
+  .accentSecondary:active,
+  .link:active {
+    transform: none;
+  }
 }

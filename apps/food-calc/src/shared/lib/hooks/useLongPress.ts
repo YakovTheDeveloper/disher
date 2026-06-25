@@ -15,6 +15,12 @@ type Options = {
   delay?: number;
   /** Pointer drift (px) that cancels the press (treats it as a scroll/drag). */
   moveThreshold?: number;
+  /** Fired on pointer-down when a press begins. Drives an optional press-visual
+   *  (e.g. a `scale()` / tint affordance) without the consumer re-tracking the FSM. */
+  onPressStart?: () => void;
+  /** Fired when a press resolves — pointer up/cancel/leave, a move-cancel, or a
+   *  completed long press. Pair with `onPressStart` to toggle the press-visual. */
+  onPressEnd?: () => void;
 };
 
 /**
@@ -25,13 +31,16 @@ type Options = {
  * follow the same pointer-up. A short tap or keyboard Enter/Space leaves the
  * click untouched.
  *
- * Mirrors the canonical pointer pattern from `LongPressRow` (450ms threshold,
- * 10px move-cancel, pointer-capture, click suppression) so behaviour is
- * consistent with the per-item action drawer.
+ * `onLongPress` is optional — pass `undefined` for elements that only want the
+ * press-visual / tap (no long-press affordance): the hold timer is never armed,
+ * so a sustained press is just a tap and the click is never suppressed.
+ *
+ * This is the canonical pointer pattern for the project (450ms threshold, 10px
+ * move-cancel, pointer-capture, click suppression); `LongPressRow` consumes it.
  */
 export function useLongPress(
-  onLongPress: () => void,
-  { delay = 450, moveThreshold = 10 }: Options = {},
+  onLongPress?: () => void,
+  { delay = 450, moveThreshold = 10, onPressStart, onPressEnd }: Options = {},
 ): LongPressHandlers {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startRef = useRef({ x: 0, y: 0 });
@@ -63,6 +72,12 @@ export function useLongPress(
       pendingRef.current = true;
       wasLongRef.current = false;
       startRef.current = { x: e.clientX, y: e.clientY };
+      onPressStart?.();
+
+      // No long-press affordance when the consumer didn't ask for one — the
+      // press is then a plain tap (timer never armed, click never suppressed).
+      if (!onLongPress) return;
+
       timerRef.current = setTimeout(() => {
         if (!pendingRef.current) return;
         wasLongRef.current = true;
@@ -70,17 +85,18 @@ export function useLongPress(
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
           navigator.vibrate(10);
         }
+        onPressEnd?.(); // press-visual ends the moment the long press succeeds
         onLongPress();
       }, delay);
     },
-    [delay, onLongPress],
+    [delay, onLongPress, onPressStart, onPressEnd],
   );
 
-  // Release pointer capture, cancel the pending timer, and disarm the
-  // click-suppression shortly after. The native click (if any) fires
-  // synchronously right after pointer-up — before this 50ms timer — so it
-  // still sees the armed flag and gets suppressed; the next tap/keyboard
-  // activation does not.
+  // Release pointer capture, cancel the pending timer, end the press-visual, and
+  // disarm the click-suppression shortly after. The native click (if any) fires
+  // synchronously right after pointer-up — before this 50ms timer — so it still
+  // sees the armed flag and gets suppressed; the next tap/keyboard activation
+  // does not.
   const endPress = useCallback(
     (e: React.PointerEvent) => {
       try {
@@ -89,11 +105,12 @@ export function useLongPress(
         // ignore
       }
       clearTimer();
+      onPressEnd?.();
       setTimeout(() => {
         preventClickRef.current = false;
       }, 50);
     },
-    [clearTimer],
+    [clearTimer, onPressEnd],
   );
 
   const onPointerMove = useCallback(

@@ -2,13 +2,6 @@
 // «мягкая карточка с тенью» (баком 2026-06-22: форк `grad` снят, выбран `shadow`):
 // белая поверхность + soft-shadow (область клика видна), чёрный текст, без бровки,
 // active = серая заливка, press = инверсия в тёмную карту.
-// Локальные $-переменные несут сырые значения (strict-value принимает $…),
-// токены — через var().
-
-$tile-surface: #ffffff;
-$tile-shadow: 0 1px 2px rgba(45, 38, 28, 0.06), 0 2px 8px rgba(45, 38, 28, 0.05);
-$tile-shadow-press: 0 1px 2px rgba(45, 38, 28, 0.08);
-
 // ── Общий каркас ─────────────────────────────────────────────────────────────
 .tile {
   position: relative;
@@ -19,14 +12,14 @@ $tile-shadow-press: 0 1px 2px rgba(45, 38, 28, 0.08);
   min-height: 76px;
   padding: var(--space-3) var(--space-4);
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--sys-radius-container);
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  color: var(--color-ink);
-  background: $tile-surface;
-  box-shadow: $tile-shadow;
+  color: var(--sys-color-text-system);
+  background: var(--sys-color-surface-bright);
+  box-shadow: var(--sys-elevation-action-rest);
   transition: transform 0.12s ease, opacity 0.14s ease, background 0.16s ease;
 
   &:active {
@@ -47,7 +40,7 @@ $tile-shadow-press: 0 1px 2px rgba(45, 38, 28, 0.08);
     background: var(--sys-card-press-bg);
     color: var(--sys-card-press-fg);
     transform: scale(0.985);
-    box-shadow: $tile-shadow-press;
+    box-shadow: var(--sys-elevation-action-pressed);
   }
 }
 
@@ -75,16 +68,16 @@ $tile-shadow-press: 0 1px 2px rgba(45, 38, 28, 0.08);
 
 // Нижняя строка — доп.инфо (подзаголовок / глагол / дата).
 .bottom {
-  font-size: var(--text-sm);
+  // font-size → <Text role="caption">; здесь только цвет/прозрачность.
   color: inherit;
   opacity: 0.85;
 }
 
 // Caveat-строка (warning) — напр. «Нет сети — разбор недоступен».
 .hint {
+  // font-size → <Text role="caption">; здесь только отступ/цвет.
   margin-top: 4px;
-  font-size: var(--text-xs);
-  color: var(--color-warning);
+  color: var(--sys-color-status-warning);
 }
 
 // Тихая точка «есть записи».

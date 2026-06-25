@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import styles from './Quantity.module.scss';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
 import { Numeral } from '@/shared/ui/atoms/Typography';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
   id: string | number;
@@ -42,7 +43,8 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г', htmlFor }: Props) =
 
   const onClickHandler = () => onClick(id);
   return (
-    <label
+    <TapTarget
+      as="label"
       htmlFor={htmlFor}
       onClick={onClickHandler}
       className={`${styles.container} ${hide ? styles.hide : ''}`}
@@ -60,7 +62,7 @@ const Quantity = ({ id, onClick, content, hide, unit = 'г', htmlFor }: Props) =
         {quantity}
       </ChangeHighlight>
       {quantity != null && <span className={styles.unit}>{unit}.</span>}
-    </label>
+    </TapTarget>
   );
 };
 

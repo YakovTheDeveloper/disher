@@ -9,16 +9,16 @@
   height: 100%;
   border: none;
   background: transparent;
-  border-radius: 8px;
+  border-radius: var(--sys-radius-tmp); /* was 8px — icon button */
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
   svg {
-    color: #e5534b;
+    color: var(--sys-color-status-danger);
   }
 
   &:active {
-    background: rgba(229, 83, 75, 0.1);
+    background: var(--sys-color-status-danger-surface);
   }
 }
 
@@ -38,9 +38,9 @@
   padding: 14px 12px;
   border: none;
   background: transparent;
-  border-radius: 10px;
+  border-radius: var(--sys-radius-container); /* was 10px */
   text-align: left;
-  color: #222;
+  color: var(--sys-color-text-system);
   cursor: pointer;
   transition:
     background var(--press-out) var(--easing-default),
@@ -50,12 +50,12 @@
   // Цветной отклик: кнопка действия (прозрачная) → заливка чернилами.
   // .icon держит свой тёмный color — на ink-заливке перекрашиваем, иначе значок пропадёт.
   &:active {
-    background: var(--color-ink);
-    color: var(--text-on-accent);
-    transition-duration: var(--press-in);
+    background: var(--sys-color-surface-action-system);
+    color: var(--sys-color-text-on-accent);
+    transition-duration: var(--sys-duration-press-in);
 
     .icon {
-      color: var(--text-on-accent);
+      color: var(--sys-color-text-on-accent);
     }
   }
 }
@@ -63,5 +63,5 @@
 .icon {
   display: inline-flex;
   align-items: center;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--sys-color-text-secondary);
 }

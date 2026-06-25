@@ -66,13 +66,13 @@ const AnalysesSlide = () => {
   const bottomBar = (
     <AppBottomBarShell side="split">
       <Button
-        variant="brand"
+        variant="primary"
         onClick={() => navigate('/discoveries')}
         icon={<FlaskIcon width={16} height={16} />}
       >
         Открытия
       </Button>
-      <Button variant="brand" onClick={openCreate}>
+      <Button variant="primary" onClick={openCreate}>
         Анализ по неделям
       </Button>
     </AppBottomBarShell>

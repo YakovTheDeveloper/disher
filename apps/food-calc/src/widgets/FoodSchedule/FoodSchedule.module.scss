@@ -55,9 +55,9 @@ div.foodListAnchor.foodListAnchor [data-tod='night'] {
 }
 
 .analyticsDot_fresh {
-  background: #22c55e;
+  background: var(--sys-color-status-success);
 }
 
 .analyticsDot_stale {
-  background: #f59e0b;
+  background: var(--sys-color-status-stale);
 }

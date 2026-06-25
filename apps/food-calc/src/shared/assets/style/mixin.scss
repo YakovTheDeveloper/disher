@@ -59,6 +59,11 @@
     --sys-field-hairline-focus: rgba(124, 65, 15, 0.32);
     --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.1);
     --sys-field-shadow-focus: inset 0 1px 3px rgba(124, 65, 15, 0.16);
+    // Композиты hairline-ring + shadow (плоские токены вместо composite box-shadow в компонентах).
+    --sys-field-shadow-hairline: inset 0 0 0 1px var(--sys-field-hairline), var(--sys-field-shadow);
+    --sys-field-shadow-hairline-focus: inset 0 0 0 1px var(--sys-field-hairline-focus), var(--sys-field-shadow-focus);
+    --sys-field-shadow-popup: inset 0 0 0 1px var(--sys-field-hairline), var(--sys-elevation-overlay);
+    --sys-field-bg-highlight: color-mix(in srgb, var(--sys-field-text) 7%, transparent); // highlighted list-item
     --sys-field-digit-shadow: 0 1px 2px rgba(124, 65, 15, 0.14);
     --sys-field-caret: #{$accent};
 
@@ -66,6 +71,7 @@
             #{list.nth($pill, 1)} 0%, #{list.nth($pill, 2)} 60%, #{list.nth($pill, 3)} 100%);
     --sys-chip-border: #{rgba($accent, 0.5)};
     --sys-chip-text: #{$text};
+    --sys-chip-text-muted: color-mix(in srgb, var(--sys-chip-text) 55%, transparent); // приглушённый chip-текст (remove ✕)
     --sys-chip-hover-border: #{rgba($ink, 0.24)};
     // «Выбрано»/press НЕ публикуется здесь больше: Chip + press-fill-chip читают
     // --sys-color-*-selected НАПРЯМУЮ (индирекция --sys-chip-active-* схлопнута
@@ -422,17 +428,18 @@
 // сами являются единым кликабельным элементом ИЛИ wrapper-driven
 // (padding-block на wrapper'е, без cell-canon).
 //
-// Для cell-driven рядов (ScheduleFoodItem) пол живёт на ЛИСТЕ (ячейке) через
-// --sys-row-cell-min-h, а обёртка идёт голой — обнуляет свой --sys-row-min-h-touch
+// Для cell-driven рядов (ScheduleFoodItem, ScheduleEventCard, dish, предложка)
+// пол живёт на каждой ячейке-ЛИСТЕ через <TapTarget> (padding-driven,
+// --sys-tap-pad-block), а обёртка идёт голой — обнуляет свой --sys-row-min-h-touch
 // (и pad-block) на grid-руте. Этот mixin там не несёт нагрузки. См. tokens.scss
-// #row-geometry (leaf-floor canon).
+// #row-geometry + shared/ui/atoms/TapTarget.
 //
 // `align-content: center` — современная (CSS Box Alignment Level 3) альтернатива
 // flex-centering: работает одновременно на block, grid, и flex layout'ах. НЕ
 // меняет display родителя, поэтому консумеры могут пробрасывать свои layout-
-// классы (e.g. ScheduleFoodItemInline пробрасывает `.group` с display: grid
-// в `<SelectableListItem className=...>` — это попадает на тот же div, что и
-// .commonListItemInner; flex centering сломал бы grid). Safari 17.4+ /
+// классы (e.g. ScheduleFoodItemInline пробрасывает `.group` через className —
+// это попадает на тот же `<li>`, что и `.row` из LongPressRow; flex centering
+// сломал бы grid). Safari 17.4+ /
 // Chrome 117+ / Firefox 125+ — iOS PWA минимум 17, OK.
 //
 // НЕ применяй на:
@@ -502,6 +509,18 @@
     // Текст + состояния (hue-free).
     --sys-card-text-rest: #1d1d1f;
     --sys-card-text-active: #000000;
+    // Эмфазис-рампа card-text (плоские токены вместо повторяемого color-mix в компонентах).
+    --sys-card-text-faint: color-mix(in srgb, var(--sys-card-text-rest) 50%, transparent);
+    --sys-card-text-muted: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
+    --sys-card-text-strong: color-mix(in srgb, var(--sys-card-text-rest) 85%, transparent);
+    --sys-card-text-active-muted: color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
+    // Soft-ink (вторичная метка) — плотность переопределяема домом через
+    // `--analysis-soft-amt` (Laboratory/Discoveries поднимают 62%→72%). color-mix
+    // живёт здесь (exempt), компонент ссылается на плоский токен; --analysis-soft-amt
+    // резолвится в контексте использующего элемента → полиморфизм сохранён.
+    --sys-card-text-soft: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-soft-amt, 62%), transparent);
+    // Утопленная плашка (6% ink-wash) — фон спокойного «сохранено/added» состояния.
+    --sys-card-bg-sunk: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
     --sys-card-hover: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.015) 45%, transparent 100%), var(--sys-card-bg);
     --sys-card-active: linear-gradient(rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.05));
     --sys-card-press-bg: linear-gradient(90deg, #1f1f1f 0%, #2a2a2a 55%, #353535 100%);

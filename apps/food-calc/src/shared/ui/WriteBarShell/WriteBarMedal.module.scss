@@ -4,7 +4,8 @@
 // списка еды») and the Analysis bar (центр = колба-иконка, дуги «выбрать /
 // гипотезы»). Collapses on focus via the row's `[data-expanded]` plain attribute.
 //
-// Reads `--wb-tile-*` / `--pill-h` inherited from the parent WriteBarShell `.wrap`.
+// Геометрию (`--pill-h`, `--coin-size`) наследует от WriteBarShell `.wrap`; цвета
+// диска/глифа — sys-роли напрямую (`--wb-tile-*`-алиасы распущены 2026-06-25).
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -42,7 +43,7 @@
     // хвостам букв («р»/«у» в «вручную») запас, чтобы не вылезать за край белого.
     background: var(--medal-plate);
     box-shadow: 0 0 0 3px var(--medal-plate), var(--medal-shadow);
-    color: var(--wb-tile-fg);
+    color: var(--sys-color-text-secondary);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -50,18 +51,20 @@
         opacity 0.18s ease, transform 0.24s ease, filter 0.15s ease,
         box-shadow 0.15s ease;
 
-    // Coin fill: `--wb-tile-bg` + lift shadow, inset inside the ring of arcs.
+    // Coin fill: тёплый neutral-soft surface + lift shadow, inset inside the arcs.
     &::before {
         content: '';
         position: absolute;
         inset: 19%;
         z-index: 0;
-        background: var(--wb-tile-bg);
+        // Тёплый нейтрал-диск (neutral-100) вместо холодного bespoke-серого —
+        // согласован с warm-soft бумагой; роль action-system-soft = ближайший
+        // отчеканенный тёплый light-neutral surface (2026-06-25).
+        background: var(--sys-color-surface-action-system-soft);
         border-radius: var(--radius-full);
         // Float ушёл на белую подложку; серому диску — лёгкая тень, чтобы он
         // читался приподнятым НА белом, а не парил отдельной монетой.
         box-shadow: 0 1px 3px rgba(45, 38, 28, 0.12);
-        backdrop-filter: var(--wb-backdrop);
         pointer-events: none;
         transition: inset 0.2s ease, background 0.15s ease;
     }
@@ -138,17 +141,25 @@
         -2px 4px 7px rgba(45, 38, 28, 0.05);
 }
 
-// DesignBar предложка 2026-06-23 (регардлесс варианта): медаль Еды парит над
-// правым краем поля, перекрывая инпут на ~25% (≈75% медали выше верхней кромки).
-// Абсолют относительно `.barLine` (там position:relative). top = -75% высоты
-// медали (--medal-size). Без transform — чтобы НЕ конфликтовать с collapse-
-// transform ниже. Перебивает `.lifted` top по специфичности (2 атрибута).
-// Наезд считается от --medal-size, поэтому reduced-варианты (field/cta), которые
-// держат медаль на 60px при низком баре, перекрывают поле пропорционально (≈25%).
-[data-dv='WriteBarSurface'] .writeBarList {
+// Медаль Еды парит над правым краем пилюли, перекрывая её на ~25% (≈75% медали
+// выше верхней кромки).
+//
+// ⚠️ Анкор — на АТРИБУТ `[data-write-bar]` (он на `.wrap`), НЕ на хэш-класс.
+// Cross-module хэш-классы (`.wrap`/`.barLine`) в этой сборке получают РАЗНЫЙ хэш
+// в каждом .module.scss-файле → селектор `.wrap .writeBarList` молча не матчился,
+// и медаль падала в поток (в колонке `.wrap` → стек ВНИЗ, контейнер распирало).
+// Атрибут не хэшится → надёжный cross-module анкор (как у collapse-правила
+// `[data-expanded]` ниже). `.wrap` = positioned ancestor (position:relative).
+//
+// `right` = --sys-inset-page: медаль выровнена по правому краю пилюли (та тоже
+// в инсете), а не торчит в боковой зазор. `top` отсчитывается от padding-box
+// `.wrap`, чья верхняя кромка на --space-2 выше пилюли — компенсируем, чтобы
+// перекрытие осталось ~25%. Без transform (не конфликтовать с collapse ниже).
+// Перебивает `.lifted` top по специфичности (атрибут + класс = 0,2,0 > 0,1,0).
+[data-write-bar] .writeBarList {
     position: absolute;
-    right: 0;
-    top: calc(var(--medal-size, calc(var(--pill-h) - var(--space-1))) * -0.75);
+    right: var(--sys-inset-page);
+    top: calc(var(--space-2) - var(--medal-size, calc(var(--pill-h) - var(--space-1))) * 0.75);
     margin: 0;
 }
 
@@ -180,7 +191,7 @@
     user-select: none;
 }
 
-// Center node — icon variant (Analysis flask). Inherits `--wb-tile-fg`.
+// Center node — icon variant (Analysis flask). Glyph = text-secondary (sys).
 .writeBarListCenter {
     position: absolute;
     top: 50%;
@@ -190,7 +201,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--wb-tile-fg);
+    color: var(--sys-color-text-secondary);
     pointer-events: none;
     user-select: none;
 }
@@ -210,6 +221,6 @@
         font-weight: 600;
         font-size: var(--wb-arc-size);
         letter-spacing: 0;
-        fill: var(--wb-tile-fg);
+        fill: var(--sys-color-text-secondary);
     }
 }

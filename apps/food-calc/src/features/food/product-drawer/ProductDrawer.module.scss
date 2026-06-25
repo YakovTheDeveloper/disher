@@ -25,7 +25,7 @@
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: var(--radius-full);
+    border-radius: var(--sys-radius-indicator);
     background: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -33,11 +33,11 @@
     svg {
         width: 20px;
         height: 20px;
-        color: var(--color-ink);
+        color: var(--sys-color-text-system);
     }
 
     &:active {
-        background: var(--press-tint-bg);
+        background: var(--sys-color-bg-press);
     }
 }
 
@@ -62,8 +62,8 @@
     flex-direction: column;
     min-width: 220px;
     padding: var(--space-1);
-    border-radius: var(--radius-md);
-    background: var(--color-white);
+    border-radius: var(--sys-radius-container);
+    background: var(--sys-color-surface-bright);
     box-shadow: var(--sys-elevation-overlay);
 }
 
@@ -76,18 +76,18 @@
     min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--sys-radius-control);
     background: none;
     // Типографику несёт <Text role="body"> (миграция в примитив). Класс держит
     // раскладку/палитру.
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
     text-align: left;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
     &:hover,
     &:active {
-        background: var(--press-tint-bg);
+        background: var(--sys-color-bg-press);
     }
 }
 
@@ -115,7 +115,7 @@ $pill-radius: 14px;
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 .portionsTitleWrap {
@@ -127,11 +127,11 @@ $pill-radius: 14px;
 // Счётчик порций — закрытый аккордеон сообщает, есть ли в нём что-то.
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит цвет.
 .portionsCount {
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
 }
 
 .chevron {
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
     transition: transform var(--duration-normal) var(--easing-default);
 }
 
@@ -168,10 +168,10 @@ $pill-radius: 14px;
     margin-top: var(--sys-stack-row);
     padding: var(--space-2) var(--space-3);
     border: 1.5px dashed $sky-stripe;
-    border-radius: $pill-radius;
+    border-radius: var(--sys-radius-cta);
     background: none;
     // Типографику метки несёт <Text role="caption"> (миграция в примитив).
-    color: $sky-ink-soft;
+    color: var(--sys-color-text-accent);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
@@ -181,7 +181,7 @@ $pill-radius: 14px;
     }
 
     &:active {
-        border-color: $sky-ink-soft;
+        border-color: var(--sys-color-text-accent);
     }
 }
 
@@ -200,7 +200,7 @@ $pill-radius: 14px;
 // отступ + цвет.
 .servingComposition {
     margin: var(--space-2) 0;
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
 }
 
 // ─── Ряд «количество (50% слева) + норма (50% справа)» — продукт-еда ──
@@ -265,7 +265,7 @@ $pill-radius: 14px;
 
 // Типографику несёт <Text role="body"> (миграция в примитив). Класс держит цвет.
 .quantityUnit {
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
 }
 
 // ─── Пустой состав: живой empty-state ────────────────────────────
@@ -286,7 +286,7 @@ $pill-radius: 14px;
 // сброс отступа + цвет.
 .emptyNutrientsCaption {
     margin: 0;
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
 }
 
 // Тихий вторичный путь — ручной ввод (открывает тот же редактор нутриентов,
@@ -296,14 +296,14 @@ $pill-radius: 14px;
     background: none;
     padding: var(--space-1) var(--space-2);
     // Типографику несёт <Text role="caption"> (миграция в примитив).
-    color: var(--text-tertiary);
+    color: var(--sys-color-text-tertiary);
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        color: var(--text-secondary);
+        color: var(--sys-color-text-secondary);
     }
 }
 
@@ -324,7 +324,7 @@ $pill-radius: 14px;
 
 // Типографику несёт <Heading role="title"> (миграция в примитив). Класс держит цвет.
 .editTitle {
-    color: var(--text-primary);
+    color: var(--sys-color-text-primary);
 }
 
 // × выхода — тихий icon-button (40×40, touch-floor), цветной press как у меню.
@@ -335,14 +335,14 @@ $pill-radius: 14px;
     width: 40px;
     height: 40px;
     border: none;
-    border-radius: var(--radius-full);
+    border-radius: var(--sys-radius-indicator);
     background: none;
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
     &:active {
-        background: var(--press-tint-bg);
+        background: var(--sys-color-bg-press);
     }
 }
 
@@ -357,11 +357,11 @@ $pill-radius: 14px;
 .massWarning {
     margin: 0 0 var(--space-3);
     padding: var(--space-3) var(--space-4);
-    border-radius: var(--radius-sm);
-    background: var(--color-warning-surface);
+    border-radius: var(--sys-radius-control);
+    background: var(--sys-color-status-warning-surface);
     border: 1px solid var(--color-warning-border);
     // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
     // подложку/палитру/межстрочный.
-    color: var(--color-warning);
+    color: var(--sys-color-status-warning);
     line-height: 1.4;
 }

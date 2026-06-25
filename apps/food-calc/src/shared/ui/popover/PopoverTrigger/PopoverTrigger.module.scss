@@ -4,8 +4,8 @@
 }
 
 .content {
-    background: white;
-    border-radius: 8px;
+    background: var(--sys-color-surface-bright);
+    border-radius: var(--sys-radius-container); /* was 8px — popover panel */
     box-shadow: var(--sys-elevation-overlay);
     padding: 8px;
     min-width: 160px;

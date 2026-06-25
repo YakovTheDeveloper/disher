@@ -32,7 +32,7 @@ export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
           singleLine
           autoFocus
         />
-        <Button variant="primary" onClick={() => onClose(comment)}>
+        <Button variant="system" onClick={() => onClose(comment)}>
           Предложить
         </Button>
       </div>

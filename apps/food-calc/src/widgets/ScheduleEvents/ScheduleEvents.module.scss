@@ -6,12 +6,32 @@
 // КРАЙ контент-бокса листа = боковой gutter `--sys-inset-page` (16px), которым
 // теперь владеет сам `.headerOverlap` (канон 2026-06-22, схлопнул `--ap-inset:0`).
 
-// Events use the `lemon` palette — a single warm yellow hue, deepening across
-// the day. Baked-in 2026-06-13 (the 7 alt palettes + the 'ScheduleEvents'
-// DesignBar anchor were retired). FoodSchedule keeps its own palette.
-.eventsBuilder {
-    @include dv-palette-lemon;
+// Events card palette is switchable in the dev DesignBar via the re-introduced
+// `ScheduleEvents` anchor (2026-06-25): three single-hue воices — `lemon` (pale
+// yellow, default), `amber` (light honey), `neutral` (hue-free warm-grey). All
+// share the graphite foreground; only the surface --tod-* tokens swap. The
+// anchor publishes `data-dv-v` on this same .eventsBuilder element, so the two
+// non-default variants override the base lemon by attribute specificity (0,2,0).
+// The card palette must OUT-SPECIFY both the :root --tod-* defaults (0,1,0) AND a
+// user theme's `:root[data-theme=X]` (0,2,0) — both set --tod-* globally. A bare
+// `.eventsBuilder` (0,1,0) ties :root (load-order roulette) and LOSES to a theme,
+// so the cards fell back to the pale :root day-amber #fff8e6 (~invisible on the
+// cream page). Triple the class so every palette lands at (0,3,0)/(0,4,0) and wins
+// outright — same idiom as the night-text re-pin below.
+//
+// amber = default + fallback: data-dv-v='amber' (or any unknown/stale value left
+// in localStorage) hits this base; lemon / neutral forks override by attribute.
+.eventsBuilder.eventsBuilder.eventsBuilder {
     @include dv-text($dv-text-graphite);
+    @include dv-palette-amber;
+}
+
+.eventsBuilder.eventsBuilder.eventsBuilder[data-dv-v='lemon'] {
+    @include dv-palette-lemon;
+}
+
+.eventsBuilder.eventsBuilder.eventsBuilder[data-dv-v='neutral'] {
+    @include dv-palette-neutral;
 }
 
 // Same tropic-theme white-night leak as FoodSchedule (see the long comment in

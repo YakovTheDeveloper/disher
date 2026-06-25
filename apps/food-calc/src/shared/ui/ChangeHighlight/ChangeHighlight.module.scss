@@ -34,7 +34,7 @@
   min-width: 48px;
   min-height: 48px;
   border-radius: 50%;
-  background-color: #82ff95;
+  background-color: var(--sys-color-status-success);
   // initial idle state — WAAPI animates from this baseline
   transform: translate(-50%, -50%) scale(0);
   opacity: 0;

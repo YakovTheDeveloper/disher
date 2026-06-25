@@ -95,9 +95,9 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
             // консумер). Здесь держим аффорданс «гипотезы опциональны».
             <div className={styles.hypothesesEmpty}>
               <FieldLabel>Гипотезы</FieldLabel>
-              <p className={styles.hypothesesEmptyHint}>
+              <Text as="p" role="caption" className={styles.hypothesesEmptyHint}>
                 Гипотез пока нет — разбор можно запустить и без них.
-              </p>
+              </Text>
             </div>
           ) : (
             <HypothesisListPanel

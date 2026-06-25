@@ -13,7 +13,7 @@ import { useAuthStore } from '@/features/auth/auth-store';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
-import { DesignVariantsBar, shouldShowDvBar, SelectedToneProbe } from '@/app/ui/DesignVariantsBar';
+import { DesignVariantsBar, shouldShowDvBar, ButtonSecondaryProbe } from '@/app/ui/DesignVariantsBar';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
 // idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
@@ -96,7 +96,7 @@ ReactDOM.createRoot(root).render(
     showDialog={false}
   >
     {shouldShowDvBar() && <DesignVariantsBar />}
-    {shouldShowDvBar() && <SelectedToneProbe />}
+    {shouldShowDvBar() && <ButtonSecondaryProbe />}
     <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );

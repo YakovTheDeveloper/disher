@@ -157,9 +157,6 @@ const SearchFood = ({
 
   return (
     <div className={styles.content} ref={contentRef}>
-      {/* Ambient glow (top + bottom) — the one place a faint colour hint is
-          allowed on this otherwise monochrome screen. Sits behind everything. */}
-      <div className={styles.ambient} aria-hidden />
       <div className={styles.header} ref={headerRef}>
         <SearchFoodControls
           searchQuery={searchQuery}

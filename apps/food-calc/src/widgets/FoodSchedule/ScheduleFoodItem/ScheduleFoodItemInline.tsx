@@ -2,17 +2,18 @@ import { memo, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './ScheduleFoodItemInline.module.scss';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
-import { QuietLabel } from '@/shared/ui/atoms/Typography';
-import { LongPressRow } from '@/features/shared/long-press-item';
+import { CardShell } from '@/features/shared/card-shell';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
-import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
+import { CardTime } from '@/shared/ui/atoms/CardTime';
+import { QtyStack } from '@/shared/ui/atoms/QtyStack';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
   className?: string;
@@ -21,8 +22,8 @@ type Props = {
   totalCount?: number;
   /** Long-press → per-item action drawer (built by FoodSchedule). */
   onLongPress?: () => void;
-  /** True when the row above shares this row's time — the time label renders
-   *  blank (dedup) but stays tappable to edit. */
+  /** True when the row above shares this row's time — the time is heavily faded
+   *  (dedup, opacity 0.3 — not blanked) but stays tappable to edit. */
   dimTime?: boolean;
   foodHtmlFor?: string;
   // Accepted for backwards-compatible call sites; unused — Inline edits in place.
@@ -106,85 +107,94 @@ const ScheduleFoodItemInline = ({
   const name = item.product ?? item.dish ?? null;
   const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
 
+  // qty-стопка (value над unit, unit по началу value) — общий рендер для покоя
+  // и правки; меняется только содержимое верхней строки (число ↔ NumberInput).
+  const qtyStack = editingQty ? (
+    <QtyStack
+      unit={getQtyUnit(item.product)}
+      // Глобальный хук: пока правим количество, Screen прячет нижний бар
+      // (`Screen.module.scss` :has([data-entity-edit]:focus-within)).
+      data-entity-edit
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.currentTarget.querySelector('input')?.blur();
+        } else if (e.key === 'Escape') {
+          setQtyDraft(item.quantity);
+          setEditingQty(false);
+        }
+      }}
+    >
+      <NumberInput
+        ref={qtyInputRef}
+        value={qtyDraft}
+        onChange={setQtyDraft}
+        onBlur={commitQty}
+        autoFocus
+        min={1}
+        maxLength={4}
+      />
+    </QtyStack>
+  ) : (
+    <QtyStack unit={getQtyUnit(item.product)} onClick={() => setEditingQty(true)}>
+      {qtyDisplay}
+    </QtyStack>
+  );
+
+  // Маппинг на CardShell (food-модель, см. cardshell-unification план):
+  // title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы); meta = детали;
+  // metaEnd = время (теперь В карточке, не в левом желобе).
   return (
-    <LongPressRow
-      className={clsx([
-        className,
-        styles.group,
-        isCustom && styles.customProduct,
-      ])}
+    <CardShell
+      className={clsx(className, styles.group, isCustom && styles.customProduct)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
       index={index}
       tod={getTimeOfDay(item.time)}
       data-row-id={id}
-      // Opens the left time-gutter on the wrapper (LongPressRow) — the time hangs
-      // there, messenger-style. Scoped so plain lists keep flush-left layout.
-      data-row-gutter="time"
       onLongPress={onLongPress}
-    >
-      {!hideTime && (
-        <InlineTimeEditor
-          value={item.time}
-          onCommit={commitTime}
-          formatDisplay={formatClock}
-          displayClassName={clsx(styles.timeDisplay, dimTime && styles.timeDup)}
-          editClassName={styles.timeEdit}
-        />
-      )}
-
-      <label
-        className={styles.foodCol}
-        htmlFor={foodHtmlFor}
-        onPointerDown={handleFoodPointerDown}
-      >
-        <FoodName
-          content={name}
-          className={getFoodNameClassName()}
-        />
-        {item.details ? (
-          <QuietLabel as="span" className={styles.detailsSubtitle}>{item.details}</QuietLabel>
-        ) : null}
-      </label>
-
-      <div className={styles.rightStack}>
-        {editingQty ? (
-          <span
-            className={styles.qtyEdit}
-            // Глобальный хук: пока правим количество, Screen прячет нижний бар
-            // (`Screen.module.scss` :has([data-entity-edit]:focus-within)).
-            data-entity-edit
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.currentTarget.querySelector('input')?.blur();
-              } else if (e.key === 'Escape') {
-                setQtyDraft(item.quantity);
-                setEditingQty(false);
-              }
-            }}
-          >
-            <NumberInput
-              ref={qtyInputRef}
-              value={qtyDraft}
-              onChange={setQtyDraft}
-              onBlur={commitQty}
-              autoFocus
-              min={1}
-              maxLength={4}
-            />
-            <span className={styles.qtyUnit}>{getQtyUnit(item.product)}</span>
-          </span>
-        ) : (
-          <span
-            className={styles.qtyEdit}
-            onClick={() => setEditingQty(true)}
-          >
-            {qtyDisplay}
-            <span className={styles.qtyUnit}>{getQtyUnit(item.product)}</span>
-          </span>
-        )}
-      </div>
-    </LongPressRow>
+      // title = [qty][имя] кластер (qty ПЕРЕД именем) — много-голосый узел → node-escape.
+      title={{
+        node: (
+          <div className={styles.titleCluster}>
+            {qtyStack}
+            <TapTarget
+              as="label"
+              className={styles.foodName}
+              htmlFor={foodHtmlFor}
+              onPointerDown={handleFoodPointerDown}
+            >
+              <FoodName content={name} className={getFoodNameClassName()} />
+            </TapTarget>
+          </div>
+        ),
+      }}
+      // meta = детали (CardLayout строит caption + label htmlFor); тот же htmlFor что имя.
+      meta={
+        item.details
+          ? {
+              content: item.details,
+              htmlFor: foodHtmlFor,
+              onPointerDown: handleFoodPointerDown,
+              className: styles.detailsSubtitle,
+            }
+          : undefined
+      }
+      // metaEnd = время — stateful редактор → node-escape.
+      metaEnd={
+        hideTime
+          ? undefined
+          : {
+              node: (
+                <CardTime
+                  value={item.time}
+                  onCommit={commitTime}
+                  formatDisplay={formatClock}
+                  dim={dimTime}
+                />
+              ),
+            }
+      }
+    />
   );
 };
 

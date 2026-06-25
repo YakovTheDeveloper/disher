@@ -110,15 +110,46 @@
 // deepest (still pale) step.
 // Tuned 2026-06-14: the real culprit was never the yellow — it was WHITE names
 // (the tropic-theme night-text leak, now killed in FoodSchedule/ScheduleEvents).
-// With solid-graphite names a healthy warm yellow reads fine, so this sits at a
-// comfortable MEDIUM (green channel ~184 at night) — clearly yellow, not the
-// washed-out cream of the over-correction, not the saturated gold of the
-// original. High alpha keeps HomePage's ambient glow from re-saturating it.
+// With solid-graphite names a healthy warm yellow reads fine.
+// Paled 2026-06-25 (CardShell unification, solution A): this is now the ONE
+// yellow voice across every card (food / event / dish-ingredient), so it steps
+// LIGHTER — blue channel lifted ~196→~218, green nudged up, the gold outline
+// softened in tune (alpha −0.04) so a paler fill doesn't fight a saturated edge.
+// Still clearly lemon, just a quieter wash; the narrow morning→night delta is
+// kept. Graphite text (near-black $dv-text-graphite) only gains contrast on the
+// lighter surface. High alpha keeps HomePage's ambient glow from re-saturating it.
 @mixin dv-palette-lemon {
-  @include _tod-palette((rgba(255, 248, 205, 0.93), rgba(254, 244, 193, 0.93), rgba(225, 190, 70, 0.24), rgba(225, 190, 70, 0.16), rgba(253, 242, 190, 0.94)),
-    (rgba(255, 245, 196, 0.93), rgba(253, 241, 184, 0.93), rgba(222, 182, 60, 0.26), rgba(222, 182, 60, 0.17), rgba(252, 239, 182, 0.94)),
-    (rgba(254, 243, 190, 0.93), rgba(251, 238, 178, 0.93), rgba(218, 172, 52, 0.26), rgba(218, 172, 52, 0.17), rgba(250, 236, 174, 0.92)),
-    (rgba(252, 240, 184, 0.94), rgba(248, 234, 170, 0.94), rgba(212, 162, 48, 0.28), rgba(212, 162, 48, 0.18), rgba(247, 232, 166, 0.94)));
+  @include _tod-palette((rgba(255, 251, 224, 0.92), rgba(255, 249, 216, 0.92), rgba(225, 190, 70, 0.20), rgba(225, 190, 70, 0.13), rgba(254, 249, 214, 0.93)),
+    (rgba(255, 250, 218, 0.92), rgba(254, 247, 210, 0.92), rgba(222, 182, 60, 0.21), rgba(222, 182, 60, 0.14), rgba(253, 247, 208, 0.93)),
+    (rgba(254, 248, 214, 0.92), rgba(252, 245, 206, 0.92), rgba(218, 172, 52, 0.21), rgba(218, 172, 52, 0.14), rgba(251, 246, 202, 0.92)),
+    (rgba(252, 246, 210, 0.93), rgba(250, 243, 200, 0.93), rgba(212, 162, 48, 0.22), rgba(212, 162, 48, 0.14), rgba(249, 244, 196, 0.93)));
+}
+
+// amber — the WARM-HONEY parallel to `lemon` (Events-screen single-hue style):
+// ONE light amber across the whole day, anchored on the `--ref-color-amber`
+// family (amber-0 #fff5e6 surface → amber-400/500 honey outline). Like lemon,
+// the four time-of-day steps stay deliberately CLOSE (narrow morning→night
+// delta) so the list reads as "one soft amber that barely shifts". Warmer /
+// more orange than lemon's pure yellow. Pairs with $dv-text-graphite (the dark
+// slate ink reads cleanly on the pale honey surface).
+@mixin dv-palette-amber {
+  @include _tod-palette((rgba(255, 233, 196, 0.96), rgba(255, 223, 178, 0.96), rgba(214, 150, 56, 0.42), rgba(214, 150, 56, 0.30), rgba(252, 220, 184, 0.97)),
+    (rgba(255, 226, 184, 0.96), rgba(252, 214, 162, 0.96), rgba(208, 142, 48, 0.44), rgba(208, 142, 48, 0.32), rgba(250, 214, 172, 0.97)),
+    (rgba(252, 220, 176, 0.96), rgba(248, 208, 154, 0.96), rgba(200, 134, 44, 0.44), rgba(200, 134, 44, 0.32), rgba(246, 208, 164, 0.96)),
+    (rgba(248, 214, 168, 0.97), rgba(244, 202, 146, 0.97), rgba(192, 126, 40, 0.46), rgba(192, 126, 40, 0.34), rgba(242, 202, 156, 0.97)));
+}
+
+// neutral — the HUE-FREE parallel to `lemon`: ONE light warm-grey card across
+// the whole day, anchored on the `--ref-color-neutral` family (neutral-0/50/100
+// warm-soft paper → neutral-300 #e2dfda border as the outline). Unlike `plain`
+// (fully transparent — no card at all), neutral keeps a faint VISIBLE card so
+// rows still read as soft tiles, just without colour. Narrow morning→night
+// delta. Pairs with $dv-text-graphite.
+@mixin dv-palette-neutral {
+  @include _tod-palette((rgba(235, 233, 229, 0.96), rgba(228, 225, 220, 0.96), rgba(150, 145, 138, 0.34), rgba(150, 145, 138, 0.24), rgba(224, 221, 215, 0.97)),
+    (rgba(232, 229, 224, 0.96), rgba(225, 222, 216, 0.96), rgba(145, 140, 133, 0.36), rgba(145, 140, 133, 0.26), rgba(221, 218, 211, 0.97)),
+    (rgba(228, 225, 219, 0.96), rgba(221, 218, 211, 0.96), rgba(140, 135, 128, 0.36), rgba(140, 135, 128, 0.26), rgba(217, 214, 206, 0.96)),
+    (rgba(224, 221, 214, 0.97), rgba(217, 213, 205, 0.97), rgba(135, 130, 123, 0.38), rgba(135, 130, 123, 0.28), rgba(213, 209, 201, 0.97)));
 }
 
 // plain — «без подложки»: at rest the rows carry NO card at all — transparent

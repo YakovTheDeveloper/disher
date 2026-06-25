@@ -20,7 +20,7 @@ export function SuggestNutrientsConfirmDrawer({ onClose }: Props) {
           <Button variant="ghost" onClick={() => onClose(false)}>
             Отмена
           </Button>
-          <Button variant="primary" onClick={() => onClose(true)}>
+          <Button variant="system" onClick={() => onClose(true)}>
             Продолжить
           </Button>
         </div>

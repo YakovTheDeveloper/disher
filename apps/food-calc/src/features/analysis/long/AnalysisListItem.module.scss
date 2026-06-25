@@ -28,8 +28,8 @@
         top: 7px;
         bottom: 7px;
         width: 3px;
-        border-radius: 2px;
-        background: color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
+        border-radius: var(--sys-radius-tmp); /* was 2px */
+        background: var(--sys-card-text-active-muted);
     }
 
     // Fading hairline divider — never a full border.
@@ -57,10 +57,10 @@
         background: var(--sys-card-text-active);
     }
     &[data-status='failed']::before {
-        background: #c0392b;
+        background: var(--sys-color-status-danger);
     }
     &[data-status='stale']::before {
-        background: #d98324;
+        background: var(--sys-color-status-warning);
     }
 
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
@@ -88,7 +88,7 @@
 }
 
 .meta {
-    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
+    color: var(--sys-card-text-muted);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
@@ -98,24 +98,24 @@
     gap: 5px;
     flex-shrink: 0;
     padding: 4px 9px;
-    border-radius: 999px;
+    border-radius: var(--sys-radius-indicator);
     white-space: nowrap;
 
     &[data-status='running'] {
-        background: rgba(15, 23, 42, 0.06);
-        color: rgba(15, 23, 42, 0.62);
+        background: var(--sys-card-bg-sunk);
+        color: var(--sys-color-text-secondary);
     }
     &[data-status='done'] {
-        background: rgba(62, 146, 98, 0.14);
-        color: rgba(30, 96, 58, 1);
+        background: var(--sys-color-status-success-surface);
+        color: var(--sys-color-status-success);
     }
     &[data-status='failed'] {
-        background: rgba(192, 57, 43, 0.13);
-        color: #a5281c;
+        background: var(--sys-color-status-danger-surface);
+        color: var(--sys-color-status-danger);
     }
     &[data-status='stale'] {
-        background: rgba(217, 131, 36, 0.15);
-        color: #8a4e0e;
+        background: var(--sys-color-status-warning-surface);
+        color: var(--sys-color-status-warning);
     }
 }
 

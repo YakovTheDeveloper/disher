@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './ScheduleEventCard.module.scss';
 import clsx from 'clsx';
-import { LongPressRow } from '@/features/shared/long-press-item';
+import { CardShell } from '@/features/shared/card-shell';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
@@ -9,6 +9,7 @@ import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
 import { Text } from '@/shared/ui/atoms/Typography';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
   item: ScheduleEvent;
@@ -22,8 +23,8 @@ type Props = {
   textHtmlFor?: string;
   atomsHtmlFor?: string;
   className?: string;
-  /** True when the row above shares this row's time — the time renders blank
-   *  (dedup) but stays tappable to edit. */
+  /** True when the row above shares this row's time — the time is heavily faded
+   *  (dedup, opacity 0.3 — not blanked) but stays tappable to edit. */
   dimTime?: boolean;
 };
 
@@ -80,44 +81,60 @@ export function ScheduleEventCard({
   // «Недавно добавлено» — синий кружок справа (чистится на свайп/уход, см. store).
   const isRecent = useRecentlyAddedStore((s) => s.ids.has(item.id));
 
+  // Маппинг на CardShell-слоты (см. cardshell-unification план): title = текст,
+  // titleEnd — нет (у события нет qty), meta = теги-чипы, metaEnd = время.
   return (
-    <LongPressRow
+    <CardShell
       className={clsx(className, styles.row)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
       index={index}
       tod={getTimeOfDay(item.time)}
       recent={isRecent}
-      // Opens the left time-gutter on the wrapper (see ScheduleFoodItemInline).
-      data-row-gutter="time"
       onLongPress={onLongPress}
-    >
-      {!hideTime && (
-        <label
-          htmlFor={timeHtmlFor}
-          className={clsx(styles.time, dimTime && styles.timeDup)}
-          onClick={onEditTime}
-        >
-          {item.time ? formatClock(item.time) : '—'}
-          {item.endTime && ` — ${formatClock(item.endTime)}`}
-        </label>
-      )}
-
-      <Text as="label" role="body" htmlFor={textHtmlFor} className={styles.text} onClick={onEditText}>
-        {title}
-      </Text>
-
-      <label
-        htmlFor={atomsHtmlFor}
-        className={clsx(styles.atomsZone, !hasAtoms && styles.atomsZoneEmpty)}
-        onClick={onEditAtoms}
-      >
-        {hasAtoms ? (
-          <span className={styles.atoms}>{atoms.map((atom, i) => formatAtomChip(atom, i))}</span>
-        ) : (
-          <Text as="span" role="caption" className={styles.atomsPlaceholder}>+ данные</Text>
-        )}
-      </label>
-    </LongPressRow>
+      // title = текст события (CardLayout строит body + label htmlFor).
+      title={{
+        content: title,
+        htmlFor: textHtmlFor,
+        onTap: onEditText,
+        className: styles.text,
+      }}
+      // titleEnd = время. У события нет qty, поэтому время поднимается на базовую
+      // линию заголовка (верх-право, role:'time' переопределяет qty-роль слота),
+      // а не падает в правый-нижний угол как у еды. См. CardLayout role-override.
+      titleEnd={
+        hideTime
+          ? undefined
+          : {
+              content: (
+                <>
+                  {item.time ? formatClock(item.time) : '—'}
+                  {item.endTime && ` — ${formatClock(item.endTime)}`}
+                </>
+              ),
+              role: 'time',
+              htmlFor: timeHtmlFor,
+              onTap: onEditTime,
+              className: dimTime ? styles.timeDup : undefined,
+            }
+      }
+      // meta = лента чипов / «+ данные»: своя тап-зона оборачивает чипы → node-escape.
+      meta={{
+        node: (
+          <TapTarget
+            as="label"
+            htmlFor={atomsHtmlFor}
+            className={clsx(styles.atomsZone, !hasAtoms && styles.atomsZoneEmpty)}
+            onClick={onEditAtoms}
+          >
+            {hasAtoms ? (
+              atoms.map((atom, i) => formatAtomChip(atom, i))
+            ) : (
+              <Text as="span" role="caption" className={styles.atomsPlaceholder}>+ данные</Text>
+            )}
+          </TapTarget>
+        ),
+      }}
+    />
   );
 }

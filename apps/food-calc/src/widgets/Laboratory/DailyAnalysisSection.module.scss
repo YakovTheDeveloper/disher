@@ -25,7 +25,7 @@
 .inviteBody {
     margin: 0;
     line-height: 1.55;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
+    color: var(--sys-card-text-muted);
 }
 
 // ── markdown body ────────────────────────────────────────────────────
@@ -66,31 +66,31 @@
     flex-direction: column;
     gap: 4px;
     padding: 12px 14px;
-    border-radius: 12px;
+    border-radius: var(--sys-radius-container);
 
     &[data-tone='error'] {
-        background: rgba(192, 57, 43, 0.07);
+        background: var(--sys-color-status-danger-surface);
         border: 1px solid rgba(192, 57, 43, 0.18);
     }
 
     &[data-tone='muted'] {
-        background: rgba(15, 23, 42, 0.04);
+        background: var(--sys-color-bg-hover);
         border: 1px solid rgba(15, 23, 42, 0.1);
     }
 }
 
 .bannerTitle {
     margin: 0;
-    color: rgba(15, 23, 42, 0.85);
+    color: var(--sys-color-text-system);
 }
 
 .bannerBody {
     margin: 0;
     line-height: 1.45;
-    color: rgba(15, 23, 42, 0.55);
+    color: var(--sys-color-text-secondary);
 }
 
-// Вид «Повторить» владеет `Button variant="secondary"` (белая пилюля + ink
+// Вид «Повторить» владеет `Button variant="system-secondary"` (белая пилюля + ink
 // press-fill). Здесь — ТОЛЬКО раскладка внутри баннера: прижать влево + зазор.
 .bannerButton {
     align-self: flex-start;
@@ -113,8 +113,7 @@
 .ideasList {
     display: flex;
     flex-direction: column;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-container);
     overflow: hidden;
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--sys-card-text-rest) 5%, transparent),
-        0 6px 18px -14px color-mix(in srgb, var(--sys-card-text-rest) 35%, transparent);
+    box-shadow: var(--sys-elevation-action-rest);
 }

@@ -1,5 +1,5 @@
 .active {
-    color: var(--sys-color-bg-selected); // was rgb(149,143,255) лаванда → ближайший sys (акцент «выбрано/активно»)
+    color: var(--sys-color-text-on-selected); // selected-hue as foreground (deep amber, M4 2026-06-25; was bg-selected когда «выбрано» было тёмным)
 
     &::before {
         opacity: 1;

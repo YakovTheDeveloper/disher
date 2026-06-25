@@ -10,54 +10,35 @@
     // single whisper-faint fading hairline parts adjacent rows, so the cluster
     // reads as one merged card.
     //
-    // `li` = the inner card (`.commonListItemInner`, rendered by LongPressRow).
-    // Position (first / middle / last) is tracked on the `> div` wrapper; some
-    // consumers render the row as a bare `> li`, so both forms are matched.
-    // `var(--_outline-from)` is the per-time-of-day accent published on each card
-    // by LongPressRow.
+    // `li` = the card itself (`.row`, rendered by LongPressRow as a bare `<li>`
+    // direct child since the 2026-06-25 single-node collapse — the former `> div`
+    // wrapper is gone, so `ul > li` is now also valid markup). `var(--_outline-from)`
+    // is the per-time-of-day accent published on each card.
 
-    // Drop the vivid per-row frame + shadow + border; keep only the soft tint.
-    >div li,
+    // Drop the vivid per-row frame + border; keep only the soft tint.
+    // Middle rows square off; the group's outer corners stay rounded.
     >li {
         --row-rest-outline-w: 0;
-        --row-last-shadow: none;
         border: 0;
+        border-radius: 0;
     }
 
-    // Middle items square off; the group's outer corners stay rounded.
-    >div,
-    >li {
-        li {
-            border-radius: 0;
-        }
-    }
-
-    >div:first-of-type,
     >li:first-of-type {
-        li {
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-        }
+        border-top-left-radius: var(--sys-radius-container);
+        border-top-right-radius: var(--sys-radius-container);
     }
 
-    >div:last-of-type,
     >li:last-of-type {
-        li {
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-        }
+        border-bottom-left-radius: var(--sys-radius-container);
+        border-bottom-right-radius: var(--sys-radius-container);
     }
 
-    >div:only-of-type,
     >li:only-of-type {
-        li {
-            border-radius: 20px;
-        }
+        border-radius: var(--sys-radius-container);
     }
 
     // The single seam between adjacent rows: a whisper-faint fading hairline
     // (transparent → 15% tint → transparent), inset by `--space-4`.
-    >div:not(:first-of-type) li,
     >li:not(:first-of-type) {
         position: relative;
 

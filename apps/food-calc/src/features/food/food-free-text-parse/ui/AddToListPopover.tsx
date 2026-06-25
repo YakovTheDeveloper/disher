@@ -14,7 +14,7 @@ import {
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
 import { catalog } from '@/shared/data/catalog';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import styles from './AddToListPopover.module.scss';
 
 interface DuplicateMatch {
@@ -93,7 +93,9 @@ export const AddToListPopover = ({
           className={styles.popover}
           data-base-ui-swipe-ignore=""
         >
-          <p className={styles.title}>Добавить в свой список</p>
+          <Heading role="title" className={styles.title}>
+            Добавить в свой список
+          </Heading>
           <input
             className={styles.nameInput}
             value={name}
@@ -110,15 +112,15 @@ export const AddToListPopover = ({
             }}
           />
           {duplicate && (
-            <p className={styles.dupHint}>
+            <Text as="p" role="caption" className={styles.dupHint}>
               Уже есть:{' '}
               <Text as="span" role="caption" className={styles.dupName}>
                 {duplicate.name}
               </Text>
-              <span className={styles.dupSource}>
+              <Text as="span" role="caption" className={styles.dupSource}>
                 · {duplicate.source === 'system' ? 'каталог' : 'мой список'}
-              </span>
-            </p>
+              </Text>
+            </Text>
           )}
           <div className={styles.actions}>
             <button type="button" className={styles.btnGhost} onClick={onClose}>

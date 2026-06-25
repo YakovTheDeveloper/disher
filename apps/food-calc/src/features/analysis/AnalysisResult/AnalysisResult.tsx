@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { SheetCard } from '@/shared/ui/SheetCard';
 import type { InsightSource } from '@/entities/insight';
 import { InsightCard } from '../InsightCard';
@@ -112,9 +113,9 @@ const AnalysisResult = ({
   return (
     <div className={styles.root} data-analysis-root="">
       {summary && (
-        <div className={styles.summary} data-analysis-summary="">
+        <Text as="div" role="body" className={styles.summary} data-analysis-summary="">
           <ReactMarkdown>{summary}</ReactMarkdown>
-        </div>
+        </Text>
       )}
 
       <div className={styles.sections} data-analysis-sections="">

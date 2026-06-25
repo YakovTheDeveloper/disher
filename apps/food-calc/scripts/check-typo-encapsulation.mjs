@@ -13,9 +13,12 @@
 //
 // Две проверки в одном проходе (вне allow-list):
 //   CHECK A — TYPO-RESTRICTED var()-чтение:
-//     var(--sys-text-…) | var(--heading-…) | var(--font-sans)
+//     var(--sys-text-…) | var(--heading-…) | var(--font-sans) | var(--sys-numeral-…)
 //     (SCSS-интерполяция `var(--sys-text-#{$role}-…)` пропускается — имя собирается
 //      в compile-time, как в check-scale-tokens.)
+//     --sys-numeral-* — числовой ярус (дом примитива <Numeral>, Typography/Numeral).
+//     Числа рендерятся через <Numeral>, а не ручным font-size в произвольном модуле.
+//     Поля ввода (<input>/.input) exempt по EXEMPT_SELECTOR_RE — там обернуть нечего.
 //     NB: `--font-display/-alice/-mono/-big-numeric` — family-ПРИМИТИВЫ (ресурс
 //     не-ролевого текста), НЕ restricted; рестриктится только точный `--font-sans`.
 //   CHECK B — RAW-TYPO объявление:
@@ -64,10 +67,14 @@ const EXEMPT_DIRS = [
   'app/ui/DesignVariantsBar/',
   'pages/suggestion/',
   'pages/ui-kit/',
+  // features/dev/** — dev-only тулзы (BugReportModal: ReactMarkdown + mono
+  // технический текст, непереносимый в <Text>/<Heading>). Зеркало dev-exempt
+  // в .stylelintrc.cjs (решение юзера 2026-06-25).
+  'features/dev/',
 ];
 
 // CHECK A — запрещённое var()-чтение типо-семантики.
-const RESTRICTED_VAR_RE = /var\(\s*(--sys-text-[A-Za-z0-9-]+|--heading-[A-Za-z0-9-]+|--font-sans)\b/g;
+const RESTRICTED_VAR_RE = /var\(\s*(--sys-text-[A-Za-z0-9-]+|--heading-[A-Za-z0-9-]+|--font-sans|--sys-numeral-[A-Za-z0-9-]+)\b/g;
 
 // Санкционированные НЕ-обёртываемые контексты: типографика тут ОБЯЗАНА жить в CSS,
 // т.к. нет HTML-элемента приложения для оборачивания в примитив (решение юзера 2026-06-25):

@@ -1,15 +1,10 @@
 @import '@/shared/assets/style/mixin.scss';
 
-.commonListItemWrapper {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    position: relative;
-    // padding: 0 var(--space-2);
-    flex-grow: 1;
-}
-
-.commonListItemInner {
+// Single-node card chassis (collapse 2026-06-25): the <li> owns the surface,
+// the long-press gesture, the staggered entrance, the recent-dot (`::after`) and
+// the time-of-day palette (`data-tod` lives on the <li> itself now). The former
+// wrapper <div> + `display:contents` click-capture <div> were removed.
+.row {
     @include row-touch;
     --t: var(--item-t, 0);
 
@@ -18,9 +13,9 @@
     --_bg-to: var(--tod-bg-to, var(--tod-morning-bg-to));
     --_outline-from: var(--tod-outline-from, var(--tod-morning-outline-from));
     --_outline-to: var(--tod-outline-to, var(--tod-morning-outline-to));
-    --_tapped: var(--tod-tapped, var(--tod-morning-tapped));
+    --sys-color-row-tapped: var(--tod-tapped, var(--tod-morning-tapped));
 
-    background-color: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t)) * 100%), var(--_bg-to));
+    background-color: var(--sys-color-row-bg);
     // Resting frame width is consumer-overridable via --row-rest-outline-w so
     // consumers can drop the per-row outline (the baked borderless TimeGroup
     // boundary, the DishBuilderPage sky list) without a specificity war against
@@ -30,14 +25,14 @@
 
     position: relative;
     // Vertical padding is consumer-overridable via --sys-row-pad-block. Default
-    // (= --space-1, 4px) keeps existing rows unchanged; the FoodSchedule pilot
-    // and ScheduleEventCard set --sys-row-pad-block: 0 on the grid root so the
-    // container owns no decorative vertical padding — cell padding-block (food)
-    // or the min-h-touch floor (events) carries the rhythm instead.
+    // (= --space-1, 4px) keeps existing rows unchanged; the CardShell cards (food,
+    // event) set BOTH --sys-row-pad-block: 0 and --sys-row-min-h-touch: 0 so the
+    // container owns no decorative padding or floor — the leaf <TapTarget>
+    // padding-block carries the rhythm (leaf-floor canon).
     padding-block: var(--sys-row-pad-block);
     padding-inline: var(--space-4);
     transition: background-color 0.3s ease, padding 0.3s ease, transform 0.12s ease;
-    border-radius: 9px;
+    border-radius: var(--sys-radius-container);
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
@@ -45,17 +40,15 @@
     flex-grow: 1;
     z-index: 1;
 
-    // Per-row drop shadow. Overridable via --row-last-shadow so consumers (the
-    // baked borderless TimeGroup boundary, the DishBuilderPage sky list) can
-    // suppress per-row shadows — a shadow under every card adds to the seam
-    // heaviness. Default = unchanged.
-    &:last-child {
-        box-shadow: var(--row-last-shadow, 0px 10px 8px -11px rgba(0, 0, 0, 0.15));
-    }
+    // No per-row elevation (decided 2026-06-25 — карточкам тут поднятие не нужно).
+    // The former `--sys-elevation-row-last` drop-shadow was removed; the seam
+    // hairline (TimeGroup / DishBuilder) is the only inter-row separator.
 
     // Press feedback — replaces the old motion `whileTap={{ scale: 0.98 }}`.
+    // Works on the shared node because the entrance animation no longer holds
+    // `transform` after it ends (fill: backwards — see useEntranceStagger).
     &_tapped {
-        background-color: var(--_tapped) !important;
+        background-color: var(--sys-color-row-tapped) !important;
         transform: scale(0.98);
     }
 
@@ -69,19 +62,44 @@
     &:focus-within:not(:has(input:focus, textarea:focus, button:focus)) {
         outline: 2px solid var(--sys-color-border-focus);
         outline-offset: 1px;
+        /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- focus glow ring + drop (bespoke, не elevation) */
         box-shadow:
             0 0 0 4px color-mix(in srgb, var(--sys-color-border-focus) 25%, transparent),
             0 6px 18px -8px rgba(0, 0, 0, 0.18);
-        background-color: color-mix(in oklch, var(--sys-color-border-focus) 18%, var(--_bg-from));
+        background-color: var(--sys-color-row-bg-focus);
         transition: background-color 0.2s ease, outline-color 0.2s ease, box-shadow 0.2s ease;
         z-index: 2;
+    }
+
+    // «Недавно добавлен» marker (recent-dot canon) — синий кружок СПРАВА, ВНЕ
+    // подложки карточки, в правом отступе листа (`.headerOverlap` padding-inline:
+    // 16px). Раньше открывали жёлоб через padding-right (карточка дёргалась);
+    // теперь место уже есть благодаря паддингу контейнера — кружок просто
+    // absolute-сдвинут наружу (negative right) в этот gutter через `::after`. В
+    // пределах `.main { overflow-x: hidden }` не обрезается и не даёт гор. скролл.
+    // Чистится глобально (свайп слайда / уход со страницы) — см. recentlyAddedStore.
+    &_recent::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        // Наружу за правый край карточки, ближе к карточке (не по центру жёлоба).
+        right: -7px;
+        width: 5px;
+        height: 5px;
+        transform: translateY(-50%);
+        border-radius: var(--sys-radius-indicator);
+        background: var(--sys-color-surface-action-system);
+        pointer-events: none;
+        z-index: 2;
+        animation: recentDotIn 240ms cubic-bezier(0, 0, 0.2, 1) both;
     }
 }
 
 // ─── Time-of-day palette overrides via data-tod (card bg gradient only) ──────
+// `data-tod` теперь живёт на самой `.row` (<li>), не на обёртке.
 // (focus-ring оттенок больше НЕ варьируется по времени — снят 2026-06-22, единый
 //  --sys-color-focus-accent; см. tokens.scss.)
-.commonListItemWrapper[data-tod="morning"] .commonListItemInner {
+.row[data-tod="morning"] {
     --tod-bg-from: var(--tod-morning-bg-from);
     --tod-bg-to: var(--tod-morning-bg-to);
     --tod-outline-from: var(--tod-morning-outline-from);
@@ -89,7 +107,7 @@
     --tod-tapped: var(--tod-morning-tapped);
 }
 
-.commonListItemWrapper[data-tod="day"] .commonListItemInner {
+.row[data-tod="day"] {
     --tod-bg-from: var(--tod-day-bg-from);
     --tod-bg-to: var(--tod-day-bg-to);
     --tod-outline-from: var(--tod-day-outline-from);
@@ -97,7 +115,7 @@
     --tod-tapped: var(--tod-day-tapped);
 }
 
-.commonListItemWrapper[data-tod="evening"] .commonListItemInner {
+.row[data-tod="evening"] {
     --tod-bg-from: var(--tod-evening-bg-from);
     --tod-bg-to: var(--tod-evening-bg-to);
     --tod-outline-from: var(--tod-evening-outline-from);
@@ -105,84 +123,12 @@
     --tod-tapped: var(--tod-evening-tapped);
 }
 
-.commonListItemWrapper[data-tod="night"] .commonListItemInner {
+.row[data-tod="night"] {
     --tod-bg-from: var(--tod-night-bg-from);
     --tod-bg-to: var(--tod-night-bg-to);
     --tod-outline-from: var(--tod-night-outline-from);
     --tod-outline-to: var(--tod-night-outline-to);
     --tod-tapped: var(--tod-night-tapped);
-}
-
-.variant_2 {
-    background-color: #ffffff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-radius: 32px;
-    padding: 12px 24px;
-
-    &:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-    }
-}
-
-.content {
-    display: contents;
-}
-
-.highlighted {
-    animation: added-highlight-bg 3s ease-out forwards, added-highlight-outline 3s ease-out forwards;
-}
-
-@keyframes added-highlight-bg {
-    0% {
-        background-color: rgba(255, 191, 71, 0.35);
-    }
-
-    70% {
-        background-color: rgba(255, 191, 71, 0.12);
-    }
-
-    100% {
-        background-color: var(--_bg-from, #e6ffed);
-    }
-}
-
-@keyframes added-highlight-outline {
-    0% {
-        outline: 2.5px solid rgba(255, 170, 30, 0.7);
-    }
-
-    60% {
-        outline: 2.5px solid rgba(255, 170, 30, 0.25);
-    }
-
-    100% {
-        outline: 1px solid var(--_outline-from, #52ffba);
-    }
-}
-
-// «Недавно добавлен» marker (recent-dot canon). Синий кружок живёт СПРАВА, ВНЕ
-// подложки карточки — в правом отступе листа (`.headerOverlap` padding-inline:
-// 16px). Раньше мы открывали жёлоб через padding-right на wrapper'е, отчего
-// li (flex-grow:1) ужимался и карточка дёргалась при добавлении. Теперь место
-// уже есть благодаря паддингу контейнера, поэтому ширину карточки НЕ трогаем —
-// кружок просто absolute-сдвинут наружу (negative right) в этот gutter. Не
-// участвует в grid'е строки. Чистится глобально (свайп слайда / уход со
-// страницы), не по таймеру — см. recentlyAddedStore.
-.recentDot {
-    position: absolute;
-    top: 50%;
-    // Наружу за правый край карточки, в паддинг листа, но ближе к карточке
-    // (не по центру жёлоба). В пределах `.main { overflow-x: hidden }` — не
-    // обрезается и не даёт гор. скролл.
-    right: -7px;
-    width: 5px;
-    height: 5px;
-    transform: translateY(-50%);
-    border-radius: var(--radius-full);
-    background: var(--color-ink);
-    pointer-events: none;
-    z-index: 2;
-    animation: recentDotIn 240ms cubic-bezier(0, 0, 0.2, 1) both;
 }
 
 @keyframes recentDotIn {
@@ -198,19 +144,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .recentDot {
+    .row_recent::after {
         animation: none;
     }
 }
 
-// ── Left time-gutter (baked 2026-06-22, was the RowBoundary `gutter-time`
-//    design-variant — DesignBar anchor retired). Opt-in per row via
-//    `data-row-gutter='time'`: the row's time leaves the tinted card backing and
-//    hangs in this left gutter, messenger-timestamp style. The wrapper opens the
-//    channel (li is flex-grow:1 → it shifts right); each row module absolutely
-//    positions its own time element into the gutter (see ScheduleFoodItemInline /
-//    ScheduleEventCard). Scoped to opting-in rows so plain LongPressRow lists
-//    (dish ingredients, portions, free-text review) keep their flush-left layout.
-.commonListItemWrapper[data-row-gutter='time'] {
-    padding-left: 46px;
-}
+// Left time-gutter (data-row-gutter='time') удалён 2026-06-25: время переехало
+// В карточку (CardLayout metaEnd) у всех строк — желоб больше не запрашивает никто.

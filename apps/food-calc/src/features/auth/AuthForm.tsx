@@ -162,7 +162,7 @@ export function AuthForm({
               )}
             </div>
 
-            <Button variant="primary" type="submit" className={styles.submitBtn} disabled={!emailValid}>
+            <Button variant="system" type="submit" className={styles.submitBtn} disabled={!emailValid}>
               Продолжить
             </Button>
           </form>
@@ -190,7 +190,7 @@ export function AuthForm({
             </div>
 
             <Button
-              variant="primary"
+              variant="system"
               type="submit"
               className={styles.submitBtn}
               disabled={!passwordValid || isLoading}

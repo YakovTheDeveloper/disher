@@ -6,10 +6,8 @@
 
 .row {
     // Заголовок + тело — sans (Onest), монохром (унификация с мигрированным
-    // HypothesisCard, 2026-06-22). Размеры — локальные сиды (токен-гейт: font-size
-    // через var()).
-    --hli-fs-title: 1.1875rem;
-    --hli-fs-body: 0.9375rem;
+    // HypothesisCard, 2026-06-22). Размер несёт примитив (<Heading>/<Text> role) —
+    // font-size снят из scss (sys-only typo-инкапсуляция).
 
     position: relative;
     display: flex;
@@ -26,8 +24,8 @@
         top: 7px;
         bottom: 7px;
         width: 3px;
-        border-radius: 2px;
-        background: color-mix(in srgb, var(--sys-card-text-active) 55%, transparent);
+        border-radius: var(--sys-radius-tmp); /* was 2px */
+        background: var(--sys-card-text-active-muted);
         transition: width 0.14s ease, background 0.14s ease;
     }
 
@@ -57,6 +55,7 @@
     // ring here would read as a misaligned box. Colour = the tone's accent;
     // composes with [data-selected].
     &[data-new] {
+        /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- цветной декор-кант «new»-кольца, не elevation-рунг */
         box-shadow: inset 0 0 0 1.5px var(--sys-card-text-active);
     }
 
@@ -89,9 +88,9 @@
 
     // Цветной отклик: тинт фона при нажатии на область чекбокса
     &:active {
-        background: var(--press-tint-bg);
+        background: var(--sys-color-bg-press);
         color: var(--sys-field-caret, var(--color-ink));
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -109,9 +108,9 @@
     justify-content: center;
     width: 22px;
     height: 22px;
-    border-radius: 7px;
+    border-radius: var(--sys-radius-control); /* was 7px */
     border: 1.5px solid var(--sys-card-text-active);
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--sys-color-surface-bright);
     transition: background 0.13s ease, transform 0.1s ease;
 
     &::after {
@@ -163,16 +162,14 @@
 // Заголовок — sans + монохром (унификация с мигрированным HypothesisCard,
 // 2026-06-22): засечка и navy сняты, ink по surface-токену темы.
 .title {
-    font-size: var(--hli-fs-title);
     line-height: 1.22;
     color: var(--sys-card-text-rest);
 }
 
 // Тело — Onest near-black на полную силу (читаемее прежних 58%).
 .body {
-    font-size: var(--hli-fs-body);
     line-height: 1.5;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 85%, transparent);
+    color: var(--sys-card-text-strong);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -184,9 +181,8 @@
 // size, dimmer than the body.
 .meta {
     margin-top: 2px;
-    font-size: var(--text-xs);
     line-height: 1.2;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 50%, transparent);
+    color: var(--sys-card-text-faint);
     opacity: 0.8;
 }
 
@@ -218,20 +214,9 @@
         padding: var(--space-3) var(--space-4);
     }
 
-    // Размер заголовка — на сетке (--text-lg, 20px), как у карточек разбора
-    // (<Heading role="title">). Семейство/цвет .title наследует из base (серив-
-    // navy — отдельная, ещё не унифицированная трактовка сохранённого списка).
-    .title {
-        font-size: var(--text-lg);
-    }
-
-    .body {
-        font-size: var(--analysis-fs-detail, 0.96875rem);
-    }
-
-    .meta {
-        font-size: var(--analysis-fs-meta, 0.8125rem);
-    }
+    // Размер заголовка/тела/меты в analysis-режиме теперь несёт сам примитив
+    // (<Heading role="title"> / <Text role="body"/"caption">) — bespoke font-size
+    // оверрайды сняты (sys-only typo-инкапсуляция, role владеет размером).
 }
 
 // Edit affordance — тихий шеврон в правом-нижнем углу строки. Заменил прежний

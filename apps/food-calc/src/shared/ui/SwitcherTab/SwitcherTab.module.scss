@@ -19,9 +19,9 @@
   padding: 0 var(--space-1) var(--space-2);
   cursor: pointer;
   text-align: left;
-  color: #000000;
+  color: var(--sys-color-text-system);
   border: 2px solid transparent;
-  border-radius: var(--space-2);
+  border-radius: var(--sys-radius-control);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
 
@@ -31,7 +31,9 @@
   --nav-ambient: none;
 
   // INACTIVE = плоский: лёгкая тёмная подложка, без тени, без обводки.
-  background: var(--nav-ambient), rgba(0, 0, 0, 0.02);
+  // bg расщеплён: color гейтится (sys), image держит полиморфный ambient (не гейтится).
+  background-color: var(--sys-color-bg-hover);
+  background-image: var(--nav-ambient);
   box-shadow: none;
   transition: opacity var(--press-out) ease, box-shadow var(--press-out) ease,
     background-color var(--press-out) ease;
@@ -49,16 +51,15 @@
 // Вход мгновенный (--press-in), выход плавный (--press-out).
 .tile:active {
   opacity: 0.45;
-  transition-duration: var(--press-in);
+  transition-duration: var(--sys-duration-press-in);
 }
 
 .tileActive {
   // ACTIVE = выпуклая: белая бумага + мягкая 2-слойная тень.
   // Ambient (если задан) накладывается на белый поверх.
-  background: var(--nav-ambient), #ffffff;
-  box-shadow:
-    0 10px 22px rgba(45, 38, 28, 0.14),
-    0 3px 6px rgba(45, 38, 28, 0.08);
+  background-color: var(--sys-color-surface-bright);
+  background-image: var(--nav-ambient);
+  box-shadow: var(--sys-elevation-action-rest);
 
   // Active-дефолты картинки — на самом `.tileActive` (не на вложенном
   // `.tileImg`) чтобы inline style потребителя всегда перекрывал их.

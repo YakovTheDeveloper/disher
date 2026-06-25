@@ -16,11 +16,11 @@
 // (специфичность 0,2,0) перебивает базовый `.heading { color }` (0,1,0)
 // независимо от порядка загрузки CSS-модулей — не полагаемся на source-order.
 .header .headerTitle {
-    color: rgba(15, 23, 42, 0.88);
+    color: var(--sys-color-text-system);
 }
 
 .headerCount {
-    color: rgba(15, 23, 42, 0.45);
+    color: var(--sys-color-text-tertiary);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
@@ -42,16 +42,15 @@
 // the outer ScreenScroll still reaches the daily-analysis section below.
 .scrollWrap {
     position: relative;
-    border-radius: 14px;
-    box-shadow: 0 1px 0 rgba(45, 38, 28, 0.04),
-        0 6px 20px -14px rgba(45, 38, 28, 0.25);
+    border-radius: var(--sys-radius-container);
+    box-shadow: var(--sys-elevation-action-rest);
 }
 
 .scrollBody {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-container);
     // Keep the inner scroll from chaining into the page scroll mid-list.
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
@@ -86,7 +85,7 @@
 
 .capHint {
     margin: 8px 4px 0;
-    color: rgba(15, 23, 42, 0.45);
+    color: var(--sys-color-text-tertiary);
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────
@@ -95,7 +94,7 @@
     flex-direction: column;
     gap: 6px;
     padding: 22px 18px;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-container);
     background: var(--sys-card-bg);
 }
 
@@ -108,7 +107,7 @@
 .emptyBody {
     margin: 0;
     line-height: 1.5;
-    color: color-mix(in srgb, var(--sys-card-text-rest) 58%, transparent);
+    color: var(--sys-card-text-muted);
 }
 
 // Row palette comes from the app-wide tone (`--sys-card-*`) — the per-section

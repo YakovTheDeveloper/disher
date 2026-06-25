@@ -1,44 +1,15 @@
+// Колонку + split-ряды держит CardLayout (title-row / meta-row). Здесь .row —
+// только класс на подложку LongPressRow: гасим её декоративный паддинг И
+// wrapper-floor (паритет с едой: тап-пол приходит от padding-block <TapTarget>,
+// иначе событие выше еды + время плавает по центру).
 .row {
-  display: grid;
-  // Baked gutter-time (2026-06-22): single content column — the time is taken
-  // out of flow into the wrapper's left gutter (see `.time` below). Text + atoms
-  // stack in the one column.
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
-  gap: 4px 10px;
-  align-items: center;
-
-  // Container owns no decorative vertical padding (parity with ScheduleFoodItem,
-  // 2026-06-24). Unlike food the two cells are STACKED (.text over .atomsZone),
-  // so the parallel-cell min-h pattern doesn't transfer — the row's vertical
-  // rhythm stays on LongPressRow's legitimate min-h-touch floor + align-content
-  // centering, not on wrapper padding.
   --sys-row-pad-block: 0;
+  --sys-row-min-h-touch: 0;
 }
 
-// Baked gutter-time (2026-06-22, was the RowBoundary `gutter-time` design-variant
-// — DesignBar anchor retired). The event time leaves the card backing and hangs
-// in the wrapper's left gutter (opened by LongPressRow via `data-row-gutter`),
-// mirroring the food rows: out of flow (absolute), right-aligned against the
-// card's left edge.
-.time {
-  position: absolute;
-  right: calc(100% + var(--space-3));
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  // Fixed page-context ink, NOT the card's --text-* tokens — a dark event
-  // palette would otherwise paint the gutter time white on the light page.
-  // `--color-light-gray` is :root-only, palette-stable.
-  color: var(--color-light-gray);
-}
-
+// title-слот: текст события (клампим в 2 строки).
 .text {
-  grid-column: 1;
-  color: var(--text-primary);
+  color: var(--sys-color-text-primary);
   cursor: pointer;
 
   display: -webkit-box;
@@ -47,12 +18,25 @@
   overflow: hidden;
 }
 
-.atomsZone {
-  grid-column: 1;
+// metaEnd-слот: время. Раскладку (flex-shrink:0, прижатие к низу) держит
+// CardLayout `.end`; здесь только типографика. Время живёт НА подложке
+// (не в желобе страницы) → цвет из палитры карточки.
+.time {
+  font-size: var(--sys-numeral-sm);
   cursor: pointer;
-  min-height: 20px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--sys-color-text-secondary);
+}
+
+// meta-слот: лента тегов-чипов. flex:1 даёт CardLayout `.start > *`; здесь
+// только внутренний перенос чипов.
+.atomsZone {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 4px;
+  cursor: pointer;
 }
 
 .atomsZoneEmpty {
@@ -66,13 +50,7 @@
 }
 
 .atomsPlaceholder {
-  color: var(--text-muted);
-}
-
-.atoms {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  color: var(--sys-color-text-muted);
 }
 
 .chip {
@@ -80,7 +58,7 @@
   align-items: center;
   gap: 3px;
   padding: 2px 8px;
-  border-radius: 12px;
+  border-radius: var(--sys-radius-container);
   white-space: nowrap;
 }
 
@@ -88,13 +66,13 @@
 // card, published by the events' own `[data-dv='ScheduleEvents']` palette
 // (default `lemon`; switchable in the DesignBar).
 .chipScale {
-  background-color: color-mix(in oklch, var(--text-primary) 10%, transparent);
-  color: var(--text-secondary);
+  background-color: var(--sys-color-chip-tint);
+  color: var(--sys-color-text-secondary);
 }
 
 .chipTag {
-  background-color: color-mix(in oklch, var(--text-primary) 10%, transparent);
-  color: var(--text-secondary);
+  background-color: var(--sys-color-chip-tint);
+  color: var(--sys-color-text-secondary);
 }
 
 
@@ -102,8 +80,8 @@
   display: inline-block;
   width: 32px;
   height: 4px;
-  border-radius: 2px;
-  background-color: color-mix(in oklch, var(--text-primary) 14%, transparent);
+  border-radius: var(--sys-radius-tmp);
+  background-color: var(--sys-color-chip-tint-strong);
   position: relative;
   overflow: hidden;
   vertical-align: middle;
@@ -114,8 +92,8 @@
   left: 0;
   top: 0;
   height: 100%;
-  border-radius: 2px;
-  background-color: var(--text-secondary);
+  border-radius: var(--sys-radius-tmp);
+  background-color: var(--sys-color-text-secondary);
 }
 
 // «Недавно добавлено» marker переехал в LongPressRow (правый жёлоб вне подложки,

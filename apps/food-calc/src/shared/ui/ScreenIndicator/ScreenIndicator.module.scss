@@ -129,7 +129,7 @@
 // Сериф-италик «музейная табличка» номера живёт в <QuietLabel>; здесь — только
 // цвет + состояние (тусклый неактивный / полный активный).
 .swipeDotNum {
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     opacity: 0.3;
 }
 

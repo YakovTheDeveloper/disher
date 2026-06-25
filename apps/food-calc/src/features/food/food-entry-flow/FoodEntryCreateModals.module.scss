@@ -13,7 +13,7 @@
 
 .createHint {
   margin: 0;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--sys-color-text-secondary);
 }
 
 // Чекбокс «Таблетка / лекарство / БАД» — warm-pill блок шириной с инпут.
@@ -36,7 +36,7 @@
 
 .supplementUnit {
   margin: 0;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--sys-color-text-secondary);
 }
 
 .nutrientsToggle {
@@ -49,7 +49,7 @@
   background: transparent;
   border: none;
   // Source Serif italic голос section-title живёт в <QuietLabel> (текст внутри).
-  color: rgba(0, 0, 0, 0.78);
+  color: var(--sys-color-text-system);
   cursor: pointer;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
@@ -57,14 +57,14 @@
 
   // Цветной отклик: тинт-подсветка на касание (quiet section-toggle archetype)
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }
 
 .nutrientsToggleHint {
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--sys-color-text-tertiary);
 }
 
 .nutrientGroupsList {
@@ -81,41 +81,15 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: 14px;
+  border-radius: var(--sys-radius-container); /* was 14px */
   overflow: hidden;
 
   // Surface + hairline follow the app-wide tone (--sys-card-*); folded into the
   // ModalShell «law-giver» 2026-06-13 (was per-group honey/green/orange/purple
-  // backgrounds that fought the global tone). Each group keeps ONLY a distinct
-  // 3px accent stripe for nutrient-category identity (stripe-fork rule 3 —
-  // accent carries data, not the whole surface). main/БЖУ = neutral tone accent.
+  // backgrounds that fought the global tone). Поверхность общая по тону; бывший
+  // per-category 3px accent-stripe (--group-accent) удалён 2026-06-25 — не нужен.
   background: var(--sys-card-bg);
-  --group-accent: var(--sys-card-text-active);
   --group-hairline: var(--sys-card-hairline);
-
-  // Vertical accent 3px слева — несёт категорию группы (правило 3 stripe-fork).
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 8px;
-    bottom: 8px;
-    width: 3px;
-    background: var(--group-accent);
-    border-radius: 0 2px 2px 0;
-    pointer-events: none;
-  }
-
-  // Только accent-полоска несёт категорию — поверхность общая (тон).
-  &[data-group='minerals'] {
-    --group-accent: rgba(45, 120, 80, 0.55);
-  }
-  &[data-group='vitamins'] {
-    --group-accent: rgba(195, 95, 35, 0.55);
-  }
-  &[data-group='aminoAcids'] {
-    --group-accent: rgba(110, 75, 165, 0.55);
-  }
 }
 
 // Fading hairline-разделитель (правило 2 stripe-fork) появляется только
@@ -169,7 +143,7 @@
   // только не-типографические оверрайды (transform/color) под warm-stripe.
   > span {
     text-transform: none !important;
-    color: rgba(0, 0, 0, 0.7) !important;
+    color: var(--sys-color-text-system) !important;
   }
 }
 
@@ -180,7 +154,7 @@
   cursor: pointer;
   padding: 24px 8px;
   padding-top: 28px;
-  color: var(--color-ink);
+  color: var(--sys-color-text-system);
   font-family: var(--font-mono, monospace);
   text-decoration: underline;
   text-decoration-thickness: 1.5px;
@@ -190,9 +164,9 @@
 
   // Цветной отклик: тинт-заливка на касание (quiet text-link button archetype)
   &:active {
-    background: var(--press-tint-bg);
+    background: var(--sys-color-bg-press);
     color: var(--sys-field-caret, var(--color-ink));
     transform: scale(0.97);
-    transition-duration: var(--press-in);
+    transition-duration: var(--sys-duration-press-in);
   }
 }

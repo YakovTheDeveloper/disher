@@ -7,19 +7,7 @@
 // тихой «+ к себе», не из заливки. Layout — колонка: текст сверху, действие в
 // правом нижнем углу.
 .card {
-    --hc-ink: var(--sys-card-text-rest);
-    // Плотность soft/faint переопределяема (`--analysis-*-amt`): на белой карточке
-    // 62% выцветает, дом поднимает до 80/64 (см. Laboratory `.ambientSheet`).
-    --hc-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-soft-amt, 62%), transparent);
-    --hc-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-faint-amt, 50%), transparent);
-    // Тело — near-black на полную силу (гармоничная композиция 2026-06-21).
-    --hc-ink-body: color-mix(in srgb, var(--sys-card-text-rest) var(--analysis-body-amt, 85%), transparent);
-    --hc-chip-radius: var(--radius-sm);
-    // Кегли тела/меты — на модульной сетке (`--text-*`): тело 16 (`--text-base`),
-    // мета 12.8 (`--text-sm`). Заголовок больше НЕ здесь — рендерится примитивом
-    // <Heading role="title"> (17px = Apple Title3 register, вес 600, монохром).
-    --hc-fs-body: var(--analysis-fs-detail, var(--text-base));
-    --hc-fs-meta: var(--analysis-fs-meta, var(--text-sm));
+    --hc-chip-radius: var(--sys-radius-control);
 
     position: relative;
     display: flex;
@@ -64,13 +52,13 @@
 .days {
     flex-shrink: 0;
     white-space: nowrap;
-    color: var(--hc-ink-faint);
+    color: var(--sys-card-text-faint);
 }
 
 // Тело — голос (Onest body) живёт в примитиве <Text role="body">
 // (HypothesisCard.tsx). Здесь — только near-black surface-adaptive ink.
 .body {
-    color: var(--hc-ink-body);
+    color: var(--sys-card-text-strong);
 }
 
 // Жёлтая градиентная кнопка «+ к себе» с ЧЁРНЫМ ink, прижата в правый нижний
@@ -78,9 +66,6 @@
 // (`--radius-md` — скруглённый прямоугольник, не пилюля): гипотеза = более
 // «бланковое» действие. ≥40px (touch-floor inner control).
 .add {
-    --hc-btn-added-ink: rgba(38, 110, 64, 0.92);
-    --hc-btn-radius: var(--radius-md);
-
     align-self: flex-end;
     flex-shrink: 0;
     display: inline-flex;
@@ -89,10 +74,10 @@
     padding: var(--space-2) var(--space-3); // высоту держит min-height (touch-floor)
     min-height: 40px;
     border: none;
-    border-radius: var(--hc-btn-radius);
-    background: var(--cta-brand-fill);
+    border-radius: var(--sys-radius-container);
+    background: var(--sys-color-surface-action-primary);
     box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский (принцип A)
-    color: var(--cta-brand-ink);
+    color: var(--sys-color-text-on-action);
     white-space: nowrap;
     cursor: pointer;
     transition:
@@ -116,8 +101,8 @@
 
     // Сохранено — гасим градиент в спокойную выцветшую плашку с зелёным ink.
     &[data-added] {
-        background: color-mix(in srgb, var(--sys-card-text-rest) 6%, transparent);
+        background: var(--sys-card-bg-sunk);
         box-shadow: none;
-        color: var(--hc-btn-added-ink);
+        color: var(--sys-color-status-success);
     }
 }

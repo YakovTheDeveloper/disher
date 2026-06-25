@@ -1,6 +1,6 @@
 // Surface владеет фоном (drawer-канон: surface owns bg). Чистый белый.
 .surface {
-    background: var(--color-white);
+    background: var(--sys-color-surface-bright);
 }
 
 // Боковой «воздух» = `--sys-inset-sheet` (24px) — роль full-width-поверхности

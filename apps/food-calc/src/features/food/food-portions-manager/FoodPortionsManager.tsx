@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { CardLayout } from '@/shared/ui/atoms/CardLayout';
 import s from './FoodPortionsManager.module.scss';
 
 type Portion = { label: string; grams: number };
@@ -85,22 +86,29 @@ const PortionEditRow = ({
     setEditing(null);
   };
 
-  return (
-    <div className={s.portionEdit} {...pressHandlers}>
-      {editing === 'label' ? (
-        <input
-          className={s.formInput}
-          defaultValue={portion.label}
-          placeholder="название"
-          autoFocus
-          onBlur={finishLabel}
-        />
-      ) : (
-        <Text as="span" role="label" className={s.cellLabel} onClick={() => setEditing('label')}>
-          {portion.label}
-        </Text>
-      )}
+  // Слот-API (CardLayout, CardShell unification 2026-06-25): title = label
+  // (тянется), titleEnd = grams+unit (прибит вправо по базовой линии title-строки).
+  // Обе ячейки stateful (тап → input autoFocus → blur коммитит) → node-escape.
+  // Контейнер sky-pill (.portionEdit) владеет фоном + long-press (useLongPress
+  // навешен на него — НЕ оборачиваем в LongPressRow, иначе её tod-фон закрасил бы
+  // sky-градиент; «один владелец bg»). CardLayout bg-агностик, только раскладывает.
+  const labelNode =
+    editing === 'label' ? (
+      <input
+        className={s.formInput}
+        defaultValue={portion.label}
+        placeholder="название"
+        autoFocus
+        onBlur={finishLabel}
+      />
+    ) : (
+      <Text as="span" role="label" className={s.cellLabel} onClick={() => setEditing('label')}>
+        {portion.label}
+      </Text>
+    );
 
+  const gramsNode = (
+    <span className={s.gramsCell}>
       {editing === 'grams' ? (
         <input
           className={s.formInputGrams}
@@ -111,12 +119,25 @@ const PortionEditRow = ({
           onBlur={finishGrams}
         />
       ) : (
-        <Numeral as="span" size="sm" weight="regular" className={s.cellGrams} onClick={() => setEditing('grams')}>
+        <Numeral
+          as="span"
+          size="sm"
+          weight="regular"
+          className={s.cellGrams}
+          onClick={() => setEditing('grams')}
+        >
           {portion.grams || '—'}
         </Numeral>
       )}
+      <Text as="span" role="caption" className={s.portionUnitSuffix}>
+        {unit}
+      </Text>
+    </span>
+  );
 
-      <Text as="span" role="caption" className={s.portionUnitSuffix}>{unit}</Text>
+  return (
+    <div className={s.portionEdit} {...pressHandlers}>
+      <CardLayout title={{ node: labelNode }} titleEnd={{ node: gramsNode }} />
     </div>
   );
 };

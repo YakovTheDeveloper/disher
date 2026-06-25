@@ -14,7 +14,7 @@
 .content {
     position: fixed;
     box-sizing: border-box;
-    background-color: white;
+    background-color: var(--sys-color-surface-bright);
     z-index: calc(5001 + var(--nested-drawers, 0) * 10);
     overscroll-behavior: contain;
     display: flex;
@@ -30,10 +30,9 @@
     will-change: transform;
     contain: layout style paint;
 
-    // Fling-close: shorten exit duration proportional to swipe velocity. Base UI sets
-    // --drawer-swipe-strength on release (0.1–1).
+    // Статическая длительность выхода (бывш. swipe-strength множитель — упрощено 2026-06-25).
     &[data-ending-style] {
-        transition-duration: calc(var(--drawer-swipe-strength, 1) * 400ms);
+        transition-duration: var(--sys-duration-drawer);
     }
 
     &:focus-visible {
@@ -75,17 +74,17 @@
     right: 0;
     max-height: 100svh;
     // Крупное «листовое» скругление верхних углов — тот же радиус, что у листа
-    // Screen `headerOverlap` на HomePage (--radius-2xl, 40px). Единый силуэт
+    // Screen `headerOverlap` на HomePage (--sys-radius-sheet, 40px). Единый силуэт
     // «листа» между нижними drawer'ами и Screen-обвязкой. Side-drawer'ы (left/
     // right) держат свой --radius-lg намеренно.
-    border-top-left-radius: var(--radius-2xl);
-    border-top-right-radius: var(--radius-2xl);
+    border-top-left-radius: var(--sys-radius-sheet);
+    border-top-right-radius: var(--sys-radius-sheet);
     // Edge-glint — НАМЕРЕННЫЙ декоративный glass-кант (Vista/Aero voice), НЕ elevation.
     // Отделение краевого дровера несёт scrim (Drawer.module.scss .overlay, black/0.2);
     // этот тонкий кант — чистый голос, выведен из --sys-elevation-* (решение 2026-06-22:
     // стандарт M3/Apple = scrim, не тень у краевых панелей). Navy-tint по locked-канону
     // теней. Exempt в будущем shadow-греп-гейте (как focus/selection-ring).
-    box-shadow: 0px -2px 4px rgba(45, 38, 28, 0.03);
+    box-shadow: 0px -2px 4px rgba(45, 38, 28, 0.03); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), exempt как focus-ring */
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
     // Live gesture-driven transform during swipe; --drawer-swipe-movement-y is set
@@ -151,7 +150,7 @@
     flex-direction: row-reverse;
     border-top-right-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
-    box-shadow: 4px 0 16px rgba(45, 38, 28, 0.08); // glass-кант (voice, НЕ elevation) — см. .content_bottom
+    box-shadow: 4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
 
     &[data-starting-style],
     &[data-ending-style] {
@@ -171,7 +170,7 @@
     right: 0;
     border-top-left-radius: var(--radius-lg);
     border-bottom-left-radius: var(--radius-lg);
-    box-shadow: -4px 0 16px rgba(45, 38, 28, 0.08); // glass-кант (voice, НЕ elevation) — см. .content_bottom
+    box-shadow: -4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
 
     &[data-starting-style],
     &[data-ending-style] {
@@ -257,7 +256,7 @@
         z-index: 2;
         width: 4px;
         height: clamp(36px, 7vh, 56px);
-        border-radius: var(--radius-full);
+        border-radius: var(--sys-radius-indicator);
         background: var(--sys-field-adornment, rgba(124, 65, 15, 0.16));
         transition: background 140ms ease, height 140ms ease;
     }
@@ -304,17 +303,17 @@
 // to a neutral base, clip the blurred photo, and turn the grip into a
 // frosted-white pill with a soft shadow so it reads on any image.
 .edgeHandleImage {
-    background: var(--surface-base);
+    background: var(--sys-color-surface-page);
     overflow: hidden;
 
     &::before {
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.28);
+        background: var(--sys-color-surface-bright);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.28); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- frosted-pill ring+drop (bespoke, не elevation) */
     }
 }
 
 .content[data-swiping] .edgeHandleImage::before {
-    background: white;
+    background: var(--sys-color-surface-bright);
 }
 
 // Right-anchored drawer → handle on its left edge → panel is to the right.
@@ -340,18 +339,18 @@
     top: 0;
     display: flex;
     // align-items: center;
-    border-radius: 8px;
+    border-radius: var(--sys-radius-control);
 
     * {
-        color: rgba(0, 0, 0, 0.2);
+        color: var(--sys-color-text-tertiary);
         font-size: var(--sys-icon-size-md); // close-глиф 24px (был 1.5rem)
         transition: color var(--press-out) var(--easing-default);
     }
 
     // Цветной отклик: на нажатии бледный глиф темнеет до ink.
     &:active * {
-        color: var(--color-ink);
-        transition-duration: var(--press-in);
+        color: var(--sys-color-text-system);
+        transition-duration: var(--sys-duration-press-in);
     }
 
     &_back {
@@ -373,7 +372,7 @@
 .titleCenter {
     margin: 0;
     max-width: 60%;
-    color: var(--color-ink);
+    color: var(--sys-color-text-system);
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -402,7 +401,7 @@
 .titleSubtitle {
     margin: 0;
     max-width: 100%;
-    color: var(--text-secondary);
+    color: var(--sys-color-text-secondary);
     text-align: center;
     word-break: break-all;
     pointer-events: none;

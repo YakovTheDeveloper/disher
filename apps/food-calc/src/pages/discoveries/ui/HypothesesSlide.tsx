@@ -74,10 +74,10 @@ const HypothesesSlide = ({ topSlot }: Props) => {
             <Heading as="h3" role="title" className={styles.emptyTitle}>
               Пока нет гипотез
             </Heading>
-            <p className={styles.emptyBody}>
+            <Text as="p" role="caption" className={styles.emptyBody}>
               Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
               <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.
-            </p>
+            </Text>
           </div>
         ) : (
           <HypothesisListPanel

@@ -52,7 +52,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     border: none;
     background: none;
     color: var(--sys-field-text, #{$ink});
-    border-radius: var(--radius-xs);
+    border-radius: var(--sys-radius-tmp);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -64,12 +64,12 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         height: 24px;
     }
 
-    &:hover { background: var(--press-tint-bg, rgba(124, 65, 15, 0.05)); }
+    &:hover { background: var(--sys-color-bg-press); }
     // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
     &:active {
-        background: var(--press-tint-bg);
+        background: var(--sys-color-bg-press);
         color: var(--sys-field-caret, var(--color-ink));
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
     &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
 }
@@ -180,7 +180,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     padding: 12px 12px 11px;
     background: var(--sys-field-bg-from, #fff);
     border: 1px solid var(--sys-field-hairline, rgba(124, 65, 15, 0.14));
-    border-radius: 12px;
+    border-radius: var(--sys-radius-container);
     cursor: text;
     transition: border-color 0.15s ease, background 0.15s ease;
 
@@ -191,12 +191,12 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 .numberFieldInvalid {
-    border-color: rgba(190, 60, 50, 0.55);
-    background: #fff6f4;
+    border-color: var(--sys-color-status-danger);
+    background: var(--sys-color-status-danger-surface);
 
     &:focus-within {
-        border-color: rgba(190, 60, 50, 0.85);
-        background: #fff8f6;
+        border-color: var(--sys-color-status-danger);
+        background: var(--sys-color-status-danger-surface);
     }
 }
 
@@ -214,7 +214,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         border: none;
         padding: 0;
         font-family: var(--sys-text-family-serif);
-        font-size: 1.5rem;
+        font-size: var(--sys-field-font-size-md);
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
         color: var(--sys-field-text, #{$ink});
@@ -244,7 +244,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
             var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
             var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
             var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
-    border-radius: 16px;
+    border-radius: var(--sys-radius-cta);
     overflow: hidden;
     // Lift the kcal hero off the (same-family) surface — needed now that both
     // read the variant's near-white field-bg and would otherwise blend.
@@ -295,7 +295,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     padding: 3px 9px;
     background: var(--sys-chip-bg, rgba(255, 255, 255, 0.6));
     border: 1px solid var(--sys-chip-border, rgba(124, 65, 15, 0.12));
-    border-radius: var(--radius-xs);
+    border-radius: var(--sys-radius-tmp);
 }
 
 // Голос (serif-italic + цвет/opacity) несёт примитив <QuietLabel>.
@@ -333,7 +333,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     padding: 14px 22px;
     padding-bottom: max(14px, env(safe-area-inset-bottom));
     flex-shrink: 0;
-    background: rgba(255, 251, 243, 0.85);
+    background: var(--sys-color-surface-bright);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 
@@ -356,7 +356,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     border: none;
     background: var(--sys-field-text, #{$ink});
     color: var(--sys-color-text-on-accent);
-    border-radius: 12px;
+    border-radius: var(--sys-radius-container);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -364,14 +364,14 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         filter var(--press-out) var(--easing-default),
         opacity var(--press-out) var(--easing-default),
         transform var(--press-out) var(--easing-default);
-    box-shadow: 0 1px 2px rgba(44, 29, 10, 0.18);
+    box-shadow: var(--sys-elevation-action-rest);
 
     &:hover { filter: brightness(0.92); }
     // Цветной отклик: основная CTA (тёмная заливка) → потемнение
     &:active {
         filter: brightness(0.85);
         transform: scale(0.97);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
     &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
 }

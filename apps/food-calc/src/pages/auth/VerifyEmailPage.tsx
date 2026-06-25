@@ -81,7 +81,7 @@ export default function VerifyEmailPage() {
           <div className={authFormStyles.formWrap}>
             <div className={authFormStyles.form}>
               <Button
-                variant="primary"
+                variant="system"
                 className={authFormStyles.submitBtn}
                 onClick={() => {
                   clearPending();

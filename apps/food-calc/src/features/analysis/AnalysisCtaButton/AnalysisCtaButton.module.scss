@@ -10,12 +10,11 @@
 // Спиннер под СВЕТЛУЮ пилюлю: тёмный ink (раньше был белый под dark-pill).
 .spinner {
     --spin-track: rgba(34, 31, 25, 0.25);
-    --spin-head: var(--sys-color-text-primary);
     width: 15px;
     height: 15px;
-    border-radius: var(--radius-full);
+    border-radius: var(--sys-radius-indicator);
     border: 2px solid var(--spin-track);
-    border-top-color: var(--spin-head);
+    border-top-color: var(--sys-color-text-system);
     animation: cta-spin 0.7s linear infinite;
 }
 

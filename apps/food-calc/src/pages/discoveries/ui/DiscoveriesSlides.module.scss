@@ -23,15 +23,6 @@
     --analysis-soft-amt: 72%;
     --analysis-faint-amt: 50%;
 
-    // Ink-замесы и размеры — локальные custom props (наследуются в потомков),
-    // чтобы gated-свойства (color/font-size) читались через var() (token-gate).
-    --d-ink: color-mix(in srgb, var(--sys-card-text-rest) 88%, transparent);
-    --d-ink-soft: color-mix(in srgb, var(--sys-card-text-rest) 62%, transparent);
-    --d-ink-faint: color-mix(in srgb, var(--sys-card-text-rest) 50%, transparent);
-    --d-fs-count: 13px;
-    --d-fs-title: 17px;
-    --d-fs-body: 14px;
-
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -56,7 +47,7 @@
 // Голос (мелкая мета) — примитив <Text role="caption"> (Hypotheses/InsightsSlide).
 .count {
     margin: 0;
-    color: var(--d-ink-faint);
+    color: var(--sys-card-text-faint);
 }
 
 .empty {
@@ -70,14 +61,14 @@
 // Голос (заголовок 17px) — примитив <Heading role="title"> (Hypotheses/InsightsSlide).
 .emptyTitle {
     margin: 0;
-    color: var(--d-ink);
+    color: var(--sys-card-text-strong);
 }
 
 .emptyBody {
+    // font-size → <Text role="caption">; здесь layout + цвет.
     margin: 0;
-    font-size: var(--d-fs-body);
     line-height: 1.55;
-    color: var(--d-ink-soft);
+    color: var(--sys-card-text-muted);
 }
 
 .writeBarDock {

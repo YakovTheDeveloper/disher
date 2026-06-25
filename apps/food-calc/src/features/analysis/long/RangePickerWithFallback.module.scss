@@ -49,18 +49,18 @@
 // ─── Summary line ─────────────────────────────────────────────────────
 .summary {
     margin: 0;
-    color: rgba(15, 23, 42, 0.78);
+    color: var(--sys-color-text-system);
 }
 
 .summarySpan {
-    color: rgba(15, 23, 42, 0.5);
+    color: var(--sys-color-text-secondary);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 .summaryInvalid {
-    color: #c0392b;
+    color: var(--sys-color-status-danger);
 }
 
 .summaryHint {
-    color: #c0392b;
+    color: var(--sys-color-status-danger);
 }

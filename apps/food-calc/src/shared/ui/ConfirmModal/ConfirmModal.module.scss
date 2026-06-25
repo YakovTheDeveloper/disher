@@ -22,7 +22,7 @@
 .confirmDanger {
     flex: 1;
     padding: 12px 16px;
-    border-radius: 14px;
+    border-radius: var(--sys-radius-cta); /* was 14px */
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition:
@@ -34,27 +34,27 @@
 
     &:active {
         transform: scale(0.97);
-        transition-duration: var(--press-in);
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
 .cancel {
-    border: 1px solid rgba(15, 23, 42, 0.16);
+    border: 1px solid var(--sys-color-border-subtle); /* was slate rgba(15,23,42,.16) */
     background: transparent;
-    color: rgba(15, 23, 42, 0.7);
+    color: var(--sys-color-text-secondary); /* was slate rgba(15,23,42,.7) — warm-neutral */
 
     // Цветной отклик: светлая отмена заливается ink + белый текст.
     &:active {
-        background: var(--color-ink);
-        border-color: var(--color-ink);
-        color: var(--text-on-accent);
+        background: var(--sys-color-surface-action-system);
+        border-color: var(--sys-color-border-action-system);
+        color: var(--sys-color-text-on-accent);
     }
 }
 
 .confirm {
     border: none;
-    background: var(--sys-color-bg-selected); // navy-brand action (token: flip-able tone, C1 2026-06-24)
-    color: var(--sys-color-text-on-selected);
+    background: var(--sys-color-surface-action-accent); // brand action → indigo accent (M4 navy→indigo, 2026-06-25)
+    color: var(--sys-color-on-accent);
 
     // Цветной отклик: сплошную кнопку затемняем фильтром.
     &:active {
@@ -64,8 +64,8 @@
 
 .confirmDanger {
     border: none;
-    background: #c0392b;
-    color: #fff;
+    background: var(--sys-color-status-danger);
+    color: var(--sys-color-text-on-accent);
 
     &:active {
         filter: brightness(0.9);

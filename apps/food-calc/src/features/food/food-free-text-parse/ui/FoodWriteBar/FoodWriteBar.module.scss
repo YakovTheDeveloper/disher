@@ -1,9 +1,10 @@
-// WriteFoodInput — food-specific bits only. The messenger-pill chrome (input +
-// send + medal + variants + keyboard-scroll) lives in the shared `WriteBarShell`
-// since 2026-06-09; this file keeps just the ready-state CTA that replaces the
-// field once the LLM returned a parse and the предложка is rendered below.
+// FoodWriteBar — food-specific bits only. Messenger-pill chrome (input + send +
+// medal + variants + keyboard-scroll) живёт в общем `WriteBarShell` (2026-06-09).
+// Тут остаётся только подъём дока + ready-state CTA «Посмотреть варианты»,
+// перенесённая из бывшего WriteFoodInput при слиянии (2026-06-25).
 
 @import '@/shared/assets/style/mixin.scss';
+
 
 // Ready-state CTA «Посмотреть варианты» — канон `Button variant="link"` (вид +
 // press владеет примитив). Здесь остаётся ТОЛЬКО раскладка: заполнить ширину
