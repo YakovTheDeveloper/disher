@@ -55,14 +55,6 @@
     min-height: 0;
 }
 
-// Основной лист (`.headerOverlap` в Screen.module) получает крупный радиус
-// верхних углов, гармонируя с заголовком-табами (баком 2026-06-22, DesignBar-ось
-// снята). `--header-overlap-radius` наследуется вниз по DOM к листу.
-.swipeArea {
-    --header-overlap-radius: var(--sys-radius-sheet);
-}
-
-
 .container {
     --sheet-band-blur: blur(14px) saturate(1.4);
     --sheet-seam-color: transparent;
@@ -72,6 +64,19 @@
 // hero-обложка (страница передала `heroForSlide` → `data-deck-hero`). На
 // hero-less страницах (Dish/Discoveries) белый знак утонул бы в светлом контенте,
 // поэтому там оставляем дефолтный тихий тёмный watermark (Screen.module.scss).
+// Постоянная высота hero-полки — ОДИН источник правды (HomeHero.root читает тот
+// же токен). Задаётся на КАЖДОМ деке (не только `data-deck-hero`), чтобы верхний
+// отступ был КОНСИСТЕНТНЫМ на всех экранах: и Home (с обложкой), и Блюдо/Открытия
+// (без обложки) резервируют одну полосу → табы/контент стартуют на одной высоте.
+// `.heroSlot` рендерится всегда и держит эту высоту, даже когда картинки нет.
+.container {
+    --deck-hero-h: calc(var(--top-bar-h, 60px) + 190px);
+}
+
+.heroSlot {
+    min-height: var(--deck-hero-h, 0);
+}
+
 .container[data-deck-hero] {
     --sys-color-header-overlap-logo: #fff;
     --header-overlap-logo-z: 1;

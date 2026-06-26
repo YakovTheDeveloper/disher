@@ -159,7 +159,7 @@
 [data-write-bar] .writeBarList {
     position: absolute;
     right: var(--sys-inset-page);
-    top: calc(var(--space-2) - var(--medal-size, calc(var(--pill-h) - var(--space-1))) * 0.75);
+    top: -60px;
     margin: 0;
 }
 

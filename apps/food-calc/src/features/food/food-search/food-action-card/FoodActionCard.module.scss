@@ -14,35 +14,18 @@
     // below stays local — it keys off this card's own `.item_active` child.
     @include stripe-fork-row;
 
-    // «Выбрано» = navy-кромка (inset outline уже разведён миксином) + галочка
-    // (.tick ниже), БЕЗ заливки. Единая идиома sys-«выбрано», как у Choice.
-    &:has(.item_active) {
-        outline-color: var(--sys-color-border-selected);
-    }
-}
+    padding-inline: var(--sys-inset-page);
 
-// Галочка-маркер «выбрано» — светлый бейдж в правом-верхнем углу, поверх
-// контента (z-index выше .item z1 и press-пилюли z0). Бейдж держит контраст
-// над любой подложкой строки.
-.tick {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: var(--sys-radius-indicator);
-    background: var(--sys-color-surface-raised);
-    box-shadow: var(--sys-elevation-action-rest);
-    pointer-events: none;
+    // Маркеры «выбрано» (amber-кромка + галочка-бейдж) убраны по запросу 2026-06-26:
+    // единственный фидбэк ряда — тёмная заливка ниже. Mixin держит outline прозрачным.
 
-    svg {
-        width: 10px;
-        height: 10px;
-        color: var(--sys-color-text-on-selected); // галочка = selected-hue как foreground (deep amber, M4 2026-06-25)
+    // Подсветка ряда (press/выбор) = ВО ВСЮ СТРОКУ, без скруглённой пилюли
+    // (запрос юзера 2026-06-26: «вся строка выделяется, по бокам не выделяется,
+    //  бордеры не нужны»). Перебивает inset:3px 6px + border-radius пилюли из
+    //  stripe-fork-row — равная специфичность, позже по исходнику → выигрывает.
+    &[data-pressed]::before {
+        inset: 0;
+        border-radius: 0;
     }
 }
 
@@ -90,15 +73,18 @@
     opacity: 0.75;
 }
 
-// Каталожная миниатюра продукта (build-route поле `image`). Круглая, тёплая
-// рамка-хайрлайн в тон stripe-warm каскада, кадрируется по центру.
+// Каталожная миниатюра продукта (build-route поле `image`). Круглая, кадрируется
+// по центру. 1px фото-кант = канонический холодный hairline (--sys-color-divider) —
+// семантически border (а не box-shadow-хак), box-sizing:border-box глобален → кадр
+// не сдвигается. Был сырой stripe-warm box-shadow rgba(124,65,15,.1) — остаток
+// старой honey-палитры, который карточки давно расхолодили в divider.
 .thumb {
     width: 36px;
     height: 36px;
     flex-shrink: 0;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 0 0 1px rgba(124, 65, 15, 0.1); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- warm 1px фото-кант (декор-ring, не elevation) */
+    border: 1px solid var(--sys-color-divider);
     background: var(--sys-color-bg-hover);
 }
 
@@ -154,7 +140,7 @@
     margin-left: var(--space-2);
     overflow: hidden;
     border-radius: var(--sys-radius-container);
-    background: var(--sys-card-rich-track, #eef0f3);
+    background: var(--sys-card-rich-track, #eeeeec);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
     color: var(--sys-card-rich-text);
     line-height: 1.1;
@@ -192,28 +178,6 @@
 .richPercent {
     color: var(--sys-card-rich-percent);
     margin-top: 1px;
-}
-
-.iconBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 56px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--sys-color-text-tertiary);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: color 0.18s ease, transform 0.12s ease;
-    -webkit-tap-highlight-color: transparent;
-    border-radius: inherit;
-
-    &:active {
-        color: var(--sys-color-text-system);
-        transform: scale(0.88);
-    }
 }
 
 // Подпись-вид под названием еды («блюдо» / «мой продукт»). Absolute, чтобы не
@@ -269,41 +233,6 @@
         color: var(--sys-card-text-active);
         opacity: 1;
         transform: scale(0.88);
-    }
-}
-
-.deleteBtn {
-    color: var(--sys-color-status-danger);
-
-    &:active {
-        color: var(--sys-color-status-danger);
-    }
-}
-
-.popoverContent {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 4px;
-    min-width: 160px;
-}
-
-.popoverAction {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 14px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    color: var(--sys-color-status-danger);
-    border-radius: var(--sys-radius-control);
-    width: 100%;
-    text-align: left;
-    transition: background 0.12s;
-
-    &:active {
-        background: var(--sys-color-status-danger-surface);
     }
 }
 

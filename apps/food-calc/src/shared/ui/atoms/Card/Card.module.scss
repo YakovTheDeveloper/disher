@@ -1,0 +1,99 @@
+// Card — геометрия + типографика-по-слоту compound-каркаса. Фон/подложку держит
+// LongPressRow (Card.Root композирует её). 2 строки, каждая = [start: течёт
+// (flex:1) | end: прибит (shrink:0)]. Слот задаёт ТИП (через <Text>) и ЦВЕТ здесь
+// — единственный источник типографики карточек. См.
+// tds/ANALYSIS/card-chassis-simplify-2026-06-25.md
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  // `.card` владеет горизонтальным инсетом контента (drawer-layout канон: surface =
+  // LongPressRow bg, content = padding). Card.Root гасит строковый --row-pad-inline,
+  // так что это единственный гор. инсет. Тонкий ~16px у самого края слот-тап-зоны не
+  // ловят — осознанный trade-off (тапы падают в контент: имя = flex:1 на весь ряд),
+  // ради «дышащей» картинки и консистентности (см. card-chassis эстафета).
+  padding-inline: var(--space-4);
+}
+
+.titleRow,
+.metaRow {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Верхняя строка: имя + qty/время по общей базовой линии.
+.titleRow {
+  align-items: baseline;
+}
+
+// Нижняя строка: вторичка + время. flex-end роняет время в правый-НИЖНИЙ угол —
+// на уровень последней строки вторички (timestamp-канон).
+.metaRow {
+  align-items: flex-end;
+}
+
+// Левая ячейка тянется и отдаёт всю ширину единственному содержимому
+// (тап-зоне/узлу) — так зона занимает всю строку, а не только текст.
+.start {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+
+  > * {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Правая ячейка держит свою ширину (qty/время не жмутся).
+.end {
+  flex-shrink: 0;
+}
+
+// Текст-ячейка (TapTarget) — даём сжиматься для эллипсиса. Клэмп деталь-строки
+// задаёт сам слот `.meta` (ниже) — единый дом, потребитель className не шлёт.
+.cell {
+  min-width: 0;
+}
+
+// ── Цвет/размер по слоту (тип прозы задаёт <Text>; число — sans в один голос с
+//    QtyStack/CardTime; цвет всегда здесь, т.к. Text/Numeral его не ставят) ──
+.title {
+  color: var(--sys-color-text-primary);
+}
+
+// Деталь-строка карточки еды: цвет + клэмп в 2 строки ИЗ ОДНОГО МЕСТА (свёрнуты
+// три локальные копии деталь-строки — schedule/dish/proposal, card-chassis
+// 2026-06-26). webkit-box clamp (как ScheduleEventCard `.text`), не nowrap. Применяется
+// к inner `<Text role="caption">`; короткие меты (AnalysisListItem «N гипотез»)
+// клэмп переживают безвредно. Тап-афорданс несёт `<label htmlFor>` слота.
+.meta {
+  color: var(--sys-color-text-muted);
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Время: тап-зона ставит display сама (footgun мёртв by construction — тап-пол
+// `padding-block` на inline-`<label>` высоту не давал, время «плавало»; flex даёт
+// лейблу реальную высоту → локальные `.time { display:flex }` в консумерах уходят).
+.timeCell {
+  display: flex;
+  align-items: center;
+}
+
+.time {
+  font-size: var(--sys-numeral-sm);
+  color: var(--sys-color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// Dedup-гашение (время = ряд выше). Не прячем — можно сверить взглядом.
+.dim {
+  opacity: 0.3;
+}

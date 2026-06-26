@@ -92,7 +92,12 @@ export const SwipeDeck = ({
     () =>
       screens.map((_, i) => (
         <Fragment key={i}>
-          {heroForSlide?.(i)}
+          {/* Hero-слот ВСЕГДА резервирует постоянную высоту (`--deck-hero-h`) —
+              на любом деке, с обложкой и без. Так верхний отступ консистентен на
+              всех экранах (Home / Блюдо / Открытия): табы стартуют на одной высоте.
+              Когда `heroForSlide` не передан или вернул пусто — слот пустой, но
+              высоту держит. */}
+          <div className={s.heroSlot}>{heroForSlide?.(i)}</div>
           <ScreenIndicator
             screens={screens}
             slideIndex={i}

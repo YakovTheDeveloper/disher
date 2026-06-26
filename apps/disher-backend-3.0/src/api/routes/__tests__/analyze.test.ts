@@ -152,6 +152,78 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(res.statusCode).toBe(404);
   });
 
+  it("DELETE removes the row; a follow-up GET is 404", async () => {
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-08T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+
+    const del = await app.inject({
+      method: "DELETE",
+      url: `/api/analyses/${id}`,
+      headers: user.headers,
+    });
+    expect(del.statusCode).toBe(200);
+    expect(del.json()).toEqual({ ok: true });
+
+    const after = await app.inject({
+      method: "GET",
+      url: `/api/analyses/${id}`,
+      headers: user.headers,
+    });
+    expect(after.statusCode).toBe(404);
+
+    // Second delete of the same id — already gone → 404.
+    const delAgain = await app.inject({
+      method: "DELETE",
+      url: `/api/analyses/${id}`,
+      headers: user.headers,
+    });
+    expect(delAgain.statusCode).toBe(404);
+  });
+
+  it("DELETE for another user's analysis returns 404 and leaves it intact", async () => {
+    const otherUser = await createTestUser();
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-08T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+
+    // The other user must not be able to delete it.
+    const del = await app.inject({
+      method: "DELETE",
+      url: `/api/analyses/${id}`,
+      headers: otherUser.headers,
+    });
+    expect(del.statusCode).toBe(404);
+
+    // The owner can still read it — the row survived.
+    const stillThere = await app.inject({
+      method: "GET",
+      url: `/api/analyses/${id}`,
+      headers: user.headers,
+    });
+    expect(stillThere.statusCode).toBe(200);
+  });
+
   it("idempotent: POST same id twice runs LLM exactly once", async () => {
     const id = crypto.randomUUID();
     const body = {

@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { drawerStore } from '@/shared/ui';
 import { ConfirmDrawer } from '@/shared/ui/ConfirmDrawer';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import type { Insight } from '@/entities/insight';
-import { InsightCard } from '../InsightCard';
+import { ObservationCard } from '../ObservationCard';
 import styles from './InsightListPanel.module.scss';
 
 type Props = {
@@ -12,11 +13,15 @@ type Props = {
 };
 
 // The saved-insights list on the Гипотезы/Инсайты page. Each row is an
-// InsightCard with a ✕ (delete) action; insights are never authored by hand, so
-// there is no write-bar here. Empty state is owned by the page.
+// ObservationCard wrapped in a LongPressRow; insights are never authored by hand,
+// so there is no write-bar here. Empty state is owned by the page.
+//
+// Deletion (Slice 3, 2026-06-26): the in-card delete chevron was removed — a
+// saved insight is destroyed via a sustained press (or Shift+F10 / context-menu
+// key) on the row, gated behind a ConfirmDrawer. Easy to stamp out by an
+// accidental tap, no undo → the confirm is the guard. Swipe/cancel resolve
+// non-`true` → no-op.
 const InsightListPanel = ({ insights, onDelete }: Props) => {
-  // Удаление гейтится подтверждением: инсайт легко стереть случайным тапом по
-  // шеврону, а восстановления нет. Свайп/отмена резолвят не-`true` → no-op.
   const confirmDelete = async (id: string) => {
     const ok = await drawerStore.show(ConfirmDrawer, {
       title: 'Удалить инсайт?',
@@ -31,16 +36,24 @@ const InsightListPanel = ({ insights, onDelete }: Props) => {
 
   return (
     <section className={styles.section}>
-      <div className={styles.list}>
+      <ul className={styles.list}>
         {insights.map((insight) => (
-          <InsightCard
+          <LongPressRow
             key={insight.id}
-            insight={insight}
-            action="delete"
-            onDelete={() => confirmDelete(insight.id)}
-          />
+            id={insight.id}
+            className={styles.row}
+            onLongPress={() => confirmDelete(insight.id)}
+          >
+            <ObservationCard
+              title={insight.title}
+              detail={insight.detail}
+              valence={insight.valence}
+              strength={insight.strength}
+              evidence={insight.evidence}
+            />
+          </LongPressRow>
         ))}
-      </div>
+      </ul>
     </section>
   );
 };

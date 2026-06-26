@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -8,6 +7,8 @@ import { dump, apply, syncNow } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
 import { Text } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
+import { Accordion } from '@/shared/ui/Accordion';
 
 const downloadJson = (name: string, obj: unknown) => {
   const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
@@ -114,98 +115,71 @@ export function ProfileDrawer() {
           <ThemePicker />
         </section>
 
-        {/* Данные — accordion, collapsed by default. */}
-        <section className={styles.section}>
-          <button
-            type="button"
-            className={styles.accordionToggle}
-            onClick={() => setDataOpen((v) => !v)}
-            aria-expanded={dataOpen}
-          >
+        {/* Данные — accordion, collapsed by default (примитив Accordion). */}
+        <Accordion
+          open={dataOpen}
+          onToggle={setDataOpen}
+          bodyClassName={styles.dataBody}
+          title={
             <Text as="span" role="label" className={styles.sectionLabel}>
               Данные
             </Text>
-            <span
-              className={clsx(styles.chevron, dataOpen && styles.chevronOpen)}
-              aria-hidden
-            >
-              ⌄
-            </span>
-          </button>
-
-          {dataOpen && (
-            <div className={styles.accordionBody}>
-              <Text as="p" role="caption" className={styles.dataHint}>
-                Скачать копию данных в файл или загрузить ранее сохранённую.
-              </Text>
-              <div className={styles.dataActions}>
-                <button
-                  type="button"
-                  className={styles.dataBtn}
-                  onClick={handleExport}
-                >
-                  <Text as="span" role="label">Скачать файл</Text>
-                </button>
-                <button
-                  type="button"
-                  className={styles.dataBtn}
-                  onClick={handleImport}
-                >
-                  <Text as="span" role="label">Загрузить из файла</Text>
-                </button>
-              </div>
-            </div>
-          )}
-        </section>
+          }
+        >
+          <Text as="p" role="caption" className={styles.dataHint}>
+            Скачать копию данных в файл или загрузить ранее сохранённую.
+          </Text>
+          <div className={styles.dataActions}>
+            <Button variant="system-secondary" onClick={handleExport}>
+              Скачать файл
+            </Button>
+            <Button variant="system-secondary" onClick={handleImport}>
+              Загрузить из файла
+            </Button>
+          </div>
+        </Accordion>
 
         {/*
           «Опасная зона» — last in the main flow, separated by a fading hairline.
           Still collapsed behind a toggle so sign-out can't be hit by a stray
-          tap (task #15); the 5s hold is the second line of defence.
+          tap (task #15); the 5s hold is the second line of defence. Wrapper
+          `.danger` владеет parking (margin-top:auto) + красный hairline; сам
+          раскрывающийся блок — примитив Accordion (danger-тон через headerClassName).
         */}
         <section className={styles.danger}>
-          <button
-            type="button"
-            className={styles.dangerToggle}
-            onClick={() => setDangerOpen((v) => !v)}
-            aria-expanded={dangerOpen}
-          >
-            <Text as="span" role="label">
-              Опасная зона
-            </Text>
-            <span
-              className={clsx(styles.chevron, dangerOpen && styles.chevronOpen)}
-              aria-hidden
-            >
-              ⌄
-            </span>
-          </button>
-
-          {dangerOpen && (
-            <div className={styles.dangerBody}>
-              <Text as="p" role="caption" className={styles.dangerHint}>
-                При выходе данные на этом устройстве очищаются. Они хранятся в
-                облаке и вернутся при следующем входе — но лучше сохранить
-                свежую копию прямо сейчас.
+          <Accordion
+            open={dangerOpen}
+            onToggle={setDangerOpen}
+            headerClassName={styles.dangerHeader}
+            bodyClassName={styles.dangerBody}
+            title={
+              <Text as="span" role="label">
+                Опасная зона
               </Text>
-              <button
-                type="button"
-                className={styles.backupBtn}
-                onClick={handleBackup}
-                disabled={backupState === 'saving'}
-              >
-                <Text as="span" role="label">{BACKUP_LABEL[backupState]}</Text>
-              </button>
-              <HoldButton
-                holdMs={HOLD_MS}
-                onComplete={handleSignOut}
-                busy={loggingOut}
-                label="Удерживайте, чтобы выйти"
-                activeLabel="Не отпускайте…"
-                busyLabel="Выходим…"
-              />
-            </div>
-          )}
+            }
+          >
+            <Text as="p" role="caption" className={styles.dangerHint}>
+              При выходе данные на этом устройстве очищаются. Они хранятся в
+              облаке и вернутся при следующем входе — но лучше сохранить
+              свежую копию прямо сейчас.
+            </Text>
+            <Button
+              variant="system-secondary"
+              fullWidth
+              onClick={handleBackup}
+              disabled={backupState === 'saving'}
+            >
+              {BACKUP_LABEL[backupState]}
+            </Button>
+            <HoldButton
+              holdMs={HOLD_MS}
+              onComplete={handleSignOut}
+              busy={loggingOut}
+              label="Удерживайте, чтобы выйти"
+              activeLabel="Не отпускайте…"
+              busyLabel="Выходим…"
+            />
+          </Accordion>
         </section>
       </div>
     </DrawerLayout>

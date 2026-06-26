@@ -3,7 +3,8 @@ import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import Button from '@/shared/ui/atoms/Button/Button';
-import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { useDishAnalysis } from '../../api/queries';
 import { runDishAnalysis, type DishAnalysisResult } from '../../api/runDishAnalysis';
 import styles from './DishAnalysisScreen.module.scss';
@@ -103,31 +104,32 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
 
   if (!hasContent && status !== 'error') {
     return (
-      <div className={styles.emptyHero}>
-        <Heading as="h3" role="title" className={styles.emptyTitle}>Разбор блюда</Heading>
-        <Text as="p" role="body" className={styles.emptyHint}>
-          AI прочитает рецепт и расскажет про профиль БЖУ, гликемическое
-          ощущение, для каких целей блюдо подходит, плюс отметит удачные и
-          неудачные связки нутриентов.
-        </Text>
-        <Button
-          variant="primary"
-          onClick={handleRun}
-          disabled={!isOnline || !hasIngredients}
-        >
-          Проанализировать
-        </Button>
-        {!hasIngredients && (
-          <Text as="p" role="caption" className={styles.disabledHint}>
-            Добавьте хотя бы один ингредиент.
-          </Text>
-        )}
-        {!isOnline && (
-          <Text as="p" role="caption" className={styles.disabledHint}>
-            Нет сети — разбор требует подключения.
-          </Text>
-        )}
-      </div>
+      <EmptyState
+        className={styles.emptyHero}
+        title="Разбор блюда"
+        description="AI прочитает рецепт и расскажет про профиль БЖУ, гликемическое ощущение, для каких целей блюдо подходит, плюс отметит удачные и неудачные связки нутриентов."
+        action={
+          <>
+            <Button
+              variant="primary"
+              onClick={handleRun}
+              disabled={!isOnline || !hasIngredients}
+            >
+              Проанализировать
+            </Button>
+            {!hasIngredients && (
+              <Text as="p" role="caption" className={styles.disabledHint}>
+                Добавьте хотя бы один ингредиент.
+              </Text>
+            )}
+            {!isOnline && (
+              <Text as="p" role="caption" className={styles.disabledHint}>
+                Нет сети — разбор требует подключения.
+              </Text>
+            )}
+          </>
+        }
+      />
     );
   }
 

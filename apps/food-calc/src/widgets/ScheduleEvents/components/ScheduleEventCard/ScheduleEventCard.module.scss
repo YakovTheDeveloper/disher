@@ -18,39 +18,20 @@
   overflow: hidden;
 }
 
-// metaEnd-слот: время. Раскладку (flex-shrink:0, прижатие к низу) держит
-// CardLayout `.end`; здесь только типографика. Время живёт НА подложке
-// (не в желобе страницы) → цвет из палитры карточки.
+// Time-слот: размер/цвет/tabular/nowrap И display даёт примитив Card (`.time` +
+// `.timeCell`); dedup-гашение — проп `dim`. Здесь только курсор.
 .time {
-  font-size: var(--sys-numeral-sm);
   cursor: pointer;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  color: var(--sys-color-text-secondary);
 }
 
-// meta-слот: лента тегов-чипов. flex:1 даёт CardLayout `.start > *`; здесь
-// только внутренний перенос чипов.
+// Meta-слот: лента тегов-чипов. flex:1 даёт Card `.start > *`; здесь только
+// внутренний перенос чипов.
 .atomsZone {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
   cursor: pointer;
-}
-
-.atomsZoneEmpty {
-  opacity: 0.4;
-}
-
-// Dedup: an event whose time equals the row above is heavily faded (not gone)
-// so you can still glance-confirm it — see ScheduleFoodItemInline `.timeDup`.
-.timeDup {
-  opacity: 0.3;
-}
-
-.atomsPlaceholder {
-  color: var(--sys-color-text-muted);
 }
 
 .chip {
@@ -63,8 +44,8 @@
 }
 
 // Chips / scale derive from the same `--text-*` foreground as the rest of the
-// card, published by the events' own `[data-dv='ScheduleEvents']` palette
-// (default `lemon`; switchable in the DesignBar).
+// card, published by the SHARED `[data-dv='CardPalette']` anchor (один контрол на
+// еду/блюдо/события; default `lemon`; switchable in the DesignBar).
 .chipScale {
   background-color: var(--sys-color-chip-tint);
   color: var(--sys-color-text-secondary);

@@ -1,0 +1,11 @@
+// TitleCluster — title-кластер карточки еды: [qty][имя], qty ПЕРЕД именем,
+// упакованы вплотную (НЕ space-between). Свёрнут из трёх идентичных локальных
+// клонов кластера (schedule / dish / proposal) в один компонент — card-chassis
+// 2026-06-26. Отдельный компонент, а не миксин: display:flex в shared-миксине
+// конфликтует с layout-className консумера (см. feedback_shared_mixin_no_display).
+.cluster {
+  display: flex;
+  align-items: baseline; // value qty встаёт на базовую линию имени
+  gap: 8px;
+  min-width: 0;
+}

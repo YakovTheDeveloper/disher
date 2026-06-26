@@ -15,47 +15,13 @@
 // ─── Empty state ──────────────────────────────────────────────────────
 // Flat: лист Screen (`.headerOverlap`) уже сам подложка — отдельная card-плашка
 // внутри = подложка-на-подложке. Ни bg, ни radius; текст ложится прямо на лист.
+// Failed-block и empty-list — оба на примитиве EmptyState (action-слот несёт
+// Button system-secondary). Класс держит только позиционирование пустой зоны.
 .empty {
     display: flex;
     flex-direction: column;
     gap: 6px;
     padding: 24px 4px;
-}
-
-.emptyTitle {
-    margin: 0;
-    color: var(--sys-card-text-rest);
-}
-
-.emptyBody {
-    margin: 0;
-    line-height: 1.5;
-    color: var(--sys-card-text-muted);
-}
-
-.retry {
-    align-self: flex-start;
-    margin-top: 6px;
-    padding: 9px 18px;
-    border-radius: var(--sys-radius-indicator);
-    border: 1px solid var(--sys-chip-border);
-    background: var(--sys-color-surface-bright);
-    color: var(--sys-card-text-rest);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background var(--press-out) var(--easing-default),
-        border-color var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-
-    // Цветной отклик: светлая retry-пилюля заполняется ink при нажатии
-    &:active {
-        background: var(--sys-color-surface-action-system);
-        border-color: var(--sys-color-border-action-system);
-        color: var(--sys-color-text-on-accent);
-        transform: scale(0.97);
-        transition-duration: var(--sys-duration-press-in);
-    }
 }
 
 // ─── List frame ───────────────────────────────────────────────────────
@@ -66,6 +32,11 @@
 }
 
 .listBody {
+    // <ul> reset — the rows are LongPressRow <li>s (Card.Root); kill the default
+    // list bullets/indent/margin so the group reads as a flat inset card.
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     border-radius: var(--sys-radius-container);

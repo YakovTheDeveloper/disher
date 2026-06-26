@@ -6,6 +6,7 @@ import {
   useDishItemsWithProducts,
   useDishPortions,
   updateDishName,
+  updateDishItem,
   removeDishItem,
   addDishPortion,
   updateDishPortion,
@@ -23,10 +24,13 @@ import {
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
-import { CardShell } from '@/features/shared/card-shell';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
+import { Card } from '@/shared/ui/atoms/Card';
+import { TitleCluster } from '@/shared/ui/atoms/TitleCluster';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { QtyStack } from '@/shared/ui/atoms/QtyStack';
+import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
@@ -88,6 +92,9 @@ const DishBuilderPage = () => {
 
 const DishBuilderPageInner = ({ id }: { id: string }) => {
   const dish = useDish(id);
+  // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
+  // красит еду, блюдо и события. Раньше ингредиенты были жёстко `dv-palette-lemon`.
+  const { anchor: paletteAnchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
   const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
   const dishTotals = useDishNutrientTotals(id);
@@ -121,12 +128,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   );
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
-
-  const startEdit = editFlow.startEdit;
-  const handleEditQuantity = useCallback(
-    (item: DishItemWithProduct) => startEdit(item, 'quantity'),
-    [startEdit]
-  );
 
   const itemsRef = useRef(dishItems);
   // Освежаем ref в эффекте, не в рендере (react-hooks/refs: запись ref.current
@@ -334,7 +335,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             <InlineWriteFoodReview flow={writeFoodFlow} />
           }
         >
-          <div className={styles.dishItemsGroup}>
+          <div {...paletteAnchor} className={styles.dishItemsGroup}>
             <ItemsList>
               {items.map((item, index) => {
                 // onPointerDown стэшит activeItemId на DETAILS_INPUT ДО фокуса —
@@ -345,53 +346,54 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                   if (trigger) trigger.dataset.activeItemId = item.id;
                 };
                 return (
-                  <CardShell
+                  <Card.Root
                     key={item.id}
                     id={item.id}
                     index={index}
                     innerClassName={styles.dishFoodListItem}
                     data-row-id={item.id}
                     onLongPress={() => openActionsDrawer(item)}
-                    // title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы) —
-                    // много-голосый узел → node-escape. qty правится модалкой:
-                    // label htmlFor QUANTITY_INPUT + onClick handleEditQuantity —
-                    // контракт прежнего <Quantity> (ряд не размонтируется, поэтому
-                    // setStep-из-клика безопасен). Имя/детали → DETAILS_INPUT.
-                    title={{
-                      node: (
-                        <div className={styles.titleCluster}>
-                          <QtyStack
-                            as="label"
-                            htmlFor={editIds.QUANTITY_INPUT}
-                            onClick={() => handleEditQuantity(item)}
-                            unit="г"
-                          >
-                            {item.quantity}
-                          </QtyStack>
-                          <TapTarget
-                            as="label"
-                            className={styles.foodName}
-                            htmlFor={editIds.DETAILS_INPUT}
-                            onPointerDown={stashDetails}
-                          >
-                            <FoodName content={{ name: item.product?.name ?? item.productId }} />
-                          </TapTarget>
-                        </div>
-                      ),
-                    }}
-                    // meta = детали (CardLayout строит caption + label htmlFor); тот
-                    // же htmlFor что имя → тап по деталям тоже редактирует детали.
-                    meta={
-                      item.details
-                        ? {
-                            content: item.details,
-                            htmlFor: editIds.DETAILS_INPUT,
-                            onPointerDown: stashDetails,
-                            className: styles.detailsSubtitle,
+                  >
+                    {/* Title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы) —
+                        много-голосый узел → node-escape. qty правится ИНЛАЙН через
+                        EditableQuantity (унификация с расписанием/предложкой —
+                        2026-06-26), коммит в dish_items на blur. Имя/детали →
+                        DETAILS_INPUT. dataEntityEdit НЕ ставим: бар тут не Screen-
+                        бар количества. */}
+                    <Card.Title>
+                      <TitleCluster>
+                        <EditableQuantity
+                          value={item.quantity}
+                          unit="г"
+                          onCommit={(quantity) =>
+                            safeMutate(
+                              () => updateDishItem(item.id, { quantity }),
+                              'Не удалось обновить количество'
+                            )
                           }
-                        : undefined
-                    }
-                  />
+                        />
+                        <TapTarget
+                          as="label"
+                          className={styles.foodName}
+                          htmlFor={editIds.DETAILS_INPUT}
+                          onPointerDown={stashDetails}
+                        >
+                          <FoodName content={{ name: item.product?.name ?? item.productId }} />
+                        </TapTarget>
+                      </TitleCluster>
+                    </Card.Title>
+
+                    {/* Meta = детали (Card строит caption + label htmlFor + клэмп-2); тот же
+                        htmlFor что имя → тап по деталям тоже редактирует детали. */}
+                    {item.details && (
+                      <Card.Meta
+                        htmlFor={editIds.DETAILS_INPUT}
+                        onPointerDown={stashDetails}
+                      >
+                        {item.details}
+                      </Card.Meta>
+                    )}
+                  </Card.Root>
                 );
               })}
             </ItemsList>

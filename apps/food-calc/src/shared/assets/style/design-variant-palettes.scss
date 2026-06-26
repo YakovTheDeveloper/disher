@@ -111,7 +111,7 @@
 // Tuned 2026-06-14: the real culprit was never the yellow — it was WHITE names
 // (the tropic-theme night-text leak, now killed in FoodSchedule/ScheduleEvents).
 // With solid-graphite names a healthy warm yellow reads fine.
-// Paled 2026-06-25 (CardShell unification, solution A): this is now the ONE
+// Paled 2026-06-25 (card-chassis unification, solution A): this is now the ONE
 // yellow voice across every card (food / event / dish-ingredient), so it steps
 // LIGHTER — blue channel lifted ~196→~218, green nudged up, the gold outline
 // softened in tune (alpha −0.04) so a paler fill doesn't fight a saturated edge.
@@ -150,6 +150,35 @@
     (rgba(232, 229, 224, 0.96), rgba(225, 222, 216, 0.96), rgba(145, 140, 133, 0.36), rgba(145, 140, 133, 0.26), rgba(221, 218, 211, 0.97)),
     (rgba(228, 225, 219, 0.96), rgba(221, 218, 211, 0.96), rgba(140, 135, 128, 0.36), rgba(140, 135, 128, 0.26), rgba(217, 214, 206, 0.96)),
     (rgba(224, 221, 214, 0.97), rgba(217, 213, 205, 0.97), rgba(135, 130, 123, 0.38), rgba(135, 130, 123, 0.28), rgba(213, 209, 201, 0.97)));
+}
+
+// sand — тёплый ОВСЯНЫЙ беж, неяркий: между neutral и amber, заметно МЕНЕЕ жёлтый,
+// чем lemon/amber. Песочная бумага с мягким тановым outline. Узкая morning→night
+// дельта (single-hue discipline), graphite-текст. Тёплый, но приглушённый.
+@mixin dv-palette-sand {
+  @include _tod-palette((rgba(240, 234, 220, 0.96), rgba(233, 226, 210, 0.96), rgba(178, 158, 120, 0.34), rgba(178, 158, 120, 0.24), rgba(229, 222, 206, 0.97)),
+    (rgba(237, 230, 214, 0.96), rgba(230, 222, 204, 0.96), rgba(172, 152, 114, 0.36), rgba(172, 152, 114, 0.26), rgba(226, 218, 200, 0.97)),
+    (rgba(233, 226, 208, 0.96), rgba(226, 218, 200, 0.96), rgba(166, 146, 108, 0.36), rgba(166, 146, 108, 0.26), rgba(222, 214, 194, 0.96)),
+    (rgba(229, 222, 202, 0.97), rgba(222, 213, 194, 0.97), rgba(160, 140, 102, 0.38), rgba(160, 140, 102, 0.28), rgba(218, 210, 188, 0.97)));
+}
+
+// clay — приглушённая ТЕРРАКОТА / розовато-коричневый: тёплый глиняный беж с
+// мягким терракотовым outline. Не яркий (alpha outline ≤0.38), чуть «земляной».
+// Узкая дельта, graphite-текст.
+@mixin dv-palette-clay {
+  @include _tod-palette((rgba(244, 228, 218, 0.96), rgba(240, 220, 208, 0.96), rgba(192, 132, 104, 0.34), rgba(192, 132, 104, 0.24), rgba(238, 218, 206, 0.97)),
+    (rgba(242, 224, 212, 0.96), rgba(238, 216, 202, 0.96), rgba(186, 126, 98, 0.36), rgba(186, 126, 98, 0.26), rgba(236, 214, 200, 0.97)),
+    (rgba(238, 218, 206, 0.96), rgba(234, 210, 196, 0.96), rgba(180, 120, 92, 0.36), rgba(180, 120, 92, 0.26), rgba(232, 208, 194, 0.96)),
+    (rgba(234, 212, 200, 0.97), rgba(230, 204, 190, 0.97), rgba(174, 114, 88, 0.38), rgba(174, 114, 88, 0.28), rgba(228, 202, 188, 0.97)));
+}
+
+// rose — пыльно-РОЗОВЫЙ беж (тёплый розово-серый): мягкий, неяркий, чуть румяный.
+// Розоватый outline низкой насыщенности. Узкая дельта, graphite-текст.
+@mixin dv-palette-rose {
+  @include _tod-palette((rgba(246, 230, 228, 0.96), rgba(242, 222, 220, 0.96), rgba(194, 140, 140, 0.30), rgba(194, 140, 140, 0.22), rgba(240, 220, 218, 0.97)),
+    (rgba(244, 226, 224, 0.96), rgba(240, 218, 216, 0.96), rgba(188, 134, 134, 0.32), rgba(188, 134, 134, 0.24), rgba(238, 216, 214, 0.97)),
+    (rgba(240, 220, 218, 0.96), rgba(236, 212, 210, 0.96), rgba(182, 128, 128, 0.32), rgba(182, 128, 128, 0.24), rgba(234, 210, 208, 0.96)),
+    (rgba(236, 214, 212, 0.97), rgba(232, 206, 204, 0.97), rgba(176, 122, 122, 0.34), rgba(176, 122, 122, 0.26), rgba(230, 204, 202, 0.97)));
 }
 
 // plain — «без подложки»: at rest the rows carry NO card at all — transparent
@@ -217,4 +246,34 @@ $dv-text-twilight: (
     (rgba(238, 228, 232, 0.88), rgba(228, 216, 222, 0.88), rgba(120, 75, 95, 0.30), rgba(120, 75, 95, 0.20), rgba(220, 208, 215, 0.92)),
     (rgba(220, 205, 232, 0.85), rgba(206, 188, 220, 0.85), rgba(95, 60, 130, 0.32), rgba(95, 60, 130, 0.22), rgba(198, 180, 215, 0.90)),
     (rgba(158, 132, 192, 0.85), rgba(140, 112, 178, 0.85), rgba(45, 31, 68, 0.35), rgba(45, 31, 68, 0.24), rgba(130, 102, 168, 0.90)));
+}
+
+// ─── ОБЩИЙ форк карточной палитры (один контрол на все поверхности) ──────────
+// Один источник: еда расписания, ингредиенты блюда и события зовут
+// `useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES)` (shared/lib/cardPalette.ts)
+// и включают ЭТОТ миксин под своей обёрткой. Дефолт = lemon (единый жёлтый голос);
+// форки по `data-dv-v` перекрывают. Строки `data-dv-v` обязаны совпадать с
+// CARD_PALETTES.
+//
+// СПЕЦИФИЧНОСТЬ: подключать под ТРОЕННЫМ селектором обёртки
+// (`.x.x.x { @include card-palette-set; }`), чтобы форки `&[data-dv-v]` встали на
+// (0,4,0) и перебили и :root --tod-* дефолты (0,1,0), и юзер-тему
+// `:root[data-theme] [data-tod='night']` (0,3,0) независимо от порядка стилей —
+// тот же приём, что нёс прежний хэнд-ролл в ScheduleEvents/FoodSchedule.
+@mixin card-palette-set {
+  // Дефолт + graphite-текст (amber = первый в CARD_PALETTES).
+  @include dv-text($dv-text-graphite);
+  @include dv-palette-amber;
+
+  &[data-dv-v='lemon'] { @include dv-palette-lemon; }
+  &[data-dv-v='amber'] { @include dv-palette-amber; }
+  &[data-dv-v='sand'] { @include dv-palette-sand; }
+  &[data-dv-v='clay'] { @include dv-palette-clay; }
+  &[data-dv-v='rose'] { @include dv-palette-rose; }
+  &[data-dv-v='neutral'] { @include dv-palette-neutral; }
+
+  // tropic-theme white-night leak kill (см. длинный коммент в FoodSchedule): тема
+  // глобально белит текст ночных строк, наши палитры остаются светлыми → имена
+  // исчезают. Re-pin graphite на любом ночном потомке обёртки.
+  [data-tod='night'] { @include dv-text($dv-text-graphite); }
 }

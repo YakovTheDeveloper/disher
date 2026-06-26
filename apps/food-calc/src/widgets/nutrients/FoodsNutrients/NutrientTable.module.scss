@@ -4,7 +4,7 @@
   // sys-токены: bespoke cool-slate «mist»-палитра выпилена (per-surface theming вне
   // канона, см. no-per-surface-theming).
   --nt-accent: linear-gradient(45deg, transparent 0%, rgba(104, 128, 158, 0.5) 100%);
-  --nt-hairline: rgba(44, 56, 74, 0.1);
+  --nt-hairline: var(--sys-color-divider); // единый холодный divider (унификация 2026-06-26)
 
   display: flex;
   flex-direction: column;

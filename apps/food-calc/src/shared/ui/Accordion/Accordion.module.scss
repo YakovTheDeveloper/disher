@@ -1,0 +1,82 @@
+// Accordion-примитив. Владеет только раскрытием + шевроном + a11y. Фон/тинт/
+// типографику тайтла несёт консумер (className-хуки + слот title).
+
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+// Шапка-тоггл на всю ширину: слот тайтла слева, trailing+шеврон справа. Цвет НЕ
+// задаём — шапка наследует ink контекста (чтобы danger-консумер задал свой через
+// headerClassName, а currentColor-шеврон стинтовался заодно). Press-отклик —
+// общий: текст/шеврон темнеют до ink (canon colored-press).
+.header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--press-out) var(--easing-default);
+
+  &:active {
+    color: var(--sys-color-text-system);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+.titleSlot {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.end {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+// Шеврон наследует currentColor шапки (svg stroke=currentColor); притушён.
+.chevron {
+  opacity: 0.5;
+  transition: transform var(--duration-normal) var(--easing-default);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+// Раскрытие через grid-template-rows 0fr→1fr — анимируем grid-track, не height
+// (composite-friendly, без layout-thrash). Внутренний контейнер режет overflow.
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--duration-normal) var(--easing-default);
+}
+
+.revealOpen {
+  grid-template-rows: 1fr;
+}
+
+.revealInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none;
+  }
+
+  .chevron {
+    transition: none;
+  }
+}

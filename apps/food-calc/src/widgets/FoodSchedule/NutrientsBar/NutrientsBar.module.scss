@@ -11,6 +11,8 @@
 // (17, reuse tile-title), капс = bespoke `--sys-text-size-bar-cap` (10.5px). SCSS-$vars
 // сняты — sys-only token-gate (2026-06-24) флагает `$scss` в font-size.
 
+@import '@/shared/assets/style/mixin.scss';
+
 .root {
     position: relative;
     // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
@@ -26,11 +28,9 @@
         right: 0;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0%,
-                color-mix(in srgb, var(--color-ink) 14%, transparent) 18%,
-                color-mix(in srgb, var(--color-ink) 14%, transparent) 82%,
-                transparent 100%);
+        // Канон Divider через общий `hairline()`-миксин + единый холодный токен
+        // (`--sys-color-divider`); раньше — хэнд-ролл с тёплым `--color-ink` 14%.
+        @include hairline(var(--sys-color-divider));
         pointer-events: none;
     }
 }

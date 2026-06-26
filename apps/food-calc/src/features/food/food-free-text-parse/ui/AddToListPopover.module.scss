@@ -1,30 +1,15 @@
-.popover {
-  // Поверх ModalBackdrop (6000) и ModalPopup (6001+10·nested) — иначе popover
-  // прячется под fullscreen ModalByLabel, в котором живёт WriteFoodModal.
-  // См. CLAUDE.md §«Z-index strategy».
-  z-index: 7000;
+// Bottom-sheet «Новый продукт» (Slice 12). Раскладка контента drawer'а —
+// заголовок/шасси несёт DrawerLayout, здесь только тело: поле + подсказка дублей
+// + вертикальный стек кнопок (канон Button). Кнопочный bespoke выпилен.
+
+.body {
   display: flex;
   flex-direction: column;
   gap: var(--sys-stack-row);
-  min-width: 280px;
-  max-width: 92vw;
-  padding: var(--space-4);
-  background: linear-gradient(135deg, #fffefb 0%, #fef8ec 100%);
-  border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
-  border-radius: var(--sys-radius-cta);
-  box-shadow: var(--sys-elevation-overlay);
-  // Block touch swipes from bubbling to surrounding Drawer (Base UI swipe-ignore).
+  padding: var(--space-3) var(--sys-inset-sheet) var(--space-6);
 }
 
-// Голос несёт примитив <Heading role="title"> (Onest bold-sans, канон); здесь — раскладка + цвет.
-.title {
-  margin: 0;
-  color: var(--sys-color-text-primary);
-  line-height: 1.2;
-}
-
-// Field-slot (well) — единый тон поля app. Раньше был полупрозрачный белый bg +
-// золотая рамка/кольцо в фокусе.
+// Field-slot (well) — единый тон поля app через `--sys-field-*` токены.
 .nameInput {
   width: 100%;
   padding: var(--space-2) var(--space-3);
@@ -73,95 +58,10 @@
   font-variant-numeric: tabular-nums;
 }
 
+// Вертикальный стек кнопок (bottom-sheet — кнопки на всю ширину, читается лучше
+// горизонтального ряда). Все кнопки = канон Button (fullWidth).
 .actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
   gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.btnGhost,
-.btnSecondary,
-.btnPrimary {
-  background: transparent;
-  border: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--sys-radius-container);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    transform var(--press-in, 0.1s) ease;
-}
-
-.btnGhost {
-  color: var(--sys-color-text-tertiary);
-
-  &:hover,
-  &:focus-visible {
-    background-color: var(--sys-color-border-subtle);
-    color: var(--sys-color-text-secondary);
-    outline: none;
-  }
-
-  // Цветной отклик: тихая кнопка — тинт фон + акцент
-  &:active {
-    background: var(--sys-color-bg-press);
-    color: var(--sys-field-caret, var(--color-ink));
-    transform: scale(0.96);
-    transition-duration: var(--sys-duration-press-in);
-  }
-}
-
-.btnSecondary {
-  color: var(--sys-color-text-primary);
-  border: 1px solid var(--border-subtle, rgba(124, 65, 15, 0.16));
-  transition: background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    transform var(--press-in, 0.1s) ease;
-
-  &:hover,
-  &:focus-visible {
-    background-color: var(--sys-color-border-subtle);
-    outline: none;
-  }
-
-  // Цветной отклик: обводочная кнопка — заливка чернилами
-  &:active {
-    background: var(--sys-color-surface-action-system);
-    border-color: var(--sys-color-surface-action-system);
-    color: var(--sys-color-text-on-accent);
-    transform: scale(0.96);
-    transition-duration: var(--sys-duration-press-in);
-  }
-}
-
-.btnPrimary {
-  color: var(--sys-color-on-system); // white on coal action (был text-on-selected по ошибке конфляции, M4 2026-06-25)
-  background-color: var(--sys-color-surface-action-system);
-  padding-left: var(--space-4);
-  padding-right: var(--space-4);
-  transition: background-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    filter var(--press-out) var(--easing-default),
-    transform var(--press-in, 0.1s) ease;
-
-  &:hover,
-  &:focus-visible {
-    background-color: var(--sys-color-surface-action-system-hover);
-    outline: none;
-  }
-
-  // Цветной отклик: солидная кнопка — затемнение при нажатии
-  &:active {
-    filter: brightness(0.9);
-    transform: scale(0.96);
-    transition-duration: var(--sys-duration-press-in);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
 }

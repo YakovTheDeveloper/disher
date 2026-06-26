@@ -349,40 +349,8 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     }
 }
 
-.commitBtn {
-    flex: 1 1 auto;
-    min-height: 48px;
-    padding: 12px 22px;
-    border: none;
-    background: var(--sys-field-text, #{$ink});
-    color: var(--sys-color-text-on-accent);
-    border-radius: var(--sys-radius-container);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        background var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default),
-        opacity var(--press-out) var(--easing-default),
-        transform var(--press-out) var(--easing-default);
-    box-shadow: var(--sys-elevation-action-rest);
-
-    &:hover { filter: brightness(0.92); }
-    // Цветной отклик: основная CTA (тёмная заливка) → потемнение
-    &:active {
-        filter: brightness(0.85);
-        transform: scale(0.97);
-        transition-duration: var(--sys-duration-press-in);
-    }
-    &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
-}
-
-.commitBtnInactive {
-    opacity: 0.45;
-    box-shadow: none;
-
-    &:hover { filter: none; }
-    &:active { transform: none; }
-}
+// .commitBtn/.commitBtnInactive удалены — CTA «Готово» теперь примитив
+// <Button variant="system" fullWidth disabled={!isValid}> (он несёт вид + disabled).
 
 // ── chrome="panel" overrides — render inside a drawer body ───
 //

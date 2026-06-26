@@ -12,6 +12,7 @@ import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api'
 import { restartArgs } from './restart';
 import styles from './AnalysisDetailModal.module.scss';
 import { Heading, Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 
 // The modal resolves with a freshly-started analysis when the user restarts a
 // stale/failed run, so AnalysesPage can show the new pending row. Plain close
@@ -108,16 +109,15 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
         )}
 
         {(status === 'stale' || status === 'failed') && (
-          <button
-            type="button"
+          <Button
+            variant="accent"
+            fullWidth
             className={styles.restart}
             disabled={restarting}
             onClick={handleRestart}
           >
-            <Text as="span" role="body">
-              {restarting ? 'Запускаем…' : 'Запустить заново'}
-            </Text>
-          </button>
+            {restarting ? 'Запускаем…' : 'Запустить заново'}
+          </Button>
         )}
 
         <section className={styles.section}>

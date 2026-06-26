@@ -19,29 +19,18 @@
 // карточки (12px) — вторичный уровень «текст внутри карточки».
 
 
-// Anchor wrapper around the food list. Палитра еды — `lemon` (баком 2026-06-22:
-// dev-форки meadow/sunrise/sorbet/garden/lagoon/tropic/twilight/plain/lime сняты,
-// lemon — живой дефолт, един с экраном Событий). Жёлтый МЕНЯЕТСЯ по времени суток
-// (4 TOD-шага в dv-palette-lemon, узкая дельта morning→night) — это сохранено.
-// Отвязано от юзер-темы: еда и события говорят одним жёлтым голосом независимо от
-// выбранной палитры темы. Plain block — для outline-flash анимации.
+// Anchor wrapper around the food list. Палитра карточек теперь через ОБЩИЙ
+// контрол DesignBar (ключ CardPalette, useDesignVariant в FoodSchedule.tsx): один
+// выбор красит еду, блюдо и события. Дефолт — lemon (единый жёлтый голос). Жёлтый
+// по-прежнему МЕНЯЕТСЯ по времени суток (4 TOD-шага, узкая дельта). Форк по
+// `data-dv-v` + night-text re-pin несёт общий миксин `card-palette-set`. Троённый
+// класс держит специфичность (0,4,0) против :root --tod- и юзер-темы.
 .foodListAnchor {
   display: block;
-  @include dv-palette-lemon;
-  @include dv-text($dv-text-graphite);
 }
 
-// ── KILL the tropic-theme white-night leak ─────────────────────────────────
-// The `tropic` USER THEME (`:root[data-theme='tropic']`) includes dv-palette-
-// tropic, whose nested `[data-tod='night'] { --text-primary: #fff }` lands
-// GLOBALLY on every night row (a closer ancestor than this anchor's dv-text). On
-// the pale lemon background that white text turns row names invisible. Re-pin the
-// dark graphite text on night rows. Doubling the anchor class + the leading `div`
-// lifts specificity to (0,3,1) so this beats the theme's `:root[data-theme]
-// [data-tod='night']` (0,3,0) regardless of stylesheet order — the anchor is
-// always a <div>.
-div.foodListAnchor.foodListAnchor [data-tod='night'] {
-  @include dv-text($dv-text-graphite);
+.foodListAnchor.foodListAnchor.foodListAnchor {
+  @include card-palette-set;
 }
 
 

@@ -1,6 +1,7 @@
 import styles from './FoodName.module.scss';
 import clsx from 'clsx';
 import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
+import { Text } from '@/shared/ui/atoms/Typography/Text';
 
 type Props = {
   onClick?: () => void;
@@ -33,13 +34,13 @@ const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor }: P
   );
 
   return htmlFor ? (
-    <label className={cls} htmlFor={htmlFor} onClick={onClick} onTouchEnd={handleTouchEnd}>
+    <Text role="body" className={cls} as="label" htmlFor={htmlFor} onClick={onClick}>
       {inner}
-    </label>
+    </Text>
   ) : (
-    <p className={cls} onClick={onClick} onTouchEnd={handleTouchEnd}>
+    <Text role="body" className={cls} onClick={onClick} onTouchEnd={handleTouchEnd}>
       {inner}
-    </p>
+    </Text>
   );
 };
 

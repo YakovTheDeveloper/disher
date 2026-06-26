@@ -11,5 +11,6 @@ export {
   isValidWindow,
   windowSpanDays,
   rangeDayKeys,
+  formatWindowLabel,
 } from './range';
 export type { DateRange } from './range';

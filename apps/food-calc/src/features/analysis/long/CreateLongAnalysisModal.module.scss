@@ -48,47 +48,7 @@
 }
 
 // .closeButton удалён — × теперь общий примитив CloseButton.
+// .hypothesesEmpty/.hypothesesEmptyHint удалены — пустой блок «гипотез нет»
+// теперь рендерит примитив <EmptyState> (Slice 7), он несёт раскладку и голос.
 
-.hypothesesEmpty {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.hypothesesEmptyHint {
-    // font-size/family → <Text role="caption"> (typo-encapsulation); color/opacity = намеренный muted override.
-    margin: 0;
-    padding-left: var(--space-1);
-    color: var(--sys-color-text-secondary);
-    opacity: 0.7;
-}
-
-.submit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 50px;
-    padding: 12px 22px;
-    border-radius: var(--sys-radius-cta);
-    border: none;
-    background: var(--sys-color-surface-action-accent); // brand action → indigo accent (M4 navy→indigo, 2026-06-25)
-    color: var(--sys-color-on-accent);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default);
-
-    // Цветной отклик: сплошную тёмную CTA затемняем фильтром
-    &:active {
-        filter: brightness(0.9);
-        transform: scale(0.98);
-        transition-duration: var(--sys-duration-press-in);
-    }
-
-    &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-}
+// .submit удалён — CTA «Запустить разбор» теперь примитив <Button variant="accent" fullWidth>.

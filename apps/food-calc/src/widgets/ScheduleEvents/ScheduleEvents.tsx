@@ -20,13 +20,7 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-
-// Events card palette is switchable in the dev DesignBar via the `ScheduleEvents`
-// anchor (re-introduced 2026-06-25). `amber` (light honey) is the DEFAULT so the
-// colour shows immediately; `lemon` = pale yellow; `neutral` = hue-free warm-grey.
-// First entry = default. The SCSS forks on `data-dv-v` (see ScheduleEvents.module.scss).
-// FoodSchedule keeps its own palette.
-const EVENTS_PALETTES = ['amber', 'lemon', 'neutral'] as const;
+import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
 
 type Props = {
   children?: React.ReactNode;
@@ -40,8 +34,9 @@ type Props = {
 const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
-  // DesignBar anchor: flip the card palette (lemon / amber / neutral) live.
-  const { anchor } = useDesignVariant('ScheduleEvents', EVENTS_PALETTES);
+  // DesignBar anchor: ОБЩИЙ ключ палитры карточек — один контрол красит еду, блюдо
+  // и события сразу (shared/lib/cardPalette.ts). Раньше был отдельный 'ScheduleEvents'.
+  const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');

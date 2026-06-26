@@ -25,19 +25,17 @@
     // Тёплый-soft фон страницы (n100) под белой группой.
     background: var(--sys-color-surface-grouped);
 
-    // Скрим парящей шапки (.header::before) — из фона страницы, чтобы верхняя
-    // плотная зона была бесшовной с .listContainer (92%: без блюра прячет контент).
-    --search-bar-scrim: color-mix(in srgb, var(--cards-page-bg) 92%, transparent);
-
     // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
     // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
     // серым кружком над белыми карточками при скролле), ink-шеврон. Border тянется
     // за surface (1px того же серого) → визуально без рамки. Санкционированный
     // single-token scope-override (не per-surface бандл).
     --sys-color-surface-floating: var(--cards-page-bg);
-    // On-color floating-роли flip'ается вместе с surface (выше): светлая подложка
-    // → тёмный ink-шеврон BackButton. Раньше был bespoke-кноб --back-fg.
-    --sys-color-text-on-floating: var(--color-ink-strong);
+    // On-color floating-роли: ХОЛОДНЫЙ (indigo) шеврон BackButton на светлой серой
+    // подложке. Осознанный контраст с тёплой бумагой списка (запрос юзера 2026-06-26):
+    // back-шеврон / иконка нутриентов / divider — холодные «инструменты». Был тёмный
+    // ink (--color-ink-strong).
+    --sys-color-text-on-floating: var(--sys-color-text-accent);
 
     // (Нижний док FoodSearchEmpty больше НЕ темится отсюда — bespoke per-surface
     //  бандл распущен; док стилит себя сам на sys-токенах. Не заводить тут заново.)
@@ -75,12 +73,12 @@
 
 // Парящая шапка (Telegram/HomeTopBar canon): бар лежит ПОВЕРХ списка
 // (`position:absolute`, z-index выше .heavyFade), список скроллится под ним.
-// `::before` — НЕ frosted (без backdrop-filter): чистый градиент-скрим в цвет
-// страницы, гаснущий книзу. Сознательный perf-выбор: backdrop-blur запускал
-// GPU-пересэмпл всего под баром НА КАЖДЫЙ кадр скролла (главный источник лагов
-// frosted-баров на мобилках); скрим — обычный градиент, ноль per-frame работы.
-// Контент уезжает под бар и растворяется в фоне (без эффекта стекла — это цена).
-// Сам градиент даёт fade, отдельная mask больше не нужна. Высоту бара меряет
+// 2026-06-26 (запрос юзера): панель СПЛОШНАЯ непрозрачная (в цвет страницы), со
+// скруглённым низом (--sys-radius-overlay) и sheet-тенью (--sys-elevation-overlay)
+// — самостоятельная плавающая «полка», под которую уезжает список. Раньше был
+// тающий книзу градиент-скрим (`::before`) — он давал бесшовный fade, но не читался
+// как панель. Не frosted (без backdrop-filter) — осознанный perf-выбор: backdrop-blur
+// запускал GPU-пересэмпл всего под баром НА КАЖДЫЙ кадр скролла. Высоту бара меряет
 // ResizeObserver в SearchFood.tsx → `--search-header-h`; список берёт её в
 // padding-top — без магического офсета. flex-shrink:0 не нужен — бар вне потока.
 .header {
@@ -93,19 +91,13 @@
     left: 0;
     right: 0;
 
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        // Плотно в цвет страницы сверху → прозрачно книзу: верхняя зона бесшовна
-        // с .listContainer, строки тают в неё. --search-bar-scrim = фон страницы.
-        background: linear-gradient(to bottom,
-                var(--search-bar-scrim) 0%,
-                var(--search-bar-scrim) 42%,
-                transparent 100%);
-        pointer-events: none;
-    }
+    // Сплошная непрозрачная подложка в цвет страницы + скруглённый низ + тень.
+    // surface-grouped = var(--cards-page-bg) (та же тёплая бумага, что фон .content) —
+    // sys-токен под per-property гейт; панель бесшовно сливается с верхом страницы.
+    background: var(--sys-color-surface-grouped);
+    border-bottom-left-radius: var(--sys-radius-container);
+    border-bottom-right-radius: var(--sys-radius-container);
+    box-shadow: var(--sys-elevation-overlay);
 }
 
 .bottomLeft {
@@ -120,7 +112,6 @@
 // inset-группу (.list). M3 integrated-dock: контент кончается НАД нижним баром.
 .listContainer {
     overflow-y: auto;
-    border-radius: var(--sys-radius-container);
     position: relative;
     flex-grow: 1;
     min-height: 0;
@@ -134,19 +125,32 @@
 // под фрост-край, дальше строки скроллятся под матовый бар и тают в нём.
 // Фолбэк 72px ≈ один ряд бара, на случай первого кадра до измерения.
 .listContainerOffset {
-    padding-top: calc(var(--search-header-h, 72px) + var(--space-2));
+    padding-top: var(--search-header-h);
 }
 
-// Inset grouped list (Material / iOS «inset grouped»): side margins + a rounded
-// container that clips the first row's top corners and the last row's bottom
-// corners. Rows touch (gap:0); the fading ::after hairline divides them; the
-// radius harmonises with the top-bar field/segment rounding. `overflow:hidden`
-// does the corner clipping so individual rows need no per-row radius. When both
-// products and dishes are shown, each <ul> is its own rounded group.
+// Full-width sheet (headerOverlap-канон, 2026-06-26): список = одна бумага во всю
+// ширину экрана (без боковых инсетов), скруглённый верх --sys-radius-sheet (48) +
+// единая sheet-тень --sys-elevation-overlay (унификация с Drawer/EventScalePanel),
+// низ flush. Бумага начинается ПОД парящей шапкой (listContainer.padding-top) — её
+// скруглённый верх виден ниже бара. overflow:hidden клипит верхние углы первого
+// ряда (per-row radius не нужен). min-height тянет бумагу до низа при коротком списке.
+.sheet {
+    min-height: 100%;
+    background: var(--sys-color-surface-bright);
+    padding-top: var(--sys-inset-page);
+    box-shadow: var(--sys-elevation-overlay);
+    overflow: hidden;
+}
+
+// Ряды-список ВНУТРИ бумаги: плоский прозрачный (фон несёт .sheet), без скруглений/
+// отступов/тени — все они ушли на .sheet. Был `@include inset-group` (floating-
+// карточка с боковыми полями). Два <ul> (продукты+блюда) делят одну бумагу.
 .list {
-    // Inset-grouped container canon (mixin.scss) — overflow-clip + group radius +
-    // soft shadow, rows touch (gap:0), hairline divides. Shared with the date
-    // navigator. Side margins are the consumer's concern (inset offset).
-    @include inset-group;
-    margin: 0 var(--space-3) var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: transparent;
 }

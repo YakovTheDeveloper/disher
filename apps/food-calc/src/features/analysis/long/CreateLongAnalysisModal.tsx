@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
-import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
@@ -17,7 +17,8 @@ import {
   type DateRange,
 } from './range';
 import styles from './CreateLongAnalysisModal.module.scss';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Heading } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 
 // The modal resolves with the created (pending) analysis so AnalysesPage can
 // show it immediately, or null/undefined if the user dismissed it.
@@ -93,12 +94,10 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
           {hypotheses.length === 0 ? (
             // Панель при пустом списке возвращает null (намеренно — общий
             // консумер). Здесь держим аффорданс «гипотезы опциональны».
-            <div className={styles.hypothesesEmpty}>
-              <FieldLabel>Гипотезы</FieldLabel>
-              <Text as="p" role="caption" className={styles.hypothesesEmptyHint}>
-                Гипотез пока нет — разбор можно запустить и без них.
-              </Text>
-            </div>
+            <EmptyState
+              title="Гипотез пока нет"
+              description="Разбор можно запустить и без них."
+            />
           ) : (
             <HypothesisListPanel
               hypotheses={hypotheses}
@@ -111,16 +110,14 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
         </div>
 
         <div className={styles.footer}>
-          <button
-            type="button"
-            className={styles.submit}
+          <Button
+            variant="accent"
+            fullWidth
             disabled={!canSubmit}
             onClick={handleSubmit}
           >
-            <Text role="label" as="span">
-              {submitting ? 'Запускаем…' : 'Запустить разбор'}
-            </Text>
-          </button>
+            {submitting ? 'Запускаем…' : 'Запустить разбор'}
+          </Button>
         </div>
       </div>
     </ModalLayout>

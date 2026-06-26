@@ -53,28 +53,49 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 
-  .orb { opacity: 0.4; }
+  .orb {
+    opacity: 0.4;
+  }
 
   // Feather each disc into transparent BEFORE the element edge — kills the hard
   // circular boundary that `blur()` would smear into a visible ring.
   .orb1 {
-    width: 250px; height: 250px; top: -70px; right: -40px;
+    width: 250px;
+    height: 250px;
+    top: -70px;
+    right: -40px;
     background: radial-gradient(circle, #fdfcf8 0%, #f4f1ea 56%, transparent 84%);
   }
+
   .orb2 {
-    width: 220px; height: 220px; top: -30px; left: -50px;
+    width: 220px;
+    height: 220px;
+    top: -30px;
+    left: -50px;
     background: radial-gradient(circle, #f1ede5 0%, #e9e4da 56%, transparent 84%);
   }
+
   .orb3 {
-    width: 190px; height: 190px; top: 30px; right: 24px;
+    width: 190px;
+    height: 190px;
+    top: 30px;
+    right: 24px;
     background: radial-gradient(circle, #f4f0e8 0%, #ebe5d9 56%, transparent 84%);
   }
+
   .orb4 {
-    width: 170px; height: 170px; top: 110px; left: 16px;
+    width: 170px;
+    height: 170px;
+    top: 110px;
+    left: 16px;
     background: radial-gradient(circle, #f7f4ed 0%, #ece6dc 56%, transparent 84%);
   }
+
   .orb5 {
-    width: 150px; height: 150px; top: -40px; left: 38%;
+    width: 150px;
+    height: 150px;
+    top: -40px;
+    left: 38%;
     background: radial-gradient(circle, #f5f1e9 0%, #e9e2d6 56%, transparent 84%);
   }
 
@@ -174,6 +195,7 @@
   width: 100%;
   left: 0;
   right: 0;
+  padding: var(--sys-inset-page);
 }
 
 .actionButtonsSlotPrev {

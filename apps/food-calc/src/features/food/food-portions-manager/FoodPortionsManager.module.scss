@@ -44,8 +44,8 @@ $sky-stripe: #c7dbf3;
 // Edit pill — inputs live inside. Long-press по самому pill'у открывает drawer
 // удаления (useLongPress навешен на этот div в PortionEditRow), поэтому гасим
 // iOS-callout/контекст-меню и double-tap-zoom; текст в инпутах остаётся выделяемым.
-// Раскладку title(label)/titleEnd(grams) держит CardLayout внутри (слот-API,
-// CardShell unification 2026-06-25) — grid снят, .card сам заполняет ширину.
+// Раскладку label/grams держит локальный 2-cell flex (.portionEditRow) — каркас
+// CardLayout снят (rule-of-one, card-chassis-simplify 2026-06-25).
 .portionEdit {
     padding: var(--space-2) var(--space-3);
     border-radius: var(--sys-radius-container); /* was 14px */
@@ -64,12 +64,34 @@ $sky-stripe: #c7dbf3;
     }
 }
 
-// titleEnd-узел: grams + unit-суффикс по базовой линии, прибиты к правому краю.
+// Локальный 2-cell ряд правки: label (тянется) + grams (прибит вправо) по общей
+// базовой линии. Заменил CardLayout title/titleEnd (rule-of-one).
+.portionEditRow {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+// Левая ячейка тянется и отдаёт ширину единственному содержимому (label-зоне).
+.portionEditLabel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+
+    > * {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+// grams + unit-суффикс по базовой линии, прибиты к правому краю (не жмутся).
 .gramsCell {
     display: inline-flex;
     align-items: baseline;
     justify-content: flex-end;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .portionInfo {

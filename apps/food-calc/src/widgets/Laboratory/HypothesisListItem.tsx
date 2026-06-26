@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { Hypothesis } from '@/entities/hypothesis';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { SelectionTick } from '@/shared/ui/atoms/SelectionTick';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { relativeTimeRu } from '@/shared/lib/time/relativeTimeRu';
 import styles from './HypothesisListItem.module.scss';
@@ -102,7 +103,9 @@ const HypothesisListItem = ({
             onChange={onToggle}
             aria-label={`Включить в разбор: ${hypothesis.title}`}
           />
-          <span className={styles.checkboxBox} aria-hidden="true" />
+          <span className={styles.checkboxBox} aria-hidden="true">
+            <SelectionTick className={styles.checkboxTick} />
+          </span>
         </label>
       )}
       {/* Текст инертный — триггер редактирования вынесен на шеврон справа-снизу. */}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import styles from './BalanceSection.module.scss';
 import { fetchBalance, fetchLedger, type LedgerEntry } from '@/shared/lib/api/billing';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 
 // Balance + recent transactions, shown in the ProfileDrawer. Fetched fresh each
 // time the drawer opens (balance only changes on spend/top-up — no live bus).
@@ -67,9 +68,9 @@ export function BalanceSection() {
             Списывается за запросы к ИИ — разбор еды и анализы. Пополнение пока
             вручную.
           </Text>
-          <button type="button" className={styles.topupBtn} disabled>
-            <Text as="span" role="caption">Пополнить — скоро</Text>
-          </button>
+          <Button variant="system-secondary" disabled fullWidth>
+            Пополнить — скоро
+          </Button>
 
           {ledger.length > 0 && (
             <ul className={styles.ledger}>

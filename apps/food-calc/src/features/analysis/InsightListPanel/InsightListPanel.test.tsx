@@ -5,17 +5,14 @@ import { drawerStore } from '@/shared/ui';
 import type { Insight } from '@/entities/insight';
 import InsightListPanel from './InsightListPanel';
 
-// Stub InsightCard down to its delete affordance: this test is about the PANEL's
-// confirm gate (does it await ConfirmDrawer before calling onDelete?), not the
-// card's rendering — stubbing also keeps the real card's Dexie/svg imports out
-// of the unit. The panel wires `onDelete={() => confirmDelete(id)}`, so the
-// stub's click drives exactly the gate path.
-vi.mock('../InsightCard', () => ({
-  InsightCard: ({ onDelete }: { onDelete?: () => void }) => (
-    <button type="button" aria-label="Удалить инсайт" onClick={onDelete}>
-      delete
-    </button>
-  ),
+// Stub ObservationCard to an inert node: this test is about the PANEL's confirm
+// gate (does it await ConfirmDrawer before calling onDelete?), not the card's
+// rendering — stubbing also keeps the real card's svg/toast imports out of the
+// unit. Deletion is no longer an in-card chevron (Slice 3, 2026-06-26): it moved
+// to a sustained press on the surrounding LongPressRow, so the gesture is driven
+// on the row, not on the card.
+vi.mock('../ObservationCard', () => ({
+  ObservationCard: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
 const INSIGHT: Insight = {
@@ -29,9 +26,16 @@ const INSIGHT: Insight = {
   createdAt: '2026-06-13T00:00:00.000Z',
 };
 
-// The point of plan decision #2: deletion is destructive + irreversible, so the
-// chevron must gate onDelete behind ConfirmDrawer. Assembly/type checks can't see
-// this — only that drawerStore.show is awaited and onDelete fires ONLY on `true`.
+// Drive deletion through the row's keyboard long-press path (context-menu key /
+// Shift+F10 → onLongPress, LongPressRow.tsx) instead of pointer timers — same
+// onLongPress entry, no 450ms fake-timer dance. The <li> is the gesture target.
+function longPressRow() {
+  fireEvent.keyDown(screen.getByRole('listitem'), { key: 'ContextMenu' });
+}
+
+// Plan decision #2: deletion is destructive + irreversible, so the long press
+// must gate onDelete behind ConfirmDrawer. Assembly/type checks can't see this —
+// only that drawerStore.show is awaited and onDelete fires ONLY on `true`.
 describe('InsightListPanel delete confirm gate', () => {
   afterEach(() => vi.restoreAllMocks());
 
@@ -40,7 +44,7 @@ describe('InsightListPanel delete confirm gate', () => {
     const showSpy = vi.spyOn(drawerStore, 'show').mockResolvedValue(true);
     render(<InsightListPanel insights={[INSIGHT]} onDelete={onDelete} />);
 
-    fireEvent.click(screen.getByLabelText('Удалить инсайт'));
+    longPressRow();
 
     // Gated: onDelete must not fire synchronously — the drawer is consulted first.
     expect(showSpy).toHaveBeenCalledTimes(1);
@@ -54,7 +58,7 @@ describe('InsightListPanel delete confirm gate', () => {
     vi.spyOn(drawerStore, 'show').mockResolvedValue(false); // cancel; undefined (swipe) behaves the same
     render(<InsightListPanel insights={[INSIGHT]} onDelete={onDelete} />);
 
-    fireEvent.click(screen.getByLabelText('Удалить инсайт'));
+    longPressRow();
     // Flush the awaited drawer promise + its continuation.
     await Promise.resolve();
     await Promise.resolve();

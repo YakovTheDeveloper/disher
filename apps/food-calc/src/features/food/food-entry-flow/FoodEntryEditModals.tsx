@@ -10,6 +10,7 @@ import { RouterUrls } from '@/app/router';
 import { pushNavigate } from '@/shared/lib/viewTransition';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
+import { InfoIcon } from '@/shared/ui/atoms/icons/InfoIcon';
 import { STEP_LABELS, type FoodEntryFlow, type DishEditItem } from './useFoodEntryFlow';
 import s from './FoodEntryEditModals.module.scss';
 
@@ -17,24 +18,6 @@ type Props = {
   /** Edit-флоу, поднятый страницей (useFoodEntryFlow({ mode: 'edit', target })). */
   flow: FoodEntryFlow;
 };
-
-const InfoIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.75" />
-    <text
-      x="12"
-      y="17"
-      textAnchor="middle"
-      fill="currentColor"
-      style={{ fontFamily: 'var(--sys-text-family-serif)' }}
-      fontStyle="italic"
-      fontSize="16"
-      fontWeight="300"
-    >
-      i
-    </text>
-  </svg>
-);
 
 const FoodEntryEditModals = ({ flow }: Props) => {
   const navigate = useNavigate();
@@ -164,7 +147,7 @@ const FoodEntryEditModals = ({ flow }: Props) => {
               aria-label={infoTarget.label}
               onClick={infoTarget.onClick}
             >
-              <InfoIcon />
+              <InfoIcon size={20} aria-hidden />
             </button>
           ) : undefined
         }

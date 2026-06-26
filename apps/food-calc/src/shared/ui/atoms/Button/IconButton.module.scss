@@ -1,0 +1,48 @@
+// Icon-only кнопка. Каркас тон-агностичен; тон (neutral/danger) добавляет
+// press-трактовку. Размер задаёт консумер (проп `size` → inline width/height, или
+// className). Press через [data-pressed] (usePressFeedback) — надёжнее :active.
+.iconButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--sys-radius-indicator);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+}
+
+// Тихий глиф → на press заливается чернилами (system) с on-accent глифом + scale.
+// Зеркалит бывший .nutrientIconButton.
+.neutral {
+    color: var(--sys-color-text-secondary);
+
+    &[data-pressed] {
+        background: var(--sys-color-surface-action-system);
+        color: var(--sys-color-text-on-accent);
+        transform: scale(0.94);
+        transition-duration: var(--sys-duration-press-in);
+    }
+}
+
+// Деструктивный глиф (урна) → на press danger-подложка. Зеркалит бывший .deleteBtn.
+.danger {
+    color: var(--sys-color-status-danger);
+
+    &[data-pressed] {
+        background: var(--sys-color-status-danger-surface);
+        transition-duration: var(--sys-duration-press-in);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .neutral[data-pressed] {
+        transform: none;
+    }
+}

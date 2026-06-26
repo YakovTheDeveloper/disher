@@ -100,15 +100,11 @@
   color: var(--sys-color-text-secondary);
 }
 
+// Пустое состояние «ничего не распозналось» — на примитиве EmptyState (без
+// action). Класс держит только позиционирование/центрирование внутри SheetCard.
 .empty {
   padding: var(--space-4);
   text-align: center;
-}
-
-// Типографику несёт <Text role="body">; класс — раскладка + контекстный цвет.
-.emptyText {
-  margin: 0;
-  color: var(--sys-color-text-secondary);
 }
 
 .sections {
@@ -153,7 +149,7 @@
   gap: var(--sys-stack-row);
 }
 
-// Wrapper для одного ряда предложки. Сам ряд (FreeTextFoodReviewItem)
+// Wrapper для одного ряда предложки. Сам ряд (ProposalFoodItem)
 // занимает 100% ширины — той же, что у обычного ScheduleFoodItem ниже.
 // `× outerDelete` рендерится absolute справа в padding-right'е `.list`'а,
 // «вне контейнера ряда» по запросу юзера. Если убрать absolute и сделать

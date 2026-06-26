@@ -32,7 +32,9 @@
   --sys-inset-sheet: var(--space-6); // 24 — full-width sheet / modal frame
   --sys-inset-md: var(--sys-inset-panel); // legacy shim (dead ModalShell.bodyInset)
   --sys-inset-lg: var(--sys-inset-sheet); // legacy shim (DailyNormDrawer)
-  --sys-inset-page: var(--space-4); // 16 — single Screen gutter (canon 2026-06-22)
+  --sys-inset-page: var(--space-3); // 20 — single Screen gutter (canon 2026-06-22)
+
+  --sys-inset-screen-asymmetrical-air: var(--space-12);
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
   --sys-stack-row: var(--space-3); // 12 — rows/fields/cards in one list/form
@@ -368,9 +370,20 @@
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
   --sys-color-text-sepia: #6b4a23; // FabricLoader gravure ink — sepia art-слой (бледная гравюра)
+  // Placeholder-подсказка поля — ХОЛОДНЫЙ нейтральный (cool slate). Семантический
+  // дом цвета подсказки (вынесен для переиспользования 2026-06-26): поля ссылаются
+  // на него через --sys-field-placeholder. Холодный контрапункт к тёплому field-ink.
+  --sys-color-text-placeholder: rgba(74, 80, 94, 0.5);
 
   // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
+
+  // color · divider — ЕДИНЫЙ источник правды для всех тающих бровок-разделителей
+  // (канон Divider, design-DNA). Микро-акцент: ХОЛОДНЫЙ графит-синий (семья cool-
+  // night-anchor rgba(31,42,68)) вместо прежнего тёплого `--color-ink`. Все hairline
+  // текут отсюда: `--sys-card-hairline`, NutrientsBar, headerOverlap-бровка листа.
+  // Крути alpha здесь — 1px-линия, значение чувствительно (tunable одним местом).
+  --sys-color-divider: rgba(31, 42, 68, 0.11);
 
   // color · intents (action / status)
   --sys-color-text-on-action: var(--cta-brand-ink); // warm-coal ink on brand CTA
@@ -392,6 +405,11 @@
   --sys-color-bg-selected: color-mix(in srgb, var(--ref-color-amber-600) 14%, var(--ref-color-neutral-0));
   --sys-color-text-on-selected: var(--ref-color-amber-700);
   --sys-color-border-selected: var(--ref-color-amber-700);
+  // Галочка-глиф selection-маркера — ХОЛОДНАЯ искра (indigo accent-полюс), контрапункт
+  // к тёплому полю «выбрано». Отдельный токен от text-on-selected: поле/кромка/текст-
+  // на-заливке остаются amber, холодает ТОЛЬКО глиф. Един для всех тиков app-wide
+  // (FoodActionCard tick-бейдж, Choice markerTick, HypothesisListItem чекбокс).
+  --sys-color-tick-selected: var(--sys-color-text-accent); // indigo-600 #3a2d6b
   --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // warm-coal state-layer
   --sys-color-bg-press: var(--press-tint-bg); // alias 1:1
   // Утопленная плашка (6% warm-ink wash) — глобальный спутник scoped --sys-card-bg-sunk
@@ -433,7 +451,6 @@
   --sys-color-text-accent-faint: color-mix(in srgb, var(--sys-color-text-accent) 35%, transparent);
   --sys-color-surface-action-system: var(--ref-color-neutral-900);
   --sys-color-surface-action-system-pressed: var(--ref-color-neutral-1000);
-  --sys-color-surface-action-system-hover: color-mix(in oklch, var(--ref-color-neutral-900) 88%, white); // lighten-hover solid-dark кнопки (AddToListPopover .btnPrimary:hover)
   --sys-color-surface-action-system-disabled: var(--sys-color-surface-action-disabled);
 
   // color · ON-action — контент (текст/иконка) ПОВЕРХ залитой кнопки. `on-*`
@@ -475,16 +492,25 @@
   // color · control (segment-control track + segments; tied to neutral ref-scale)
   --sys-color-control-track: var(--ref-color-neutral-300);
   --sys-color-control-segment-text: var(--ref-color-neutral-500); // inactive
-  --sys-color-control-segment-active-bg: #ffffff; // active "thumb"
-  --sys-color-control-segment-active-text: var(--ref-color-neutral-1000);
+  // Active "thumb" — ТЁПЛАЯ нейтраль, «в сторону инпута» (запрос юзера 2026-06-26):
+  // не цветное пятно (амбра «пылала»), не клинический белый — тёплый КРЕМ в тон
+  // поисковому полю, видно как поднятую плашку по value+тени, сливается с пилюлей.
+  --sys-color-control-segment-active-bg: #fdf6ea; // warm cream thumb (в тон field)
+  --sys-color-control-segment-active-text: var(--ref-color-neutral-900); // тёплый-нейтральный ink
 
   // radius · by element category (not by look)
   --sys-radius-control: var(--radius-sm); // 8 — radio/checkbox/input/select/field
   --sys-radius-indicator: var(--radius-full); // chip/tag/badge/switch-track
-  --sys-radius-cta: var(--radius-lg); // CTA pills (separate lever from indicator)
+  --sys-radius-cta: var(--radius-md); // CTA pills (separate lever from indicator)
   --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
   --sys-radius-overlay: var(--radius-xl); // 24 — drawer/bottom-sheet top corner, headerOverlap
   --sys-radius-sheet: var(--radius-2xl); // 40 — крупная sheet/предложка-карточка (SheetCard)
+  // radius · concentric inner — вложенная карточка внутри sheet-контейнера.
+  // Канон концентричности: r_внутр = r_внеш − inset (дуги с общим центром →
+  // ровный зазор в углу; НЕ «половина»). 40 − 24 = 16. Считаем здесь, в
+  // примитивном ярусе (gate-exempt); компоненты потребляют готовую роль, не calc.
+  // Меняешь sheet/inset — внутренний радиус едет следом сам.
+  --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-sheet)); // → 16
   --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
   // ─── Nutrient family — #nutrient ─────────────────────────────

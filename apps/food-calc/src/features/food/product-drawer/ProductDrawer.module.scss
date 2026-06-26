@@ -9,12 +9,7 @@
 }
 
 // ─── Карандаш в правом углу обвязки (topRight slot DrawerLayout) ──
-// Обёртка-anchor для drop-down меню (живёт в стекинг-контексте обвязки).
-.editWrap {
-    position: relative;
-    display: inline-flex;
-}
-
+// triggerClassName для DropdownMenu (Base UI Menu owns открытие/портал/бэкдроп).
 // Прозрачный фон, чёрный (ink) глиф. `.editIconBtn svg { color }` (0,1,1)
 // перебивает DrawerLayout `.actionHeaderButton * { color: rgba(0,0,0,.2) }`
 // (0,1,0) — тот же приём, что `.deleteBtn svg` в ItemActionsDrawer.
@@ -41,158 +36,25 @@
     }
 }
 
-// Невидимый full-bleed бэкдроп для click-outside (закрывает меню).
-.editBackdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    border: none;
-    background: none;
-    cursor: default;
-}
-
-// Drop-down под карандашом. Падает вниз в область контента (внутри .content,
-// не клипается). right:0 — прижат к правому краю панели.
-.editMenu {
-    position: absolute;
-    top: calc(100% + var(--space-1));
-    right: 0;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    min-width: 220px;
-    padding: var(--space-1);
-    border-radius: var(--sys-radius-container);
-    background: var(--sys-color-surface-bright);
-    box-shadow: var(--sys-elevation-overlay);
-}
-
-// `.editWrap .editMenuItem` (0,2,0) перебивает DrawerLayout
-// `.actionHeaderButton * { color: rgba(0,0,0,.2); font-size: 1.5rem }` (0,1,0).
-.editWrap .editMenuItem {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-height: 44px;
-    padding: var(--space-2) var(--space-3);
-    border: none;
-    border-radius: var(--sys-radius-control);
-    background: none;
-    // Типографику несёт <Text role="body"> (миграция в примитив). Класс держит
-    // раскладку/палитру.
-    color: var(--sys-color-text-primary);
-    text-align: left;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-
-    &:hover,
-    &:active {
-        background: var(--sys-color-bg-press);
-    }
-}
-
 // ─── Аккордеон «Порции» ──────────────────────────────────────────
-// Sky-палитра ghost-пилюли «Добавить» — зеркалит FoodPortionsManager (список =
-// sky-капсулы). $var-присвоения token-gate'ом не проверяются; в свойствах
-// используем $var/var() → правило (color/font-size/border-radius → токен) проходит.
-$sky-stripe: #c7dbf3;
-$sky-ink-soft: rgba(30, 64, 124, 0.55);
-$pill-radius: 14px;
-
+// Аккордеон «Порции» — на примитиве Accordion (шапка-тоггл + grid-reveal +
+// шеврон + a11y живут в примитиве). Здесь — только внешний отступ секции,
+// раскладка тела (вертикальный стек) и цвет счётчика.
 .portions {
     margin-bottom: var(--sys-stack-row);
 }
 
-// Шапка = единственный ряд-toggle на всю ширину: слева заголовок + счётчик,
-// справа шеврон. Голого „+“ больше нет (переехал ghost-пилюлей в список).
-.portionsToggle {
+// Тело аккордеона: список порций + кнопка «Добавить порцию» в вертикальный стек.
+.portionsBody {
     display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 48px;
-    padding: var(--space-2) 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--sys-color-text-primary);
-}
-
-.portionsTitleWrap {
-    display: inline-flex;
-    align-items: baseline;
-    gap: var(--space-1);
+    flex-direction: column;
+    gap: var(--sys-stack-row);
 }
 
 // Счётчик порций — закрытый аккордеон сообщает, есть ли в нём что-то.
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит цвет.
 .portionsCount {
     color: var(--sys-color-text-tertiary);
-}
-
-.chevron {
-    color: var(--sys-color-text-tertiary);
-    transition: transform var(--duration-normal) var(--easing-default);
-}
-
-.chevronOpen {
-    transform: rotate(180deg);
-}
-
-// Раскрытие через grid-template-rows 0fr→1fr — анимируем grid-track, не height
-// (composite-friendly, без layout-thrash). Внутренний контейнер режет overflow.
-.portionsReveal {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows var(--duration-normal) var(--easing-default);
-}
-
-.portionsRevealOpen {
-    grid-template-rows: 1fr;
-}
-
-.portionsRevealInner {
-    min-height: 0;
-    overflow: hidden;
-}
-
-// «Добавить порцию» в языке списка: пунктирная sky-ghost-капсула той же формы,
-// что строки-порции (radius 14px, sky-обводка). Без заливки — вес ниже реальных
-// порций. margin-top даёт зазор от FoodPortionsManager (у него внутри свой gap).
-.addPortionGhost {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    margin-top: var(--sys-stack-row);
-    padding: var(--space-2) var(--space-3);
-    border: 1.5px dashed $sky-stripe;
-    border-radius: var(--sys-radius-cta);
-    background: none;
-    // Типографику метки несёт <Text role="caption"> (миграция в примитив).
-    color: var(--sys-color-text-accent);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-
-    svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    &:active {
-        border-color: var(--sys-color-text-accent);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .portionsReveal {
-        transition: none;
-    }
-
-    .chevron {
-        transition: none;
-    }
 }
 
 // ─── Количество ──────────────────────────────────────────────────
@@ -271,22 +133,11 @@ $pill-radius: 14px;
 // ─── Пустой состав: живой empty-state ────────────────────────────
 // Главное действие нового продукта (заполнить состав) не прячем под карандаш —
 // показываем на витрине: подпись + крупная CTA AI-подбора + тихий ручной путь.
-// Прижато не к верху, а с воздухом — пустой лист должен дышать, не казаться
-// «обрезанным».
+// Раскладку контента (центр-колонка, ритм, цвет ролей) несёт примитив EmptyState;
+// здесь — только позиционирование зоны: воздух вокруг, чтобы пустой лист дышал и
+// не казался «обрезанным».
 .emptyNutrients {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--sys-stack-row);
     padding: var(--space-6) var(--space-3);
-    text-align: center;
-}
-
-// Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
-// сброс отступа + цвет.
-.emptyNutrientsCaption {
-    margin: 0;
-    color: var(--sys-color-text-secondary);
 }
 
 // Тихий вторичный путь — ручной ввод (открывает тот же редактор нутриентов,

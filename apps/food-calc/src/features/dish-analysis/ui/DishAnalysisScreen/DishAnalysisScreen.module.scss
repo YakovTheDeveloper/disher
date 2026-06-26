@@ -16,6 +16,9 @@
     padding: var(--space-6) var(--space-4);
 }
 
+// Пустой герой разбора блюда — на примитиве EmptyState (title + description +
+// action-слот). Класс держит позиционирование + публикует --cta-brand-* (выше),
+// чтобы primary-Button внутри получил sky-тон.
 .emptyHero {
     display: flex;
     flex-direction: column;
@@ -23,17 +26,6 @@
     gap: var(--sys-stack-row);
     padding: var(--space-12) var(--space-4);
     text-align: center;
-}
-
-.emptyHint {
-    margin: 0;
-    line-height: 1.5;
-    opacity: 0.6;
-    max-width: 32ch;
-}
-
-.emptyTitle {
-    margin: 0;
 }
 
 // Sky-CTA вынесена в общий `Button variant="primary"` (sky-тон через --cta-brand-*

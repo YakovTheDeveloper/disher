@@ -56,8 +56,8 @@
 // клипует детей по радиусу, несёт ЕДИНСТВЕННУЮ тень блока (поэтому тень бара ниже
 // снимаем — она больше не «капает» на панель), держит белый фон.
 [data-dv='EventDock'][data-dv-v='merged'].dock {
-    border-top-left-radius: var(--radius-xl);
-    border-top-right-radius: var(--radius-xl);
+    border-top-left-radius: var(--sys-radius-sheet);
+    border-top-right-radius: var(--sys-radius-sheet);
     overflow: hidden;
     box-shadow: var(--sys-elevation-overlay);
     background: var(--sys-color-surface-bright);

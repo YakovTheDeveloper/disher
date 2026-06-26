@@ -1,14 +1,14 @@
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo } from 'react';
 import clsx from 'clsx';
 import styles from './ScheduleFoodItemInline.module.scss';
 import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
-import { CardShell } from '@/features/shared/card-shell';
+import { Card } from '@/shared/ui/atoms/Card';
+import { TitleCluster } from '@/shared/ui/atoms/TitleCluster';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { CardTime } from '@/shared/ui/atoms/CardTime';
-import { QtyStack } from '@/shared/ui/atoms/QtyStack';
-import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
@@ -54,39 +54,6 @@ const ScheduleFoodItemInline = ({
     );
   };
 
-  // ── Quantity inline edit ────────────────────────────────────────────
-  const [editingQty, setEditingQty] = useState(false);
-  const [qtyDraft, setQtyDraft] = useState(item.quantity);
-  // After commit, keep showing the optimistic value until props.quantity
-  // catches up (avoids old→new flash while PowerSync round-trips).
-  const [qtyPending, setQtyPending] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!editingQty) setQtyDraft(item.quantity);
-  }, [item.quantity, editingQty]);
-
-  useEffect(() => {
-    if (qtyPending !== null && qtyPending === item.quantity) setQtyPending(null);
-  }, [qtyPending, item.quantity]);
-
-  const commitQty = () => {
-    if (qtyDraft === item.quantity || qtyDraft <= 0) {
-      setEditingQty(false);
-      setQtyDraft(item.quantity);
-      return;
-    }
-    setQtyPending(qtyDraft);
-    safeMutate(
-      () => updateScheduleFood(item.id, { quantity: qtyDraft }),
-      'Не удалось обновить количество'
-    );
-    setEditingQty(false);
-  };
-
-  const qtyDisplay = qtyPending ?? item.quantity;
-
-  const qtyInputRef = useRef<HTMLInputElement>(null);
-
   // <label htmlFor={SEARCH_EDIT_INPUT}> in FoodName focuses the always-mounted
   // edit-search input directly (Yandex-style — keeps iOS keyboard popping). We
   // stash our item id on the input synchronously on pointerdown so the focus
@@ -107,44 +74,27 @@ const ScheduleFoodItemInline = ({
   const name = item.product ?? item.dish ?? null;
   const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
 
-  // qty-стопка (value над unit, unit по началу value) — общий рендер для покоя
-  // и правки; меняется только содержимое верхней строки (число ↔ NumberInput).
-  const qtyStack = editingQty ? (
-    <QtyStack
+  // Инлайн-правка количества — вынесена в EditableQuantity (был копипаст 1:1 с
+  // ProposalFoodItem). dataEntityEdit: Screen прячет нижний бар на время правки.
+  const qtyStack = (
+    <EditableQuantity
+      value={item.quantity}
       unit={getQtyUnit(item.product)}
-      // Глобальный хук: пока правим количество, Screen прячет нижний бар
-      // (`Screen.module.scss` :has([data-entity-edit]:focus-within)).
-      data-entity-edit
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.currentTarget.querySelector('input')?.blur();
-        } else if (e.key === 'Escape') {
-          setQtyDraft(item.quantity);
-          setEditingQty(false);
-        }
-      }}
-    >
-      <NumberInput
-        ref={qtyInputRef}
-        value={qtyDraft}
-        onChange={setQtyDraft}
-        onBlur={commitQty}
-        autoFocus
-        min={1}
-        maxLength={4}
-      />
-    </QtyStack>
-  ) : (
-    <QtyStack unit={getQtyUnit(item.product)} onClick={() => setEditingQty(true)}>
-      {qtyDisplay}
-    </QtyStack>
+      onCommit={(quantity) =>
+        safeMutate(
+          () => updateScheduleFood(item.id, { quantity }),
+          'Не удалось обновить количество'
+        )
+      }
+      dataEntityEdit
+    />
   );
 
-  // Маппинг на CardShell (food-модель, см. cardshell-unification план):
-  // title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы); meta = детали;
-  // metaEnd = время (теперь В карточке, не в левом желобе).
+  // Маппинг на compound Card (food-модель, см. card-chassis-simplify план):
+  // Title = [qty][имя] кластер; Meta = детали (опц.); Time = время (трейлинг —
+  // есть детали → низ-право, нет → верх-право, рендерит Card.Root).
   return (
-    <CardShell
+    <Card.Root
       className={clsx(className, styles.group, isCustom && styles.customProduct)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
@@ -152,49 +102,36 @@ const ScheduleFoodItemInline = ({
       tod={getTimeOfDay(item.time)}
       data-row-id={id}
       onLongPress={onLongPress}
-      // title = [qty][имя] кластер (qty ПЕРЕД именем) — много-голосый узел → node-escape.
-      title={{
-        node: (
-          <div className={styles.titleCluster}>
-            {qtyStack}
-            <TapTarget
-              as="label"
-              className={styles.foodName}
-              htmlFor={foodHtmlFor}
-              onPointerDown={handleFoodPointerDown}
-            >
-              <FoodName content={name} className={getFoodNameClassName()} />
-            </TapTarget>
-          </div>
-        ),
-      }}
-      // meta = детали (CardLayout строит caption + label htmlFor); тот же htmlFor что имя.
-      meta={
-        item.details
-          ? {
-              content: item.details,
-              htmlFor: foodHtmlFor,
-              onPointerDown: handleFoodPointerDown,
-              className: styles.detailsSubtitle,
-            }
-          : undefined
-      }
-      // metaEnd = время — stateful редактор → node-escape.
-      metaEnd={
-        hideTime
-          ? undefined
-          : {
-              node: (
-                <CardTime
-                  value={item.time}
-                  onCommit={commitTime}
-                  formatDisplay={formatClock}
-                  dim={dimTime}
-                />
-              ),
-            }
-      }
-    />
+    >
+      {/* Title = [qty][имя] кластер (qty ПЕРЕД именем) — много-голосый узел → node-escape. */}
+      <Card.Title>
+        <TitleCluster>
+          {qtyStack}
+          <TapTarget
+            as="label"
+            className={styles.foodName}
+            htmlFor={foodHtmlFor}
+            onPointerDown={handleFoodPointerDown}
+          >
+            <FoodName content={name} className={getFoodNameClassName()} />
+          </TapTarget>
+        </TitleCluster>
+      </Card.Title>
+
+      {/* Meta = детали (Card строит caption + label htmlFor + клэмп-2); тот же htmlFor что имя. */}
+      {item.details && (
+        <Card.Meta htmlFor={foodHtmlFor} onPointerDown={handleFoodPointerDown}>
+          {item.details}
+        </Card.Meta>
+      )}
+
+      {/* Time = stateful редактор → node-escape. */}
+      {!hideTime && (
+        <Card.Time>
+          <CardTime value={item.time} onCommit={commitTime} formatDisplay={formatClock} dim={dimTime} />
+        </Card.Time>
+      )}
+    </Card.Root>
   );
 };
 

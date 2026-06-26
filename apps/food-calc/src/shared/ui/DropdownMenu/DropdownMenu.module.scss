@@ -1,0 +1,61 @@
+// Dropdown-примитив на Base UI Menu. Popup портируется в <body>; визуал —
+// нейтральная overlay-поверхность, всё через токены (token-gate).
+
+.positioner {
+    z-index: 6500; // выше drawer-tier (5xxx); вровень с Select-popup
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: var(--space-1);
+    border-radius: var(--sys-radius-container);
+    background: var(--sys-color-surface-bright);
+    box-shadow: var(--sys-elevation-overlay);
+    transform-origin: var(--transform-origin);
+    transition:
+        transform 0.16s ease,
+        opacity 0.16s ease;
+
+    // Enter/exit — false→true монтаж даёт data-starting-style (baseui-mount-phase).
+    &[data-starting-style],
+    &[data-ending-style] {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 44px; // touch-floor для пунктов
+    padding: var(--space-2) var(--space-3);
+    border: none;
+    border-radius: var(--sys-radius-control);
+    background: none;
+    // Типографику несёт <Text role="body"> у консумента; класс держит раскладку/палитру.
+    color: var(--sys-color-text-primary);
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &[data-highlighted],
+    &:hover,
+    &:active {
+        background: var(--sys-color-bg-press);
+    }
+
+    &[data-disabled] {
+        cursor: default;
+        opacity: 0.5;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .popup {
+        transition: none;
+    }
+}

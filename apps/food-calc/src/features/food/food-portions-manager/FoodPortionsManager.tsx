@@ -1,7 +1,6 @@
 import { FC, useState } from 'react';
 import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
-import { CardLayout } from '@/shared/ui/atoms/CardLayout';
 import s from './FoodPortionsManager.module.scss';
 
 type Portion = { label: string; grams: number };
@@ -86,12 +85,12 @@ const PortionEditRow = ({
     setEditing(null);
   };
 
-  // Слот-API (CardLayout, CardShell unification 2026-06-25): title = label
-  // (тянется), titleEnd = grams+unit (прибит вправо по базовой линии title-строки).
-  // Обе ячейки stateful (тап → input autoFocus → blur коммитит) → node-escape.
-  // Контейнер sky-pill (.portionEdit) владеет фоном + long-press (useLongPress
-  // навешен на него — НЕ оборачиваем в LongPressRow, иначе её tod-фон закрасил бы
-  // sky-градиент; «один владелец bg»). CardLayout bg-агностик, только раскладывает.
+  // Локальный 2-cell flex (rule-of-one: единственный консумер «label + grams»,
+  // каркасу его нести незачем — это снимает типизированный titleEnd целиком).
+  // label тянется, grams прибит вправо по базовой линии. Обе ячейки stateful
+  // (тап → input autoFocus → blur коммитит). Контейнер sky-pill (.portionEdit)
+  // владеет фоном + long-press (useLongPress навешен на него — НЕ оборачиваем в
+  // LongPressRow, иначе её tod-фон закрасил бы sky-градиент; «один владелец bg»).
   const labelNode =
     editing === 'label' ? (
       <input
@@ -137,7 +136,10 @@ const PortionEditRow = ({
 
   return (
     <div className={s.portionEdit} {...pressHandlers}>
-      <CardLayout title={{ node: labelNode }} titleEnd={{ node: gramsNode }} />
+      <div className={s.portionEditRow}>
+        <div className={s.portionEditLabel}>{labelNode}</div>
+        {gramsNode}
+      </div>
     </div>
   );
 };

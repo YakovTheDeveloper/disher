@@ -34,7 +34,7 @@ import {
 
 export type WriteFoodFlowState = 'idle' | 'loading' | 'ready' | 'error';
 
-// Time + quantity редактятся inline на самом ряду (см. FreeTextFoodReviewItem) —
+// Time + quantity редактятся inline на самом ряду (см. ProposalFoodItem) —
 // модалка остаётся только для search (замена продукта через SearchFood) и
 // details (заметка через DetailsChips).
 export type ReviewEditStep = 'idle' | 'search' | 'details';

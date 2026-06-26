@@ -396,8 +396,10 @@ const SearchFoodHeavy = ({
         onScroll={handleListScroll}
         role="listbox"
       >
-        {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
-        {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
+        <div className={styles.sheet}>
+          {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
+          {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
+        </div>
         <div ref={sentinelRef} />
       </div>
       {/* При выбранном нутриенте поиск = режим фильтра по богатству; create-пустышку прячем. */}

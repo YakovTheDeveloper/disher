@@ -76,35 +76,10 @@
     word-break: break-word;
 }
 
+// Вид несёт примитив <Button variant="accent" fullWidth>. Класс — layout-слот:
+// только верхний зазор от блока-статуса (раньше был bespoke CTA).
 .restart {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 46px;
     margin-top: 14px;
-    padding: 11px 22px;
-    border-radius: var(--sys-radius-cta);
-    border: none;
-    background: var(--sys-color-surface-action-accent); // brand action → indigo accent (M4 navy→indigo, 2026-06-25)
-    color: var(--sys-color-on-accent);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform var(--press-out) var(--easing-default),
-        filter var(--press-out) var(--easing-default);
-
-    // Цветной отклик: сплошную тёмную кнопку затемняем фильтром
-    &:active {
-        filter: brightness(0.9);
-        transform: scale(0.98);
-        transition-duration: var(--sys-duration-press-in);
-    }
-
-    &:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-    }
 }
 
 // ─── Sections (ideas + hypothesis snapshot) ───────────────────────────

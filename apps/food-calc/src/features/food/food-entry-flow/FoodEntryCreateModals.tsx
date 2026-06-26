@@ -10,6 +10,7 @@ import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
+import { Accordion } from '@/shared/ui/Accordion';
 import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import {
   type FoodEntryFlow,
@@ -192,39 +193,43 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                           (n) => (supplementNutrients[n.id] ?? 0) > 0,
                         ).length;
                         return (
-                          <div
+                          // Примитив Accordion. hideChevron — индикатор несёт сам
+                          // тайтл (+/−). lazyMount — тело монтируется только пока
+                          // открыто: групп 4 (до 19 карточек каждая) и always-mount
+                          // всех сразу зря крутил бы ~54 NutrientCardEditor; iOS-
+                          // делегация тут не страдает (тоггл — button, label→input
+                          // самодостаточны внутри карточки), поэтому lazy безопасен.
+                          <Accordion
                             key={group.name}
-                            data-group={group.name}
+                            open={isOpen}
+                            onToggle={() => toggleGroup(group.name)}
+                            hideChevron
+                            lazyMount
                             className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
-                          >
-                            <button
-                              type="button"
-                              className={styles.nutrientsToggle}
-                              onClick={() => toggleGroup(group.name)}
-                              aria-expanded={isOpen}
-                            >
+                            headerClassName={styles.nutrientsToggle}
+                            bodyClassName={styles.nutrientsGrid}
+                            title={
                               <QuietLabel as="span">
                                 {isOpen ? '−' : '+'} {group.displayName}
                               </QuietLabel>
+                            }
+                            trailing={
                               <Text as="span" role="caption" className={styles.nutrientsToggleHint}>
                                 {filledCount > 0 ? `${filledCount} запис.` : 'per 1 шт'}
                               </Text>
-                            </button>
-                            {isOpen && (
-                              <div className={styles.nutrientsGrid}>
-                                {group.content.map((nutrientData) => (
-                                  <NutrientCardEditor
-                                    key={nutrientData.id}
-                                    content={nutrientData}
-                                    variant="product-edit"
-                                    className={styles.inlineCard}
-                                    editValue={supplementNutrients[nutrientData.id] ?? 0}
-                                    onValueChange={handleNutrientChange}
-                                  />
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                            }
+                          >
+                            {group.content.map((nutrientData) => (
+                              <NutrientCardEditor
+                                key={nutrientData.id}
+                                content={nutrientData}
+                                variant="product-edit"
+                                className={styles.inlineCard}
+                                editValue={supplementNutrients[nutrientData.id] ?? 0}
+                                onValueChange={handleNutrientChange}
+                              />
+                            ))}
+                          </Accordion>
                         );
                       })}
                     </div>

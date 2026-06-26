@@ -26,7 +26,7 @@ export type TapTargetProps<T extends ElementType = 'div'> = TapTargetOwnProps<T>
  * кнопка). Принимает любое число детей — для зоны из 2+ элементов оборачивает
  * `<Column>`.
  *
- * Консумеры: ScheduleEventCard, ScheduleFoodItem, FreeTextFoodReviewItem,
+ * Консумеры: ScheduleEventCard, ScheduleFoodItem, ProposalFoodItem,
  * DishBuilderPage.
  */
 export function TapTarget<T extends ElementType = 'div'>({

@@ -1,13 +1,15 @@
-import { useCallback, useState, type CSSProperties } from 'react';
+import { useCallback, type CSSProperties } from 'react';
 import { createProduct } from '@/entities/product/api/mutations';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { SheetCard } from '@/shared/ui/SheetCard';
-import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
 import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
 import { AddToListPopover } from './AddToListPopover';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import styles from './InlineWriteFoodReview.module.scss';
 import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
 
@@ -38,12 +40,6 @@ const NEUTRAL_PALETTE: CSSProperties = {
   '--tod-tapped': 'rgba(31, 42, 68, 0.06)',
   '--accent-stripe': 'rgba(31, 42, 68, 0.18)',
 } as CSSProperties;
-
-interface RescueState {
-  uid: string;
-  anchor: HTMLElement;
-  originalName: string;
-}
 
 export interface InlineWriteFoodReviewProps {
   flow: UseWriteFoodFlowResult;
@@ -76,8 +72,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     commit,
     cancel,
   } = flow;
-
-  const [rescue, setRescue] = useState<RescueState | null>(null);
 
   const readyCount = resolved.length + ambiguous.length + unresolved.length;
   const isReviewEmpty = state === 'ready' && readyCount === 0;
@@ -117,30 +111,32 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     [editingUid, setEditingStep, startEdit]
   );
 
-  const closeRescue = useCallback(() => setRescue(null), []);
-
-  const handleRescueUseExisting = useCallback(
-    (productId: string, name: string) => {
-      if (!rescue) return;
-      updateUnresolved(rescue.uid, {
-        manual: { id: productId, name, score: 1 },
-      });
-      setRescue(null);
+  // «+» у нераспознанного ряда → bottom-sheet «Новый продукт» через drawerStore
+  // (drawer-side-via-store). Anchor больше не нужен (теряется — ок, план Slice 12).
+  // onCreateNew возвращает успех: drawer закрывается только если createProduct
+  // прошёл (на провале остаётся открытым, тостер уже сообщил).
+  const openRescueDrawer = useCallback(
+    (uid: string, originalName: string) => {
+      void drawerStore.show(
+        AddToListPopover,
+        {
+          initialName: originalName,
+          onUseExisting: (productId: string, name: string) =>
+            updateUnresolved(uid, { manual: { id: productId, name, score: 1 } }),
+          onCreateNew: async (name: string) => {
+            const result = await safeMutate(
+              () => createProduct({ name }),
+              'Не удалось создать продукт'
+            );
+            if (!result.ok) return false;
+            updateUnresolved(uid, { manual: { id: result.value, name, score: 1 } });
+            return true;
+          },
+        },
+        { side: 'bottom' }
+      );
     },
-    [rescue, updateUnresolved]
-  );
-
-  const handleRescueCreateNew = useCallback(
-    async (name: string) => {
-      if (!rescue) return;
-      const result = await safeMutate(() => createProduct({ name }), 'Не удалось создать продукт');
-      if (!result.ok) return;
-      updateUnresolved(rescue.uid, {
-        manual: { id: result.value, name, score: 1 },
-      });
-      setRescue(null);
-    },
-    [rescue, updateUnresolved]
+    [updateUnresolved]
   );
 
   const isLoading = state === 'loading';
@@ -225,11 +221,11 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
       )}
 
       {isReviewEmpty ? (
-        <div className={styles.empty}>
-          <Text as="p" role="body" className={styles.emptyText}>
-            Ничего не распозналось. Попробуйте описать подробнее.
-          </Text>
-        </div>
+        <EmptyState
+          className={styles.empty}
+          title="Ничего не распозналось"
+          description="Попробуйте описать подробнее."
+        />
       ) : (
         <div className={styles.sections}>
           {resolved.length > 0 && (
@@ -346,13 +342,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                       <button
                         type="button"
                         className={styles.outerRescue}
-                        onClick={(e) =>
-                          setRescue({
-                            uid: u.uid,
-                            anchor: e.currentTarget,
-                            originalName: u.originalName,
-                          })
-                        }
+                        onClick={() => openRescueDrawer(u.uid, u.originalName)}
                         aria-label="Добавить в свой список"
                         title="Добавить в свой список"
                       >
@@ -402,15 +392,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         onClose={closeEdit}
         inputIds={REVIEW_INPUT_IDS}
         excludeSupplements={targetKind === 'dish'}
-      />
-
-      <AddToListPopover
-        anchor={rescue?.anchor ?? null}
-        open={!!rescue}
-        initialName={rescue?.originalName ?? ''}
-        onClose={closeRescue}
-        onUseExisting={handleRescueUseExisting}
-        onCreateNew={handleRescueCreateNew}
       />
     </SheetCard>
   );

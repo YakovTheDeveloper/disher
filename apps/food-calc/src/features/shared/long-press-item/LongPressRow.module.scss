@@ -13,8 +13,15 @@
     --_bg-to: var(--tod-bg-to, var(--tod-morning-bg-to));
     --_outline-from: var(--tod-outline-from, var(--tod-morning-outline-from));
     --_outline-to: var(--tod-outline-to, var(--tod-morning-outline-to));
-    --sys-color-row-tapped: var(--tod-tapped, var(--tod-morning-tapped));
+    // Press fill — consumer-overridable via --row-tapped (pairs with --row-bg).
+    --sys-color-row-tapped: var(--row-tapped, var(--tod-tapped, var(--tod-morning-tapped)));
 
+    // Surface fill. Consumer-overridable via --row-bg: pass a className/style to
+    // Card.Root (lands on this `.row`) that sets --row-bg + --row-tapped together
+    // to recolour one card without a selector war. The fallback reproduces the
+    // tokens.scss tod color-mix (keep in sync, tokens.scss `--sys-color-row-bg`)
+    // so `background-color` stays a gate-clean `--sys-color-*` var(). Default unchanged.
+    --sys-color-row-bg: var(--row-bg, color-mix(in oklch, var(--_bg-from) calc((1 - var(--t, 0)) * 100%), var(--_bg-to)));
     background-color: var(--sys-color-row-bg);
     // Resting frame width is consumer-overridable via --row-rest-outline-w so
     // consumers can drop the per-row outline (the baked borderless TimeGroup
@@ -25,12 +32,16 @@
 
     position: relative;
     // Vertical padding is consumer-overridable via --sys-row-pad-block. Default
-    // (= --space-1, 4px) keeps existing rows unchanged; the CardShell cards (food,
+    // (= --space-1, 4px) keeps existing rows unchanged; the Card.Root cards (food,
     // event) set BOTH --sys-row-pad-block: 0 and --sys-row-min-h-touch: 0 so the
     // container owns no decorative padding or floor — the leaf <TapTarget>
     // padding-block carries the rhythm (leaf-floor canon).
     padding-block: var(--sys-row-pad-block);
-    padding-inline: var(--space-4);
+    // Horizontal inset. Direct LongPressRow consumers (ProductDrawer, UiKitPage)
+    // own their inset here. Card.Root sets --row-pad-inline: 0 (Card.Root injects
+    // it) so the inner Card `.card` owns the inset instead
+    // (drawer-layout canon: content owns padding). Default unchanged = 16px.
+    padding-inline: var(--row-pad-inline, var(--space-4));
     transition: background-color 0.3s ease, padding 0.3s ease, transform 0.12s ease;
     border-radius: var(--sys-radius-container);
     touch-action: manipulation;
@@ -48,6 +59,7 @@
     // Works on the shared node because the entrance animation no longer holds
     // `transform` after it ends (fill: backwards — see useEntranceStagger).
     &_tapped {
+        // Press fill (--row-tapped folds into --sys-color-row-tapped at the root).
         background-color: var(--sys-color-row-tapped) !important;
         transform: scale(0.98);
     }

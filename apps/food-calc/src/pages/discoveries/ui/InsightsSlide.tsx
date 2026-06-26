@@ -3,7 +3,8 @@ import { Screen } from '@/shared/ui/Screen';
 import { useAllInsights, deleteInsight } from '@/entities/insight';
 import { InsightListPanel } from '@/features/analysis/InsightListPanel';
 import { pluralInsights } from '@/shared/lib/text/pluralInsights';
-import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import styles from './DiscoveriesSlides.module.scss';
 
 // Слайд «Инсайты» — read-only наблюдения, сохранённые с разборов (deletable).
@@ -26,16 +27,11 @@ const InsightsSlide = ({ topSlot }: Props) => {
           </Text>
         )}
         {insights.length === 0 ? (
-          <div className={styles.empty}>
-            <Heading as="h3" role="title" className={styles.emptyTitle}>
-              Пока нет инсайтов
-            </Heading>
-            <Text as="p" role="caption" className={styles.emptyBody}>
-              Инсайты появляются на разборе дня или блюда — это связки и
-              предостережения по твоей еде. Нажми «Добавить к себе» на разборе, и
-              они окажутся здесь.
-            </Text>
-          </div>
+          <EmptyState
+            className={styles.empty}
+            title="Пока нет инсайтов"
+            description="Инсайты появляются на разборе дня или блюда — это связки и предостережения по твоей еде. Нажми «Добавить к себе» на разборе, и они окажутся здесь."
+          />
         ) : (
           <InsightListPanel insights={insights} onDelete={handleDelete} />
         )}

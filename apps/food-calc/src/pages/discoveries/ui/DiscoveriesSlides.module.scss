@@ -8,7 +8,7 @@
     // Значения runtime/semantic → вне токен-гейта.
     --sys-card-text-rest: #1d1d1f;
     --sys-card-text-active: #000;
-    --sys-card-hairline: rgba(0, 0, 0, 0.08);
+    --sys-card-hairline: var(--sys-color-divider); // единый холодный divider
 
     // Карточки «Открытий» (InsightCard / analysis-режим HypothesisListItem) —
     // плоский paper-mono content, строки делит воздух (--space-3), зеркало разбора
@@ -50,28 +50,9 @@
     color: var(--sys-card-text-faint);
 }
 
+// Позиционирование пустой зоны — отступы от краёв. Раскладку контента
+// (центр-колонка, ритм, цвет ролей) несёт примитив <EmptyState>.
 .empty {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
     padding: 24px 8px;
     text-align: center;
-}
-
-// Голос (заголовок 17px) — примитив <Heading role="title"> (Hypotheses/InsightsSlide).
-.emptyTitle {
-    margin: 0;
-    color: var(--sys-card-text-strong);
-}
-
-.emptyBody {
-    // font-size → <Text role="caption">; здесь layout + цвет.
-    margin: 0;
-    line-height: 1.55;
-    color: var(--sys-card-text-muted);
-}
-
-.writeBarDock {
-    width: 100%;
-    padding: 0 12px 12px;
 }

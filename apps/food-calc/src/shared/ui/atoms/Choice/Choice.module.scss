@@ -1,7 +1,7 @@
 // Choice — одиночный выбор (роль choice). Маркер «выбрано» = indicator-модель:
 // заливка --sys-color-bg-selected + флип текста на --sys-color-text-on-selected
 // (как Chip.active, плоско, без glow) + круглая плашка-«наклейка» центром в углу
-// (фон = surface-bright, тик = bg-selected, мягкая тень — читается на заливке). Цвета/
+// (фон = surface-bright, тик = tick-selected — ХОЛОДНЫЙ indigo-глиф, мягкая тень). Цвета/
 // радиус ТОЛЬКО из sys-яруса (tds/interactive-tokens-system.md): перекрасить
 // «выбрано» по всему app = одна строка в tokens.scss или scope-override
 // --sys-color-bg-selected.
@@ -95,9 +95,42 @@
 .markerTick {
   width: 10px;
   height: 10px;
-  color: var(--sys-color-text-on-selected); // галочка = selected-hue как foreground (deep amber, M4 2026-06-25)
+  color: var(--sys-color-tick-selected); // холодная искра-галочка (indigo) — контрапункт к тёплому полю «выбрано» (2026-06-26)
 }
 
 .markerTick path {
   stroke-width: 1.6px;
+}
+
+// ─── Segmented variant (iOS-сегмент-контрол) ─────────────────────────────────
+// Общий трек-фон вокруг группы; активный сегмент = плашка-заливка БЕЗ углового
+// тика. Высоту несёт base `.choice` (44px touch-floor). Токены --sys-color-control-*
+// (тот же контракт, что был у bespoke .segment в SearchFoodControls) — без новых.
+.segmentedGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-control-track);
+}
+
+// Сегмент сбрасывает chip-кромку/подложку base `.choice` (идёт после неё в файле
+// → перебивает по порядку) и опускает высоту с chip-floor 44px до 40px — канон
+// touch-floor для ВНУТРЕННИХ контролов (pill/chip/icon-btn ≥40px, не 48), чтобы
+// сегмент в search-пилюле не бухал. press-scale наследуется от base.
+.segment {
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: transparent;
+  color: var(--sys-color-control-segment-text);
+}
+
+.segmentChecked {
+  background: var(--sys-color-control-segment-active-bg);
+  color: var(--sys-color-control-segment-active-text);
+  box-shadow: var(--sys-elevation-action-rest);
 }

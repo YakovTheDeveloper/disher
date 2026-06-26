@@ -7,6 +7,7 @@ import {
   startOfDay,
   subDays,
 } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 // Pure window helpers for the long analysis — no React, no react-day-picker,
 // so they (and the restart logic) stay cheap to import and unit-test.
@@ -68,6 +69,18 @@ export function rangeDayKeys(range: DateRange): string[] {
     keys.push(format(d, 'dd-MM-yyyy'));
   }
   return keys;
+}
+
+/**
+ * Short human label for a window — `d MMM — d MMM` (ru). Accepts ISO timestamps
+ * (the server sends `window_*` as ISO) or `yyyy-MM-dd`. Shared by the list row
+ * and the per-row action-drawer title so they never drift.
+ */
+export function formatWindowLabel(startIso: string, endIso: string): string {
+  const s = parseISO(startIso);
+  const e = parseISO(endIso);
+  if (!isValid(s) || !isValid(e)) return '—';
+  return `${format(s, 'd MMM', { locale: ru })} — ${format(e, 'd MMM', { locale: ru })}`;
 }
 
 /** Default range — last 14 days (inclusive) ending today. */

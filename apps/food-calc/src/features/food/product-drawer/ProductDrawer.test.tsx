@@ -61,7 +61,7 @@ vi.mock('@/shared/ui/atoms/Select', () => ({
     <div data-testid="quantity-select" aria-label={ariaLabel} />
   ),
 }));
-vi.mock('@/shared/ui/atoms/Button/PlusIcon', () => ({ PlusIcon: () => <svg /> }));
+vi.mock('@/shared/ui/atoms/icons/PlusIcon', () => ({ PlusIcon: () => <svg /> }));
 vi.mock('@/features/dailyNorms/DailyNormButton', () => ({
   DailyNormButton: ({ className }: { className?: string }) => (
     <button data-testid="norm" className={className}>norm</button>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { WriteBarShell, WriteBarClip, PlusIcon } from '@/shared/ui/WriteBarShell';
+import { WriteBarShell, WriteBarClip } from '@/shared/ui/WriteBarShell';
+import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
@@ -168,7 +169,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
               atomsOpen ? (
                 <ChevronGlyph style={{ transform: 'rotate(90deg)' }} />
               ) : (
-                <PlusIcon />
+                <PlusIcon variant="line" />
               )
             }
           />

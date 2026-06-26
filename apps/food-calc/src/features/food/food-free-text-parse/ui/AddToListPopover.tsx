@@ -1,20 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  useFloating,
-  autoUpdate,
-  offset,
-  flip,
-  shift,
-  useDismiss,
-  useRole,
-  useInteractions,
-  FloatingPortal,
-  FloatingFocusManager,
-} from '@floating-ui/react';
+import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/shared/lib/dexie/schema';
 import { catalog } from '@/shared/data/catalog';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { DrawerLayout } from '@/shared/ui/DrawerLayout';
+import { Button } from '@/shared/ui/atoms/Button';
+import { Text } from '@/shared/ui/atoms/Typography';
+import type { BaseDrawerProps } from '@/shared/ui';
 import styles from './AddToListPopover.module.scss';
 
 interface DuplicateMatch {
@@ -23,143 +14,139 @@ interface DuplicateMatch {
   source: 'system' | 'user';
 }
 
-interface AddToListPopoverProps {
-  anchor: HTMLElement | null;
-  open: boolean;
+// Имя сохранено (`AddToListPopover`) ради baselined-теста InlineWriteFoodReview,
+// который мокает этот путь/именованный экспорт; по сути теперь это bottom-sheet
+// drawer «Новый продукт», а не floating-popover (Slice 12: переезд на drawerStore,
+// drawer-side-via-store).
+interface AddToListProps extends BaseDrawerProps<void> {
   initialName: string;
-  onClose: () => void;
+  /** Выбрать существующий продукт (1 совпадение или пункт из списка при N>1). */
   onUseExisting: (productId: string, name: string) => void;
-  onCreateNew: (name: string) => void | Promise<void>;
+  /** Создать новый продукт. Возвращает успех — drawer закрывается только при true
+   *  (на провале createProduct остаётся открытым, тостер уже сообщил об ошибке). */
+  onCreateNew: (name: string) => boolean | Promise<boolean>;
 }
 
 const normalize = (s: string) => s.trim().toLowerCase();
 
 export const AddToListPopover = ({
-  anchor,
-  open,
   initialName,
   onClose,
   onUseExisting,
   onCreateNew,
-}: AddToListPopoverProps) => {
+}: AddToListProps) => {
   const [name, setName] = useState(initialName);
-
-  useEffect(() => {
-    if (open) setName(initialName);
-  }, [open, initialName]);
 
   const userProducts = useLiveQuery(() => db.products.toArray(), []);
 
-  const duplicate = useMemo<DuplicateMatch | null>(() => {
+  // ВСЕ совпадения (каталог + свои), не только первое — N>1 рисует мини-список
+  // «выбрать какой» (план Slice 12). Каталог идёт первым (системные эталоны).
+  const matches = useMemo<DuplicateMatch[]>(() => {
     const target = normalize(name);
-    if (!target) return null;
-    const inCatalog = catalog.find((p) => normalize(p.name) === target);
-    if (inCatalog) return { id: inCatalog.id, name: inCatalog.name, source: 'system' };
-    const inUser = userProducts?.find((p) => normalize(p.name) === target);
-    if (inUser) return { id: inUser.id, name: inUser.name, source: 'user' };
-    return null;
+    if (!target) return [];
+    const out: DuplicateMatch[] = [];
+    for (const p of catalog) {
+      if (normalize(p.name) === target) out.push({ id: p.id, name: p.name, source: 'system' });
+    }
+    for (const p of userProducts ?? []) {
+      if (normalize(p.name) === target) out.push({ id: p.id, name: p.name, source: 'user' });
+    }
+    return out;
   }, [name, userProducts]);
 
-  const { refs, floatingStyles, context } = useFloating({
-    elements: { reference: anchor },
-    open,
-    onOpenChange: (next) => {
-      if (!next) onClose();
-    },
-    whileElementsMounted: autoUpdate,
-    placement: 'bottom-end',
-    middleware: [offset(8), flip({ padding: 8 }), shift({ padding: 8 })],
-  });
-
-  const dismiss = useDismiss(context);
-  const role = useRole(context, { role: 'dialog' });
-  const { getFloatingProps } = useInteractions([dismiss, role]);
-
-  if (!open || !anchor) return null;
-
   const trimmed = name.trim();
-  const submitNew = () => {
-    if (!trimmed) return;
-    onCreateNew(trimmed);
+
+  const handleUseExisting = (productId: string, existingName: string) => {
+    onUseExisting(productId, existingName);
+    onClose();
   };
 
+  const handleCreate = async () => {
+    if (!trimmed) return;
+    const ok = await onCreateNew(trimmed);
+    if (ok) onClose();
+  };
+
+  // Enter = первичное действие: ровно 1 совпадение → использовать его, иначе
+  // (0 или N>1) → создать новый.
+  const handleSubmit = () => {
+    if (matches.length === 1) handleUseExisting(matches[0].id, matches[0].name);
+    else void handleCreate();
+  };
+
+  const sourceLabel = (source: DuplicateMatch['source']) =>
+    source === 'system' ? 'каталог' : 'мой список';
+
   return (
-    <FloatingPortal>
-      <FloatingFocusManager context={context} initialFocus={-1}>
-        <div
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-          className={styles.popover}
+    <DrawerLayout title="Новый продукт" a11yLabel="Новый продукт">
+      <div className={styles.body}>
+        {/* Без autoFocus — iOS всё равно блокирует программный focus (ios-focus). */}
+        <input
+          className={styles.nameInput}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Имя продукта"
+          maxLength={120}
           data-base-ui-swipe-ignore=""
-        >
-          <Heading role="title" className={styles.title}>
-            Добавить в свой список
-          </Heading>
-          <input
-            className={styles.nameInput}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Имя продукта"
-            autoFocus
-            maxLength={120}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                if (duplicate) onUseExisting(duplicate.id, duplicate.name);
-                else submitNew();
-              }
-            }}
-          />
-          {duplicate && (
-            <Text as="p" role="caption" className={styles.dupHint}>
-              Уже есть:{' '}
-              <Text as="span" role="caption" className={styles.dupName}>
-                {duplicate.name}
-              </Text>
-              <Text as="span" role="caption" className={styles.dupSource}>
-                · {duplicate.source === 'system' ? 'каталог' : 'мой список'}
-              </Text>
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        />
+
+        {matches.length === 1 && (
+          <Text as="p" role="caption" className={styles.dupHint}>
+            Уже есть:{' '}
+            <Text as="span" role="caption" className={styles.dupName}>
+              {matches[0].name}
             </Text>
-          )}
-          <div className={styles.actions}>
-            <button type="button" className={styles.btnGhost} onClick={onClose}>
-              <Text as="span" role="caption">
-                Отмена
-              </Text>
-            </button>
-            {duplicate ? (
-              <>
-                <button type="button" className={styles.btnSecondary} onClick={submitNew}>
-                  <Text as="span" role="caption">
-                    Создать новый
-                  </Text>
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnPrimary}
-                  onClick={() => onUseExisting(duplicate.id, duplicate.name)}
-                >
-                  <Text as="span" role="caption">
-                    Использовать
-                  </Text>
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                onClick={submitNew}
-                disabled={!trimmed}
+            <Text as="span" role="caption" className={styles.dupSource}>
+              · {sourceLabel(matches[0].source)}
+            </Text>
+          </Text>
+        )}
+
+        {matches.length > 1 && (
+          <Text as="p" role="caption" className={styles.dupHint}>
+            Похожие уже есть — выберите или создайте новый:
+          </Text>
+        )}
+
+        <div className={styles.actions}>
+          {matches.length > 1 &&
+            matches.map((m) => (
+              <Button
+                key={`${m.source}-${m.id}`}
+                variant="system-secondary"
+                fullWidth
+                onClick={() => handleUseExisting(m.id, m.name)}
               >
-                <Text as="span" role="caption">
-                  Добавить
-                </Text>
-              </button>
-            )}
-          </div>
+                {m.name} · {sourceLabel(m.source)}
+              </Button>
+            ))}
+
+          {matches.length === 1 && (
+            <Button
+              variant="primary"
+              fullWidth
+              onClick={() => handleUseExisting(matches[0].id, matches[0].name)}
+            >
+              Использовать существующий
+            </Button>
+          )}
+
+          <Button
+            variant={matches.length === 1 ? 'system-secondary' : 'primary'}
+            fullWidth
+            onClick={() => void handleCreate()}
+            disabled={!trimmed}
+          >
+            {matches.length === 0 ? 'Создать' : 'Создать новый'}
+          </Button>
         </div>
-      </FloatingFocusManager>
-    </FloatingPortal>
+      </div>
+    </DrawerLayout>
   );
 };

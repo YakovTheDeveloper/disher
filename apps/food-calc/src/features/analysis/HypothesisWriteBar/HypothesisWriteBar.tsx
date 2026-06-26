@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
-import { WriteBarShell, WriteBarClip, PlusIcon } from '@/shared/ui/WriteBarShell';
+import { WriteBarShell, WriteBarClip } from '@/shared/ui/WriteBarShell';
+import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
@@ -115,7 +116,7 @@ const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Pr
             onClick={() => setDetailsOpen(true)}
             ariaLabel="Добавить подробности"
             dot={body.trim().length > 0}
-            icon={<PlusIcon />}
+            icon={<PlusIcon variant="line" />}
             disabled={!hasTitle}
           />
         }

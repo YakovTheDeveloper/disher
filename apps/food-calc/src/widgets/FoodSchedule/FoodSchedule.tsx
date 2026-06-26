@@ -20,6 +20,8 @@ import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { useNavigate } from 'react-router-dom';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
@@ -97,6 +99,10 @@ const FoodSchedule = ({
   );
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
+
+  // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
+  // красит еду, блюдо и события. Раньше еда была жёстко `dv-palette-lemon`.
+  const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
   // Бар плавает над контентом всегда (канон 2026-06-08: Screen.bottomBarOverlay
   // дефолт true, без гейта на пустоте). Полоса-сводка скрыта на пустом списке.
   const isEmpty = items.length === 0;
@@ -171,7 +177,7 @@ const FoodSchedule = ({
       }
     >
       <Heading role="display" masthead as="h2">Еда и нутриенты</Heading>
-      <div className={styles.foodListAnchor}>
+      <div {...anchor} className={styles.foodListAnchor}>
         <ItemsList>
             {(() => {
               let globalIndex = 0;

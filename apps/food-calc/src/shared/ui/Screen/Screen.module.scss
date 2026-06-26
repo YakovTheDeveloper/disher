@@ -303,10 +303,10 @@
     z-index: 1;
     flex: 1 0 auto;
     padding-right: var(--sys-inset-page);
-    padding-left: var(--sys-inset-page);
+    padding-left: var(--sys-inset-screen-asymmetrical-air);
 
     --sheet-band-h: var(--space-8);
-    padding-top: calc(var(--sheet-band-h) + var(--space-2));
+    padding-top: calc(var(--sheet-band-h) + var(--space-4));
 
 
     background: linear-gradient(to bottom,
@@ -316,8 +316,8 @@
             var(--sys-color-surface-page) 100%);
     backdrop-filter: var(--header-overlap-blur, none);
     -webkit-backdrop-filter: var(--header-overlap-blur, none);
-    border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
-    border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
+    border-top-left-radius: var(--sys-radius-sheet);
+    border-top-right-radius: var(--sys-radius-sheet);
 
     --sys-color-header-overlap-logo-default: rgba(0, 0, 0, 0.08);
 
@@ -328,10 +328,13 @@
         left: var(--sys-inset-page);
         right: var(--sys-inset-page);
         height: 1px;
+        // Бровка листа = единый холодный divider-токен (`--sys-color-divider`);
+        // `--sheet-seam-color` оставлен как per-surface override (SwipeDeck гасит
+        // его в transparent). Раньше fallback был тёплый `--color-ink` 13%.
         background: linear-gradient(90deg,
                 transparent 0%,
-                var(--sheet-seam-color, color-mix(in srgb, var(--color-ink) 13%, transparent)) 16%,
-                var(--sheet-seam-color, color-mix(in srgb, var(--color-ink) 13%, transparent)) 84%,
+                var(--sheet-seam-color, var(--sys-color-divider)) 16%,
+                var(--sheet-seam-color, var(--sys-color-divider)) 84%,
                 transparent 100%);
         pointer-events: none;
     }
@@ -372,7 +375,7 @@
     z-index: var(--sheet-band-z, 0);
     backdrop-filter: var(--sheet-band-blur, none);
     -webkit-backdrop-filter: var(--sheet-band-blur, none);
-    border-top-left-radius: var(--header-overlap-radius, var(--radius-xs));
-    border-top-right-radius: var(--header-overlap-radius, var(--radius-xs));
+    border-top-left-radius: var(--sys-radius-sheet);
+    border-top-right-radius: var(--sys-radius-sheet);
     pointer-events: none;
 }

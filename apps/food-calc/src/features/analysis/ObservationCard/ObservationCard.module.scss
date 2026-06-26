@@ -1,0 +1,100 @@
+// ObservationCard — unified card for observation / insight / hypothesis (merged
+// 2026-06-25, plan Slice 8 — was InsightCard + HypothesisCard, identical canon).
+// Сидит внутри pearl-плашки SheetCard (общий контейнер с предложкой). Поверхность —
+// плоский paper-mono content без рамки/тени: строки делит воздух (--space-3), и в
+// разборе (AnalysisResult), и в «Открытиях» (DiscoveriesSlides). Кегли — у
+// примитивов <Text>/<Heading> (миграция typo); font-size в scss мёртв. Token-driven
+// app-wide тоном (`--sys-card-*`). Layout — текст-колонка: «+ к себе» прижата в
+// правый-нижний угол текста, шеврон-удаление — row-сиблинг справа.
+.card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    // Плоская paper-mono content-карточка: поверхности нет, строки делит воздух.
+    padding: var(--space-3) var(--space-4);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: var(--sys-elevation-flat);
+}
+
+.text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+}
+
+// Заголовок рендерится примитивом <Heading role="title"> — Onest sans 17px, вес
+// 600. Роль не моделирует цвет → здесь добавляем ТОЛЬКО surface-adaptive ink
+// карточки (`.head .cardTitle` = 0,2,0 перебивает базовый `.heading { color }`
+// 0,1,0 независимо от порядка загрузки CSS-модулей).
+.head .cardTitle {
+    color: var(--sys-card-text-rest, var(--color-ink));
+}
+
+// Голос (мелкая мета справа от заголовка) — strength-лейбл (инсайт/наблюдение)
+// или «проверить ~N дн.» (гипотеза). Примитив <Text role="caption">; здесь —
+// раскладка + surface-adaptive ink.
+.caption {
+    flex-shrink: 0;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--sys-card-text-faint);
+}
+
+// Тело — Onest near-black на полную силу. Голос в примитиве <Text role="body">.
+.detail {
+    margin: 0;
+    line-height: var(--analysis-lh-detail, 1.5);
+    color: var(--sys-card-text-strong);
+}
+
+// ── valence (без цвета, F3) ───────────────────────────────────────────────
+// Хорошо/плохо несёт монохромный знак ＋/− у заголовка. Оттенка нет. Вес несёт
+// примитив-заголовок (класс держит только отступ + цвет).
+.valenceSign {
+    margin-right: var(--space-1);
+    color: var(--sys-card-text-soft);
+}
+
+// ── evidence чипы (день / еда / событие) ──────────────────────────────────
+.evidence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+}
+
+.chipDay,
+.chipFood,
+.chipEvent {
+    padding: 2px 8px;
+    border-radius: var(--sys-radius-control);
+    line-height: 1.4;
+    color: var(--sys-card-text-soft);
+    background: var(--sys-card-bg-sunk);
+}
+
+// ── действие «+ к себе» (результат) ───────────────────────────────────────
+// CTA = примитив <Button variant="accent"> (вид/тон/press/disabled — его). Класс
+// .add — только РЕДУКТОР размера: режет дефолтные 56px CTA до компактной плашки
+// в потоке текста + прижим в правый-нижний угол. Селектор `.text .add` (0,2,0)
+// перебивает `.accent`/`.accentSecondary` (0,1,0) из Button.module.css.
+.text .add {
+    align-self: flex-end;
+    margin-top: var(--space-1);
+    min-height: 40px;
+    padding: 0 var(--space-4);
+    box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский
+}
+
+// Удаление сохранённого инсайта переехало на long-press по ряду + ConfirmDrawer
+// (Slice 3, 2026-06-26, консумер InsightListPanel) — chevron-кнопки `.delete`
+// в карточке больше нет.

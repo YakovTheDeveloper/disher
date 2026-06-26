@@ -75,8 +75,8 @@
     max-height: 100svh;
     // Крупное «листовое» скругление верхних углов — тот же радиус, что у листа
     // Screen `headerOverlap` на HomePage (--sys-radius-sheet, 40px). Единый силуэт
-    // «листа» между нижними drawer'ами и Screen-обвязкой. Side-drawer'ы (left/
-    // right) держат свой --radius-lg намеренно.
+    // «листа» между нижними drawer'ами и Screen-обвязкой. Боковые дроверы (left/
+    // right) держат тот же --sys-radius-sheet на своих внешних углах — единый радиус.
     border-top-left-radius: var(--sys-radius-sheet);
     border-top-right-radius: var(--sys-radius-sheet);
     // Edge-glint — НАМЕРЕННЫЙ декоративный glass-кант (Vista/Aero voice), НЕ elevation.
@@ -148,8 +148,8 @@
     // Handle sits on the page-facing (right) edge — row-reverse moves the
     // DOM-first `.edgeHandle` past the body.
     flex-direction: row-reverse;
-    border-top-right-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
+    border-top-right-radius: var(--sys-radius-sheet);
+    border-bottom-right-radius: var(--sys-radius-sheet);
     box-shadow: 4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
 
     &[data-starting-style],
@@ -168,8 +168,8 @@
 
 .content_right {
     right: 0;
-    border-top-left-radius: var(--radius-lg);
-    border-bottom-left-radius: var(--radius-lg);
+    border-top-left-radius: var(--sys-radius-sheet);
+    border-bottom-left-radius: var(--sys-radius-sheet);
     box-shadow: -4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
 
     &[data-starting-style],
@@ -276,44 +276,6 @@
                 transparent 100%);
         pointer-events: none;
     }
-}
-
-// Idea 1 — vertical crop of the food photo filling the grip strip. Sits below
-// the grip pill + hairline (z-index above). `pointer-events: none` keeps the
-// whole strip a single swipe target; the parent `.edgeHandle` owns the drag.
-// Catalog source photos are tiny (~200px long edge), so a hard crop into a
-// 20–30px strip upscales ~5× and reads pixelated — a firm blur + `saturate`
-// turns it into an ambient colour texture (recognisability isn't the point on
-// a strip this narrow). `scale` pushes the blur fade past the clipped edges.
-.edgeImage {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(8px) saturate(1.15);
-    transform: scale(1.45);
-    pointer-events: none;
-    user-select: none;
-}
-
-// When a photo backs the strip, the variant wash would peek through the photo's
-// edges and the brown grip pill loses contrast over a busy crop. Drop the wash
-// to a neutral base, clip the blurred photo, and turn the grip into a
-// frosted-white pill with a soft shadow so it reads on any image.
-.edgeHandleImage {
-    background: var(--sys-color-surface-page);
-    overflow: hidden;
-
-    &::before {
-        background: var(--sys-color-surface-bright);
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.28); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- frosted-pill ring+drop (bespoke, не elevation) */
-    }
-}
-
-.content[data-swiping] .edgeHandleImage::before {
-    background: var(--sys-color-surface-bright);
 }
 
 // Right-anchored drawer → handle on its left edge → panel is to the right.

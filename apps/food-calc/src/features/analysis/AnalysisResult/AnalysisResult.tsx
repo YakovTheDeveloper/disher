@@ -3,9 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { SheetCard } from '@/shared/ui/SheetCard';
-import type { InsightSource } from '@/entities/insight';
-import { InsightCard } from '../InsightCard';
-import { HypothesisCard } from '../HypothesisCard';
+import { saveInsight, type InsightSource } from '@/entities/insight';
+import { saveHypothesis } from '@/entities/hypothesis';
+import { ObservationCard } from '../ObservationCard';
 import type { AnalysisObservation, AnalysisInsight, AnalysisHypothesis } from '../api';
 import styles from './AnalysisResult.module.scss';
 
@@ -123,14 +123,16 @@ const AnalysisResult = ({
           renderSection(
             'observations',
             '',
-            // Read-only reference: render through InsightCard with a neutral
-            // valence (no sign/label) and action="none" (no «+ к себе»). An
-            // observation is the insight shape minus valence, so we synthesise a
-            // neutral one for display — never persisted.
+            // Read-only reference: ObservationCard with no valence (no sign) and
+            // action="none" (no «+ к себе»). An observation is the insight shape
+            // minus valence — strength + evidence still render.
             observations.map((observation, idx) => (
-              <InsightCard
+              <ObservationCard
                 key={idx}
-                insight={{ ...observation, valence: 'neutral' }}
+                title={observation.title}
+                detail={observation.detail}
+                strength={observation.strength}
+                evidence={observation.evidence}
                 showDays={showDays}
                 action="none"
               />
@@ -142,12 +144,29 @@ const AnalysisResult = ({
             'insights',
             '',
             insights.map((insight, idx) => (
-              <InsightCard
+              <ObservationCard
                 key={idx}
-                insight={insight}
+                title={insight.title}
+                detail={insight.detail}
+                valence={insight.valence}
+                strength={insight.strength}
+                evidence={insight.evidence}
                 showDays={showDays}
                 action="add"
-                source={insightSource}
+                onAdd={async () => {
+                  await saveInsight({
+                    title: insight.title,
+                    detail: insight.detail,
+                    valence: insight.valence,
+                    strength: insight.strength,
+                    evidence: insight.evidence,
+                    source: insightSource,
+                  });
+                }}
+                addLabel="Сохранить инсайт"
+                addedAriaLabel="Инсайт сохранён"
+                addSuccessToast="Инсайт сохранён"
+                addErrorToast="Не удалось добавить инсайт"
               />
             ))
           )}
@@ -157,7 +176,24 @@ const AnalysisResult = ({
             'hypotheses',
             '',
             hypotheses.map((hypothesis, idx) => (
-              <HypothesisCard key={idx} hypothesis={hypothesis} />
+              <ObservationCard
+                key={idx}
+                title={hypothesis.title}
+                detail={hypothesis.body}
+                caption={
+                  hypothesis.suggestedDays
+                    ? `проверить ~${hypothesis.suggestedDays} дн.`
+                    : undefined
+                }
+                action="add"
+                onAdd={async () => {
+                  await saveHypothesis({ title: hypothesis.title, body: hypothesis.body });
+                }}
+                addLabel="Сохранить гипотезу"
+                addedAriaLabel="Гипотеза сохранена"
+                addSuccessToast="Гипотеза сохранена"
+                addErrorToast="Не удалось добавить гипотезу"
+              />
             ))
           )}
       </div>

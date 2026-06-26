@@ -23,55 +23,11 @@
 }
 
 // ─── Segmented control (Еда / Мое) ───────────────────────────────────────────
-// One connected track with a single moving «thumb» on the selected segment —
-// iOS segmented control / M3 connected button group. Equal-weight peers, one
-// tint of selection. Reads sys control-tokens directly (the per-surface --seg-*
-// bundle was dissolved 2026-06-22 → --sys-color-control-*). Lives inside the
-// common pill now, so it sits flush to the right of the search field.
+// Теперь = примитив ChoiceGroup variant="segmented" (трек-фон + активная плашка
+// БЕЗ тика + a11y/стрелки внутри Choice, токены --sys-color-control-*). Здесь
+// остаётся только layout-привязка в общей пилюле: не ужиматься рядом с инпутом.
 .segmented {
     flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px;
-    border-radius: var(--sys-radius-indicator);
-    background: var(--sys-color-control-track);
-}
-
-.segment {
-    appearance: none;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 32px;
-    padding: 0 12px;
-    border: none;
-    border-radius: var(--sys-radius-indicator);
-    background: transparent;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    line-height: 1.1;
-    color: var(--sys-color-control-segment-text);
-    transition:
-        background var(--press-out) ease,
-        color var(--press-out) ease,
-        transform var(--press-in) ease;
-
-    &:focus-visible {
-        outline: none;
-    }
-
-    &:active {
-        transform: scale(0.96);
-        transition-duration: var(--sys-duration-press-in);
-    }
-}
-
-.segmentActive {
-    background: var(--sys-color-control-segment-active-bg);
-    color: var(--sys-color-control-segment-active-text);
-    box-shadow: var(--sys-elevation-action-rest);
 }
 
 // ─── Inlined search input (full-width row, token-driven) ─────────────────────
@@ -98,6 +54,13 @@
     color: var(--sys-field-text, rgb(31, 31, 31));
     box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
     transition: box-shadow 120ms ease;
+
+    // Placeholder + иконка-лупа поиска — ХОЛОДНЫЕ (запрос юзера 2026-06-26). Scope-
+    // override общих field-токенов ТОЛЬКО на этой пилюле (каретка/текст остаются
+    // тёплыми). Placeholder тянет семантический --sys-color-text-placeholder (cool
+    // slate, переиспользуемый); иконка = холодный indigo accent (как back/нутриенты).
+    --sys-field-placeholder: var(--sys-color-text-placeholder);
+    --sys-field-adornment: var(--sys-color-text-accent);
 
     &::after {
         content: '';
@@ -211,13 +174,6 @@
 }
 
 // ─── Controls column (поиск-ряд + нутриент-ряд) ──────────────────────────────
-.controls {
-    display: flex;
-    flex-direction: column;
-    // Фон-скрим теперь несёт frosted-слой парящей шапки (.header::before в
-    // SearchFood.module.scss) — здесь прозрачно, чтобы блюр был виден.
-    background: transparent;
-}
 
 // ─── Selected nutrient — чёрная пилюля «иконка · имя · ×» ─────────────────────
 // Раньше был выносной треугольник-callout; теперь компактная чёрная пилюля в духе
@@ -301,49 +257,14 @@
     }
 }
 
-// Иконка-кнопка «Нутриенты» — отдельное действие-фильтр (открывает боковой
-// drawer-выбор нутриента), НЕ сегмент. Поэтому ghost-вид (тонкая рамка, без
-// заливки), визуально отличный от сегмент-контрола `Еда|Мое`. Выбранный нутриент
-// → тёмная заливка (active state). Sys-driven: idle глиф = --sys-color-control-segment-text,
-// active = --sys-color-surface-action-system + --text-on-accent.
-// Lives INSIDE the common pill now → a borderless ghost adornment at the field's
-// right end (a bordered circle would double-chrome against the pill). Selected
-// nutrient still fills dark (active state below).
-.nutrientIconButton {
-    appearance: none;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    border: none;
-    border-radius: var(--sys-radius-indicator);
-    background: transparent;
-    color: var(--sys-color-text-secondary);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        background var(--press-out) ease,
-        color var(--press-out) ease,
-        border-color var(--press-out) ease,
-        transform var(--press-out) ease;
-
-    svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    &:focus-visible {
-        outline: none;
-    }
-
-    &:active {
-        background: var(--sys-color-surface-action-system);
-        border-color: transparent;
-        color: var(--sys-color-text-on-accent);
-        transform: scale(0.94);
-        transition-duration: var(--sys-duration-press-in);
-    }
+// Иконка-кнопка «Нутриенты» (idle, нутриент не выбран) = примитив IconButton
+// tone="neutral" size=36 (см. SearchFoodControls.tsx). Тихий глиф, на press —
+// заливка чернилами + on-accent глиф. Bespoke-блок снят (унификация).
+//
+// Глиф в покое — ХОЛОДНЫЙ (indigo): «инструмент» в контраст к тёплой бумаге списка
+// (запрос юзера 2026-06-26, как back-шеврон/divider). `.pill`-scope (0,2,1) бьёт
+// .neutral (0,1,0) без !important; `:not([data-pressed])` оставляет press-инверсию
+// (.neutral[data-pressed] → on-accent глиф на угле) нетронутой.
+.pill .nutrientIconCold:not([data-pressed]) {
+    color: var(--sys-color-text-accent);
 }

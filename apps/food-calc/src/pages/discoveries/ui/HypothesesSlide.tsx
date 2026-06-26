@@ -8,7 +8,8 @@ import {
 import { HypothesisWriteBar } from '@/features/analysis/HypothesisWriteBar';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { pluralHypotheses } from '@/shared/lib/text/pluralHypotheses';
-import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import styles from './DiscoveriesSlides.module.scss';
 
 // Stable fallbacks — список read-only здесь (selectable=false), но панель всё
@@ -50,16 +51,16 @@ const HypothesesSlide = ({ topSlot }: Props) => {
     setEditingHypothesisId(null);
   }, []);
 
+  // Бар — прямо в `bottomBar` (как EventsWriteBar): нижний инсет владеет ТОЛЬКО
+  // `Screen.bottomBar` (safe-area), боковой — `WriteBarShell.wrap` (--sys-inset-page).
+  // Прежняя обёртка `.writeBarDock` дублировала боковой инсет и добавляла лишний
+  // 12px снизу (рассинхрон с Едой/Событиями) — снята.
   return (
     <Screen
       stickyTop={topSlot}
       headerOverlap
       topBarHide="settings"
-      bottomBar={
-        <div className={styles.writeBarDock}>
-          <HypothesisWriteBar onCreated={markNew} />
-        </div>
-      }
+      bottomBar={<HypothesisWriteBar onCreated={markNew} />}
     >
       <div className={styles.container} onFocusCapture={handleFocusCapture}>
         <div ref={topAnchorRef} className={styles.topAnchor} aria-hidden />
@@ -70,15 +71,16 @@ const HypothesesSlide = ({ topSlot }: Props) => {
           </Text>
         )}
         {hypotheses.length === 0 ? (
-          <div className={styles.empty}>
-            <Heading as="h3" role="title" className={styles.emptyTitle}>
-              Пока нет гипотез
-            </Heading>
-            <Text as="p" role="caption" className={styles.emptyBody}>
-              Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
-              <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.
-            </Text>
-          </div>
+          <EmptyState
+            className={styles.empty}
+            title="Пока нет гипотез"
+            description={
+              <>
+                Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
+                <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.
+              </>
+            }
+          />
         ) : (
           <HypothesisListPanel
             hypotheses={hypotheses}

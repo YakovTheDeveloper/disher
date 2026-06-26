@@ -41,54 +41,21 @@
 
 // Типографику несёт <Text role="label"> (миграция 2026-06-23 — трио «Оформление»/
 // «Данные»/«Опасная зона» ушло с serif-italic на sans label). Класс — layout-слот +
-// явный цвет (база + хук .accordionToggle:active).
+// явный цвет.
 .sectionLabel {
   margin: 0;
   color: var(--sys-color-text-primary);
 }
 
 // ─── Accordion (Данные) ─────────────────────────────────────────
-// A full-width header row: the serif section label on the left, a chevron on
-// the right. No box — it sits in the column like a plain heading until tapped.
+// Шапка-тоггл + grid-reveal + шеврон + a11y живут в примитиве Accordion. Здесь —
+// только раскладка тела (вертикальный стек с зазором + отступ от шапки).
 
-.accordionToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: color var(--press-out) var(--easing-default);
-
-  &:active .sectionLabel,
-  &:active .chevron {
-    color: var(--sys-color-text-system);
-    transition-duration: var(--sys-duration-press-in);
-  }
-}
-
-.accordionBody {
+.dataBody {
   display: flex;
   flex-direction: column;
   gap: var(--sys-stack-row);
-  margin-top: var(--sys-stack-row);
-  animation: sectionReveal 200ms var(--easing-default);
-}
-
-.chevron {
-  // Глиф-шеврон (⌄, aria-hidden) — размер несёт icon-токен, не сырой font-size.
-  font-size: var(--sys-icon-size-sm);
-  line-height: 1;
-  color: var(--sys-color-text-secondary);
-  transition: transform 180ms var(--easing-default);
-}
-
-.chevronOpen {
-  transform: rotate(180deg);
+  padding-top: var(--sys-stack-row);
 }
 
 // ─── Данные section body ────────────────────────────────────────
@@ -100,40 +67,16 @@
   color: var(--sys-color-text-secondary);
 }
 
+// Две вторичные кнопки «Скачать / Загрузить» делят строку поровну — ширину
+// задаёт контейнер (Button без fullWidth), вид/отклик несёт сам примитив
+// (variant="system-secondary").
 .dataActions {
   display: flex;
-  flex-direction: column;
   gap: 8px;
-}
 
-.dataBtn {
-  width: 100%;
-  height: 48px;
-  border-radius: var(--sys-radius-control);
-  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.12));
-  background: var(--sys-color-surface-bright);
-  color: var(--sys-color-text-primary);
-  // Типографику метки несёт <Text as="span" role="label"> внутри кнопки.
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    transform var(--press-out) var(--easing-default);
-
-  // Цветной отклик: светлая кнопка-данные → заливка чернилами
-  &:active {
-    background: var(--sys-color-surface-action-system);
-    border-color: var(--sys-color-text-system);
-    color: var(--sys-color-text-on-accent);
-    transform: scale(0.97);
-    transition-duration: var(--sys-duration-press-in);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
+  > button {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -170,55 +113,18 @@
   }
 }
 
-.dangerToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: transparent;
-  // Текст лейбла несёт <Text role="label"> (миграция 2026-06-23 — трио ушло на sans
-  // label, см. .sectionLabel); роль цвет не ставит, поэтому красный «danger»-тон
-  // наследуется от кнопки. Шрифт-правила убраны.
+// Danger-тон шапки Accordion: красный лейбл (Text role="label" без своего цвета
+// наследует) + currentColor-шеврон тинтуется красным заодно. Press-инверсию до
+// ink даёт сам примитив (.header:active, специфичнее).
+.dangerHeader {
   color: var(--sys-color-status-danger);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: color var(--press-out) var(--easing-default);
-
-  // Чевpon в зоне тонируется красным заодно с лейблом.
-  .chevron {
-    color: var(--sys-color-status-danger);
-  }
-
-  // Цветной отклик: текст и шеврон темнеют до ink.
-  &:active {
-    color: var(--sys-color-text-system);
-    transition-duration: var(--sys-duration-press-in);
-
-    .chevron {
-      color: var(--sys-color-text-system);
-    }
-  }
 }
 
 .dangerBody {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: var(--space-1);
-  animation: sectionReveal 200ms var(--easing-default);
-}
-
-@keyframes sectionReveal {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding-top: var(--space-1);
 }
 
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
@@ -226,46 +132,4 @@
 .dangerHint {
   margin: 0;
   color: var(--sys-color-text-secondary);
-}
-
-.backupBtn {
-  width: 100%;
-  height: 48px;
-  border-radius: var(--sys-radius-control);
-  border: 1px solid rgba(176, 52, 35, 0.28);
-  background: var(--sys-color-surface-bright);
-  color: var(--sys-color-status-danger);
-  // Типографику метки несёт <Text as="span" role="label"> внутри кнопки.
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    border-color var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default),
-    transform var(--press-out) var(--easing-default);
-
-  // Цветной отклик: кнопка резервной копии (outlined) → заливка чернилами
-  &:active {
-    background: var(--sys-color-surface-action-system);
-    border-color: var(--sys-color-text-system);
-    color: var(--sys-color-text-on-accent);
-    transform: scale(0.97);
-    transition-duration: var(--sys-duration-press-in);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chevron {
-    transition: none;
-  }
-
-  .accordionBody,
-  .dangerBody {
-    animation: none;
-  }
 }

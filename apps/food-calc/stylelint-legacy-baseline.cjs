@@ -3,11 +3,7 @@
 // Regenerate: npm run lint:style:baseline
 
 module.exports = [
-  "src/features/time-group/TimeGroup.module.scss",
-  "src/shared/ui/DrawerLayout/DrawerLayout.module.scss",
-  "src/shared/ui/Screen/Screen.module.scss",
   "src/shared/ui/Swipeable/Swipeable.module.scss",
   "src/shared/ui/WriteBarShell/WriteBarMedal.module.scss",
-  "src/shared/ui/WriteBarShell/WriteBarShell.module.scss",
-  "src/widgets/ScheduleEvents/ui/EventScalePanel.module.scss"
+  "src/shared/ui/WriteBarShell/WriteBarShell.module.scss"
 ];

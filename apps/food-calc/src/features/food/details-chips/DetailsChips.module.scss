@@ -37,8 +37,8 @@
   // на случай отсутствия токена.
   background: linear-gradient(90deg,
       transparent 0%,
-      var(--sys-chip-separator, rgba(124, 65, 15, 0.14)) 18%,
-      var(--sys-chip-separator, rgba(124, 65, 15, 0.14)) 82%,
+      var(--sys-chip-separator, var(--sys-color-divider)) 18%,
+      var(--sys-chip-separator, var(--sys-color-divider)) 82%,
       transparent 100%);
   pointer-events: none;
 }

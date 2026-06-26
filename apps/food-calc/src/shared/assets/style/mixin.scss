@@ -78,7 +78,9 @@
     // 2026-06-22 — один источник, tokens.scss · ЯРУС sys). НЕ возвращать этот
     // канал: единственный путь к «выбрано» = sys-токен (греп-гейт это сторожит).
     // $dark/$on-dark продолжают питать card-press ниже.
-    --sys-chip-separator: #{rgba($ink, 0.14)};
+    // Chip-separator = единый ХОЛОДНЫЙ divider-токен (унификация бровок 2026-06-26),
+    // раньше тёплый `rgba($ink, 0.14)` из field-ink-лесенки.
+    --sys-chip-separator: var(--sys-color-divider);
 }
 
 // ── CARD & LIST palette ──────────────────────────────────────────────────────
@@ -491,18 +493,24 @@
 // `@include stripe-fork-row`. mixin.scss exempt от token-gate → сырые литералы тут ок.
 
 @mixin paper-mono-cards() {
-    // Фон страницы под белой группой (тёплый-soft n100, iOS inset-grouped).
-    // 2026-06-24: было cool #f0f1f4 — перетон в тёплый лин (hue 85) под warm-soft v2.
-    --cards-page-bg: #f5f3f0; // n100 · oklch(0.965 0.005 85)
+    // Фон страницы под группой списка. 2026-06-26: догрет в тёплую бумагу (запрос
+    // юзера «более тёплым список») — осознанный контраст с холодными инструментами
+    // (divider/back-шеврон/иконка нутриентов). Было #f5f3f0 (почти нейтраль, chroma .005).
+    --cards-page-bg: #f7f3eb; // тёплая бумага (warm-gap R-B=12 vs прежних 5; APCA tert 61.2 ≥60)
 
     // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
     --sys-card-bg: transparent;
     --sys-card-wash-2n: linear-gradient(transparent, transparent);
     --sys-card-wash-3n: linear-gradient(transparent, transparent);
-    --sys-card-hairline: rgba(0, 0, 0, 0.08);
+    // Hairline-разделитель карточек = ХОЛОДНЫЙ divider (navy --sys-color-divider).
+    // Осознанный контраст (запрос юзера 2026-06-26): тёплая бумага группы + холодные
+    // «инструменты» (divider рядов + вертикальный divider ⓘ, back-шеврон, иконка
+    // нутриентов). Покрывает .infoBtn::before — тот тоже читает --sys-card-hairline.
+    --sys-card-hairline: var(--sys-color-divider);
 
-    // Контейнер-группа: белая, скруглённая, мягкая тень.
-    --sys-card-group-bg: #ffffff;
+    // Контейнер-группа списка: тёплая бумага (был холодный #fff). Догрето 2026-06-26
+    // по запросу «более тёплым список» — бумажный ivory вместо клинического белого.
+    --sys-card-group-bg: #fdf9f1;
     --sys-card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.07);
     --sys-card-group-radius: 16px;
 
@@ -528,6 +536,10 @@
 
     // Левый квадрат-гейдж богатства + тихий ⓘ (пищевое; навигатор их не рисует,
     // публикуем для полноты, чтобы FoodActionCard читал из одного места).
+    // Трек квадрата-гейджа — нейтрально-серый (был cool-blue #eef0f3, синил под
+    // тёплыми жёлто-зелёными заливками). Де-холожено в нейтраль без желтизны, чтобы
+    // не слиться с заливкой богатства. 2026-06-26.
+    --sys-card-rich-track: #eeeeec;
     --sys-card-rich-text: #2a2a2a;
     --sys-card-rich-unit: rgba(42, 42, 42, 0.6);
     --sys-card-rich-percent: rgba(42, 42, 42, 0.4);

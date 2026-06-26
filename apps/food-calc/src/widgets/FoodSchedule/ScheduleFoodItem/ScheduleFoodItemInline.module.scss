@@ -1,5 +1,5 @@
-// ScheduleFoodItemInline — карточка еды на CardShell (cardshell-unification план).
-// Колонку + строки title/meta держит CardLayout; qty-стопку — <QtyStack>; время —
+// ScheduleFoodItemInline — карточка еды на compound Card (card-chassis-simplify).
+// Колонку + строки Title/Meta держит Card.Root; qty-стопку — <QtyStack>; время —
 // <CardTime>. Здесь только специфика карточки: title-кластер, имя, детали.
 
 .group {
@@ -10,29 +10,15 @@
   color: var(--sys-color-text-primary);
 }
 
-// title-слот: [qty][имя] — qty ПЕРЕД именем, упакованы вплотную (НЕ space-between).
-.titleCluster {
-  display: flex;
-  align-items: baseline; // value qty встаёт на базовую линию имени
-  gap: 8px;
-  min-width: 0;
-}
+// title-кластер [qty][имя] → общий <TitleCluster>. Деталь-строка → клэмп-2 в
+// общем `.meta` Card (card-chassis 2026-06-26). Локальные клоны кластера и
+// деталь-строки сняты.
 
 // имя: растягивается на остаток строки → тап-зона на всю ширину справа от qty.
 .foodName {
   flex: 1;
   min-width: 0;
   line-height: 1.15;
-}
-
-// meta-слот: детали (тап → правка еды, тот же htmlFor что имя).
-.detailsSubtitle {
-  color: var(--sys-color-text-muted);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
 }
 
 // ── Имя: цвет/голос по типу записи (на FoodName) ──

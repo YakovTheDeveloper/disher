@@ -25,7 +25,7 @@ interface Props {
 
 /**
  * Edit modals for search (food replacement) and details (note). Time and
- * quantity are edited inline directly on the row (see FreeTextFoodReviewItem) —
+ * quantity are edited inline directly on the row (see ProposalFoodItem) —
  * no modal step for those.
  */
 export const FreeTextFoodReviewEditModals = ({

@@ -1,18 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, type PointerEvent as ReactPointerEvent } from 'react';
 import clsx from 'clsx';
-import TickIcon from '@/shared/assets/icons/tick.svg?react';
+import { useNavigate } from 'react-router';
+import { InfoIcon } from '@/shared/ui/atoms/icons/InfoIcon';
 import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
-import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import { isCreatedByUser } from '@/shared/lib';
 import { findCatalogProduct } from '@/shared/data/catalog';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
+// Конкретные файлы, не barrel — barrel тянет buildInfoActions → ProductDrawer
+// (см. defensive-импорт в ProductDrawer/buildInfoActions).
+import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
+import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
 import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import { formatNormPercent } from './formatNormPercent';
 
@@ -28,9 +33,6 @@ type Props = {
   };
   active?: boolean;
   onClick?: () => void;
-  onAdd?: () => void;
-  showDelete?: boolean;
-  showAdd?: boolean;
   onInfoClick?: () => void;
   richNutrientId?: string | null;
   richNutrientUnit?: string;
@@ -88,43 +90,11 @@ function getRichnessColor(ratio: number, mono = false): string {
   return ramp[idx];
 }
 
-const TrashIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
-const InfoIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.75" />
-    <text
-      x="12"
-      y="17"
-      textAnchor="middle"
-      fill="currentColor"
-      style={{ fontFamily: 'var(--sys-text-family-serif)' }}
-      fontStyle="italic"
-      fontSize="16"
-      fontWeight="300"
-    >
-      i
-    </text>
-  </svg>
-);
-
 const FoodActionCard = ({
   variant,
   item,
   active,
   onClick,
-  showDelete = false,
   onInfoClick,
   richNutrientId,
   richNutrientUnit,
@@ -133,6 +103,7 @@ const FoodActionCard = ({
   monoRichness = false,
   htmlFor,
 }: Props) => {
+  const navigate = useNavigate();
   const { pressed, pressProps } = usePressFeedback();
   // Только dish-инфо-кнопка навигирует на страницу (продукт открывает
   // ProductDrawer, см. ниже), поэтому цель всегда /dish/:id. Раскадровка 'push'
@@ -170,6 +141,49 @@ const FoodActionCard = ({
     }
   };
 
+  // Долгий клик (~450мс, общий useLongPress: move-cancel 10px + click-suppression,
+  // безопасен в скроллируемом role="option") → ItemActionsDrawer. «Инфо» через
+  // buildInfoActions (продукт → ProductDrawer, блюдо → /dish/:id) — дубль с ⓘ
+  // осознан. Удаление = удаление ПРОДУКТА/блюда, только для своих (каталог →
+  // onDelete не передаём, дровер показывает только «инфо»).
+  const openActions = () => {
+    const actions = buildInfoActions(
+      variant === 'dish' ? { type: 'dish', dishId: item.id } : { type: 'food', productId: item.id },
+      navigate
+    );
+    void drawerStore.show(ItemActionsDrawer, {
+      title: item.name,
+      actions,
+      ...(userCreated ? { onDelete: handleDelete } : {}),
+    });
+  };
+
+  // Жест на самой карточке (`<li>`). Press-визуал даёт usePressFeedback (вспышка
+  // с MIN_HOLD на мгновенном тапе, важно для htmlFor-переходов); жест — useLongPress.
+  // Оба слушают pointer на ОДНОМ узле (`<li>`): useLongPress ставит pointer-capture
+  // на него, поэтому release-события usePressFeedback должны прийти туда же —
+  // склеиваем перекрывающиеся хендлеры (move/clickCapture/contextMenu — из press).
+  const press = useLongPress(openActions);
+  const liHandlers = {
+    ...press,
+    onPointerDown: (e: ReactPointerEvent) => {
+      pressProps.onPointerDown();
+      press.onPointerDown(e);
+    },
+    onPointerUp: (e: ReactPointerEvent) => {
+      pressProps.onPointerUp();
+      press.onPointerUp(e);
+    },
+    onPointerCancel: (e: ReactPointerEvent) => {
+      pressProps.onPointerCancel();
+      press.onPointerCancel(e);
+    },
+    onPointerLeave: (e: ReactPointerEvent) => {
+      pressProps.onPointerLeave();
+      press.onPointerLeave(e);
+    },
+  };
+
   // Подпись-вид под названием: блюдо → «блюдо» (блюда всегда созданы юзером),
   // свой продукт → «мой продукт», каталожный продукт → ничего. Добавка (продукт
   // с serving-basis) дописывается в ту же строку через серединную точку:
@@ -180,34 +194,6 @@ const FoodActionCard = ({
   const subtitle = [showKindLabel ? kindLabel : null, isSupplement ? 'добавка' : null]
     .filter(Boolean)
     .join(' · ');
-
-  const deleteButton = showDelete ? (
-    userCreated ? (
-      <PopoverTrigger
-        placement="bottom-start"
-        trigger={
-          <button
-            className={clsx(styles.iconBtn, styles.deleteBtn)}
-            type="button"
-            aria-label="Удалить"
-          >
-            <TrashIcon />
-          </button>
-        }
-        content={
-          <div className={styles.popoverContent}>
-            <button className={styles.popoverAction} type="button" onClick={handleDelete}>
-              <Text as="span" role="label">
-                Удалить {variant === 'product' ? 'продукт' : 'блюдо'}
-              </Text>
-            </button>
-          </div>
-        }
-      />
-    ) : (
-      <div className={styles.iconBtn} />
-    )
-  ) : null;
 
   const richNutrientValue =
     richNutrientId && item.getTotalNutrients
@@ -230,15 +216,14 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li className={styles.wrapper} role="option" aria-selected={active || undefined} data-pressed={pressed || undefined}>
-      {/* Маркер «выбрано» = navy-кромка (см. scss) + галочка в светлом бейдже,
-          правый-верхний угол. Без заливки — текст карточки остаётся тёмным
-          (единая идиома с Choice/нормой/TimeChoose, sys-токены «выбрано»). */}
-      {active && (
-        <span className={styles.tick} aria-hidden>
-          <TickIcon />
-        </span>
-      )}
+    <li
+      className={styles.wrapper}
+      role="option"
+      aria-selected={active || undefined}
+      aria-haspopup="menu"
+      data-pressed={pressed || undefined}
+      {...liHandlers}
+    >
       {richNutrientValue !== null && (
         <span className={styles.richValue}>
           {/* Цветная заливка квадрата (ширина = доля богатства, слева направо),
@@ -266,7 +251,6 @@ const FoodActionCard = ({
           )}
         </span>
       )}
-      {deleteButton}
       {htmlFor ? (
         <label
           htmlFor={htmlFor}
@@ -274,7 +258,6 @@ const FoodActionCard = ({
           onClick={() => {
             onClick?.();
           }}
-          {...pressProps}
         >
           {thumb}
           <Text as="span" role="body" className={styles.name}>
@@ -288,7 +271,6 @@ const FoodActionCard = ({
           onClick={() => {
             onClick?.();
           }}
-          {...pressProps}
         >
           {thumb}
           <Text as="span" role="body" className={styles.name}>

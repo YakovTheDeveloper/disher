@@ -112,25 +112,27 @@
     border: 1.5px solid var(--sys-card-text-active);
     background: var(--sys-color-surface-bright);
     transition: background 0.13s ease, transform 0.1s ease;
-
-    &::after {
-        content: '';
-        width: 11px;
-        height: 6px;
-        margin-top: -2px;
-        border-left: 2px solid #fff;
-        border-bottom: 2px solid #fff;
-        transform: rotate(-45deg) scale(0);
-        transition: transform 0.13s ease;
-    }
 }
 
-.checkbox:checked + .checkboxBox {
-    background: var(--sys-card-text-active);
-    border-color: var(--sys-card-text-active);
+// Глиф-галочка = атом <SelectionTick> (один канон-вид). Скрыт (scale 0) пока
+// чекбокс не отмечен; при :checked всплывает ХОЛОДНОЙ искрой (indigo) на тёплом
+// поле «выбрано» — единый канон selection-маркера (как FoodActionCard/Choice).
+.checkboxTick {
+    width: 13px;
+    height: 13px;
+    color: var(--sys-color-tick-selected);
+    transform: scale(0);
+    transition: transform 0.13s ease;
+}
 
-    &::after {
-        transform: rotate(-45deg) scale(1);
+// «Выбрано» = тёплое поле bg-selected + amber-кромка + холодная искра-тик
+// (унифицировано 2026-06-26 с badge-моделью; был чёрный залитый бокс + белый тик).
+.checkbox:checked + .checkboxBox {
+    background: var(--sys-color-bg-selected);
+    border-color: var(--sys-color-border-selected);
+
+    .checkboxTick {
+        transform: scale(1);
     }
 }
 

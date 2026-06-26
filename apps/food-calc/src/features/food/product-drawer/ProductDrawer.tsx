@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, type FocusEvent } from 'react';
-import clsx from 'clsx';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import {
   useProduct,
@@ -14,7 +13,9 @@ import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Select } from '@/shared/ui/atoms/Select';
-import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { Button } from '@/shared/ui/atoms/Button';
+import { Accordion } from '@/shared/ui/Accordion';
+import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
@@ -22,12 +23,13 @@ import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-
 // который импортит ProductDrawer → иначе цикл product-drawer ↔ item-actions-drawer.
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { isCreatedByUser } from '@/shared/lib';
-import { findCatalogProduct } from '@/shared/data/catalog';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import type { BaseDrawerProps } from '@/shared/ui';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
@@ -67,14 +69,7 @@ interface Props extends BaseDrawerProps {
   productName?: string;
 }
 
-// Шеврон аккордеона — inline (в icons/ нет подходящего); currentColor.
-const ChevronIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" className={className}>
-    <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
-// × выхода из режима правки — inline (как ChevronIcon); currentColor.
+// × выхода из режима правки — inline; currentColor.
 const CloseIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true" className={className}>
     <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -90,12 +85,11 @@ type PortionsAccordionProps = {
   onLongPressRow: (label: string) => void;
 };
 
-// Аккордеон «Порции» — сверху дровера, закрыт по умолчанию. Шапка = заголовок +
-// счётчик (· N) + шеврон; голого „+“ в углу нет. «Добавить» живёт в языке списка:
-// пунктирная sky-ghost-пилюля последней строкой раскрытого списка (превью формы
-// будущей порции). Тап создаёт порцию с дефолтами и держит аккордеон раскрытым.
-// Раскрытие — grid-template-rows 0fr→1fr (composite-friendly; reduced-motion
-// глушит длительность в .scss).
+// Аккордеон «Порции» — сверху дровера, закрыт по умолчанию (примитив Accordion:
+// шапка-тоггл + grid-reveal тело + a11y). Шапка = заголовок + счётчик (· N) +
+// шеврон; голого „+“ в углу нет. «Добавить порцию» — канон Button
+// (system-secondary, ведущий +) последней строкой раскрытого списка. Тап создаёт
+// порцию с дефолтами и держит аккордеон раскрытым.
 const PortionsAccordion = ({
   open,
   onToggle,
@@ -104,39 +98,38 @@ const PortionsAccordion = ({
   onUpdate,
   onLongPressRow,
 }: PortionsAccordionProps) => (
-  <section className={s.portions}>
-    <button
-      type="button"
-      className={s.portionsToggle}
-      onClick={onToggle}
-      aria-expanded={open}
-    >
-      <span className={s.portionsTitleWrap}>
+  <Accordion
+    className={s.portions}
+    bodyClassName={s.portionsBody}
+    open={open}
+    onToggle={onToggle}
+    title={
+      <>
         <Heading as="span" role="title">Порции</Heading>
         {portions.length > 0 && (
           <Text as="span" role="caption" className={s.portionsCount}>· {portions.length}</Text>
         )}
-      </span>
-      <ChevronIcon className={clsx(s.chevron, open && s.chevronOpen)} />
-    </button>
-    <div className={clsx(s.portionsReveal, open && s.portionsRevealOpen)}>
-      <div className={s.portionsRevealInner}>
-        {portions.length > 0 && (
-          <FoodPortionsManager
-            portions={portions}
-            unit="г"
-            showHint={false}
-            onUpdate={onUpdate}
-            onLongPressRow={onLongPressRow}
-          />
-        )}
-        <button type="button" className={s.addPortionGhost} onClick={onAdd}>
-          <PlusIcon />
-          <Text as="span" role="caption">Добавить порцию</Text>
-        </button>
-      </div>
-    </div>
-  </section>
+      </>
+    }
+  >
+    {portions.length > 0 && (
+      <FoodPortionsManager
+        portions={portions}
+        unit="г"
+        showHint={false}
+        onUpdate={onUpdate}
+        onLongPressRow={onLongPressRow}
+      />
+    )}
+    <Button
+      variant="system-secondary"
+      fullWidth
+      icon={<PlusIcon variant="line" size={18} />}
+      onClick={onAdd}
+    >
+      Добавить порцию
+    </Button>
+  </Accordion>
 );
 
 /**
@@ -151,10 +144,6 @@ const PortionsAccordion = ({
  */
 export function ProductDrawer({ productId, productName, onClose }: Props) {
   const food = useProduct(productId);
-  // Каталожный продукт может нести фото (build-route поле `image`) — резолвим
-  // синхронно по id (catalog — const). У своих продуктов / блюд его нет →
-  // боковая полоска остаётся с обычной заливкой. Доступно и в ghost-ветке.
-  const image = findCatalogProduct(productId)?.image;
   const portionsRaw = useProductPortions(productId);
   const { results: nutrientsRaw } = useProductNutrients(productId);
 
@@ -165,16 +154,14 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [portionsOpen, setPortionsOpen] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   // Rename триггерится `<label htmlFor>` в меню → focus-делегация на input
-  // (iOS открывает клавиатуру ТОЛЬКО так, см. feedback_ios_focus). Меню
-  // закрываем здесь, ПОСЛЕ того как фокус уже улетел (focusin firing) — иначе
-  // unmount лейбла до делегации сломал бы rename.
+  // (iOS открывает клавиатуру ТОЛЬКО так, см. feedback_ios_focus). DropdownMenu
+  // закрывается сам (focus-out при делегации; finalFocus={false} оставляет фокус
+  // на инпуте) — здесь только разворачиваем rename-модалку.
   const handleNameFocusCapture = useCallback((e: FocusEvent) => {
     if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
       setRenameOpen(true);
-      setMenuOpen(false);
     }
   }, []);
 
@@ -205,7 +192,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       ? productName.charAt(0).toUpperCase() + productName.slice(1)
       : undefined;
     return (
-      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'} image={image}>
+      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'}>
         <div className={s.body} />
       </DrawerLayout>
     );
@@ -348,61 +335,29 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       title={displayName}
       subtitle={isUserCreated ? 'мой продукт' : undefined}
       a11yLabel={food.name}
-      image={image}
       // Карандаш в правом углу обвязки → drop-down «Название / Нутриенты».
-      // Только свои продукты. Меню живёт в стекинг-контексте обвязки дровера
-      // (z поверх контента); `.editWrap`-scoped правила в scss перебивают
-      // DrawerLayout `.actionHeaderButton *` (бледный глиф / 1.5rem). Rename —
-      // `<label htmlFor>` (focus-делегация для iOS-клавиатуры), нутриенты —
-      // обычная кнопка.
+      // Только свои продукты. DropdownMenu (Base UI Menu) сам владеет открытием,
+      // позиционированием, click-outside и порталом. `.editIconBtn svg` (0,1,1)
+      // перебивает DrawerLayout `.actionHeaderButton *` (бледный глиф / 1.5rem).
+      // Rename = пункт-`<label htmlFor>` с `closeOnClick={false}` (focus-делегация
+      // для iOS-клавиатуры; меню закроется focus-out'ом), нутриенты — обычный пункт.
       topRight={
         isUserCreated ? (
-          <div className={s.editWrap}>
-            <button
-              type="button"
-              className={s.editIconBtn}
-              aria-label="Редактировать продукт"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((o) => !o)}
+          <DropdownMenu
+            triggerClassName={s.editIconBtn}
+            triggerAriaLabel="Редактировать продукт"
+            trigger={<EditIcon />}
+          >
+            <DropdownMenuItem
+              closeOnClick={false}
+              render={<label htmlFor={CHANGE_NAME_INPUT_ID} />}
             >
-              <EditIcon />
-            </button>
-            {menuOpen && (
-              <>
-                <button
-                  type="button"
-                  className={s.editBackdrop}
-                  aria-hidden="true"
-                  tabIndex={-1}
-                  onClick={() => setMenuOpen(false)}
-                />
-                <div className={s.editMenu} role="menu">
-                  {/* НЕ закрываем меню на клике по rename: unmount лейбла до
-                      делегации фокуса сломал бы rename. Закрытие — в
-                      handleNameFocusCapture (после делегации) / по бэкдропу. */}
-                  <label
-                    htmlFor={CHANGE_NAME_INPUT_ID}
-                    className={s.editMenuItem}
-                    role="menuitem"
-                  >
-                    <Text as="span" role="body">Редактировать название</Text>
-                  </label>
-                  <button
-                    type="button"
-                    className={s.editMenuItem}
-                    role="menuitem"
-                    onClick={() => {
-                      setEditOpen(true);
-                      setMenuOpen(false);
-                    }}
-                  >
-                    <Text as="span" role="body">Редактировать нутриенты</Text>
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+              <Text as="span" role="body">Редактировать название</Text>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+              <Text as="span" role="body">Редактировать нутриенты</Text>
+            </DropdownMenuItem>
+          </DropdownMenu>
         ) : undefined
       }
     >
@@ -467,27 +422,34 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
             )}
 
             {isUserCreated && nutrientValueMap.size === 0 ? (
-              // Пустой состав → живой empty-state вместо мёртвой таблицы. Главное
-              // действие нового продукта (заполнить состав) на витрине, не под
-              // карандашом: крупная CTA AI-подбора (конструктивно, без confirm) +
-              // тихий путь ручного ввода (открывает инлайн-режим правки).
-              <div className={s.emptyNutrients}>
-                <Text as="p" role="caption" className={s.emptyNutrientsCaption}>У продукта пока нет состава</Text>
-                <SuggestActionButton
-                  label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
-                  onClick={() => runSuggest(false)}
-                  disabled={suggesting || !food.name.trim()}
-                />
-                <button
-                  type="button"
-                  className={s.manualLink}
-                  onClick={() => setEditOpen(true)}
-                >
-                  <Text as="span" role="caption">
-                    Ввести вручную
-                  </Text>
-                </button>
-              </div>
+              // Пустой состав → живой empty-state вместо мёртвой таблицы. Общий
+              // примитив EmptyState (контент: заголовок + слот действий); класс
+              // несёт только позиционирование (воздух вокруг). Главное действие
+              // нового продукта (заполнить состав) на витрине, не под карандашом:
+              // крупная CTA AI-подбора (конструктивно, без confirm) + тихий путь
+              // ручного ввода (открывает инлайн-режим правки).
+              <EmptyState
+                className={s.emptyNutrients}
+                title="У продукта пока нет состава"
+                action={
+                  <>
+                    <SuggestActionButton
+                      label={suggesting ? 'Подбираем…' : 'Предложить нутриенты'}
+                      onClick={() => runSuggest(false)}
+                      disabled={suggesting || !food.name.trim()}
+                    />
+                    <button
+                      type="button"
+                      className={s.manualLink}
+                      onClick={() => setEditOpen(true)}
+                    >
+                      <Text as="span" role="caption">
+                        Ввести вручную
+                      </Text>
+                    </button>
+                  </>
+                }
+              />
             ) : (
               <>
                 {/* Количество + норма — ПРЯМО над таблицей нутриентов. Еда: выбор

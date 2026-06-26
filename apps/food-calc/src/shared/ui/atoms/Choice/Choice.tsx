@@ -14,10 +14,12 @@ import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './Choice.module.scss';
 
 type Orientation = 'horizontal' | 'vertical';
+type ChoiceVariant = 'default' | 'segmented';
 
 type ChoiceContextValue = {
   value: string | null | undefined;
   select: (value: string) => void;
+  variant: ChoiceVariant;
 };
 
 const ChoiceContext = createContext<ChoiceContextValue | null>(null);
@@ -35,6 +37,12 @@ export type ChoiceGroupProps = {
   onChange: (value: string) => void;
   /** Раскладка группы — задаёт, какие стрелки навигируют (←/→ vs ↑/↓). */
   orientation?: Orientation;
+  /**
+   * Презентация. `default` — отдельные chip-кромки с угловой галочкой-наклейкой.
+   * `segmented` — iOS-сегмент-контрол: общий трек-фон, активный сегмент = плашка-
+   * заливка БЕЗ тика (токены `--sys-color-control-*`). a11y/стрелки общие.
+   */
+  variant?: ChoiceVariant;
   'aria-label'?: string;
   className?: string;
   children: ReactNode;
@@ -59,6 +67,7 @@ export function ChoiceGroup({
   value,
   onChange,
   orientation = 'horizontal',
+  variant = 'default',
   className,
   children,
   ...rest
@@ -112,11 +121,13 @@ export function ChoiceGroup({
       ref={ref}
       role="radiogroup"
       aria-orientation={orientation}
-      className={className}
+      className={clsx(variant === 'segmented' && styles.segmentedGroup, className)}
       onKeyDown={onKeyDown}
       {...rest}
     >
-      <ChoiceContext.Provider value={{ value, select }}>{children}</ChoiceContext.Provider>
+      <ChoiceContext.Provider value={{ value, select, variant }}>
+        {children}
+      </ChoiceContext.Provider>
     </div>
   );
 }
@@ -147,6 +158,7 @@ export function ChoiceItem({
 }: ChoiceItemProps) {
   const ctx = useChoiceContext();
   const checked = ctx.value === value;
+  const segmented = ctx.variant === 'segmented';
   return (
     <button
       type="button"
@@ -159,8 +171,9 @@ export function ChoiceItem({
       aria-disabled={disabled || undefined}
       className={clsx(
         styles.choice,
+        segmented && styles.segment,
         stacked && styles.stacked,
-        checked && styles.checked,
+        checked && (segmented ? styles.segmentChecked : styles.checked),
         className,
       )}
       onClick={(e) => {
@@ -172,9 +185,12 @@ export function ChoiceItem({
       <Text role="label" as="span" className={styles.content}>
         {children}
       </Text>
-      <span className={styles.marker} aria-hidden>
-        <TickIcon className={styles.markerTick} />
-      </span>
+      {/* Segmented активный = заливка-плашка БЕЗ углового тика (canon iOS-сегмент). */}
+      {!segmented && (
+        <span className={styles.marker} aria-hidden>
+          <TickIcon className={styles.markerTick} />
+        </span>
+      )}
     </button>
   );
 }

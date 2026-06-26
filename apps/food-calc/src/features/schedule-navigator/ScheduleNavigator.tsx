@@ -4,6 +4,7 @@ import { ru } from 'date-fns/locale';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { ActionTile, ArrowGlyph } from '@/shared/ui/atoms/ActionTile';
 import { QuietLabel, Numeral, Text } from '@/shared/ui/atoms/Typography';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
 import type { DateStr } from './model';
@@ -302,7 +303,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
             </div>
           ) : (
             <div className={s.empty} ref={activeInnerRef}>
-              <QuietLabel>Пока нет дней с записями</QuietLabel>
+              <EmptyState title="Пока нет дней с записями" />
             </div>
           )}
         </section>

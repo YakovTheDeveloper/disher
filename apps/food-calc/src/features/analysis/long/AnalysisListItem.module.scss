@@ -1,26 +1,23 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Stripe-fork analysis row — token-driven by the app-wide tone (the live
-// ModalShell variant → `--sys-card-*`, see tds/modalshell-lawgiver-2026-06-13).
-// Same idiom as FoodActionCard: 3-stop gradient surface + fading hairline +
-// vertical accent + nth-child wash rhythm. Status colours stay semantic.
+// Analysis row — now a Card.Root (LongPressRow chassis). This className lands on
+// the LongPressRow `<li>`; it neutralizes the tod-palette chassis down to the
+// flat neutral analyses tone (`--sys-card-*`, the app-wide ModalShell variant —
+// see tds/modalshell-lawgiver-2026-06-13) so the list reads as a flat inset-
+// grouped surface, NOT a stack of floating tod cards. The accent stripe carries
+// status; the fading hairline is the only inter-row seam.
 
 .row {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 14px 16px 14px 18px;
-    border: none;
-    text-align: left;
+    // Neutralize the tod chassis: flat neutral surface, no per-row frame/radius
+    // (the group corners are rounded by `.listBody { overflow: hidden }`).
+    --row-bg: var(--sys-card-bg);
+    --row-tapped: var(--sys-card-bg-sunk);
+    --row-rest-outline-w: 0;
+    border-radius: 0;
     cursor: pointer;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-    background: var(--sys-card-bg);
 
-    // Vertical accent stripe — colour carries status.
+    // Vertical accent stripe — colour carries status. Lives in the 16px content
+    // gutter that Card's inner `.card` owns; sits at the row's left edge.
     &::before {
         content: '';
         position: absolute;
@@ -30,6 +27,7 @@
         width: 3px;
         border-radius: var(--sys-radius-tmp); /* was 2px */
         background: var(--sys-card-text-active-muted);
+        z-index: 1;
     }
 
     // Fading hairline divider — never a full border.
@@ -48,10 +46,6 @@
         display: none;
     }
 
-    &:active {
-        transform: scale(0.995);
-    }
-
     // Status overrides the accent stripe colour.
     &[data-status='done']::before {
         background: var(--sys-card-text-active);
@@ -62,23 +56,6 @@
     &[data-status='stale']::before {
         background: var(--sys-color-status-warning);
     }
-
-    // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
-    &:nth-child(2n) {
-        background-image: var(--sys-card-wash-2n), var(--sys-card-bg);
-    }
-
-    &:nth-child(3n) {
-        background-image: var(--sys-card-wash-3n), var(--sys-card-bg);
-    }
-}
-
-.main {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
 }
 
 .period {

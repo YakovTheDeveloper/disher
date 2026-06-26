@@ -1,5 +1,5 @@
 import s from './AddPortionButton.module.scss';
-import { PlusIcon } from '@/shared/ui/atoms/Button/PlusIcon';
+import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { PORTION_INPUT_IDS } from './usePortionFlow';
 

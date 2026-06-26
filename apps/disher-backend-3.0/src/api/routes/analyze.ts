@@ -264,4 +264,26 @@ export async function analyzeRoutes(
     if (!row) return reply.status(404).send({ error: "not found" });
     return reply.send({ analysis: serialiseRow(row) });
   });
+
+  // DELETE /api/analyses/:id — drop one of the current user's analyses. The
+  // `user_id` predicate is the ownership guard: another user's id deletes
+  // nothing and gets a 404, identical to the GET shape. No refund — a finished
+  // (or paid-for, still-pending) analysis is a consumed product; deleting it is
+  // a UI tidy-up, not a cancellation. Idempotent on the surface: a second
+  // delete of the same id is a 404 (already gone), which the optimistic-remove
+  // frontend treats as success.
+  app.delete<{ Params: { id: string } }>("/analyses/:id", async (req, reply) => {
+    if (!pool) return reply.status(500).send({ error: "DB not configured" });
+    const id = req.params.id;
+    if (!UUID_RE.test(id))
+      return reply.status(404).send({ error: "not found" });
+    const result = await pool.query(
+      `delete from public.analyses
+       where id = $1::uuid and user_id = $2::uuid`,
+      [id, req.userId],
+    );
+    if ((result.rowCount ?? 0) === 0)
+      return reply.status(404).send({ error: "not found" });
+    return reply.send({ ok: true });
+  });
 }

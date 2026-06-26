@@ -19,6 +19,7 @@ import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import styles from './CreateDailyNormModal.module.scss';
 import { Heading, Text, Numeral, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Button } from '@/shared/ui/atoms/Button';
 
 // chrome:
 //   'modal' (default) — full modal with ModalLayout, hero title header
@@ -252,16 +253,14 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
         </div>
 
         <footer className={clsx(styles.footer, isPanel && styles.footerPanel)}>
-          <button
-            className={clsx(styles.commitBtn, !isValid && styles.commitBtnInactive)}
+          <Button
+            variant="system"
+            fullWidth
+            disabled={!isValid}
             onClick={handleCommit}
-            type="button"
-            aria-disabled={!isValid}
           >
-            <Text as="span" role="label">
-              Готово
-            </Text>
-          </button>
+            Готово
+          </Button>
         </footer>
       </div>
   );

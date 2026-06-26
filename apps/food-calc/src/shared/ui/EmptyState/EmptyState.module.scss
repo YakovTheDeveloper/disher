@@ -1,0 +1,34 @@
+// EmptyState — контент-only примитив пустого состояния. Только внутренняя
+// раскладка контента (центр-колонка, ритм, цвет ролей). Позиционирование
+// (где на экране, отступы от краёв) — на вызывающем через className.
+.root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    text-align: center;
+}
+
+// Цвет/размер заголовка несёт примитив <Text role="label"> — здесь только цвет-роль
+// (чуть тише основного текста: пустая зона = спокойная).
+.title {
+    color: var(--sys-color-text-secondary);
+    margin: 0;
+}
+
+.description {
+    color: var(--sys-color-text-tertiary);
+    margin: 0;
+}
+
+// Слот действий — отступ сверху, кнопки центрируются. Стопкой (канон пустого
+// состояния: главная CTA + тихая вторичная ссылка под ней; одиночная кнопка —
+// тот же столбец из одного). Высоту/ширину несут сами кнопки (канон Button).
+.action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}

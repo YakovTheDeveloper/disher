@@ -1,7 +1,7 @@
-// ProposalFoodItem — карточка предложки на CardLayout (CardShell unification
+// ProposalFoodItem — карточка предложки на compound Card (card-chassis-simplify
 // 2026-06-25). Зеркалит ScheduleFoodItemInline.module.scss + proposal-only
 // надстройки (.nameWrap с «оригиналом», .nameOriginal/.nameOriginalHint).
-// Колонку и строки title/meta держит CardLayout; qty-стопку — <QtyStack>; время —
+// Колонку и строки Title/Meta держит Card.Root; qty-стопку — <QtyStack>; время —
 // <CardTime>. Здесь только специфика карточки: title-кластер, имя+хинт, детали.
 // (Время/qty-chrome классы сняты — их несут CardTime/QtyStack. rescue/delete живут
 //  СНАРУЖИ ряда, в InlineWriteFoodReview.)
@@ -14,13 +14,9 @@
     color: var(--sys-color-text-primary);
 }
 
-// title-слот: [qty][имя] — qty ПЕРЕД именем, упакованы вплотную (НЕ space-between).
-.titleCluster {
-    display: flex;
-    align-items: baseline; // value qty встаёт на базовую линию имени
-    gap: 8px;
-    min-width: 0;
-}
+// title-кластер [qty][имя] → общий <TitleCluster>. Деталь-строка → клэмп-2 в
+// общем `.meta` Card (card-chassis 2026-06-26). Локальные клоны кластера и
+// деталь-строки сняты.
 
 // имя + «оригинал»: тянется на остаток строки (тап-зона на всю ширину справа от
 // qty). Колонка — чтобы тихий «оригинал» лёг строкой ПОД именем.
@@ -31,17 +27,6 @@
     flex-direction: column;
     gap: 1px;
     line-height: 1.15;
-}
-
-// meta-слот: детали. CardLayout даёт caption-голос (.meta цвет/тип); тут —
-// контекстный muted + однострочный эллипсис. Раньше serif <QuietLabel> — теперь
-// sans-caption (решение B: детали = meta caption).
-.detailsSubtitle {
-    color: var(--sys-color-text-muted);
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 // ─── Proposal-only extras (нет в schedule) ───────────────────────

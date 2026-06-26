@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 type LongPressHandlers = {
   onPointerDown: (e: React.PointerEvent) => void;
@@ -43,10 +43,18 @@ export function useLongPress(
   { delay = 450, moveThreshold = 10, onPressStart, onPressEnd }: Options = {},
 ): LongPressHandlers {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The 50ms click-disarm timer (see endPress) — held in a ref so the unmount
+  // cleanup can cancel it too; otherwise it fires on a gone component.
+  const disarmRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startRef = useRef({ x: 0, y: 0 });
   const pendingRef = useRef(false);
   const wasLongRef = useRef(false);
   const preventClickRef = useRef(false);
+  // True between onPressStart and onPressEnd — makes the press-visual end exactly
+  // once (a completed long press ends it in the timer; pointer-up must not end it
+  // a second time, or onPressStart/onPressEnd stop being balanced for consumers
+  // that count them).
+  const pressedRef = useRef(false);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -55,6 +63,24 @@ export function useLongPress(
     }
     pendingRef.current = false;
   }, []);
+
+  // End the press-visual at most once per press (idempotent onPressEnd).
+  const endVisual = useCallback(() => {
+    if (!pressedRef.current) return;
+    pressedRef.current = false;
+    onPressEnd?.();
+  }, [onPressEnd]);
+
+  // Cancel both pending timers when the row unmounts mid-press (long-press opening
+  // a drawer that unmounts the list, navigation, list re-render) — otherwise the
+  // hold timer fires onLongPress / the disarm timer touches refs on a gone node.
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (disarmRef.current) clearTimeout(disarmRef.current);
+    },
+    [],
+  );
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -71,6 +97,7 @@ export function useLongPress(
       }
       pendingRef.current = true;
       wasLongRef.current = false;
+      pressedRef.current = true;
       startRef.current = { x: e.clientX, y: e.clientY };
       onPressStart?.();
 
@@ -80,16 +107,19 @@ export function useLongPress(
 
       timerRef.current = setTimeout(() => {
         if (!pendingRef.current) return;
+        // Disarm the pending FSM so a later pointer-up's endPress doesn't run the
+        // release path a second time (clearTimer is a no-op, endVisual is idempotent).
+        pendingRef.current = false;
         wasLongRef.current = true;
         preventClickRef.current = true;
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
           navigator.vibrate(10);
         }
-        onPressEnd?.(); // press-visual ends the moment the long press succeeds
+        endVisual(); // press-visual ends the moment the long press succeeds
         onLongPress();
       }, delay);
     },
-    [delay, onLongPress, onPressStart, onPressEnd],
+    [delay, onLongPress, onPressStart, endVisual],
   );
 
   // Release pointer capture, cancel the pending timer, end the press-visual, and
@@ -105,12 +135,14 @@ export function useLongPress(
         // ignore
       }
       clearTimer();
-      onPressEnd?.();
-      setTimeout(() => {
+      endVisual();
+      if (disarmRef.current) clearTimeout(disarmRef.current);
+      disarmRef.current = setTimeout(() => {
         preventClickRef.current = false;
+        disarmRef.current = null;
       }, 50);
     },
-    [clearTimer, onPressEnd],
+    [clearTimer, endVisual],
   );
 
   const onPointerMove = useCallback(

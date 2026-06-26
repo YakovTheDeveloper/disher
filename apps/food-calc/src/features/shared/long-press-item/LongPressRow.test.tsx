@@ -163,6 +163,23 @@ describe('LongPressRow', () => {
     expect(clickEv.defaultPrevented).toBe(true); // preventDefault → no <label htmlFor> focus
   });
 
+  it('unmounting mid-press cancels the hold timer (no onLongPress on a gone row)', () => {
+    const onLongPress = vi.fn();
+    const { container, unmount } = render(
+      <LongPressRow id="r" onLongPress={onLongPress}>
+        <span>content</span>
+      </LongPressRow>,
+    );
+    const row = container.querySelector('li') as HTMLLIElement;
+
+    firePointer(row, 'pointerdown', 50, 50); // press armed
+    unmount(); // row leaves before the threshold (long-press opens a drawer / nav)
+    // The pending hold + disarm timers must be cleared — advancing past the
+    // threshold should not fire onLongPress on the unmounted component.
+    expect(() => act(() => vi.advanceTimersByTime(LONG_PRESS_DELAY + 50))).not.toThrow();
+    expect(onLongPress).not.toHaveBeenCalled();
+  });
+
   it('wires the staggered CSS entrance: the <li> carries the class + --enter-i index', () => {
     const { container } = render(
       <LongPressRow id="row-1" index={3}>

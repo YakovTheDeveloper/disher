@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './ScheduleEventCard.module.scss';
 import clsx from 'clsx';
-import { CardShell } from '@/features/shared/card-shell';
+import { Card } from '@/shared/ui/atoms/Card';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
@@ -81,10 +81,11 @@ export function ScheduleEventCard({
   // «Недавно добавлено» — синий кружок справа (чистится на свайп/уход, см. store).
   const isRecent = useRecentlyAddedStore((s) => s.ids.has(item.id));
 
-  // Маппинг на CardShell-слоты (см. cardshell-unification план): title = текст,
-  // titleEnd — нет (у события нет qty), meta = теги-чипы, metaEnd = время.
+  // Маппинг на compound Card (см. card-chassis-simplify план): Title = текст
+  // (у события нет qty); Meta = теги-чипы (ТОЛЬКО при атомах — трейлинг-время
+  // схлопывает нижний ряд); Time = время.
   return (
-    <CardShell
+    <Card.Root
       className={clsx(className, styles.row)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={item.id}
@@ -92,49 +93,37 @@ export function ScheduleEventCard({
       tod={getTimeOfDay(item.time)}
       recent={isRecent}
       onLongPress={onLongPress}
-      // title = текст события (CardLayout строит body + label htmlFor).
-      title={{
-        content: title,
-        htmlFor: textHtmlFor,
-        onTap: onEditText,
-        className: styles.text,
-      }}
-      // titleEnd = время. У события нет qty, поэтому время поднимается на базовую
-      // линию заголовка (верх-право, role:'time' переопределяет qty-роль слота),
-      // а не падает в правый-нижний угол как у еды. См. CardLayout role-override.
-      titleEnd={
-        hideTime
-          ? undefined
-          : {
-              content: (
-                <>
-                  {item.time ? formatClock(item.time) : '—'}
-                  {item.endTime && ` — ${formatClock(item.endTime)}`}
-                </>
-              ),
-              role: 'time',
-              htmlFor: timeHtmlFor,
-              onTap: onEditTime,
-              className: dimTime ? styles.timeDup : undefined,
-            }
-      }
-      // meta = лента чипов / «+ данные»: своя тап-зона оборачивает чипы → node-escape.
-      meta={{
-        node: (
-          <TapTarget
-            as="label"
-            htmlFor={atomsHtmlFor}
-            className={clsx(styles.atomsZone, !hasAtoms && styles.atomsZoneEmpty)}
-            onClick={onEditAtoms}
-          >
-            {hasAtoms ? (
-              atoms.map((atom, i) => formatAtomChip(atom, i))
-            ) : (
-              <Text as="span" role="caption" className={styles.atomsPlaceholder}>+ данные</Text>
-            )}
+    >
+      {/* Title = текст события (Card строит body + label htmlFor). Дом affordance
+          «+ данные» при collapse (юзер выбрал «тап по карточке целиком», 2026-06-25):
+          когда атомов НЕТ, тап по заголовку (он = flex:1, заполняет карточку) ведёт в
+          редактор атомов вместо текста — добавить данные = первичное действие пустого
+          события. С атомами тап по заголовку правит текст (атомы правятся тапом по чипам). */}
+      <Card.Title
+        htmlFor={hasAtoms ? textHtmlFor : atomsHtmlFor}
+        onTap={hasAtoms ? onEditText : onEditAtoms}
+        className={styles.text}
+      >
+        {title}
+      </Card.Title>
+
+      {/* Meta = лента чипов: своя тап-зона оборачивает чипы → node-escape. Только при
+          атомах — иначе Meta отсутствует, нижний ряд схлопывается, время едет в title-ряд. */}
+      {hasAtoms && (
+        <Card.Meta>
+          <TapTarget as="label" htmlFor={atomsHtmlFor} className={styles.atomsZone} onClick={onEditAtoms}>
+            {atoms.map((atom, i) => formatAtomChip(atom, i))}
           </TapTarget>
-        ),
-      }}
-    />
+        </Card.Meta>
+      )}
+
+      {/* Time = низ-право (мессенджер-канон, как у еды ScheduleFoodItemInline). */}
+      {!hideTime && (
+        <Card.Time htmlFor={timeHtmlFor} onTap={onEditTime} dim={dimTime} className={styles.time}>
+          {item.time ? formatClock(item.time) : '—'}
+          {item.endTime && ` — ${formatClock(item.endTime)}`}
+        </Card.Time>
+      )}
+    </Card.Root>
   );
 }

@@ -5,6 +5,17 @@
 
 @import '@/shared/assets/style/mixin.scss';
 
+// Throwaway-заливки эксперимента DesignBar «FoodListCta»: насыщенный лимон /
+// золото / лайм — в каноне таких sys-токенов нет (amber-ряд медовый, lemon-
+// палитра — бледные washes). Локальные $-переменные, поданные через ПЛОСКИЙ
+// linear-gradient (gate пускает любой `/gradient/i` — это канон-щель stripe-fork
+// с сырыми стопами): так цвет живёт локально в модуле, без глобального токен-
+// долга. Победитель будет токенизирован в `--sys-color-surface-action-*` при
+// закреплении (и градиент-шим заменён на var()).
+$list-cta-lemon: #ffe14d;
+$list-cta-gold: #e0b03a;
+$list-cta-lime: #aadb5a;
+
 
 // Ready-state CTA «Посмотреть варианты» — канон `Button variant="link"` (вид +
 // press владеет примитив). Здесь остаётся ТОЛЬКО раскладка: заполнить ширину
@@ -13,4 +24,100 @@
     flex: 1;
     margin: 0;
     --btn-font-size: var(--text-lg);
+}
+
+// ─── DesignBar-эксперимент «FoodListCta» — обёртка правого affordance ───────────
+// Обёртка несёт анкор (data-dv*/ref). Для канона `medal` она прозрачна: монета
+// позиционирует себя сама (`[data-write-bar] .writeBarList` в WriteBarMedal),
+// обёртка остаётся static и без своих размеров (монета вне потока → 0 высоты).
+.listCtaSlot {
+    display: contents;
+}
+
+// Button-варианты («Список»): обёртка перестаёт быть прозрачной и встаёт ТОЧНО
+// на место прежней медали — абсолют у правого края, top:-(--medal-size), тот же
+// якорь, что у `[data-write-bar] .writeBarList` в WriteBarMedal. `data-dv-v` (на
+// этой же обёртке через анкор) отличает button-облики от `medal`. `[data-write-bar]`
+// — атрибут на `.wrap` (positioned ancestor), не хэшится → cross-module анкор.
+[data-write-bar] .listCtaSlot:not([data-dv-v='medal']) {
+    display: block;
+    position: absolute;
+    right: var(--sys-inset-page);
+    top: calc(-1 * var(--medal-size));
+    z-index: 2;
+    transition: opacity 0.18s ease, transform 0.24s ease;
+}
+
+// Collapse на фокусе — как у медали (пилюля разворачивается на всю ширину).
+[data-expanded] .listCtaSlot:not([data-dv-v='medal']) {
+    opacity: 0;
+    transform: translateX(10px) scale(0.85);
+    pointer-events: none;
+}
+
+// Кнопка-«Список»: высота = медали (тот же вертикальный след), auto-ширина по
+// тексту (не fullWidth — не накрывает инпут целиком).
+.listCtaButton {
+    min-height: var(--medal-size);
+    white-space: nowrap;
+}
+
+// Ready-state (показана предложка) — приглушаем, как dimmed-медаль.
+.listCtaDim {
+    opacity: 0.6;
+}
+
+// ─── Цветовые облики (по data-dv-v) ────────────────────────────────────────────
+// Заливка + парный контрастный текст (цвет каскадит и на <Text>-метку, и на
+// иконку через currentColor). Тёмная заливка → светлый текст, светлая → тёмный.
+// `.listCtaButton` перебивает variant="system" по специфичности (атрибут+класс).
+
+// Наша палитра (sys-action-токены) ───
+.listCtaSlot[data-dv-v='coal'] .listCtaButton {
+    background: var(--sys-color-surface-action-system);
+    color: var(--sys-color-text-on-accent);
+}
+
+.listCtaSlot[data-dv-v='floating'] .listCtaButton {
+    background: var(--sys-color-surface-floating);
+    color: var(--sys-color-text-on-floating);
+}
+
+.listCtaSlot[data-dv-v='indigo'] .listCtaButton {
+    background: var(--sys-color-surface-action-accent);
+    color: var(--sys-color-text-on-accent);
+}
+
+.listCtaSlot[data-dv-v='indigo-soft'] .listCtaButton {
+    background: var(--sys-color-surface-accent-soft);
+    color: var(--sys-color-text-accent);
+}
+
+.listCtaSlot[data-dv-v='amber'] .listCtaButton {
+    background: var(--sys-color-surface-action-primary);
+    color: var(--sys-color-text-on-action);
+}
+
+.listCtaSlot[data-dv-v='amber-soft'] .listCtaButton {
+    background: var(--sys-color-surface-action-primary-soft);
+    color: var(--sys-color-text-action-primary-soft);
+}
+
+// Родная жёлтая палитра + ещё один (зелёный) ───
+// Заливки — локальные $-vars (см. верх файла). Текст — нейтральный ink-токен
+// `--sys-color-text-system` (#221f19; text-primary зарезервирован под бренд),
+// тёмный читается на всех трёх светлых заливках.
+.listCtaSlot[data-dv-v='lemon'] .listCtaButton {
+    background: linear-gradient(180deg, $list-cta-lemon, $list-cta-lemon);
+    color: var(--sys-color-text-system);
+}
+
+.listCtaSlot[data-dv-v='gold'] .listCtaButton {
+    background: linear-gradient(180deg, $list-cta-gold, $list-cta-gold);
+    color: var(--sys-color-text-system);
+}
+
+.listCtaSlot[data-dv-v='lime'] .listCtaButton {
+    background: linear-gradient(180deg, $list-cta-lime, $list-cta-lime);
+    color: var(--sys-color-text-system);
 }

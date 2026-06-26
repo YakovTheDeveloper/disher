@@ -1,5 +1,5 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Button, IconButton } from '@/shared/ui/atoms/Button';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './ItemActionsDrawer.module.scss';
 
@@ -15,8 +15,9 @@ interface Props extends BaseDrawerProps<void> {
   /** Destructive — rendered in DrawerLayout's top-right chrome slot, opposite the
    *  top-left close cross and away from the action stack, so a casual tap toward
    *  the actions can't hit it. One tap deletes (no extra confirm — placement is
-   *  the guard). */
-  onDelete: () => void;
+   *  the guard). Omit for non-deletable entities (e.g. catalog foods) → the trash
+   *  chrome button is dropped and the drawer shows actions only. */
+  onDelete?: () => void;
   /** Bottom vertical stack. The last entry reads as the "primary" action
    *  (e.g. «Информация о продукте» sits at the bottom). */
   actions: ItemAction[];
@@ -28,7 +29,7 @@ interface Props extends BaseDrawerProps<void> {
 export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) => {
   const handleDelete = () => {
     onClose();
-    onDelete();
+    onDelete?.();
   };
 
   const handleAction = (action: ItemAction) => {
@@ -41,29 +42,28 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
       title={title}
       a11yLabel={title ?? 'Действия'}
       topRight={
-        <button
-          type="button"
-          className={s.deleteBtn}
-          onClick={handleDelete}
-          aria-label="Удалить"
-        >
-          <TrashIcon />
-        </button>
+        onDelete ? (
+          <IconButton
+            tone="danger"
+            className={s.deleteBtn}
+            onClick={handleDelete}
+            aria-label="Удалить"
+            icon={<TrashIcon />}
+          />
+        ) : undefined
       }
     >
       <div className={s.actions}>
         {actions.map((action, i) => (
-          <button
+          <Button
             key={`${action.label}-${i}`}
-            type="button"
-            className={s.actionBtn}
+            variant="system-secondary"
+            fullWidth
+            icon={action.icon}
             onClick={() => handleAction(action)}
           >
-            {action.icon && <span className={s.icon}>{action.icon}</span>}
-            <Text as="span" role="body">
-              {action.label}
-            </Text>
-          </button>
+            {action.label}
+          </Button>
         ))}
       </div>
     </DrawerLayout>
