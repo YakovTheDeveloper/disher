@@ -19,7 +19,7 @@
     background-color: var(--sys-color-surface-2);
     // Всплывающий лист (drawer) = surface-2 (белый) → surface-aware глубина поля
     // (стратегия C): на белом лунка узнаётся бровкой + inset-тенью.
-    @include field-depth-surface-2;
+    @include field-depth(--sys-color-surface-2);
     z-index: calc(5001 + var(--nested-drawers, 0) * 10);
     overscroll-behavior: contain;
     display: flex;
@@ -50,20 +50,27 @@
         justify-content: center;
         flex-shrink: 0;
         width: 100%;
-        height: 50px;
+        height: var(--sys-size-drawer-chrome);
         background-color: transparent;
         top: 0;
         z-index: 20;
     }
 
     // Two-line chrome row (title + subtitle, e.g. «Аккаунт» + email). The
-    // leading Close / topRight buttons stay absolute at the top edge (50px),
-    // so the row just grows downward; horizontal gutters keep a long subtitle
+    // leading Close / topRight buttons stay pinned to the chrome midline, so
+    // the row just grows downward; horizontal gutters keep a long subtitle
     // clear of the absolutely-positioned buttons.
     .dragHandleStacked {
         height: auto;
-        min-height: 50px;
+        min-height: var(--sys-size-drawer-chrome);
         padding: 6px 56px 10px;
+
+        // The chrome buttons center against the FIRST (chrome-height) line, not
+        // the grown row — pin their midline to half the chrome height so they
+        // don't drift down as the subtitle pushes the row taller.
+        .chromeSlot {
+            top: calc(var(--sys-size-drawer-chrome) / 2);
+        }
     }
 
 
@@ -299,37 +306,26 @@
     background: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.34));
 }
 
-.actionHeaderButton {
+// Absolute chrome slot — vertically centered against the chrome row, inset from
+// the panel edge by --sys-inset-panel (.topLeft / .topRight). Both the leading
+// control (close cross / back arrow, an IconButton) and the trailing topRight
+// slot share this geometry + the --sys-size-control hit-area, so крест и урна
+// сидят в одной сетке. Тон/press несёт сам IconButton (neutral/danger) — раньше
+// это размазывалось по `.actionHeaderButton * {color}` + `_back {opacity:0.2}`.
+.chromeSlot {
     position: absolute;
-    min-width: 50px;
-    height: 50px;
-    top: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--sys-size-control);
+    height: var(--sys-size-control);
+}
+
+// The topRight slot is a plain wrapper div (its child is the consumer-passed
+// IconButton). Center that child; the leading IconButton centers its own glyph.
+.chromeSlotWrap {
     display: flex;
-    // Оба chrome-слота (крест слева, topRight-урна справа) — одинаковые 50×50
-    // ячейки с глифом по центру. Без этого topRight-контент центрировался лишь
-    // если сам заполнял 100% — крест и урна вставали по-разному → «не по сетке».
     align-items: center;
     justify-content: center;
-    border-radius: var(--sys-radius-control);
-
-    * {
-        color: var(--sys-color-text-tertiary);
-        font-size: var(--sys-icon-size-md); // close-глиф 24px (был 1.5rem)
-        transition: color var(--press-out) var(--easing-default);
-    }
-
-    // Цветной отклик: на нажатии бледный глиф темнеет до ink.
-    &:active * {
-        color: var(--sys-color-text-system);
-        transition-duration: var(--sys-duration-press-in);
-    }
-
-    &_back {
-        padding: 0 0.5rem;
-        align-items: center;
-        justify-content: center;
-        opacity: 0.2;
-    }
 }
 
 // Centered header title — between the Close cross and the topRight slot. Cross
@@ -386,11 +382,11 @@
 }
 
 .topLeft {
-    left: 0;
+    left: var(--sys-inset-panel);
 }
 
 .topRight {
-    right: 0;
+    right: var(--sys-inset-panel);
 }
 
 .scrollableContent {
@@ -483,6 +479,19 @@
     &::after {
         content: none;
     }
+}
+
+// Optional side-padding dedup (DrawerLayout `contentInset`). Canon stays «content
+// owns padding» — this only hangs the ONE boilerplate token ~80% of drawers
+// repeat (panel 12 / sheet 24) as `padding-inline` on the scroll area. Vertical
+// padding still belongs to the consumer (everyone's differs). Default `'none'`
+// is the no-op back-compat path (full-bleed drawers untouched).
+.contentInsetPanel {
+    padding-inline: var(--sys-inset-panel);
+}
+
+.contentInsetSheet {
+    padding-inline: var(--sys-inset-sheet);
 }
 
 // Pinned, non-scrolling footer slot — sits below the scroll area, always

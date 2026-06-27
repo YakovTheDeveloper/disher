@@ -27,6 +27,9 @@ export function buildInfoActions(item: InfoItem, navigate: NavigateFunction): It
     return [
       {
         label: 'Информация о блюде',
+        // Единственное навигационное действие стека = его акцент (уголь-filled).
+        // 'system', не амбра/`primary` — это навигация, не бизнес-CTA.
+        variant: 'system',
         onClick: () => pushNavigate(navigate, RouterUrls.getDish(dishId), 'push'),
       },
     ];
@@ -36,6 +39,8 @@ export function buildInfoActions(item: InfoItem, navigate: NavigateFunction): It
     return [
       {
         label: 'Информация о продукте',
+        // Единственное навигационное действие стека = его акцент (уголь-filled).
+        variant: 'system',
         // Продукт открывается боковым ProductDrawer (страница /product/:id
         // инактивирована). Имя для шапки подъедет из useProduct внутри дровера.
         onClick: () =>

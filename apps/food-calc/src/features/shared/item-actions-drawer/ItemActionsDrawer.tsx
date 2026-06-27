@@ -1,5 +1,5 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Button, IconButton } from '@/shared/ui/atoms/Button';
+import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './ItemActionsDrawer.module.scss';
 
@@ -7,6 +7,13 @@ export type ItemAction = {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
+  /**
+   * Тон кнопки в стеке (переиспользует словарь примитива, без отдельного
+   * `emphasis`-enum). Дефолт — тихий `system-secondary`; «главное» действие
+   * (напр. «Информация о продукте») помечается `'system'` (уголь-filled) и
+   * читается как акцент стека. Амбру (`primary`) сюда не давать — это бизнес-CTA.
+   */
+  variant?: ButtonVariant;
 };
 
 interface Props extends BaseDrawerProps<void> {
@@ -47,6 +54,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
     <DrawerLayout
       title={title}
       a11yLabel={title ?? 'Действия'}
+      contentInset="panel"
       topRight={
         onDelete ? (
           <IconButton
@@ -63,7 +71,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
         {actions.map((action, i) => (
           <Button
             key={`${action.label}-${i}`}
-            variant="system-secondary"
+            variant={action.variant ?? 'system-secondary'}
             flat
             fullWidth
             icon={action.icon}
@@ -107,7 +115,7 @@ const PencilIcon = () => (
 );
 
 const TrashIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
       stroke="currentColor"

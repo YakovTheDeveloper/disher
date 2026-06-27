@@ -24,9 +24,14 @@ vi.mock('@base-ui/react/drawer', () => ({
     Content: ({ children }: { children: React.ReactNode }) => (
       <div data-testid="content">{children}</div>
     ),
-    Close: ({ children, ...rest }: { children: React.ReactNode }) => (
-      <button data-testid="close-button" {...rest}>{children}</button>
-    ),
+    // Close теперь отдаёт каркас через Base UI `render`-проп (IconButton).
+    // Мок чтит и render-элемент (новый путь), и legacy children.
+    Close: ({ children, render, ...rest }: { children: React.ReactNode; render?: React.ReactNode }) =>
+      render ? (
+        <span data-testid="close-button">{render}</span>
+      ) : (
+        <button data-testid="close-button" {...rest}>{children}</button>
+      ),
   },
 }));
 vi.mock('@/shared/assets/icons/cross.svg?react', () => ({

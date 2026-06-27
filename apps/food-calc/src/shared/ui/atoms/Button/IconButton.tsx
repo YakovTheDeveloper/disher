@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
+import { ButtonHTMLAttributes, ReactNode, forwardRef } from 'react';
 import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import s from './IconButton.module.scss';
@@ -23,18 +23,16 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // Icon-only кнопка: владеет usePressFeedback (JS data-pressed — надёжная press-
 // инверсия там, где :active на iOS ненадёжен) + требует aria-label + tone.
 // Экспортит только компонент (Fast Refresh — fastrefresh-screenindicator).
-export const IconButton = ({
-  icon,
-  tone,
-  size,
-  className,
-  style,
-  type = 'button',
-  ...props
-}: IconButtonProps) => {
+// forwardRef: нужен Base UI render-пропу (Drawer.Close render={<IconButton/>}) —
+// он прокидывает ref на каркас для focus-менеджмента.
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { icon, tone, size, className, style, type = 'button', ...props },
+  ref
+) {
   const { pressed, pressProps } = usePressFeedback();
   return (
     <button
+      ref={ref}
       type={type}
       className={clsx(
         s.iconButton,
@@ -50,6 +48,6 @@ export const IconButton = ({
       {icon}
     </button>
   );
-};
+});
 
 export default IconButton;

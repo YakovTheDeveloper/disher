@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import { useDrawerSide } from './drawerSide';
 
 type Props = {
@@ -64,6 +65,14 @@ type Props = {
    * surface and reads as a render glitch rather than an affordance.
    */
   scrollHints?: boolean;
+  /**
+   * Optional side-padding (`padding-inline`) on the scroll area, deduping the
+   * one boilerplate ~80% of drawers repeat. Canon stays «content owns padding» —
+   * this hangs ONLY the horizontal inset token (`panel` = 12, `sheet` = 24);
+   * vertical padding still belongs to the drawer body. Default `'none'` is the
+   * back-compat no-op (full-bleed drawers untouched).
+   */
+  contentInset?: 'panel' | 'sheet' | 'none';
 };
 
 const DrawerLayout = ({
@@ -78,6 +87,7 @@ const DrawerLayout = ({
   a11yLabel,
   hideTopChrome,
   scrollHints = true,
+  contentInset = 'none',
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -145,31 +155,35 @@ const DrawerLayout = ({
               showVisibleTitle && subtitle != null && styles.dragHandleStacked,
             )}
           >
+            {/*
+              Крест/стрелка/урна — ОДИН примитив IconButton (neutral/danger),
+              одна сетка (.chromeSlot, --sys-size-control тап-арея, глиф 24).
+              Раньше крест шёл сырым SVG в Drawer.Close + `_back {opacity:0.2}` —
+              два разных механизма. «Тихость» теперь несёт neutral-тон, не opacity.
+            */}
             {onBack ? (
-              <button
-                type="button"
-                className={clsx(
-                  styles.topLeft,
-                  styles.actionHeaderButton,
-                  styles.actionHeaderButton_back,
-                )}
+              <IconButton
+                tone="neutral"
+                className={clsx(styles.chromeSlot, styles.topLeft)}
                 onClick={(e) => {
                   e.stopPropagation();
                   onBack();
                 }}
                 aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
-              >
-                <ArrowLeftIcon width={22} height={22} />
-              </button>
+                icon={<ArrowLeftIcon width={24} height={24} />}
+              />
             ) : (
               <Drawer.Close
-                className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
                 onClick={(e) => e.stopPropagation()}
-              >
-                {/* Явный 22×22 — в одной сетке со стрелкой «назад» и topRight-урной
-                    (раньше крест шёл без размера → крупнее соседей, ломал ряд). */}
-                <CrossIcon width={22} height={22} />
-              </Drawer.Close>
+                render={
+                  <IconButton
+                    tone="neutral"
+                    className={clsx(styles.chromeSlot, styles.topLeft)}
+                    aria-label={t('overlay.drawer.close', 'Закрыть')}
+                    icon={<CrossIcon width={24} height={24} />}
+                  />
+                }
+              />
             )}
             {showVisibleTitle &&
               (subtitle != null ? (
@@ -192,12 +206,17 @@ const DrawerLayout = ({
                   {title}
                 </Drawer.Title>
               ))}
-            <div className={clsx(styles.actionHeaderButton, styles.topRight)}>{topRight}</div>
+            <div className={clsx(styles.chromeSlot, styles.chromeSlotWrap, styles.topRight)}>{topRight}</div>
           </div>
         )}
         <Drawer.Content
           id="drawer-content-scrollable"
-          className={clsx(styles.scrollableContent, !scrollHints && styles.noScrollHints)}
+          className={clsx(
+            styles.scrollableContent,
+            !scrollHints && styles.noScrollHints,
+            contentInset === 'panel' && styles.contentInsetPanel,
+            contentInset === 'sheet' && styles.contentInsetSheet,
+          )}
           // Touch swipe-to-close opts out of the scrollable body. For mouse/pen
           // Base UI already exempts `[data-drawer-content]`; for touch the only
           // hook is this attribute. Bottom drawers keep the default (swipe axis

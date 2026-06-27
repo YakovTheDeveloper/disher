@@ -128,6 +128,12 @@
   --sys-icon-size-sm: 20px; // BackButton ‹
   --sys-icon-size-md: 24px; // CloseButton ×, DrawerLayout close-glyph
 
+  // --sys-size-* — ГЕОМЕТРИЯ интерактивного каркаса (хит-арея, высота обвязки), НЕ
+  // глиф. Глиф ← --sys-icon-size-*; каркас вокруг него ← здесь. Дом фикс-размеров,
+  // которые раньше были magic-px (50px) в DrawerLayout.
+  --sys-size-control: 44px; // квадратная хит-арея chrome icon-button (крест/урна дровера)
+  --sys-size-drawer-chrome: 56px; // высота верхней обвязки дровера (drag-handle row)
+
   // --sys-field-* (типографика) — ПОЛЯ ВВОДА, стилизованные КЛАССОМ (input/textarea/
   // select-триггер): голый тег `input` гейт exempt'ит, но class-styled поле — нет,
   // и обернуть <input> в <Text> нельзя. НЕ под --sys-text-* намеренно (поле —
@@ -385,7 +391,7 @@
   // высоты. Не «уровень 3» лестницы.
   --sys-color-surface-inverted: var(--ref-color-neutral-800);
 
-  --sys-color-surface-floating: var(--ref-color-neutral-800);
+  --sys-color-surface-floating: var(--ref-color-neutral-1000);
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
   // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
