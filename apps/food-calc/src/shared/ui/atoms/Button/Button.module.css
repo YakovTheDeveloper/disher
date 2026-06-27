@@ -203,6 +203,84 @@
   height: 18px;
 }
 
+/* ─── SURFACE — нейтральная приподнятая плитка (variant="surface" + onSurface) ──
+   Кнопке передают плоскость, НА которой она лежит (onSurface) — она поднимается на
+   ярус выше (surface-lift) и отделяется от плоскости:
+   · onSurface=0 (на surface-0, фон страницы) → fill surface-1 + РАМКА (.surfacePlane0
+     + .surfaceBordered). Подъём на ярус-карточку, кромка делает плитку видимой.
+   · onSurface=1 (на surface-1) → fill surface-2 + РАМКА (.surfaceBordered). Цветом на
+     белом не отделить (surface-2 #fff ≈ surface-1 #fefcf9) — отделяем hairline-кромкой.
+   · onSurface=2 (на surface-2) → fill surface-2 + ТЕНЬ (.surfaceShadow). Цветом выше
+     некуда — отделяемся подъёмом (та же логика, что попап Select: лист над листом).
+   Тон (system/primary/accent) игнорируется — плитка нейтральная (warm-coal ink).
+   Геометрия/press = как у `-secondary`. Press на белом = brightness(0.96) видно. */
+.surface {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--sys-radius-cta);
+  background: var(--sys-color-surface-2);
+  color: var(--sys-color-text-system);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sys-color-border-focus);
+    outline-offset: 2px;
+  }
+
+  &:not(:disabled):active {
+    filter: brightness(0.96);
+    transform: scale(0.97);
+    transition-duration: var(--sys-duration-press-in);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+/* отделение на surface-0/surface-1: hairline-рамка (один нейтральный бордюр app-
+   wide). Цветом на белом не отделить — кромка делает кнопку видимой плиткой.
+   Перебивает `border: none` базового .surface (равная специфичность, ниже по файлу). */
+.surfaceBordered {
+  border: 1px solid var(--sys-color-border-subtle);
+}
+
+/* plane 0: кнопка лежит на surface-0 (фон страницы) → fill поднимается на ярус-
+   карточку (surface-1), не до белого. Рамку несёт .surfaceBordered. Перебивает
+   базовый surface-2 (равная специфичность, ниже по файлу). */
+.surfacePlane0 {
+  background: var(--sys-color-surface-1);
+}
+
+/* lift на surface-2: цветом выше некуда → отделяемся тенью (крайний подъём,
+   парная тень surface-2 ↔ elevation-2). Press — тень оседает (compress ≤ rest). */
+.surfaceShadow {
+  box-shadow: var(--sys-elevation-2);
+}
+
+.surfaceShadow:not(:disabled):active {
+  box-shadow: var(--sys-elevation-action-pressed);
+}
+
+.surface .icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* Плоский режим — кнопка на поверхности (часть смыслового блока, напр. нижний
    бар). Снимает тень; standalone-кнопка остаётся приподнятой. */
 .flat {
@@ -309,6 +387,7 @@
   .systemSecondary,
   .primarySecondary,
   .accentSecondary,
+  .surface,
   .link,
   .ghost {
     transition: none;
@@ -320,6 +399,7 @@
   .systemSecondary:active,
   .primarySecondary:active,
   .accentSecondary:active,
+  .surface:active,
   .link:active {
     transform: none;
   }

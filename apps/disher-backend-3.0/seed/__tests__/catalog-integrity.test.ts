@@ -19,11 +19,13 @@ import { describe, expect, it } from "vitest";
 // few known exceptions (телятина ЖК>жир, etc.). The ad-hoc richer audit lives in
 // c:/tmp/sem-audit.mjs; this is the hard tripwire.
 
+type Portion = { label: string; grams: number };
 type Food = {
   id: string;
   name: string;
   source?: string;
   nutrients?: Record<string, number>;
+  portions?: Portion[];
 };
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -115,5 +117,89 @@ describe("catalog ↔ seed parity", () => {
       }
     }
     expect(mismatches).toEqual([]);
+  });
+});
+
+// Portion plausibility — currently 0 across both files, so any future import/edit
+// that reintroduces a broken portion (грудка=1769-class oversize, the помидор
+// «5 штук=15 г при 1 штука=120 г» count/weight corruption, empty/zero rows) fails CI.
+//
+// Deliberately NOT asserting "no two portions share grams" — 27 catalog products
+// legitimately reach the same weight two ways («банка (100 г)»+«порция (100 г)»,
+// «½ папайи=150»+«порция, кубики=150»). Same weight, different mental model — a
+// feature, not corruption. The hard tripwire is the three classes below.
+const PORTION_MAX = 1000; // real ceiling is the 500 ml bottle/mug (500 г); 1000 leaves slack
+
+// Parse a leading count like "5 штук" / "3 абрикоса" → { n, unit-head }.
+const LEAD_COUNT = /^(\d+)\s+(.+)$/;
+function countUnit(label: string): { n: number; head: string } | null {
+  const m = LEAD_COUNT.exec(label);
+  if (!m) return null;
+  const rawHead = m[2].split(/[ ,(]/)[0];
+  const head = ["штука", "штуки", "штук"].includes(rawHead) ? "шт" : rawHead;
+  return { n: Number(m[1]), head };
+}
+
+function checkPortions(foods: Food[]): string[] {
+  const violations: string[] = [];
+  for (const f of foods) {
+    const ports = f.portions ?? [];
+    // 1. every portion: finite grams in (0, PORTION_MAX], non-empty label
+    for (const p of ports) {
+      if (
+        typeof p.grams !== "number" ||
+        !Number.isFinite(p.grams) ||
+        p.grams <= 0 ||
+        p.grams > PORTION_MAX
+      ) {
+        violations.push(`${tag(f)} порция "${p.label}" = ${p.grams} г (вне 0…${PORTION_MAX})`);
+      }
+      if (typeof p.label !== "string" || p.label.trim() === "") {
+        violations.push(`${tag(f)} порция с пустым label (${p.grams} г)`);
+      }
+    }
+    // 2. count-monotonicity: within one unit, more pieces ⇒ not less total weight,
+    //    and per-piece grams stay within 3× across counts (catches помидор «5 шт=15»).
+    const byUnit = new Map<string, Array<{ n: number; g: number; label: string }>>();
+    for (const p of ports) {
+      const u = countUnit(p.label);
+      if (!u) continue;
+      const arr = byUnit.get(u.head) ?? [];
+      arr.push({ n: u.n, g: p.grams, label: p.label });
+      byUnit.set(u.head, arr);
+    }
+    for (const arr of byUnit.values()) {
+      if (arr.length < 2) continue;
+      arr.sort((a, b) => a.n - b.n);
+      for (let i = 0; i < arr.length - 1; i++) {
+        const a = arr[i];
+        const b = arr[i + 1];
+        if (b.n <= a.n) continue;
+        if (b.g < a.g) {
+          violations.push(
+            `${tag(f)} "${b.label}"=${b.g} г < "${a.label}"=${a.g} г (больше штук — меньше веса)`,
+          );
+          continue;
+        }
+        const perA = a.g / a.n;
+        const perB = b.g / b.n;
+        if (Math.max(perA, perB) / Math.min(perA, perB) > 3) {
+          violations.push(
+            `${tag(f)} вес/штука расходится: "${a.label}" ${perA.toFixed(1)} г/шт vs "${b.label}" ${perB.toFixed(1)} г/шт`,
+          );
+        }
+      }
+    }
+  }
+  return violations;
+}
+
+describe("catalog portion plausibility", () => {
+  it("seed (combined-foods-final.json) has no broken portions", () => {
+    expect(checkPortions(seed)).toEqual([]);
+  });
+
+  it("catalog (catalog.json) has no broken portions", () => {
+    expect(checkPortions(catalog)).toEqual([]);
   });
 });

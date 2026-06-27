@@ -40,6 +40,27 @@ describe('Chip', () => {
     expect(active).toContain('active');
   });
 
+  it('defaults to host surface 0 — light pill, no elevation modifier', () => {
+    render(<Chip>Цинк</Chip>);
+    const cls = screen.getByRole('button').className.split(' ');
+    expect(cls).not.toContain('onSheet');
+    expect(cls).not.toContain('floating');
+  });
+
+  it('lifts the pill to white (onSheet, no shadow) on a light host, surface={1}', () => {
+    render(<Chip surface={1}>Цинк</Chip>);
+    const cls = screen.getByRole('button').className.split(' ');
+    expect(cls).toContain('onSheet');
+    expect(cls).not.toContain('floating');
+  });
+
+  it('adds a rest shadow (floating) on a white surface-2 ceiling, surface={2}', () => {
+    render(<Chip surface={2}>Цинк</Chip>);
+    const cls = screen.getByRole('button').className.split(' ');
+    expect(cls).toContain('onSheet');
+    expect(cls).toContain('floating');
+  });
+
   it('merges a caller-supplied className', () => {
     render(<Chip className="scaleChip">Сон</Chip>);
     expect(screen.getByRole('button')).toHaveClass('scaleChip');

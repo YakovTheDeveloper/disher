@@ -3,12 +3,16 @@ import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ThemePicker } from '@/features/theme';
-import { dump, apply, syncNow } from '@/shared/lib/snapshot';
+import { dump, apply, syncNow, deleteBackup } from '@/shared/lib/snapshot';
 import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
+import { Switch } from '@/shared/ui/atoms/Switch';
 import { Accordion } from '@/shared/ui/Accordion';
+import { drawerStore } from '@/shared/ui/drawer-store';
+import { useSyncPrefStore } from '@/shared/lib/sync-pref';
+import SyncDisableDrawer from './SyncDisableDrawer';
 
 const downloadJson = (name: string, obj: unknown) => {
   const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
@@ -55,6 +59,8 @@ const BACKUP_LABEL: Record<BackupState, string> = {
 export function ProfileDrawer() {
   const email = useAuthStore((s) => s.email);
   const signOut = useAuthStore((s) => s.signOut);
+  const syncEnabled = useSyncPrefStore((s) => s.syncEnabled);
+  const setSyncEnabled = useSyncPrefStore((s) => s.setSyncEnabled);
   // Sign-out lives behind a collapsed «Опасная зона» so it can't be hit by a
   // stray tap — the user must expand the section first (see task #15).
   const [dangerOpen, setDangerOpen] = useState(false);
@@ -82,6 +88,30 @@ export function ProfileDrawer() {
     const t = setTimeout(() => setBackupState('idle'), 2000);
     return () => clearTimeout(t);
   }, [backupState]);
+
+  // Cloud-sync toggle. Enabling is benign/immediate (re-push local via the
+  // pull-first syncNow chokepoint — never a bare push that could clobber the
+  // vault). Disabling is the private/destructive path: warn via SyncDisableDrawer
+  // (with a data-export offer), and only on confirm flip the flag OFF and erase
+  // the server copy (consent withdrawal). On cancel the switch stays ON (it
+  // reads from the store, which we never touched).
+  const handleSyncToggle = async (next: boolean) => {
+    if (next) {
+      setSyncEnabled(true);
+      void syncNow().catch((e) => console.error('sync re-enable push failed', e));
+      return;
+    }
+    const confirmed = await drawerStore.show(SyncDisableDrawer, {});
+    if (confirmed !== true) return; // cancel / swipe-close → stays ON
+    setSyncEnabled(false);
+    try {
+      await deleteBackup();
+    } catch (e) {
+      // Best-effort: the flag is already OFF (no further egress); the vault
+      // erase can be retried by toggling OFF again, or it never existed (404).
+      console.error('vault erase on sync-off failed', e);
+    }
+  };
 
   const handleExport = async () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -113,6 +143,25 @@ export function ProfileDrawer() {
         <section className={styles.section}>
           <Text as="h2" role="label" className={styles.sectionLabel}>Оформление</Text>
           <ThemePicker />
+        </section>
+
+        {/*
+          Синхронизация — облачный бэкап включён по умолчанию. Тумблер OFF ведёт
+          через предупреждающий drawer (выгрузка + удаление серверной копии);
+          ON — мгновенный re-push через syncNow (pull-first).
+        */}
+        <section className={styles.section}>
+          <Text as="h2" role="label" className={styles.sectionLabel}>Синхронизация</Text>
+          <div className={styles.syncRow}>
+            <Text as="span" role="caption" className={styles.syncHint}>
+              Хранить копию данных в облаке и синхронизировать между устройствами.
+            </Text>
+            <Switch
+              checked={syncEnabled}
+              onChange={handleSyncToggle}
+              aria-label="Облачная синхронизация"
+            />
+          </div>
         </section>
 
         {/* Данные — accordion, collapsed by default (примитив Accordion). */}
@@ -158,20 +207,37 @@ export function ProfileDrawer() {
               </Text>
             }
           >
-            <Text as="p" role="caption" className={styles.dangerHint}>
-              При выходе данные на этом устройстве очищаются. Они хранятся в
-              облаке и вернутся при следующем входе — но лучше сохранить
-              свежую копию прямо сейчас.
-            </Text>
-            <Button
-              variant="system-secondary"
-              flat
-              fullWidth
-              onClick={handleBackup}
-              disabled={backupState === 'saving'}
-            >
-              {BACKUP_LABEL[backupState]}
-            </Button>
+            {/*
+              Sync-aware: the cloud safety net only exists when sync is ON. With
+              sync OFF, sign-out wipes Dexie with NO cloud restore — the old
+              «вернутся при входе» promise would be a lie, and the manual cloud
+              backup would no-op (and falsely flash «Сохранено ✓»), so it's hidden;
+              the file-export path («Данные» above) is the safe backup.
+            */}
+            {syncEnabled ? (
+              <>
+                <Text as="p" role="caption" className={styles.dangerHint}>
+                  При выходе данные на этом устройстве очищаются. Они хранятся в
+                  облаке и вернутся при следующем входе — но лучше сохранить
+                  свежую копию прямо сейчас.
+                </Text>
+                <Button
+                  variant="system-secondary"
+                  flat
+                  fullWidth
+                  onClick={handleBackup}
+                  disabled={backupState === 'saving'}
+                >
+                  {BACKUP_LABEL[backupState]}
+                </Button>
+              </>
+            ) : (
+              <Text as="p" role="caption" className={styles.dangerHint}>
+                При выходе данные на этом устройстве очищаются. Синхронизация
+                выключена — копии в облаке нет, восстановить их не получится.
+                Скачайте копию в разделе «Данные» перед выходом.
+              </Text>
+            )}
             <HoldButton
               holdMs={HOLD_MS}
               onComplete={handleSignOut}

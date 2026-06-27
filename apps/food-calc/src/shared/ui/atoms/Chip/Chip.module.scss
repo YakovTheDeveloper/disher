@@ -4,6 +4,13 @@
 // --sys-color-bg-selected (tokens.scss · ЯРУС sys): перекрасить «выбранное» во
 // всём приложении = правка одного токена. Читаем sys НАПРЯМУЮ (индирекция
 // --sys-chip-active-* схлопнута 2026-06-22). Цвет текста rest наследует --sys-chip-text.
+//
+// Surface-aware возвышение: проп `surface` = тир ХОСТА (0–2, = --sys-color-surface-N),
+// чип поднимается на ТИР ВЫШЕ хоста — имитирует приподнятость цветом. База .chip (хост
+// surface-0 = бежевый стол) = светлая пилюля surface-1 #fefcf9. .onSheet (хост surface-1+)
+// → белая пилюля surface-2. .floating (хост surface-2 = потолок): цветом выше уже не уйти
+// → мягкая rest-тень рычага, иначе белый чип сливается с белым хостом. Канон: хост
+// называет caller, как Button `flat`; авто-детект через [data-surface] запрещён.
 .chip {
   appearance: none;
   -webkit-tap-highlight-color: transparent;
@@ -19,6 +26,20 @@
   cursor: pointer;
   transition: background var(--press-out) ease, color var(--press-out) ease,
     transform var(--press-out) ease, box-shadow 140ms ease;
+}
+
+// хост surface-1+ (лист/дровер): чип поднимается до белого (surface-2). Объявлено ДО
+// :hover/:active ниже — те (равная специфичность, позже в исходнике) перекрывают тень.
+.chip.onSheet {
+  background: var(--sys-color-surface-2);
+}
+
+// хост surface-2 (белый потолок): выше тира по цвету нет → мягкая rest-тень рычага
+// (action-rest = shadow-1, НЕ overlay-тень модалки — на пилюле та грубовата). Лежит
+// ниже rest-лесенки: :hover поднимет до action-hover, :active/.active — до amber-glow
+// (обе перекрывают, будучи позже при равной специфичности).
+.chip.floating {
+  box-shadow: var(--sys-elevation-action-rest);
 }
 
 .chip:hover {

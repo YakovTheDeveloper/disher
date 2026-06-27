@@ -31,7 +31,7 @@
   height: 100dvh;
   background: var(--sys-color-surface-0);
   // Полноэкранная модалка = surface-0 → surface-aware глубина поля (стратегия C).
-  @include field-depth-surface-0;
+  @include field-depth(--sys-color-surface-0);
   z-index: 1000;
   display: flex;
   flex-direction: column;

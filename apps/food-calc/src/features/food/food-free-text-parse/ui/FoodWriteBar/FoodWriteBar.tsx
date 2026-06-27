@@ -18,7 +18,7 @@ const SEARCH_LABEL = 'Найти еду';
 // плейсхолдер чтит `\n`). Список-кнопка справа держит оффлайн-путь; инпут —
 // онлайн free-text. На populated-экране виден этот статичный текст (карусель
 // примеров крутится только на пустом онбординг-экране, см. PLACEHOLDER_EXAMPLES).
-const PLACEHOLDER = 'Опишите прием пищи, типа: овсянка 100, банан 1 шт';
+const PLACEHOLDER = 'Напишите, что Вы ели';
 const ANCHOR_SELECTOR = '[data-write-food-anchor]';
 
 // DesignBar-анкор «FoodListCta»: ФОРМА входа «список еды» в высоком (2-строчном)
@@ -31,21 +31,6 @@ const ANCHOR_SELECTOR = '[data-write-food-anchor]';
 //   tall-split — круг-иконка (вилка-нож), оффлайн-адаптивная амбра
 //   tall-medal — монета-печать «Список еды / вручную» (тот же канон-медальон)
 const LIST_CTA_VARIANTS = ['tall-split', 'tall-medal'] as const;
-
-// DesignBar-анкор «FoodListTint»: ПОДЛОЖКА круг-кнопки tall-split — отдельная ось
-// для подбора цвета фона глазами (предложка-стиль). Первый = дефолт (медовый soft,
-// как было). Оффлайн-эмфаза перебивает любой тинт сплошной амброй (см. .module.scss).
-//   amber-soft · amber · paper (тёплый лист) · ink (тёмная) · accent (индиго)
-const LIST_CTA_TINTS = ['amber-soft', 'amber', 'paper', 'ink', 'accent'] as const;
-
-// Высокий бар: 2 строки + крупная send-монета + концентричный радиус пилюли
-// (рифмуется с углом док-плашки, см. --sys-radius-overlay-inner). Подаётся инлайн-
-// override geometry-vars на .wrap — минимальный API, без правки базовых классов.
-const TALL_STYLE = {
-  '--pill-h': '68px',
-  '--coin-size': '64px',
-  '--wb-pill-radius': 'var(--sys-radius-overlay-inner)',
-} as CSSProperties;
 
 // Вилка+нож (Lucide «utensils») — ведущая иконка кнопки «Список». Залита
 // currentColor → наследует цвет текста кнопки, поэтому контраст к заливке (белый
@@ -123,8 +108,6 @@ export const FoodWriteBar = ({
   );
   // tall-medal = монета-печать в trailing; иначе (tall-split) круг-иконка.
   const isMedalTrail = listCta === 'tall-medal';
-  // Подложка круг-кнопки (tall-split) — отдельная ось DesignBar (см. LIST_CTA_TINTS).
-  const { anchor: listTintAnchor } = useDesignVariant('FoodListTint', LIST_CTA_TINTS);
   // Оффлайн-эмфаза: онлайн тихо, оффлайн — заметный единственный путь.
   const netAttr = online ? 'on' : 'off';
 
@@ -176,8 +159,7 @@ export const FoodWriteBar = ({
         hint={HINT}
         writeState={isReady ? 'ready' : 'idle'}
         scrollToOnSubmit={ANCHOR_SELECTOR}
-        minRows={2}
-        style={TALL_STYLE}
+        minRows={1}
         autoHideSend
         trailingSlot={
           // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,
@@ -185,7 +167,8 @@ export const FoodWriteBar = ({
           <div className={s.listCtaTrail} data-net={netAttr} {...listCtaAnchor}>
             {isMedalTrail ? (
               // tall-medal: монета-печать в потоке (floating={false} → не уезжает
-              // в плавающий режим, не сворачивается на фокусе).
+              // в плавающий режим, не сворачивается на фокусе). Облик paper +
+              // внешний бордер, плоская (без тени) — задаётся в WriteBarMedal.
               <WriteBarMedal
                 htmlFor={searchHtmlFor}
                 ariaLabel={SEARCH_LABEL}
@@ -196,10 +179,7 @@ export const FoodWriteBar = ({
                 dimmed={isReady}
               />
             ) : (
-              // tall-split: tint-обёртка несёт ось `FoodListTint` (подбор подложки).
-              <span className={s.listCtaTint} {...listTintAnchor}>
-                {ctaButton}
-              </span>
+              ctaButton
             )}
           </div>
         }

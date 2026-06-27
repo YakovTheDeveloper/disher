@@ -116,8 +116,9 @@ export const ProposalFoodItem = ({
         </TitleCluster>
       </Card.Title>
 
-      {/* Meta = детали (Card строит sans-caption + клэмп-2 — решение B; было QuietLabel). */}
-      {item.details && <Card.Meta>{item.details}</Card.Meta>}
+      {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
+          противовес имени; Card строит клэмп-2 — решение B; было QuietLabel). */}
+      {item.details && <Card.Meta size="card-caption">{item.details}</Card.Meta>}
 
       {/* Time = CardTime (из левого желоба В карточку, право-низ). */}
       {!hideTime && (

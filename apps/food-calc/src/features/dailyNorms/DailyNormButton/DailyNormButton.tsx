@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { useUserNormItems } from '@/entities/daily-norm';
-import { QuietActionButton } from '@/shared/ui/atoms/Button/QuietActionButton';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DailyNormDrawer } from '@/features/dailyNorms/DailyNormDrawer';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
+import { Button } from '@/shared/ui/atoms/Button';
 
 type Props = {
   className?: string;
@@ -31,18 +32,19 @@ export const DailyNormButton = ({ className }: Props) => {
     items === undefined
       ? 'Дневная норма'
       : items != null && Object.keys(items).length > 0
-        ? 'Посмотреть дневную норму'
+        ? 'Дневная норма'
         : 'Задать дневную норму';
 
   return (
-    <QuietActionButton
+    <Button
       className={className}
-      label={label}
+      onSurface={2}
       icon={<FlagIcon width={25} height={25} />}
-      iconPosition="start"
-      chevron
+      trailingIcon={<ChevronGlyph />}
       onClick={open}
-    />
+    >
+      {label}
+    </Button>
   );
 };
 

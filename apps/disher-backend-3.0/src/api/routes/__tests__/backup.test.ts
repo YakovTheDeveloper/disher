@@ -11,8 +11,9 @@ import { createTestUser, type TestUser } from "../../../test/auth-helpers.js";
 import { makeTestPool, truncateAllUserData } from "../../../test/db-helpers.js";
 
 // Backup endpoint contract:
-//   PUT /api/backup   body: arbitrary jsonb — last write wins
-//   GET /api/backup   → snapshot, or 404
+//   PUT    /api/backup   body: arbitrary jsonb — last write wins
+//   GET    /api/backup   → snapshot, or 404
+//   DELETE /api/backup   erase the user's vault (consent withdrawn) — idempotent 204
 //
 // The server has no schema for user data. The body round-trips verbatim.
 
@@ -120,5 +121,71 @@ describeIfReady("PUT/GET /api/backup", () => {
       url: "/api/backup",
     });
     expect(r.statusCode).toBe(401);
+  });
+
+  it("DELETE on empty vault is idempotent → 204", async () => {
+    const r = await app.inject({
+      method: "DELETE",
+      url: "/api/backup",
+      headers: user.headers,
+    });
+    expect(r.statusCode).toBe(204);
+  });
+
+  it("PUT then DELETE then GET → 404 (vault erased)", async () => {
+    await app.inject({
+      method: "PUT",
+      url: "/api/backup",
+      headers: user.headers,
+      payload: { products: [{ id: "p1", name: "tofu" }] },
+    });
+
+    const del = await app.inject({
+      method: "DELETE",
+      url: "/api/backup",
+      headers: user.headers,
+    });
+    expect(del.statusCode).toBe(204);
+
+    const get = await app.inject({
+      method: "GET",
+      url: "/api/backup",
+      headers: user.headers,
+    });
+    expect(get.statusCode).toBe(404);
+  });
+
+  it("DELETE without bearer → 401", async () => {
+    const r = await app.inject({
+      method: "DELETE",
+      url: "/api/backup",
+    });
+    expect(r.statusCode).toBe(401);
+  });
+
+  it("cross-user isolation: userB's DELETE can't erase userA's vault", async () => {
+    const userB = await createTestUser();
+    await app.inject({
+      method: "PUT",
+      url: "/api/backup",
+      headers: user.headers,
+      payload: { secret: "userA's data" },
+    });
+
+    const del = await app.inject({
+      method: "DELETE",
+      url: "/api/backup",
+      headers: userB.headers,
+    });
+    expect(del.statusCode).toBe(204);
+
+    // userA's row survives userB's delete.
+    const get = await app.inject({
+      method: "GET",
+      url: "/api/backup",
+      headers: user.headers,
+    });
+    expect(get.statusCode).toBe(200);
+    expect(get.json()).toEqual({ secret: "userA's data" });
   });
 });

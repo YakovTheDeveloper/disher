@@ -9,6 +9,12 @@ type QtyStackOwnProps<T extends ElementType> = {
   /** Значение: текст (покой) ИЛИ <input> (правка). Свопит owner-карточка —
    *  состояние правки (draft/commit) у каждой карточки своё. */
   children: ReactNode;
+  /** Текст-зеркало для авто-ширины (как ProductQuantity, проект без field-sizing):
+   *  скрытый span с этой строкой задаёт ширину бокса, реальный `<input>` лёг
+   *  поверх через absolute → ширина по содержимому, без 4ch-резерва. Передавать,
+   *  когда `children` = `<input>` (его текущее значение). Без него — статичный
+   *  текст сам задаёт ширину. */
+  mirror?: ReactNode;
   /** Тег тап-зоны. По умолчанию `span` (еда: inline-своп input). Для правки через
    *  модалку нужен `label` + htmlFor (iOS focus-канон — dish/предложка qty).
    *  `as?: T` (как TapTarget) — чтобы TS вывел тег из `as` и принял его пропсы
@@ -34,12 +40,20 @@ export function QtyStack<T extends ElementType = 'span'>({
   as,
   unit,
   children,
+  mirror,
   className,
   ...rest
 }: QtyStackProps<T>) {
   return (
     <TapTarget as={(as ?? 'span') as ElementType} className={clsx(styles.qty, className)} {...rest}>
-      <span className={styles.value}>{children}</span>
+      <span className={styles.value}>
+        {mirror !== undefined && (
+          <span aria-hidden className={styles.mirror}>
+            {mirror}
+          </span>
+        )}
+        {children}
+      </span>
       <span className={styles.unit}>{unit}</span>
     </TapTarget>
   );

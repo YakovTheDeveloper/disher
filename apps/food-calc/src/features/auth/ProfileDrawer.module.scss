@@ -47,6 +47,23 @@
   color: var(--sys-color-text-primary);
 }
 
+// ─── Синхронизация row ──────────────────────────────────────────
+// Caption слева тянется, Switch справа не сжимается. Layout-only — типографику
+// и цвет несут <Text> + сам Switch-атом.
+
+.syncRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.syncHint {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--sys-color-text-secondary);
+}
+
 // ─── Accordion (Данные) ─────────────────────────────────────────
 // Шапка-тоггл + grid-reveal + шеврон + a11y живут в примитиве Accordion. Здесь —
 // только раскладка тела (вертикальный стек с зазором + отступ от шапки).

@@ -13,6 +13,20 @@
 // дефолт `card-palette-set` обязан совпадать).
 export const CARD_PALETTE_KEY = 'CardPalette';
 
-export const CARD_PALETTES = ['amber', 'lemon', 'sand', 'clay', 'rose', 'neutral'] as const;
+// Тёплый натуралист-набор (re-cut 2026-06-27): голос HomePage-гравюры, все
+// варианты держат контраст уровня amber/honey + сродство к картинке (ни одного
+// холодного — бывшие porcelain/slate выпилены, на их место rust + mauve).
+export const CARD_PALETTES = [
+  'amber',
+  'honey',
+  'lemon',
+  'sand',
+  'clay',
+  'rust',
+  'rose',
+  'mauve',
+  'sage',
+  'neutral',
+] as const;
 
 export type CardPalette = (typeof CARD_PALETTES)[number];

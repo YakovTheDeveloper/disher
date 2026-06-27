@@ -45,6 +45,11 @@
     }
 
     .dragHandle {
+        // Containing block for the absolutely-positioned chrome buttons
+        // (.chromeSlot, `top: 50%`). Without it they resolve against `.panel`
+        // (the full-height side-drawer column) and the cross lands in the
+        // vertical middle of the panel instead of centered in this chrome row.
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -52,7 +57,6 @@
         width: 100%;
         height: var(--sys-size-drawer-chrome);
         background-color: transparent;
-        top: 0;
         z-index: 20;
     }
 
@@ -238,23 +242,11 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 
-    // Never flat (canon rule 1). Follows the live ModalShell DesignBar variant:
-    // DrawerLayout publishes that variant's field tokens onto this strip via
-    // `data-modal-fields`, so the wash matches whatever the modals are showing.
-    // More distinct than a single flat tint — the variant's light pill gradient
-    // with the saturated variant ink mixed into the BOTTOM stop + a soft top
-    // glow. Fallback values keep the original warm peach→rose when no variant
-    // token is present (e.g. SSR / a drawer opened before any modal mounted).
-    background:
-        radial-gradient(120% 55% at 50% -8%,
-            color-mix(in srgb, var(--sys-field-bg-from, #fdeede) 80%, white),
-            transparent 62%),
-        linear-gradient(180deg,
-            var(--sys-field-bg-from, #fdeede) 0%,
-            var(--sys-field-bg-mid, #fcecdf) 42%,
-            color-mix(in srgb,
-                var(--sys-field-bg-to, #fae1ec) 55%,
-                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.18))) 100%);
+    // Декоративный peach→rose градиент кромки СНЯТ (2026-06-27) — читался как шум
+    // на боковых дроверах. Кромка наследует фон дровера (.content = surface-2), а
+    // аффорданс swipe-to-close несут грип-пилюля (::before) + затухающая бровка
+    // (::after). Тише и чище, функция swipe цела.
+    background: transparent;
 
     &:active {
         cursor: grabbing;
@@ -310,14 +302,26 @@
 // the panel edge by --sys-inset-panel (.topLeft / .topRight). Both the leading
 // control (close cross / back arrow, an IconButton) and the trailing topRight
 // slot share this geometry + the --sys-size-control hit-area, so крест и урна
-// сидят в одной сетке. Тон/press несёт сам IconButton (neutral/danger) — раньше
-// это размазывалось по `.actionHeaderButton * {color}` + `_back {opacity:0.2}`.
+// сидят в одной сетке. Ведущая chrome-кнопка идёт БЕЗ `tone` (голый IconButton-
+// shell): цвет = тихий cool-muted (.topLeft), press без подложки/сжатия (см. ниже).
+// Тон/press для toned-кнопок (urna и т.п.) по-прежнему несёт сам IconButton.
 .chromeSlot {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     width: var(--sys-size-control);
     height: var(--sys-size-control);
+
+    // Тихая обвязка: крест/стрелка БЕЗ press-подложки и БЕЗ сжатия (просьба
+    // 2026-06-27 — заливка+scale на кресте читались как «жесть»). Поэтому
+    // chrome-кнопки идут без `tone` (голый IconButton-shell), а глобальный
+    // `button:active { transform: scale(.96) }` тут перетёр бы центрирующий
+    // translateY — поэтому держим transform на active/pressed неизменным.
+    &:active,
+    &[data-pressed] {
+        transform: translateY(-50%);
+        background: transparent;
+    }
 }
 
 // The topRight slot is a plain wrapper div (its child is the consumer-passed
@@ -383,6 +387,10 @@
 
 .topLeft {
     left: var(--sys-inset-panel);
+    // Тихий холодный тинт глифа (cool-muted) — крест/стрелка не должны шуметь.
+    // Только на ведущей кнопке (.topLeft), чтобы не красить consumer-контент
+    // правого слота (.topRight wrapper).
+    color: var(--sys-color-icon-muted);
 }
 
 .topRight {

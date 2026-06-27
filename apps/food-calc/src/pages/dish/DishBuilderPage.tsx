@@ -383,10 +383,12 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                       </TitleCluster>
                     </Card.Title>
 
-                    {/* Meta = детали (Card строит caption + label htmlFor + клэмп-2); тот же
+                    {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
+                        противовес имени; Card строит label htmlFor + клэмп-2); тот же
                         htmlFor что имя → тап по деталям тоже редактирует детали. */}
                     {item.details && (
                       <Card.Meta
+                        size="card-caption"
                         htmlFor={editIds.DETAILS_INPUT}
                         onPointerDown={stashDetails}
                       >

@@ -7,20 +7,32 @@ import { pipeline, env, type FeatureExtractionPipeline } from "@xenova/transform
 // `--prod deploy` image. It's only needed when embeddings are missing/stale
 // (a dev/build-time concern), so it's loaded via dynamic import() in that branch.
 
-// Cache the embedding model under a stable, writable path baked into the image
-// (warmed at build time), and never reach out to HuggingFace at runtime.
+// Load the embedding model from a stable path baked into the image (warmed at
+// build time) and never reach out to HuggingFace at runtime.
 // @xenova/transformers v2 ignores HF_HOME/TRANSFORMERS_CACHE — env.cacheDir is
 // the only knob it honours. Overridable via MODEL_CACHE_DIR for local runs.
-env.allowLocalModels = false;
-// In prod the model must already be in env.cacheDir (warmed at image-build
-// time) — never hit the network at runtime. In dev/build/test we still allow
-// the HF download so a fresh machine (and the Docker builder warmup) Just Works.
-// ALLOW_REMOTE_MODELS=true is an explicit escape hatch for prod if ever needed.
+//
+// In prod the model must already be on disk — never hit the network at runtime.
+// In dev/build/test we still allow the HF download so a fresh machine (and the
+// Docker builder warmup) Just Works. ALLOW_REMOTE_MODELS=true is an explicit
+// escape hatch for prod if ever needed.
 env.allowRemoteModels =
   process.env.NODE_ENV !== "production" ||
   process.env.ALLOW_REMOTE_MODELS === "true";
 if (process.env.MODEL_CACHE_DIR) {
+  // The build-time warmup (scripts/warm-model.mjs) downloads the model into
+  // MODEL_CACHE_DIR using the same <org>/<model>/<file> layout that @xenova's
+  // local-model loader expects, so the warmed cache doubles as an offline local
+  // model store. Point both knobs at it and enable local loading: in prod
+  // (allowRemoteModels=false) this is the ONLY way the baked model is found, and
+  // @xenova throws on startup if BOTH local and remote loading are disabled.
   env.cacheDir = process.env.MODEL_CACHE_DIR;
+  env.localModelPath = process.env.MODEL_CACHE_DIR;
+  env.allowLocalModels = true;
+} else {
+  // No baked model dir (dev/test without MODEL_CACHE_DIR) → rely on the HF
+  // download via the remote path; local loading stays off.
+  env.allowLocalModels = false;
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

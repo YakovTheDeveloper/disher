@@ -111,7 +111,7 @@ export interface HypothesisRow {
 
 // An insight the user saved from an analysis result. Unlike a hypothesis (the
 // user authors it), an insight only ever enters this table from an LLM answer
-// («Добавить к себе» on an InsightCard) — there is no manual create. Read-only
+// («Сохранить» on an InsightCard) — there is no manual create. Read-only
 // after save; the user can delete it. `valence` is good/bad (synergy vs
 // antagonism), `strength` is confidence, `evidence` is the parsed grounding
 // object ({days, foods?, events?}); `source` records which разбор produced it.
@@ -172,17 +172,17 @@ export function stripLegacyHypothesisFields(row: Record<string, unknown>): void 
 // ─── DB ────────────────────────────────────────────────────────────────────
 
 export class DisherDB extends Dexie {
-  products!:        Table<ProductRow,        string>;
-  dishes!:          Table<DishRow,           string>;
-  dish_items!:      Table<DishItemRow,       string>;
-  dish_portions!:   Table<DishPortionRow,    string>;
-  schedule_foods!:  Table<ScheduleFoodRow,   string>;
-  schedule_events!: Table<ScheduleEventRow,  string>;
-  daily_norms!:     Table<DailyNormRow,      string>;
-  hypotheses!:      Table<HypothesisRow,     string>;
-  insights!:        Table<InsightRow,        string>;
-  custom_tags!:     Table<CustomTagRow,      string>;
-  tombstones!:      Table<TombstoneRow,      string>;
+  products!: Table<ProductRow, string>;
+  dishes!: Table<DishRow, string>;
+  dish_items!: Table<DishItemRow, string>;
+  dish_portions!: Table<DishPortionRow, string>;
+  schedule_foods!: Table<ScheduleFoodRow, string>;
+  schedule_events!: Table<ScheduleEventRow, string>;
+  daily_norms!: Table<DailyNormRow, string>;
+  hypotheses!: Table<HypothesisRow, string>;
+  insights!: Table<InsightRow, string>;
+  custom_tags!: Table<CustomTagRow, string>;
+  tombstones!: Table<TombstoneRow, string>;
 
   constructor() {
     super('disher');
@@ -192,23 +192,23 @@ export class DisherDB extends Dexie {
     // re-hydrates from the server vault, so this is non-destructive for users
     // whose data is already up there.
     this.version(1).stores({
-      products:        'id, user_id, [user_id+_dirty]',
-      dishes:          'id, user_id, [user_id+_dirty]',
-      dish_items:      'id, user_id, dish_id, product_id, [user_id+_dirty]',
-      dish_portions:   'id, user_id, dish_id, [user_id+_dirty]',
-      schedule_foods:  'id, user_id, [user_id+date], [user_id+_dirty]',
+      products: 'id, user_id, [user_id+_dirty]',
+      dishes: 'id, user_id, [user_id+_dirty]',
+      dish_items: 'id, user_id, dish_id, product_id, [user_id+_dirty]',
+      dish_portions: 'id, user_id, dish_id, [user_id+_dirty]',
+      schedule_foods: 'id, user_id, [user_id+date], [user_id+_dirty]',
       schedule_events: 'id, user_id, [user_id+date], [user_id+_dirty]',
-      daily_norms:     'id, user_id, [user_id+_dirty]',
-      periods:         'id, user_id, [user_id+_dirty]',
+      daily_norms: 'id, user_id, [user_id+_dirty]',
+      periods: 'id, user_id, [user_id+_dirty]',
     });
     this.version(2).stores({
-      analyses:    'id, user_id, [user_id+_dirty], experiment_id, [user_id+kind]',
+      analyses: 'id, user_id, [user_id+_dirty], experiment_id, [user_id+kind]',
       experiments: 'id, user_id, [user_id+_dirty], [user_id+ended_at]',
     });
     this.version(3).stores({
-      analyses:    'id, user_id, [user_id+_dirty], [user_id+status]',
+      analyses: 'id, user_id, [user_id+_dirty], [user_id+status]',
       experiments: null,
-      hypotheses:  'id, user_id, [user_id+_dirty], [user_id+started_at], [user_id+ended_at]',
+      hypotheses: 'id, user_id, [user_id+_dirty], [user_id+started_at], [user_id+ended_at]',
     });
 
     // v4 (2026-05-09): zero-base rewrite. Drop sync columns, drop user_id,
@@ -216,16 +216,16 @@ export class DisherDB extends Dexie {
     // serve queries, not sync collectors.
     this.version(4)
       .stores({
-        products:        'id',
-        dishes:          'id',
-        dish_items:      'id, dish_id',
-        dish_portions:   'id, dish_id',
-        schedule_foods:  'id, date',
+        products: 'id',
+        dishes: 'id',
+        dish_items: 'id, dish_id',
+        dish_portions: 'id, dish_id',
+        schedule_foods: 'id, date',
         schedule_events: 'id, date',
-        daily_norms:     'id',
-        periods:         'id',
-        analyses:        null,
-        hypotheses:      'id, started_at',
+        daily_norms: 'id',
+        periods: 'id',
+        analyses: null,
+        hypotheses: 'id, started_at',
       })
       .upgrade((tx) => Promise.all(tx.storeNames.map((n) => tx.table(n).clear())));
 
@@ -293,7 +293,7 @@ export class DisherDB extends Dexie {
       );
 
     // v8 (2026-06-14): add the `insights` store — insights saved from analysis
-    // results («Добавить к себе»), the read-only sibling of hypotheses. Keyed
+    // results («Сохранить»), the read-only sibling of hypotheses. Keyed
     // by id, sorted by created_at in memory (same idiom as hypotheses). Existing
     // stores are untouched; Dexie just opens the new objectStore. It joins
     // DOMAIN_TABLES so it LWW-merges and rides the backup snapshot.

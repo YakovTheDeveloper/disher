@@ -7,8 +7,10 @@ import styles from './Text.module.scss';
  *  weight+lh+tracking из `--sys-text-*` через mixin `text-role()`. Это ЕДИНСТВЕННЫЙ
  *  API тела/мелкого яруса — ось `variant` (hint/navTabQuiet/sectionLabel) убрана
  *  2026-06-24 (Text стал role-only, как Heading): hint→role="caption",
- *  navTabQuiet→примитив <QuietLabel>, sectionLabel→<Heading role="title">. */
-type TextRole = 'body' | 'label' | 'caption';
+ *  navTabQuiet→примитив <QuietLabel>, sectionLabel→<Heading role="title">.
+ *  `card-caption` — особенности приёма пищи под именем еды («с кожурой»): тише
+ *  caption (вес 450, шире трекинг) + холодно-нейтральный цвет (несёт цвет сам). */
+type TextRole = 'body' | 'label' | 'caption' | 'card-caption';
 
 type CommonProps = {
   children: ReactNode;
@@ -28,7 +30,8 @@ type Props = CommonProps & { role: TextRole };
 
 /**
  * Text — body-tier typography primitive, sibling of `Heading`. `Heading`
- * owns the display roles; `Text` owns the body roles (body/label/caption) via
+ * owns the display roles; `Text` owns the body roles (body/label/caption/
+ * card-caption) via
  * the `role` API (composite from `--sys-text-*`). Role-only, как Heading — ось
  * `variant` убрана 2026-06-24 (голоса инкапсулированы в собственных примитивах:
  * тихий указатель = <QuietLabel>, заголовок секции = <Heading role="title">).

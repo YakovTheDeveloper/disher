@@ -3,7 +3,7 @@ import { useCallback, useEffect, type Ref } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
-import { Laboratory } from '@/widgets/Laboratory';
+import { DailyAnalysis } from '@/widgets/Laboratory';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
@@ -62,7 +62,7 @@ const Page = ({ date }: { date: string }) => {
   const slides: DeckSlide[] = [
     {
       // Экран 1 (Открытия→Анализ) — при скролле уезжают ВСЕ кнопки бара.
-      render: (topSlot) => <Laboratory key={date} date={date} topSlot={topSlot} topBarHide="all" />,
+      render: (topSlot) => <DailyAnalysis key={date} date={date} topSlot={topSlot} topBarHide="all" />,
     },
     {
       // Экран 2 (Рацион) — уезжают только настройки (нутриенты+дата нужны).
@@ -92,6 +92,10 @@ const Page = ({ date }: { date: string }) => {
       renderTopBar={renderTopBar}
       onIndexChange={clearRecent}
       heroForSlide={heroForSlide}
+      // Одна правая стрелка-указатель на средней «Рацион» (по запросу) — «листай
+      // дальше»; у левого соседа и на крайних слайдах стрелок нет. Прочие деки —
+      // дефолт ('all', стрелка у всех неактивных табов).
+      arrowHint="middle-right"
     />
   );
 };

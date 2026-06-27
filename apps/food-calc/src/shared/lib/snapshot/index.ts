@@ -3,6 +3,7 @@ import { db, type TombstoneRow } from '@/shared/lib/dexie/schema';
 import { observeStamp } from '@/shared/lib/dexie/write';
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
+import { isSyncEnabled } from '@/shared/lib/sync-pref';
 
 // Snapshot vault transports + reconciliation.
 //
@@ -166,6 +167,15 @@ export async function pull(): Promise<Snapshot | null> {
   return (await r.json()) as Snapshot;
 }
 
+// Erase the server vault when the user withdraws consent to cloud sync (turns
+// the Settings switch OFF). Idempotent on the server (204 even if no row) — and
+// we also treat a 404 as success. Local Dexie is the source of truth and is
+// untouched, so re-enabling sync re-pushes it.
+export async function deleteBackup(): Promise<void> {
+  const r = await authedFetch(URL, { method: 'DELETE' });
+  if (!r.ok && r.status !== 404) throw new Error(`delete failed: ${r.status}`);
+}
+
 // One serialized round-trip: pull the vault, merge it into local Dexie (LWW +
 // tombstones), prune expired tombstones, then push the reconciled local state
 // back. Held under the
@@ -173,8 +183,18 @@ export async function pull(): Promise<Snapshot | null> {
 // can't interleave and tear each other's dump/push — and a bare push can't
 // clobber unpulled remote changes (the backend blob is whole-snapshot LWW).
 // Runs lock-less where the Web Locks API is unavailable (older engines, tests).
+//
+// PRIVACY CHOKEPOINT: when the user has turned cloud sync OFF, no user data may
+// leave the device. The gate is enforced here — the one function every sync path
+// (BackupGate mount, manual Settings/Profile buttons, future callers) routes
+// through — so privacy is structural, not per-call-site. Checked twice: once on
+// the fast path (don't even take the lock) and again INSIDE the lock before
+// push(), so a mid-flight OFF (flipped while a sync was already running) is
+// honoured and an in-progress run can't push after consent was withdrawn.
 export async function syncNow(): Promise<void> {
+  if (!isSyncEnabled()) return; // fast path: sync off → no pull/merge/push
   const run = async () => {
+    if (!isSyncEnabled()) return; // re-check under the lock: honour a mid-flight OFF
     const incoming = await pull();
     if (incoming) await merge(incoming);
     await pruneTombstones(); // GC expired tombstones before they ride the blob up

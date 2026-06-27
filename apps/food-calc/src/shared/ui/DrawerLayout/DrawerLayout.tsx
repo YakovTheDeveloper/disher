@@ -163,24 +163,22 @@ const DrawerLayout = ({
             */}
             {onBack ? (
               <IconButton
-                tone="neutral"
                 className={clsx(styles.chromeSlot, styles.topLeft)}
                 onClick={(e) => {
                   e.stopPropagation();
                   onBack();
                 }}
                 aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
-                icon={<ArrowLeftIcon width={24} height={24} />}
+                icon={<ArrowLeftIcon width={20} height={20} />}
               />
             ) : (
               <Drawer.Close
                 onClick={(e) => e.stopPropagation()}
                 render={
                   <IconButton
-                    tone="neutral"
                     className={clsx(styles.chromeSlot, styles.topLeft)}
                     aria-label={t('overlay.drawer.close', 'Закрыть')}
-                    icon={<CrossIcon width={24} height={24} />}
+                    icon={<CrossIcon width={20} height={20} />}
                   />
                 }
               />

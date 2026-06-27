@@ -12,7 +12,7 @@
     // База экрана = surface-0 (стол) → surface-aware дефолт глубины поля для любого
     // прямого page-level поля на экране (стратегия C). Всплывающие модалки/дроверы
     // портируются ВНЕ .screen и переопределяют сами; write-бар (surface-1) — тоже.
-    @include field-depth-surface-0;
+    @include field-depth(--sys-color-surface-0);
     // Off-white поверхность всего экрана: за листом, в его боковых полях и в зоне
     // под прозрачной нижней панелью (куда растворяется маска скроллера) — один тон.
     background: var(--sys-color-screen-surface);
@@ -91,20 +91,6 @@
     --sys-color-bottom-bar-scrim: transparent;
     background: var(--sys-color-bottom-bar-bg, var(--sys-color-bottom-bar-scrim));
     padding-bottom: env(safe-area-inset-bottom);
-}
-
-// Scrim-рамп НАД баром: тот же тон → transparent вверх. Даёт «затемнение к
-// низу» (контент темнеет, приближаясь к бару, как у Gemini). pointer-events:
-// none — клики проходят к строкам под ним. Высота — `--bottom-bar-scrim-h`.
-.bottomBar::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
-    height: var(--bottom-bar-scrim-h, 40px);
-    background: linear-gradient(to top, var(--sys-color-bottom-bar-bg, var(--sys-color-bottom-bar-scrim)), transparent);
-    pointer-events: none;
 }
 
 // ─── Прятать нижний бар при фокусе любого инпута в скролл-контенте ──────────
@@ -295,7 +281,7 @@
 .stickyTop {
     position: sticky;
     top: 0;
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-6);
     // Непрозрачный фон обязателен: между «залипанием» и моментом когда
     // `headerOverlap` накрывает индикатор есть прозрачные пиксели через
     // которые виден контент. Дефолт — белый; родитель может переопределить
@@ -303,85 +289,52 @@
     background: var(--sys-color-sticky-top-bg, var(--sys-color-surface-1));
 }
 
+
 .headerOverlap {
     position: relative;
     z-index: 1;
     flex: 1 0 auto;
-    padding-right: var(--sys-inset-page);
-    padding-left: var(--sys-inset-screen-asymmetrical-air);
 
     --sheet-band-h: var(--space-8);
     padding-top: calc(var(--sheet-band-h) + var(--space-4));
     padding-bottom: calc(var(--bb-overlay-h) + 12px);
 
-
-    background: linear-gradient(to bottom,
-            transparent 0,
-            transparent var(--sheet-band-h),
-            var(--sys-color-surface-0) var(--sheet-band-h),
-            var(--sys-color-surface-1) 100%);
-    backdrop-filter: var(--header-overlap-blur, none);
-    -webkit-backdrop-filter: var(--header-overlap-blur, none);
+    margin-inline: var(--sys-inset-page);
+    padding-inline: var(--sys-inset-page);
+    background: var(--sys-color-surface-1);
+    @include surface-elevation(1);
     border-top-left-radius: var(--sys-radius-sheet);
     border-top-right-radius: var(--sys-radius-sheet);
-
-    --sys-color-header-overlap-logo-default: rgba(0, 0, 0, 0.08);
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: var(--sheet-band-h);
-        left: var(--sys-inset-page);
-        right: var(--sys-inset-page);
-        height: 1px;
-        // Бровка листа = единый холодный divider-токен (`--sys-color-divider`);
-        // `--sheet-seam-color` оставлен как per-surface override (SwipeDeck гасит
-        // его в transparent). Раньше fallback был тёплый `--color-ink` 13%.
-        background: linear-gradient(90deg,
-                transparent 0%,
-                var(--sheet-seam-color, var(--sys-color-divider)) 16%,
-                var(--sheet-seam-color, var(--sys-color-divider)) 84%,
-                transparent 100%);
-        pointer-events: none;
-    }
-
-    &::after {
-        content: '';
-        position: absolute;
-        z-index: var(--header-overlap-logo-z, -1);
-        right: var(--space-4);
-        top: var(--space-1);
-        width: var(--header-overlap-logo-w, 70px);
-        height: var(--header-overlap-logo-h, 20px);
-        background-color: var(--sys-color-header-overlap-logo, var(--sys-color-header-overlap-logo-default));
-        filter: var(--header-overlap-logo-shadow, none);
-        -webkit-mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
-        mask: url('/logo/logo-white-no-fill.png') right center / contain no-repeat;
-        pointer-events: none;
-    }
 }
 
-// Декоративная стеклянная полка листа — короткий strip ВВЕРХУ `.headerOverlap`.
-// По дефолту ИНЕРТНА (blur=none) → ничего не рисует и не стоит перф. На HomePage
-// активируется токенами по наследию: backdrop-blur ТОЛЬКО по короткой полосе
-// (`--sheet-band-h`, а не по всему листу — поэтому дёшево), сквозь который
-// проступает Hero-гравюра, лежащая ПОД листом (фон листа в этой зоне сделан
-// прозрачным, см. background выше). Скруглённый верх держит силуэт карточки.
-// `z-index: 0` — над фоном листа, под контентом; watermark на HomePage
-// поднимается выше (`--header-overlap-logo-z`).
+// Полка листа — хват по центру + день недели слева. Decorative (aria-hidden у
+// Screen), pointer-events отключены, чтобы не перехватывать клики у контента.
 .sheetBand {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    // Высота видимой стеклянной полосы и её слой — токены, чтобы вариант `dissolve`
-    // (SheetMaterial) мог удлинить фрост и увести его ЗА контент (z:-1), а `band`
-    // держал короткую полку над контентом (z:0).
-    height: var(--sheet-band-visual-h, var(--sheet-band-h));
-    z-index: var(--sheet-band-z, 0);
-    backdrop-filter: var(--sheet-band-blur, none);
-    -webkit-backdrop-filter: var(--sheet-band-blur, none);
-    border-top-left-radius: var(--sys-radius-sheet);
-    border-top-right-radius: var(--sys-radius-sheet);
+    top: var(--space-1);
+    left: var(--sys-inset-page);
+    right: var(--sys-inset-page);
+    height: var(--sheet-band-h);
+    display: flex;
+    align-items: center;
     pointer-events: none;
+}
+
+// День недели слева — тихий serif (QuietLabel несёт голос). Капитализация первой
+// буквы средствами CSS: Intl даёт «среда», показываем «Среда» (как в HomeTopBar).
+.sheetBandDay {
+    white-space: nowrap;
+    text-transform: capitalize;
+}
+
+// Хват-пилюля по центру полки (drawer-метафора «лист, который тянется»).
+.sheetGrabber {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 4px;
+    border-radius: var(--sys-radius-control); // 4px-бар → control-радиус скругляет в пилюлю
+    background: var(--sys-color-divider);
 }

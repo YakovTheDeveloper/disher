@@ -90,7 +90,7 @@ const ObservationCard = ({
   action = 'none',
   onAdd,
   padded = false,
-  addLabel = 'Добавить себе',
+  addLabel = 'Сохранить',
   addedAriaLabel = 'Сохранено',
   addSuccessToast = 'Сохранено',
   addErrorToast = 'Не удалось сохранить',
@@ -173,7 +173,7 @@ const ObservationCard = ({
 
         {action === 'add' && (
           // Уменьшенный accent-CTA (класс .add режет min-height/padding с
-          // дефолтных 56px). Без ведущей иконки — текст «Добавить себе» несёт
+          // дефолтных 56px). Без ведущей иконки — текст «Сохранить» несёт
           // действие сам. Сохранено → soft-ярус (accent-secondary) «✓ сохранено».
           <Button
             variant={added ? 'accent-secondary' : 'accent'}

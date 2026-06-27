@@ -41,16 +41,9 @@
     align-items: center;
 }
 
-// tint-обёртка (tall-split) — несёт DesignBar-анкор `FoodListTint` (ось подбора
-// цвета подложки кнопки глазами). Прозрачна для раскладки.
-.listCtaTint {
-    display: inline-flex;
-    align-items: center;
-}
-
 // ─── tall-split — круг-иконка справа (под рост send-монеты), БЕЗ тени (плоская) ──
-// Только геометрия круга; подложку (фон + текст) выбирает ось `FoodListTint` ниже,
-// оффлайн-эмфаза перебивает её сплошной амброй (единственный путь без сети).
+// Фикс-фон (медовый soft); оффлайн-эмфаза перебивает его сплошной амброй (единствен-
+// ный путь без сети). Тинт-ось медали круг не трогает.
 .listCtaTrail[data-dv-v='tall-split'] .listCtaButton {
     width: var(--coin-size);
     height: var(--coin-size);
@@ -59,38 +52,11 @@
     padding: 0;
     justify-content: center;
     border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-surface-action-primary-soft);
+    color: var(--sys-color-text-action-primary-soft);
     box-shadow: none;
 }
 
-// ── FoodListTint — подложки круг-кнопки (DesignBar, подбор глазами) ──
-// amber-soft — дефолт (медовый soft, как было); остальные — для сравнения.
-.listCtaTint[data-dv-v='amber-soft'] .listCtaButton {
-    background: var(--sys-color-surface-action-primary-soft);
-    color: var(--sys-color-text-action-primary-soft);
-}
-
-.listCtaTint[data-dv-v='amber'] .listCtaButton {
-    background: var(--sys-color-surface-action-primary);
-    color: var(--sys-color-on-action-primary);
-}
-
-.listCtaTint[data-dv-v='paper'] .listCtaButton {
-    background: var(--sys-color-surface-2);
-    color: var(--sys-color-icon);
-}
-
-.listCtaTint[data-dv-v='ink'] .listCtaButton {
-    background: var(--sys-color-surface-floating);
-    color: var(--sys-color-text-on-floating);
-}
-
-.listCtaTint[data-dv-v='accent'] .listCtaButton {
-    background: var(--sys-color-surface-action-accent);
-    color: var(--sys-color-text-on-accent);
-}
-
-// Оффлайн-эмфаза перебивает любой tint: единственный рабочий путь без сети =
-// заметная сплошная амбра. Спец-ть (0,4,0) > tint (0,3,0) → ранжировать не нужно.
 .listCtaTrail[data-dv-v='tall-split'][data-net='off'] .listCtaButton {
     background: var(--sys-color-surface-action-primary);
     color: var(--sys-color-on-action-primary);

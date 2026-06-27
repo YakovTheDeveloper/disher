@@ -102,27 +102,23 @@
   }
 }
 
-// lemon — ONE pale warm-yellow hue across the whole day (the Events-screen
-// default). Base is a soft lemon close to tropic's warm tone; the four
-// time-of-day steps stay deliberately CLOSE (narrow morning→night delta) so
-// the list reads as "one pale yellow that barely shifts" rather than four
-// distinct shades. No nested night text flip — graphite stays legible on the
-// deepest (still pale) step.
-// Tuned 2026-06-14: the real culprit was never the yellow — it was WHITE names
-// (the tropic-theme night-text leak, now killed in FoodSchedule/ScheduleEvents).
-// With solid-graphite names a healthy warm yellow reads fine.
-// Paled 2026-06-25 (card-chassis unification, solution A): this is now the ONE
-// yellow voice across every card (food / event / dish-ingredient), so it steps
-// LIGHTER — blue channel lifted ~196→~218, green nudged up, the gold outline
-// softened in tune (alpha −0.04) so a paler fill doesn't fight a saturated edge.
-// Still clearly lemon, just a quieter wash; the narrow morning→night delta is
-// kept. Graphite text (near-black $dv-text-graphite) only gains contrast on the
-// lighter surface. High alpha keeps HomePage's ambient glow from re-saturating it.
+// ─── CARD PALETTE FAMILY — warm naturalist set (re-cut 2026-06-27) ──────────
+// Якорь = голос HomePage: тёплая гравюра-натуралист (рябиновые ягоды, бордовое
+// платье, виноград, оливковая листва, кремовый фон). Все варианты держат
+// КОНТРАСТ уровня amber/honey (юзер: «amber, honey — вот такой контраст») и
+// СРОДСТВО к этой картинке — ни одного холодного (бывшие porcelain/slate
+// выпилены, на их место rust + mauve). Контраст здесь даёт не свет-к-белому, а
+// ТЁПЛАЯ глубина (провал B-канала + хрома), как у amber — поэтому тайлы видны и
+// на бумаге surface-0 (#f7f3eb), и поверх амбиентной гравюры. Все пары с
+// $dv-text-graphite. Узкая morning→night дельта (single-hue дисциплина).
+
+// lemon — насыщенный СЛИВОЧНО-ЖЁЛТЫЙ (butter): прежний бледный лимон выцветал в
+// бумагу; теперь это уверенный тёплый жёлтый уровня amber, кремовый-фон гравюры.
 @mixin dv-palette-lemon {
-  @include _tod-palette((rgba(255, 251, 224, 0.92), rgba(255, 249, 216, 0.92), rgba(225, 190, 70, 0.20), rgba(225, 190, 70, 0.13), rgba(254, 249, 214, 0.93)),
-    (rgba(255, 250, 218, 0.92), rgba(254, 247, 210, 0.92), rgba(222, 182, 60, 0.21), rgba(222, 182, 60, 0.14), rgba(253, 247, 208, 0.93)),
-    (rgba(254, 248, 214, 0.92), rgba(252, 245, 206, 0.92), rgba(218, 172, 52, 0.21), rgba(218, 172, 52, 0.14), rgba(251, 246, 202, 0.92)),
-    (rgba(252, 246, 210, 0.93), rgba(250, 243, 200, 0.93), rgba(212, 162, 48, 0.22), rgba(212, 162, 48, 0.14), rgba(249, 244, 196, 0.93)));
+  @include _tod-palette((rgba(255, 248, 220, 0.96), rgba(254, 245, 211, 0.96), rgba(224, 184, 70, 0.40), rgba(224, 184, 70, 0.28), rgba(253, 246, 215, 0.97)),
+    (rgba(254, 247, 216, 0.96), rgba(253, 244, 208, 0.96), rgba(220, 178, 64, 0.41), rgba(220, 178, 64, 0.29), rgba(253, 245, 211, 0.97)),
+    (rgba(253, 246, 212, 0.96), rgba(252, 242, 204, 0.96), rgba(216, 172, 58, 0.41), rgba(216, 172, 58, 0.29), rgba(251, 244, 208, 0.96)),
+    (rgba(253, 245, 209, 0.97), rgba(251, 241, 200, 0.97), rgba(210, 164, 52, 0.42), rgba(210, 164, 52, 0.30), rgba(251, 242, 205, 0.97)));
 }
 
 // amber — the WARM-HONEY parallel to `lemon` (Events-screen single-hue style):
@@ -139,46 +135,82 @@
     (rgba(248, 214, 168, 0.97), rgba(244, 202, 146, 0.97), rgba(192, 126, 40, 0.46), rgba(192, 126, 40, 0.34), rgba(242, 202, 156, 0.97)));
 }
 
-// neutral — the HUE-FREE parallel to `lemon`: ONE light warm-grey card across
-// the whole day, anchored on the `--ref-color-neutral` family (neutral-0/50/100
-// warm-soft paper → neutral-300 #e2dfda border as the outline). Unlike `plain`
-// (fully transparent — no card at all), neutral keeps a faint VISIBLE card so
-// rows still read as soft tiles, just without colour. Narrow morning→night
-// delta. Pairs with $dv-text-graphite.
-@mixin dv-palette-neutral {
-  @include _tod-palette((rgba(235, 233, 229, 0.96), rgba(228, 225, 220, 0.96), rgba(150, 145, 138, 0.34), rgba(150, 145, 138, 0.24), rgba(224, 221, 215, 0.97)),
-    (rgba(232, 229, 224, 0.96), rgba(225, 222, 216, 0.96), rgba(145, 140, 133, 0.36), rgba(145, 140, 133, 0.26), rgba(221, 218, 211, 0.97)),
-    (rgba(228, 225, 219, 0.96), rgba(221, 218, 211, 0.96), rgba(140, 135, 128, 0.36), rgba(140, 135, 128, 0.26), rgba(217, 214, 206, 0.96)),
-    (rgba(224, 221, 214, 0.97), rgba(217, 213, 205, 0.97), rgba(135, 130, 123, 0.38), rgba(135, 130, 123, 0.28), rgba(213, 209, 201, 0.97)));
-}
-
-// sand — тёплый ОВСЯНЫЙ беж, неяркий: между neutral и amber, заметно МЕНЕЕ жёлтый,
-// чем lemon/amber. Песочная бумага с мягким тановым outline. Узкая morning→night
-// дельта (single-hue discipline), graphite-текст. Тёплый, но приглушённый.
+// sand — тёплый ОХРИСТЫЙ ОВСЯНЫЙ беж: между neutral и amber, менее жёлтый, чем
+// lemon. Песочная бумага гравюры с тановым outline. Контраст уровня amber (B
+// провален), узкая дельта, graphite-текст.
 @mixin dv-palette-sand {
-  @include _tod-palette((rgba(240, 234, 220, 0.96), rgba(233, 226, 210, 0.96), rgba(178, 158, 120, 0.34), rgba(178, 158, 120, 0.24), rgba(229, 222, 206, 0.97)),
-    (rgba(237, 230, 214, 0.96), rgba(230, 222, 204, 0.96), rgba(172, 152, 114, 0.36), rgba(172, 152, 114, 0.26), rgba(226, 218, 200, 0.97)),
-    (rgba(233, 226, 208, 0.96), rgba(226, 218, 200, 0.96), rgba(166, 146, 108, 0.36), rgba(166, 146, 108, 0.26), rgba(222, 214, 194, 0.96)),
-    (rgba(229, 222, 202, 0.97), rgba(222, 213, 194, 0.97), rgba(160, 140, 102, 0.38), rgba(160, 140, 102, 0.28), rgba(218, 210, 188, 0.97)));
+  @include _tod-palette((rgba(250, 241, 222, 0.96), rgba(247, 236, 215, 0.96), rgba(190, 160, 104, 0.40), rgba(190, 160, 104, 0.28), rgba(246, 235, 214, 0.97)),
+    (rgba(249, 239, 220, 0.96), rgba(247, 235, 212, 0.96), rgba(186, 156, 100, 0.41), rgba(186, 156, 100, 0.29), rgba(245, 234, 211, 0.97)),
+    (rgba(248, 238, 217, 0.96), rgba(245, 234, 210, 0.96), rgba(180, 150, 94, 0.41), rgba(180, 150, 94, 0.29), rgba(244, 233, 209, 0.96)),
+    (rgba(247, 237, 215, 0.97), rgba(245, 233, 208, 0.97), rgba(174, 144, 88, 0.42), rgba(174, 144, 88, 0.30), rgba(244, 232, 206, 0.97)));
 }
 
-// clay — приглушённая ТЕРРАКОТА / розовато-коричневый: тёплый глиняный беж с
-// мягким терракотовым outline. Не яркий (alpha outline ≤0.38), чуть «земляной».
-// Узкая дельта, graphite-текст.
+// clay — мягкая ТЕРРАКОТА (рыже-глиняный): тёплый оранжево-розовый wash, outline
+// терракота. Сродство к рябиновым ягодам/глине гравюры. Контраст уровня amber.
 @mixin dv-palette-clay {
-  @include _tod-palette((rgba(244, 228, 218, 0.96), rgba(240, 220, 208, 0.96), rgba(192, 132, 104, 0.34), rgba(192, 132, 104, 0.24), rgba(238, 218, 206, 0.97)),
-    (rgba(242, 224, 212, 0.96), rgba(238, 216, 202, 0.96), rgba(186, 126, 98, 0.36), rgba(186, 126, 98, 0.26), rgba(236, 214, 200, 0.97)),
-    (rgba(238, 218, 206, 0.96), rgba(234, 210, 196, 0.96), rgba(180, 120, 92, 0.36), rgba(180, 120, 92, 0.26), rgba(232, 208, 194, 0.96)),
-    (rgba(234, 212, 200, 0.97), rgba(230, 204, 190, 0.97), rgba(174, 114, 88, 0.38), rgba(174, 114, 88, 0.28), rgba(228, 202, 188, 0.97)));
+  @include _tod-palette((rgba(251, 235, 223, 0.96), rgba(248, 230, 216, 0.96), rgba(196, 120, 84, 0.42), rgba(196, 120, 84, 0.30), rgba(247, 229, 215, 0.97)),
+    (rgba(250, 234, 221, 0.96), rgba(248, 229, 214, 0.96), rgba(192, 116, 80, 0.43), rgba(192, 116, 80, 0.31), rgba(247, 228, 212, 0.97)),
+    (rgba(249, 233, 218, 0.96), rgba(247, 228, 211, 0.96), rgba(186, 110, 76, 0.43), rgba(186, 110, 76, 0.31), rgba(245, 227, 210, 0.96)),
+    (rgba(248, 232, 216, 0.97), rgba(246, 227, 209, 0.97), rgba(180, 104, 70, 0.44), rgba(180, 104, 70, 0.32), rgba(245, 226, 208, 0.97)));
 }
 
-// rose — пыльно-РОЗОВЫЙ беж (тёплый розово-серый): мягкий, неяркий, чуть румяный.
-// Розоватый outline низкой насыщенности. Узкая дельта, graphite-текст.
+// rust — глубокая РЯБИНА (рыже-красно-коричневый): самый сильный тёплый акцент
+// набора, прямое сродство к ягодам рябины на скрине. Outline ржавчина. Контраст
+// выше amber (плотнее), узкая дельта, graphite-текст.
+@mixin dv-palette-rust {
+  @include _tod-palette((rgba(248, 229, 216, 0.96), rgba(245, 223, 208, 0.96), rgba(180, 96, 64, 0.44), rgba(180, 96, 64, 0.32), rgba(244, 222, 206, 0.97)),
+    (rgba(248, 228, 214, 0.96), rgba(245, 222, 205, 0.96), rgba(176, 92, 60, 0.45), rgba(176, 92, 60, 0.33), rgba(244, 221, 204, 0.97)),
+    (rgba(247, 227, 211, 0.96), rgba(244, 221, 203, 0.96), rgba(170, 86, 56, 0.45), rgba(170, 86, 56, 0.33), rgba(242, 220, 202, 0.96)),
+    (rgba(246, 226, 209, 0.97), rgba(243, 220, 200, 0.97), rgba(164, 80, 52, 0.46), rgba(164, 80, 52, 0.34), rgba(242, 218, 199, 0.97)));
+}
+
+// rose — пыльная КРИМСОН-РОЗА (приглушённое бордовое платье гравюры): тёплый
+// румяный wash, outline крапп-роза. Контраст уровня amber, узкая дельта.
 @mixin dv-palette-rose {
-  @include _tod-palette((rgba(246, 230, 228, 0.96), rgba(242, 222, 220, 0.96), rgba(194, 140, 140, 0.30), rgba(194, 140, 140, 0.22), rgba(240, 220, 218, 0.97)),
-    (rgba(244, 226, 224, 0.96), rgba(240, 218, 216, 0.96), rgba(188, 134, 134, 0.32), rgba(188, 134, 134, 0.24), rgba(238, 216, 214, 0.97)),
-    (rgba(240, 220, 218, 0.96), rgba(236, 212, 210, 0.96), rgba(182, 128, 128, 0.32), rgba(182, 128, 128, 0.24), rgba(234, 210, 208, 0.96)),
-    (rgba(236, 214, 212, 0.97), rgba(232, 206, 204, 0.97), rgba(176, 122, 122, 0.34), rgba(176, 122, 122, 0.26), rgba(230, 204, 202, 0.97)));
+  @include _tod-palette((rgba(250, 234, 232, 0.96), rgba(247, 229, 227, 0.96), rgba(192, 108, 108, 0.40), rgba(192, 108, 108, 0.28), rgba(246, 228, 226, 0.97)),
+    (rgba(249, 233, 230, 0.96), rgba(247, 228, 226, 0.96), rgba(188, 104, 104, 0.41), rgba(188, 104, 104, 0.29), rgba(245, 227, 224, 0.97)),
+    (rgba(248, 232, 229, 0.96), rgba(245, 227, 224, 0.96), rgba(182, 98, 98, 0.41), rgba(182, 98, 98, 0.29), rgba(244, 226, 223, 0.96)),
+    (rgba(247, 230, 228, 0.97), rgba(245, 226, 223, 0.97), rgba(176, 92, 92, 0.42), rgba(176, 92, 92, 0.30), rgba(244, 224, 222, 0.97)));
+}
+
+// mauve — пыльная ВИННАЯ СЛИВА (виноград/лоза на скрине): тёплый розово-лиловый,
+// единственный фиолетовый оттенок набора, но приглушён в тёплую сторону. Outline
+// мягкий plum. Контраст уровня amber, узкая дельта, graphite-текст.
+@mixin dv-palette-mauve {
+  @include _tod-palette((rgba(245, 235, 241, 0.96), rgba(241, 230, 238, 0.96), rgba(150, 96, 140, 0.38), rgba(150, 96, 140, 0.27), rgba(240, 229, 236, 0.97)),
+    (rgba(244, 234, 240, 0.96), rgba(241, 229, 236, 0.96), rgba(146, 92, 136, 0.39), rgba(146, 92, 136, 0.28), rgba(239, 228, 235, 0.97)),
+    (rgba(243, 233, 239, 0.96), rgba(239, 228, 235, 0.96), rgba(140, 86, 130, 0.39), rgba(140, 86, 130, 0.28), rgba(238, 227, 234, 0.96)),
+    (rgba(242, 232, 238, 0.97), rgba(239, 227, 234, 0.97), rgba(134, 80, 124, 0.40), rgba(134, 80, 124, 0.29), rgba(238, 226, 233, 0.97)));
+}
+
+// sage — тёплая ОЛИВКОВАЯ листва (лоза/зелень гравюры): жёлто-зелёный wash (не
+// холодный мятный), outline олива. Сродство к листве на скрине. Контраст уровня
+// amber, узкая дельта, graphite-текст.
+@mixin dv-palette-sage {
+  @include _tod-palette((rgba(241, 242, 222, 0.96), rgba(237, 239, 214, 0.96), rgba(140, 148, 78, 0.38), rgba(140, 148, 78, 0.27), rgba(236, 238, 212, 0.97)),
+    (rgba(241, 242, 220, 0.96), rgba(236, 238, 211, 0.96), rgba(136, 144, 74, 0.39), rgba(136, 144, 74, 0.28), rgba(235, 237, 210, 0.97)),
+    (rgba(239, 241, 217, 0.96), rgba(235, 237, 209, 0.96), rgba(130, 138, 68, 0.39), rgba(130, 138, 68, 0.28), rgba(234, 236, 208, 0.96)),
+    (rgba(239, 240, 215, 0.97), rgba(235, 236, 206, 0.97), rgba(124, 132, 62, 0.40), rgba(124, 132, 62, 0.29), rgba(233, 235, 205, 0.97)));
+}
+
+// neutral — тёплый ГРЕЙЖ (приглушённый, но с реальным телом): единственный
+// «спокойный» вариант набора. Не near-white (тот выцветал в бумагу) — а тёплый
+// taupe с провалом B, читается как мягкая бежевая карточка уровня контраста amber.
+@mixin dv-palette-neutral {
+  @include _tod-palette((rgba(245, 241, 235, 0.96), rgba(241, 237, 230, 0.96), rgba(158, 148, 130, 0.40), rgba(158, 148, 130, 0.28), rgba(240, 236, 229, 0.97)),
+    (rgba(244, 240, 234, 0.96), rgba(241, 236, 229, 0.96), rgba(154, 144, 126, 0.41), rgba(154, 144, 126, 0.29), rgba(239, 235, 227, 0.97)),
+    (rgba(243, 239, 233, 0.96), rgba(239, 235, 227, 0.96), rgba(148, 138, 120, 0.41), rgba(148, 138, 120, 0.29), rgba(238, 233, 226, 0.96)),
+    (rgba(242, 238, 232, 0.97), rgba(239, 233, 226, 0.97), rgba(142, 132, 114, 0.42), rgba(142, 132, 114, 0.30), rgba(238, 232, 225, 0.97)));
+}
+
+// honey — насыщенный ТЁПЛЫЙ янтарь (2026-06-27, contrast-on-surface-0): глубже и
+// темнее, чем `amber` — высокий ТЁПЛЫЙ контраст на бумаге. Тот же янтарный хюэ,
+// но больше хромы + плотнее outline. Узкая дельта, graphite-текст.
+@mixin dv-palette-honey {
+  @include _tod-palette((rgba(255, 238, 209, 0.97), rgba(253, 232, 199, 0.97), rgba(210, 148, 52, 0.46), rgba(210, 148, 52, 0.34), rgba(252, 230, 204, 0.97)),
+    (rgba(254, 234, 203, 0.97), rgba(252, 228, 193, 0.97), rgba(204, 142, 48, 0.47), rgba(204, 142, 48, 0.35), rgba(251, 227, 198, 0.97)),
+    (rgba(253, 230, 198, 0.97), rgba(251, 224, 188, 0.97), rgba(198, 136, 44, 0.47), rgba(198, 136, 44, 0.35), rgba(250, 223, 193, 0.97)),
+    (rgba(251, 227, 193, 0.97), rgba(250, 221, 185, 0.97), rgba(192, 130, 40, 0.48), rgba(192, 130, 40, 0.36), rgba(248, 220, 190, 0.97)));
 }
 
 // plain — «без подложки»: at rest the rows carry NO card at all — transparent
@@ -265,11 +297,15 @@ $dv-text-twilight: (
   @include dv-text($dv-text-graphite);
   @include dv-palette-amber;
 
-  &[data-dv-v='lemon'] { @include dv-palette-lemon; }
   &[data-dv-v='amber'] { @include dv-palette-amber; }
+  &[data-dv-v='honey'] { @include dv-palette-honey; }
+  &[data-dv-v='lemon'] { @include dv-palette-lemon; }
   &[data-dv-v='sand'] { @include dv-palette-sand; }
   &[data-dv-v='clay'] { @include dv-palette-clay; }
+  &[data-dv-v='rust'] { @include dv-palette-rust; }
   &[data-dv-v='rose'] { @include dv-palette-rose; }
+  &[data-dv-v='mauve'] { @include dv-palette-mauve; }
+  &[data-dv-v='sage'] { @include dv-palette-sage; }
   &[data-dv-v='neutral'] { @include dv-palette-neutral; }
 
   // tropic-theme white-night leak kill (см. длинный коммент в FoodSchedule): тема

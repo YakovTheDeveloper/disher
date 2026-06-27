@@ -1,0 +1,8 @@
+// Тихий заголовок группы нутриентов. Типографику (family/size/weight/lh) владеет
+// <Text role="caption">; здесь — только «тихая структурная метка»: uppercase +
+// приглушённый холодный цвет. font-* тут НЕ объявляем (typo-encapsulation gate:
+// голос роли живёт в примитиве). Раскладку (margin/padding) задаёт консумер.
+.title {
+  text-transform: uppercase;
+  color: var(--sys-color-text-quiet);
+}

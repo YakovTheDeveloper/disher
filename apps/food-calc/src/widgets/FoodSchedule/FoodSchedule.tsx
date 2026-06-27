@@ -3,6 +3,8 @@ import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
+import { parse, isValid, format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
@@ -41,13 +43,7 @@ type CommonProps = {
   topBarHide?: TopBarHideTarget;
 };
 
-const FoodSchedule = ({
-  date,
-  items,
-  isActive = true,
-  topSlot,
-  topBarHide,
-}: CommonProps) => {
+const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: CommonProps) => {
   const navigate = useNavigate();
 
   const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'schedule', date } });
@@ -100,6 +96,17 @@ const FoodSchedule = ({
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
 
+  // Заголовок-дата в правом-верхнем углу листа (на месте снятого watermark-лого):
+  // только КРУПНОЕ имя дня недели (<Heading headline>) — число дня убрано, месяц
+  // тоже. Капитализуем ТОЛЬКО первую букву вручную (CSS `capitalize` заглавил бы
+  // лишнее).
+  const dateWeekday = useMemo(() => {
+    const parsed = parse(date, 'dd-MM-yyyy', new Date());
+    if (!isValid(parsed)) return '';
+    const weekday = format(parsed, 'EEEE', { locale: ru });
+    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  }, [date]);
+
   // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
   // красит еду, блюдо и события. Раньше еда была жёстко `dv-palette-lemon`.
   const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
@@ -109,8 +116,11 @@ const FoodSchedule = ({
 
   // Тоталы дня для полосы-сводки (NutrientsBar) в конце списка. Кнопка полосы
   // открывает тот же NutrientsDrawer слева, что и пилюля HomeTopBar.
-  const { totals, missingNutrientNames, isLoading: nutrientsLoading } =
-    useScheduleNutrientTotals(date);
+  const {
+    totals,
+    missingNutrientNames,
+    isLoading: nutrientsLoading,
+  } = useScheduleNutrientTotals(date);
   const openNutrients = useCallback(() => {
     void drawerStore.show(
       NutrientsDrawer,
@@ -150,9 +160,8 @@ const FoodSchedule = ({
       stickyTop={topSlot}
       headerOverlap
       topBarHide={topBarHide}
-      // Шапка слайда «Еда и нутриенты» (Masthead) едет первым ребёнком листа —
-      // как «Анализ» на слайде «Открытия» (день уехал в HomeTopBar). Watermark-
-      // логотип Disher даёт сам Screen-лист (`.headerOverlap::after`).
+      // Шапка листа = дата дня слева (<Heading> ниже, первый ребёнок). Полка несёт
+      // только хват-пилюлю по центру + watermark Disher справа (`.headerOverlap::after`).
       overlay={
         <>
           {isActive ? (
@@ -185,25 +194,27 @@ const FoodSchedule = ({
         <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
-      <Heading role="display" masthead as="h2">Еда и нутриенты</Heading>
+      <Heading role="headline" as="h2" className={styles.dateHeading}>
+        {dateWeekday}
+      </Heading>
       <div {...anchor} className={styles.foodListAnchor}>
         <ItemsList>
-            {(() => {
-              let globalIndex = 0;
-              const rendered = groups.map((group) => (
-                <Fragment key={group.startTime}>
-                  <TimeGroup group={group}>
-                    {
-                      (() => {
-                        // Dedup the per-row time: a row whose time matches the row
-                        // above renders the label blank (still tappable to edit).
-                        // Reset per group so each group's first row always shows.
-                        let prevTime: string | null = null;
-                        return group.items.map((item) => {
-                          const itemIndex = globalIndex++;
-                          const dimTime = prevTime === item.time;
-                          prevTime = item.time;
-                          return (
+          {(() => {
+            let globalIndex = 0;
+            const rendered = groups.map((group) => (
+              <Fragment key={group.startTime}>
+                <TimeGroup group={group}>
+                  {
+                    (() => {
+                      // Dedup the per-row time: a row whose time matches the row
+                      // above renders the label blank (still tappable to edit).
+                      // Reset per group so each group's first row always shows.
+                      let prevTime: string | null = null;
+                      return group.items.map((item) => {
+                        const itemIndex = globalIndex++;
+                        const dimTime = prevTime === item.time;
+                        prevTime = item.time;
+                        return (
                           <ScheduleFoodItem
                             key={item.id}
                             item={item}
@@ -218,15 +229,15 @@ const FoodSchedule = ({
                             foodHtmlFor={editIds.DETAILS_INPUT}
                             quantityHtmlFor={editIds.QUANTITY_INPUT}
                           />
-                          );
-                        });
-                      })() as unknown as JSX.Element
-                    }
-                  </TimeGroup>
-                </Fragment>
-              ));
-              return rendered;
-            })()}
+                        );
+                      });
+                    })() as unknown as JSX.Element
+                  }
+                </TimeGroup>
+              </Fragment>
+            ));
+            return rendered;
+          })()}
         </ItemsList>
       </div>
       {/* Полоса-сводка нутриентов — в конце списка, всегда перед предложкой

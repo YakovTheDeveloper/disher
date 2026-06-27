@@ -6,6 +6,6 @@
 .cluster {
   display: flex;
   align-items: baseline; // value qty встаёт на базовую линию имени
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }

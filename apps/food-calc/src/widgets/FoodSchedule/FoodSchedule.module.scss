@@ -25,8 +25,24 @@
 // по-прежнему МЕНЯЕТСЯ по времени суток (4 TOD-шага, узкая дельта). Форк по
 // `data-dv-v` + night-text re-pin несёт общий миксин `card-palette-set`. Троённый
 // класс держит специфичность (0,4,0) против :root --tod- и юзер-темы.
+// Заголовок-дата в правом-верхнем углу листа (на месте снятого watermark-лого):
+// только крупное имя дня недели (<Heading headline>) — число дня и месяц убраны.
+// `position: absolute` → не толкает список вниз, садится в зону «полки» как раньше
+// логотип. Якорь — `.headerOverlap` (position: relative), который владеет боковым
+// инсетом листа. Воздух вокруг даты держит сам блок (top + padding ниже).
+.dateHeading {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-5);
+  z-index: 2;
+  opacity: 0.85;
+}
+
+// Воздух между шапкой-датой (абсолютная, в зоне полки) и первой карточкой еды —
+// дата не в потоке, поэтому отступ держит сам список.
 .foodListAnchor {
   display: block;
+  margin-top: var(--sys-stack-section);
 }
 
 .foodListAnchor.foodListAnchor.foodListAnchor {

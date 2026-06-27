@@ -23,18 +23,22 @@
         border-radius: 0;
     }
 
+    // Радиус карточек = body-токен группы `--sys-card-group-radius` (16). Еда лежит
+    // в ТЕЛЕ листа под хедером-датой, в угол листа не упирается → не концентрика
+    // (`--sys-radius-sheet-*`), а спокойный body-радиус. Раньше тут стоял чужой
+    // `--sys-radius-sheet-inner` (sheet−inset-sheet=16): значение совпадало, имя врало.
     >li:first-of-type {
-        border-top-left-radius: var(--sys-radius-sheet-inner);
-        border-top-right-radius: var(--sys-radius-sheet-inner);
+        border-top-left-radius: var(--sys-card-group-radius);
+        border-top-right-radius: var(--sys-card-group-radius);
     }
 
     >li:last-of-type {
-        border-bottom-left-radius: var(--sys-radius-sheet-inner);
-        border-bottom-right-radius: var(--sys-radius-sheet-inner);
+        border-bottom-left-radius: var(--sys-card-group-radius);
+        border-bottom-right-radius: var(--sys-card-group-radius);
     }
 
     >li:only-of-type {
-        border-radius: var(--sys-radius-sheet-inner);
+        border-radius: var(--sys-card-group-radius);
     }
 
     // The single seam between adjacent rows: a fading hairline inset by

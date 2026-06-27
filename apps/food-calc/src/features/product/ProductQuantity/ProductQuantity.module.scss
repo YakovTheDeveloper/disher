@@ -7,24 +7,19 @@
     gap: var(--sys-stack-section);
 }
 
-// Row holding the number backdrop + the multiplier stepper. Three grid columns:
-// [left flank | backdrop | right flank]. Idle `1fr auto 1fr` → equal flanks
-// centre the backdrop. Active `0fr auto 1fr` → the left flank collapses and the
-// backdrop slides flush-left, the right flank (1fr) holds the stepper. The slide
-// is grid-track interpolation (layout, NOT transform) — so the backdrop's
-// dynamic width never offsets it. Deliberately grid, not a flex-grow spacer:
-// flex transitions SNAP on iOS Safari (WebKit bug), grid fr-tracks interpolate
-// (Safari 16+). No column-gap: when active the backdrop must sit flush against
-// the content edge; spacing to the stepper comes from the right flank track.
+// Row holding the number backdrop + the portion stepper. Three grid columns:
+// [left flank | backdrop | right flank]. Static `1fr auto 1fr`: the equal fr
+// flanks keep the backdrop dead-centre, and the right flank absorbs the stepper
+// WITHOUT resizing the centre `auto` track — so the number stays centred whether
+// or not the stepper is mounted. Deliberately NOT animated: the previous design
+// transitioned to `0fr auto 1fr` to shove the number left, which is a per-frame
+// layout animation (against the composite-only budget) and moved the very number
+// the user is reading. The stepper's entrance is the only motion now, and it
+// runs on the compositor (translateX + opacity — see .multiplierRow).
 .quantityRow {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    transition: grid-template-columns 380ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.quantityRowActive {
-    grid-template-columns: 0fr auto 1fr;
 }
 
 .inputWrapper {
@@ -85,12 +80,13 @@
     justify-content: center;
     gap: 0.25rem;
     max-width: 100%;
-    // Vertical padding bumped from 8 → 21 px, чтобы surface стал 138 px и
-    // совпадал по высоте с TimeChoose .wrapper. TimeChoose рисует цифры через
-    // native `<input>` element — он при font-size: 6rem отдаёт box ~122 px
-    // (а не 96 px от line-height: 1), плюс 8+8 padding = 138. Здесь геометрия
-    // тянется с mirror-span (ровно 96 px), компенсируем дельту через padding.
-    padding: 21px 28px;
+    // Vertical padding height-matches TimeChoose .wrapper. TimeChoose рисует цифры
+    // через native `<input>` element — он при dial-size 4.5rem отдаёт box,
+    // ощутимо выше line-height:1 (UA-метрики), плюс 8+8 padding. Здесь геометрия
+    // тянется с mirror-span (ровно 72 px при 4.5rem), компенсируем дельту через
+    // padding. Снижено 21 → 16 px вслед за уменьшением dial-size 6rem → 4.5rem
+    // (2026-06-27); при дрейфе высот двух пилюль крутить это значение.
+    padding: 20px 24px;
     border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
             var(--sys-field-bg-from, #fffefb) 0%,
@@ -185,12 +181,12 @@
     flex: 0 0 auto;
 }
 
-// ── Multiplier row ──────────────────────────────────────────────────────────
+// ── Multiplier stepper ──────────────────────────────────────────────────────
 // Right grid column, pinned to its right edge (justify-self: end). min-width: 0
 // keeps the (wider-than-track) stepper from forcing the right flank track open,
 // so centring stays defined by the fr-tracks alone. It's mounted only while a
 // portion is active, so the entrance is a keyframe (transitions don't run on
-// mount) — opacity + a small slide, in step with the backdrop's grid slide.
+// mount) — opacity + a small composite-only slide. The number never moves.
 @keyframes multiplierIn {
     from {
         opacity: 0;
@@ -203,36 +199,56 @@
     }
 }
 
+// Positioning wrapper: right grid column, pinned to its right edge. min-width: 0
+// keeps the stepper from forcing the flank track open, so the number stays
+// centred by the fr-tracks alone.
 .multiplierRow {
     grid-column: 3;
     justify-self: end;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--sys-stack-row);
     animation: multiplierIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .quantityRow {
-        transition: none;
-    }
-
     .multiplierRow {
         animation: none;
     }
 }
 
+// Segmented stepper: one warm pill echoing the number's field material, with
+// +/×N/− as flush segments split by the canon's fading hairline (Divider rule
+// #1). align-items: stretch keeps the three segments the same width.
+.stepper {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: var(--sys-field-radius, var(--radius-sm));
+    background: linear-gradient(180deg,
+            var(--sys-field-bg-from, #fffefb) 0%,
+            var(--sys-field-bg-mid, #fffaf2) 55%,
+            var(--sys-field-bg-to, #fdf4e3) 100%);
+    box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
+}
+
+// Derived ×N readout between the +/− buttons. Read-only (the grams field is the
+// single source of truth) — never a second editable field. tabular-nums + a
+// floor width keep it from jiggling the column as digits change.
+.multiplierValue {
+    position: relative;
+    padding: var(--space-1) 0;
+    color: var(--sys-color-text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 3ch;
+    text-align: center;
+}
+
 .multiplierBtn {
-    width: 2.5rem;
+    position: relative;
+    min-width: 3rem;
     height: 2.5rem;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: var(--sys-color-on-floating-faint);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border: none;
+    background: transparent;
     color: var(--sys-color-text-system);
     display: flex;
     align-items: center;
@@ -240,11 +256,7 @@
     transition: background-color 0.15s, color 0.15s, transform 0.1s;
     cursor: pointer;
 
-    &:hover {
-        background: var(--sys-color-on-floating-faint);
-    }
-
-    // Цветной отклик: на нажатии степпер заливается ink + белый знак.
+    // Цветной отклик: на нажатии сегмент заливается ink + белый знак.
     &:active {
         background: var(--sys-color-surface-action-system);
         color: var(--sys-color-text-on-accent);
@@ -253,30 +265,20 @@
     }
 }
 
-// Селектор привязан к `input` — это реальное <input> (NumberInput), типографику
-// которого нельзя обернуть в примитив; гейт exempt'ит input-контекст (крупный
-// числовой ввод степпера, 24px/700 — bespoke, вне field-токенов).
-input.multiplierInput {
-    width: 4rem;
-    text-align: center;
-    font-family: var(--sys-field-font-family);
-    font-size: var(--sys-numeral-xl);
-    font-weight: 700;
-    color: var(--sys-color-text-system);
-    border: none;
-    border-bottom: 2px solid rgba(38, 38, 51, 0.15);
-    border-radius: 0;
-    background: transparent;
-    padding: var(--space-1) 0;
-    font-variant-numeric: tabular-nums;
-
-    &:focus {
-        outline: none;
-        border-bottom-color: var(--sys-color-border-action-system);
-    }
-
-    &::-webkit-inner-spin-button,
-    &::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-    }
+// Fading hairline after the + button and after the value — the − segment is last
+// and gets none (Divider canon).
+.multiplierBtn:first-child::after,
+.multiplierValue::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
+            var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
+            transparent 100%);
+    pointer-events: none;
 }

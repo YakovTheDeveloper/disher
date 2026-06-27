@@ -16,6 +16,8 @@
 // NB: Onest БЕЗ курсива — body `font-style: italic` вне Apple = faux-oblique
 // (принято осознанно; настоящий курсив несёт serif-ярус Source Serif). Jost
 // полностью выпилен 2026-06-23 (тело + поля = Onest-led --font-sans).
+import '@fontsource/onest/100.css';
+import '@fontsource/onest/200.css';
 import '@fontsource/onest/300.css';
 import '@fontsource/onest/400.css';
 import '@fontsource/onest/500.css';

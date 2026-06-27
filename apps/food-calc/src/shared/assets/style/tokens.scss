@@ -31,11 +31,10 @@
   --sys-inset-panel: var(--space-3); // 12 — narrow side-drawer
   --sys-inset-sheet: var(--space-6); // 24 — full-width sheet / modal frame
   --sys-inset-page: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
-
-  --sys-inset-screen-asymmetrical-air: var(--space-12);
+  --sys-inset-modal-fullscreen: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
-  --sys-stack-row: var(--space-3); // 12 — rows/fields/cards in one list/form
+  --sys-stack-row: var(--space-4); // 12 — rows/fields/cards in one list/form
   --sys-stack-section: var(--space-6); // 24 — large body sections
 
   // ─── Typography scale (modular 1.25) — #typography-scale ─────
@@ -73,7 +72,7 @@
   --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
 
   // Display — poster / active swipe tab
-  --sys-text-display-size: 42px;
+  --sys-text-display-size: 46px;
   --sys-text-display-weight: 700;
   --sys-text-display-line: 1.05;
   --sys-text-display-tracking: -0.022em;
@@ -107,6 +106,19 @@
   --sys-text-caption-weight: 500;
   --sys-text-caption-line: 1.4;
   --sys-text-caption-tracking: 0;
+
+
+  --sys-color-text-quiet: var(--ref-color-neutral-900);
+
+  // Card-caption — особенности приёма пищи (подпись под именем еды в карточке,
+  // напр. «с кожурой»). Тише caption: чуть меньше вес (450 vs 500) + шире трекинг
+  // (0.01em vs 0) — разрежение букв компенсирует упавший вес, чтобы строка не
+  // «таяла». Цвет — тёмный холодный slate, задан в .card-caption через дедик-токен
+  // --sys-color-text-card-caption, не в композите роли (text-role() цвет не несёт).
+  --sys-text-card-caption-size: 16px;
+  --sys-text-card-caption-weight: 200;
+  --sys-text-card-caption-line: 1.4;
+  --sys-text-card-caption-tracking: 1px;
 
   // sys-text-size-* — sanctioned font-size escape for non-prose — #text-size-escape
   // ЗАКОН ИМЕНОВАНИЯ (2026-06-26 — убивает зеркало size-<role> ↔ <role>-size):
@@ -177,7 +189,7 @@
   // (ProductQuantity). Имя в --sys-numeral-* (а не --sys-text-) — это число, не проза,
   // и size попадает в font-size-whitelist гейта (--sys-numeral-*).
   --sys-numeral-dial-family: var(--font-big-numeric);
-  --sys-numeral-dial-size: 6rem; // ≈96 — TimeChoose dial + big quantity
+  --sys-numeral-dial-size: 4.5rem; // ≈72 — TimeChoose dial + big quantity (calmed from 6rem 2026-06-27)
   --sys-numeral-dial-weight: 800;
   --sys-text-mono-tab-size: 13px; // Ubuntu Mono tabular (nutrients)
 
@@ -223,6 +235,12 @@
   // контентом: тень светит ВВЕРХ (отрицательный y), чего нет у drop-рунгов.
   // FoodSearchEmpty bottom-dock.
   --sys-elevation-dock: 0 -1px 6px rgba(45, 38, 28, 0.1);
+
+  // Sheet — full-bleed in-flow лист (Screen `.headerOverlap`). Обычный drop тут НЕ
+  // читается: дно уезжает за экран, бока на кромке вьюпорта, верх клипает скроллер.
+  // Поэтому INSET по верхней кромке — единственная тень, которую скроллер не режет:
+  // мягкая тёплая лунка под верхним лбом листа. Парный к surface-1. DesignBar `lip`.
+  --sys-elevation-sheet: inset 0 4px 8px -5px rgba(45, 38, 28, 0.12);
 
   // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
   // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
@@ -271,7 +289,7 @@
   //   row-pad-block — consumer-overridable wrapper padding (LongPressRow reads it).
   --sys-row-pad-block: var(--space-1); // wrapper vertical padding (legacy default)
   --sys-row-min-h-touch: 48px; // WRAPPER tap-target floor (@include row-touch)
-  --sys-tap-pad-block: 12px; // <TapTarget> per-cell vertical floor (padding-driven)
+  --sys-tap-pad-block: 10px; // <TapTarget> per-cell vertical floor (padding-driven; 12→10 2026-06-27 — карточки плотнее по запросу, ряд ~39px)
 
   // ─── Bottom action (unified height) — #bottom-action ─────────
   --bottom-action-h: 72px; // shared by all bottom bars/buttons (no edge "jump")
@@ -319,6 +337,7 @@
   --ref-color-cool-500: #6f7689;
   --ref-color-cool-600: #515a70;
   --ref-color-cool-700: #3a4259;
+  --ref-color-cool-800: #2c364c; // промежуточная ступень 700↔900 — тёмный холодный текст на цветной карточке (--sys-color-text-on-hue-card)
   --ref-color-cool-900: #1f2a44; // = cool-night anchor (divider / placeholder slate)
 
   // ref · navy RETIRED 2026-06-25 (M4): «выбрано» → warm amber, brand-action → indigo.
@@ -394,6 +413,9 @@
   --sys-color-surface-floating: var(--ref-color-neutral-1000);
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
+
+
+
   // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
   // сырых rgba(255,255,255,α) сюда). strong=осн. текст, muted=вторич., faint=
   // ghost/disabled, divider=хайрлайн.
@@ -416,16 +438,17 @@
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
   --sys-color-text-sepia: #6b4a23; // FabricLoader gravure ink — sepia art-слой (бледная гравюра)
-  // Тихий «музейная табличка» текст (QuietLabel: неактивный таб, шаг-крошка,
-  // индикатор разделов). ХОЛОДНЫЙ slate — контрапункт тёплому ink основного
-  // текста, парный к холодному --sys-color-icon. Дом цвета тихого яруса
-  // (заведён 2026-06-26): примитив QuietLabel ссылается на него, а не льёт
-  // --ref-* напрямую (2-ярус ref→sys).
-  --sys-color-text-quiet: var(--ref-color-cool-500);
-  // Placeholder-подсказка поля — ХОЛОДНЫЙ нейтральный (cool slate). Семантический
-  // дом цвета подсказки (вынесен для переиспользования 2026-06-26): поля ссылаются
-  // на него через --sys-field-placeholder. Холодный контрапункт к тёплому field-ink.
+
+  --sys-color-text-on-hue-card: var(--ref-color-cool-800);
+  --sys-color-font-weight-on-hue-card: 500;
+
   --sys-color-text-placeholder: rgba(74, 80, 94, 0.5);
+
+  // Card-caption text — особенности приёма пищи под именем еды («с кожурой»).
+  // Дедик-токен (НЕ --sys-color-icon — тот про глифы): тёмный ХОЛОДНЫЙ slate
+  // (cool-700 #3a4259). Тёмный тон компенсирует тонкий вес строки → читается как
+  // тихий, но чёткий ярус под жирным именем, не «тает» в тёплый фон карточки.
+  --sys-color-text-card-caption: var(--ref-color-cool-700);
 
   // color · icon — нейтральный тинт НЕсемантических глифов: шевроны аккордеонов,
   // декоративные значки, caret'ы. ХОЛОДНЫЙ серый (cool-neutral) — контрапункт
@@ -539,9 +562,13 @@
   --sys-color-text-action-system-soft: var(--sys-color-text-system); // warm-coal ink
   --sys-color-text-action-primary-soft: var(--ref-color-amber-700); // deep amber #6d4500
   --sys-color-text-action-accent-soft: var(--sys-color-text-accent); // indigo-600
-  --sys-color-border-action-system-soft: var(--ref-color-neutral-300); // #e2dfda
+  --sys-color-border-action-system-soft: var(--ref-color-neutral-500); // #e2dfda
   --sys-color-border-action-primary-soft: var(--ref-color-amber-300); // #e0b581
   --sys-color-border-action-accent-soft: var(--ref-color-indigo-300); // #bcb6ef
+
+
+  --sys-color-surface-track: var(--ref-color-neutral-200); // #ebe9e5 · светлый фон-трек прогресса (FoodActionCard.richValue, NutrientCard.progressBar)
+  --sys-color-surface-fill: var(--ref-color-cool-500); // #6f7689 · сплошная заливка поверх -track (= --sys-color-icon, холодный серый); парный к -track, бывший nt-accent градиент
 
   // border · action (secondary press border (system) = ink-заливка)
   --sys-color-border-action-system: var(--ref-color-neutral-900);
@@ -566,6 +593,7 @@
   --sys-radius-indicator: var(--radius-full); // chip/tag/badge/switch-track
   --sys-radius-cta: var(--radius-md); // CTA pills (separate lever from indicator)
   --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
+  --sys-radius-small-cell: var(--radius-sm); // 12 — card/panel/surface
   --sys-radius-overlay: var(--radius-xl); // 24 — drawer/bottom-sheet top corner, headerOverlap
   --sys-radius-sheet: var(--radius-2xl); // 40 — крупная sheet/предложка-карточка (SheetCard)
   // radius · concentric inner — вложенная карточка внутри sheet-контейнера.
@@ -573,11 +601,17 @@
   // ровный зазор в углу; НЕ «половина»). 40 − 24 = 16. Считаем здесь, в
   // примитивном ярусе (gate-exempt); компоненты потребляют готовую роль, не calc.
   // Меняешь sheet/inset — внутренний радиус едет следом сам.
-  --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-sheet));
+  --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-page));
   // Вложенный радиус для пилюли внутри overlay-плашки (нижний док WriteBar): тот же
   // канон концентричности r_внутр = r_внеш − inset (24 − 12 = 12). Пилюля рифмуется
   // с углом плашки, а не торчит стадионом.
   --sys-radius-overlay-inner: calc(var(--sys-radius-overlay) - var(--sys-inset-page)); // → 12
+  // Карточка-на-листке (SheetCard) лежит ПРЯМО на странице-листе (`.headerOverlap`,
+  // радиус --sys-radius-sheet) через общий page-gutter (--sys-inset-page). Тот же
+  // канон концентричности r_внутр = r_внеш − inset (40 − 12 = 28): углы карточки
+  // рифмуются с углом листа, а не повторяют его 1:1 (тогда карточка читалась бы
+  // «стадионом» в углу). Меняешь sheet/inset — радиус едет следом сам.
+  --sys-radius-sheet-page-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-page)); // → 28
   --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
   // ─── Nutrient family — #nutrient ─────────────────────────────

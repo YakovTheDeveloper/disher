@@ -4,6 +4,7 @@ import { useRef, useEffect, useContext, memo } from 'react';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { TopBarScrollHideContext, type TopBarHideTarget } from './topBarScrollHide';
+import { QuietLabel } from '@/shared/ui/atoms/Typography';
 
 // Фолбэк высоты absolute-бара, если `--top-bar-h` не резолвится.
 const TOP_BAR_FALLBACK_PX = 80;
@@ -13,6 +14,14 @@ const TOP_BAR_FALLBACK_PX = 80;
 const HIDE_DIR_THRESHOLD_PX = 8;
 // У самого верха бар всегда виден (не прячем «шапку списка»).
 const HIDE_REVEAL_TOP_PX = 24;
+
+// Верхняя «полка» листа `.headerOverlap` (--sheet-band-h) — финальный канон
+// (2026-06-27, слиты grabber+dateline в один вид; DesignBar-форки SheetSurface
+// свёрнуты): центральный хват-пилюля (метафора «лист, тянется») и опциональный
+// день недели слева — его прокидывает страница через `sheetDateLabel` (на Рацион =
+// настоящий день из даты; экраны без даты — Dish/Product/Открытия — полку несёт
+// только хват). Watermark-логотип Disher справа снят 2026-06-27 (на Рационе его
+// место в углу занимает дата листа). Divider убран.
 
 type Props = {
   children: React.ReactNode;
@@ -26,9 +35,7 @@ type Props = {
    * «Гипотезы». Рендерится первым ВНУТРИ листа (`headerOverlap`), по центру,
    * как `<Heading role="headline">`. Верхний отступ листа (полка + воздух) единый
    * для всех экранов — его держит `.headerOverlap` padding-top, заголовок отвечает
-   * только за себя. Watermark-
-   * логотип Disher рисует сам лист (`.headerOverlap::after`) — маленький знак
-   * справа-сверху, виден на всех overlap-экранах.
+   * только за себя.
    */
   contentHeader?: React.ReactNode;
   /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
@@ -54,6 +61,13 @@ type Props = {
    * хедер уходит «под» контент. Без JS.
    */
   headerOverlap?: boolean;
+  /**
+   * Опциональный день недели слева в верхней «полке» листа (только
+   * `headerOverlap`). Рендерится тихим `<QuietLabel>` (serif-italic). Несёт его
+   * страница, у которой есть дата (Рацион → настоящий день из даты расписания);
+   * экраны без даты не передают — полка остаётся с хватом + watermark.
+   */
+  sheetDateLabel?: React.ReactNode;
   /**
    * Overlay-режим нижнего бара: бар становится `position: absolute` над
    * контентом, а список скроллится ПОД ним (низ скроллера затухает маской,
@@ -121,6 +135,7 @@ const Screen = ({
   backgroundImage,
   backgroundImageOpacity = 0.05,
   headerOverlap = false,
+  sheetDateLabel,
   bottomBarOverlay = true,
   stickyTop,
   afterContent,
@@ -237,9 +252,16 @@ const Screen = ({
           {header}
           {headerOverlap ? (
             <div className={styles.headerOverlap}>
-              {/* Декоративная стеклянная полка (см. `.sheetBand` в CSS). Инертна
-                  по дефолту; на HomePage становится frosted-glass над Hero. */}
-              <div className={styles.sheetBand} aria-hidden="true" />
+              {/* Полка листа: хват-пилюля (всегда) + день недели слева (когда
+                  страница его дала). Декоративна → aria-hidden (дату уже
+                  озвучивает HomeTopBar). Watermark Disher справа рисует сам лист
+                  через `.headerOverlap::after`. */}
+              <div className={styles.sheetBand} aria-hidden="true">
+                {sheetDateLabel != null && (
+                  <QuietLabel className={styles.sheetBandDay}>{sheetDateLabel}</QuietLabel>
+                )}
+                <span className={styles.sheetGrabber} />
+              </div>
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {contentHeader != null && (
                 <div

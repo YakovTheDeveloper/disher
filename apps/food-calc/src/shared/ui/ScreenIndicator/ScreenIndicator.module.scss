@@ -13,20 +13,6 @@
     margin: 0 var(--space-3);
 }
 
-.tilesRow {
-    display: grid;
-    flex-shrink: 0;
-    gap: var(--space-1);
-    padding-top: var(--space-6);
-    // padding-bottom: var(--space-1);
-    // Колонок = `--tiles-slots` (= max(plitok, 3)): для Home/Dish (3 плитки)
-    // это 3 полноширинные колонки; для Product (2 плитки) — тоже 3 колонки,
-    // но плитки сдвинуты вправо через inline `grid-column-start` (см.
-    // ScreenIndicator.tsx `colOffset`), левая колонка пустая → каждая плитка
-    // 1/3 ширины вместо 1/2 (анти-гигантизм).
-    grid-template-columns: repeat(var(--tiles-slots, 3), 1fr);
-}
-
 // Сами плиточки — примитив `SwitcherTab` (shared/ui/SwitcherTab). Здесь остаётся
 // только grid-раскладка ряда (`.tilesRow`) и band ниже.
 
@@ -87,10 +73,11 @@
     flex-wrap: wrap;
     align-items: baseline;
     column-gap: var(--space-3);
-    row-gap: var(--space-1);
-    padding-top: var(--space-2);
+    row-gap: var(--space-2);
     padding-bottom: var(--space-1);
     padding-inline: var(--space-4);
+    margin-top: -5px;
+
 }
 
 :global([data-nav-align='center']) .tilesRow {
@@ -98,7 +85,7 @@
 }
 
 // (Легаси-ряд «листаемые разделы» I · II · III снят 2026-06-26 — аффорданс
-//  переехал на guillemet-указатели самих неактивных табов, см. SwitcherTab.)
+//  переехал на CSS-стрелки-указатели самих неактивных табов, см. SwitcherTab.)
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла
 // задаётся через `--active-idx` / `--tiles-total` CSS-vars, прокинутые

@@ -1,11 +1,10 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
-// Pills are ActionTile (shared atom, ink-fill + white text — its own styling). The dock
-// styles itself entirely on sys-tokens (no bespoke per-surface bundle handed down from
-// the screen): ОДНА плоская тёплая поверхность (`--sys-color-surface-1` #fefcf9 — парящий
-// лист-док над базой страницы), закруглённая как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-
-// blur + полупрозрачные зоны) выпилено 2026-06-25 — было холодное и пёстрое; список
-// больше НЕ просвечивает под доком (намеренный trade-off ради спокойствия). `.header`
-// и `.actions` остались только как зоны раскладки (padding), фон несёт `.root`.
+// Раскладка: подсказка слева базовой типографикой (<Text role="body">), две кнопки
+// справа — равновесная строка без плавающих оверлеев (плавающий serif-italic «штамп»
+// выпилен 2026-06-27 ради простоты). Док — ОДНА плоская тёплая поверхность
+// (`--sys-color-surface-1` #fefcf9 — парящий лист над базой страницы), закруглённая
+// как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-blur)
+// выпилено 2026-06-25 — список больше НЕ просвечивает под доком.
 //
 // position: fixed; bottom: 0 — useKeyboardStick translates this element up by the
 // visualViewport offset when the keyboard opens so the pills stay tappable.
@@ -17,59 +16,33 @@
     right: 0;
     z-index: 10;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 
-    // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root может
-    // нести непрозрачный фон, ничего не размывая). overflow:hidden клипит контент
-    // к скруглённым углам (box-shadow рисуется снаружи border-box и не режется).
+    // Безопасные отступы дока + safe-area-вынос под home-indicator. Слева чуть
+    // больше воздуха под текст подсказки.
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom)) 16px;
+    box-sizing: border-box;
+
+    // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root несёт
+    // непрозрачный фон). Скруглённый фон клипится по border-radius.
     background: var(--sys-color-surface-1);
     border-radius: var(--sys-radius-overlay) var(--sys-radius-overlay) 0 0;
-    overflow: hidden;
     box-shadow: var(--sys-elevation-dock);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-// Верхняя зона — только раскладка (padding): несёт подсказку (+ message при пустом
-// поиске). Фон/стекло сняты — поверхность теперь у `.root`.
-.header {
-    padding-bottom: var(--space-2);
-}
-
-.message {
-    // Размер несёт примитив <Text role="caption"> у консумера (канон инкапсуляции
-    // типографики). Здесь — только раскладка + цвет.
-    color: var(--sys-color-text-secondary);
-    text-align: center;
+// Подсказка слева — базовая body-типографика, цвет/размер несёт сам примитив <Text>.
+.hint {
     margin: 0;
-    padding: 10px 16px 0;
-
-    em {
-        font-style: normal;
-        color: var(--sys-color-text-system);
-    }
-}
-
-// Цвет/голос несёт примитив QuietLabel (serif-italic, text-primary @ opacity 0.5) —
-// не переопределяем здесь (канон инкапсуляции типографики). Только раскладка.
-.prompt {
-    text-align: center;
-    margin: 0;
-    padding: var(--space-2) var(--space-1) 0;
+    flex: 1;
+    min-width: 0;
 }
 
 .actions {
     display: flex;
     align-items: center;
     gap: 8px;
-    // Нижняя зона — только раскладка кнопок + safe-area-вынос под home-indicator
-    // (поверхность/фон у `.root`). Высоту задают сами кнопки (48px) + padding —
-    // фикс. min-height сняли (был под 76px плитки ActionTile).
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
-    box-sizing: border-box;
-
-    // Две primary-secondary кнопки равной ширины (равновесная пара без иерархии).
-    > * {
-        flex: 1;
-        min-width: 0;
-    }
+    flex-shrink: 0;
 }

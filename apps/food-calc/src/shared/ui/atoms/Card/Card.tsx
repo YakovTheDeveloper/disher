@@ -53,7 +53,14 @@ type TapProps = {
 };
 
 export type CardTitleProps = TapProps & { children: ReactNode };
-export type CardMetaProps = TapProps & { children: ReactNode };
+export type CardMetaProps = TapProps & {
+  children: ReactNode;
+  /** Типо-ярус деталь-строки. `caption` (default, 13px) — счётчики/мета; `body`
+   *  (16px) — food-карточка, где деталь = равноправный контент; `card-caption`
+   *  (13px, лёгкий вес + широкий трекинг + холодный тон) — особенности приёма
+   *  пищи («с кожурой»): тихий противовес жирному имени над ним. */
+  size?: 'body' | 'caption' | 'card-caption';
+};
 export type CardTimeProps = TapProps & {
   children: ReactNode;
   /** Dedup: время совпадает с рядом выше → сильно гасим (тап всё равно правит). */
@@ -88,7 +95,7 @@ const CardTime: SlotMarker<CardTimeProps> = Object.assign((() => null) as FC<Car
 // сырьём (консумер владеет типографикой). Тап-обёртка: label htmlFor (iOS-focus) /
 // button onTap / span (статичный текст всё равно получает тап-пол TapTarget).
 function renderText(
-  role: 'body' | 'caption',
+  role: 'body' | 'caption' | 'card-caption',
   colorClass: string,
   { children, htmlFor, onTap, onPointerDown, className }: TapProps & { children: ReactNode }
 ): ReactNode {
@@ -227,7 +234,11 @@ function CardRoot({ children, style, ...rowProps }: CardRootProps) {
           <div className={styles.metaRow}>
             {/* `.start` = flex:1 распорка, держит время прижатым вправо. */}
             <div className={styles.start}>
-              {renderText('caption', styles.meta, metaEl!.props as CardMetaProps)}
+              {renderText(
+                (metaEl!.props as CardMetaProps).size ?? 'caption',
+                styles.meta,
+                metaEl!.props as CardMetaProps
+              )}
             </div>
             {timeSlot && <div className={styles.end}>{timeSlot}</div>}
           </div>

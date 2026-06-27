@@ -61,7 +61,7 @@ import { ProfileDrawer } from '@/features/auth/ProfileDrawer';
 // each local one-off button LIVE (its actual class, not a re-creation). pages may
 // import widgets/features (downward FSD). Trade-off: if one of these classes is
 // renamed, its preview here silently loses styling — acceptable for a dev page.
-// (Laboratory / DailyAnalysisSection / WriteFoodInput local classes больше не
+// (DailyAnalysis / WriteFoodInput local classes больше не
 // импортируются — discoveriesBtn / bannerButton / readyCta объединены в Button
 // variants link/secondary, превью рендерит сам примитив.)
 import authFormStyles from '@/features/auth/AuthForm.module.scss';
@@ -584,6 +584,18 @@ const PRIMITIVE_COMPS: KitComp[] = [
         variant: 'ghost',
         preview: <Button variant="ghost">Отмена</Button>,
         essence: 'Тихая отмена / текст-ссылка — минимальный вес.',
+      },
+      {
+        variant: 'surface',
+        essence:
+          'Нейтральная плитка: передаёшь плоскость, НА которой лежит кнопка (onSurface) → 0 поднимается на surface-1 + рамка, 1 — на surface-2 + рамка (на белом цветом не отделить), 2 — surface-2 + ТЕНЬ (выше некуда, как попап Select). Тон не нужен.',
+        preview: (
+          <>
+            <Button variant="surface" onSurface={0}>На surface-0</Button>
+            <Button variant="surface" onSurface={1}>На surface-1</Button>
+            <Button variant="surface" onSurface={2}>На surface-2</Button>
+          </>
+        ),
       },
       {
         variant: 'состояния',

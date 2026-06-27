@@ -95,10 +95,12 @@ const DateButtonContent = ({ parts }: { parts: DateParts }) => {
   return (
     <span className={styles.dateNumeral}>
       <span className={styles.dateWeekday}>{weekday}</span>
-      <QuietLabel className={styles.dateWeekdayShort}>{weekdayShort}</QuietLabel>
+      {/* <QuietLabel className={styles.dateWeekdayShort}>{weekdayShort}</QuietLabel> */}
       <span className={styles.dateMeta}>
         <span className={styles.dateMonth}>{month}</span>
-        <Numeral as="span" size="base" weight="semibold" className={styles.dateDdmm}>{ddmm}</Numeral>
+        <Numeral as="span" size="base" weight="semibold" className={styles.dateDdmm}>
+          {ddmm}
+        </Numeral>
       </span>
     </span>
   );

@@ -1,0 +1,61 @@
+// On/off toggle. Track + sliding thumb; the thumb moves with `transform` only
+// (composite-only budget — never width/left). Tokens mirror LabeledCheckbox /
+// ConfirmDrawer — no bespoke tokens. OFF track = subtle disabled-fill,
+// ON track = ink fill (same `--sys-card-text-active` LabeledCheckbox uses when
+// checked); thumb = white surface-2 with elevation-1.
+$track-w: 46px;
+$track-h: 28px;
+$thumb: 22px;
+$pad: 3px;
+
+.track {
+    position: relative;
+    flex-shrink: 0;
+    width: $track-w;
+    height: $track-h;
+    padding: 0;
+    border: none;
+    border-radius: var(--sys-radius-indicator); // pill — chip/tag/badge/switch-track
+    background: var(--sys-color-surface-action-disabled);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background var(--press-out) var(--easing-default),
+        transform var(--press-out) var(--easing-default);
+
+    &:active {
+        transform: scale(0.96);
+        transition-duration: var(--sys-duration-press-in);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--sys-card-text-active-muted);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
+.thumb {
+    position: absolute;
+    top: $pad;
+    left: $pad;
+    width: $thumb;
+    height: $thumb;
+    border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-surface-2);
+    box-shadow: var(--sys-elevation-1);
+    transition: transform var(--press-out) var(--easing-default);
+    will-change: transform;
+}
+
+.on {
+    background: var(--sys-card-text-active);
+
+    .thumb {
+        transform: translateX($track-w - $thumb - $pad * 2);
+    }
+}

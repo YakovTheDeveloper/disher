@@ -6,9 +6,10 @@
 .display,
 .edit {
   padding-block: var(--sys-tap-pad-block);
-  font-size: var(--sys-numeral-sm);
+  font-size: var(--sys-numeral-base); // body-ярус (было numeral-sm 13) — время в один вес с qty, food-карточка «плюс-минус равна»
   font-variant-numeric: tabular-nums;
-  color: var(--sys-color-text-secondary);
+  color: var(--sys-color-text-on-hue-card);
+  font-weight: var(--sys-color-font-weight-on-hue-card);
 }
 
 // Dedup-гашение (время = ряд выше). Не прячем — можно сверить взглядом.

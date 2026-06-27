@@ -44,6 +44,10 @@ type Props = {
    *  Ставит `data-nav-align` на anchor-узел `.swipeArea` (см. SwitcherTab /
    *  ScreenIndicator). Заменил бывшую dv-пару `tab-numerals-left` / `tab-numerals`. */
   align?: 'left' | 'center';
+  /** Поведение стрелок-указателей плиток (форвард в ScreenIndicator). `all`
+   *  (дефолт) — у каждого неактивного таба; `middle-right` — одна правая стрелка
+   *  на серединном слайде (ставит Home по запросу). */
+  arrowHint?: 'all' | 'middle-right';
 };
 
 export const SwipeDeck = ({
@@ -55,6 +59,7 @@ export const SwipeDeck = ({
   heroForSlide,
   tablistLabel,
   align = 'left',
+  arrowHint = 'all',
 }: Props) => {
   const swipeableRef = useRef<SwipeableRef>(null);
 
@@ -103,10 +108,11 @@ export const SwipeDeck = ({
             slideIndex={i}
             onSelect={handleSelect}
             tablistLabel={tablistLabel}
+            arrowHint={arrowHint}
           />
         </Fragment>
       )),
-    [screens, heroForSlide, handleSelect, tablistLabel]
+    [screens, heroForSlide, handleSelect, tablistLabel, arrowHint]
   );
 
   return (

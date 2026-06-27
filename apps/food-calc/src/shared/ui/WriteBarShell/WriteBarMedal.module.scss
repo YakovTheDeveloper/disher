@@ -19,10 +19,12 @@
     --medal-shadow:
         0 5px 12px rgba(45, 38, 28, 0.14),
         0 2px 4px rgba(45, 38, 28, 0.08);
-    // Белая подложка-«монета»: дуги-подписи лежат на ней, серый диск (::before)
-    // остаётся внутри. Подъём (float-тень) теперь несёт сама подложка → медаль
-    // парит как одно целое.
-    --medal-plate: #ffffff;
+    // Подложка-«монета»: дуги-подписи лежат на ней, диск (::before) остаётся
+    // внутри. Подъём (float-тень) теперь несёт сама подложка → медаль парит как
+    // одно целое. ЦВЕТ (внешняя --medal-plate + внутренняя --medal-coin) пере-
+    // определяется потомком-облик-правилом (food: `[data-inline]` ниже — paper);
+    // дефолт НЕ объявляем здесь как property — иначе он перебил бы значение,
+    // заданное на потомке, — дефолт живёт fallback'ом в местах потребления.
 
     flex-shrink: 0;
     align-self: center;
@@ -39,10 +41,10 @@
     margin-left: var(--space-2);
     padding: 0;
     border-radius: var(--radius-full);
-    // Белая подложка под дугами + float-тень монеты. Spread-кольцо +3px даёт
-    // хвостам букв («р»/«у» в «вручную») запас, чтобы не вылезать за край белого.
-    background: var(--medal-plate);
-    box-shadow: 0 0 0 3px var(--medal-plate), var(--medal-shadow);
+    // Подложка под дугами + float-тень монеты. Spread-кольцо +3px даёт хвостам
+    // букв («р»/«у» в «вручную») запас, чтобы не вылезать за край подложки.
+    background: var(--medal-plate, var(--sys-color-surface-2));
+    box-shadow: 0 0 0 3px var(--medal-plate, var(--sys-color-surface-2)), var(--medal-shadow);
     color: var(--sys-color-text-secondary);
     cursor: pointer;
     user-select: none;
@@ -59,8 +61,9 @@
         z-index: 0;
         // Тёплый нейтрал-диск (neutral-100) вместо холодного bespoke-серого —
         // согласован с warm-soft бумагой; роль action-system-soft = ближайший
-        // отчеканенный тёплый light-neutral surface (2026-06-25).
-        background: var(--sys-color-surface-action-system-soft);
+        // отчеканенный тёплый light-neutral surface (2026-06-25). Переопределяется
+        // тинтом медали (--medal-coin, food DesignBar); дефолт = fallback здесь.
+        background: var(--medal-coin, var(--sys-color-surface-action-system-soft));
         border-radius: var(--radius-full);
         // Float ушёл на белую подложку; серому диску — лёгкая тень, чтобы он
         // читался приподнятым НА белом, а не парил отдельной монетой.
@@ -118,9 +121,9 @@
     // Quiet/dimmed (Food ready-state): drop the lift shadow + fade.
     &[data-dim] {
         opacity: 0.6;
-        // Тихий ready-state: белую подложку оставляем (дуги всё ещё на ней),
+        // Тихий ready-state: подложку оставляем (дуги всё ещё на ней),
         // но снимаем float — монета «садится».
-        box-shadow: 0 0 0 3px var(--medal-plate);
+        box-shadow: 0 0 0 3px var(--medal-plate, var(--sys-color-surface-2));
 
         &::before {
             box-shadow: none;
@@ -184,6 +187,21 @@
     top: auto;
     right: auto;
     margin: 0;
+    // Облик food-медали (paper): внешняя «монета» = парящий лист (surface-1),
+    // внутренний диск = лист над листом (surface-2). На одноцветной плашке дока
+    // (тоже surface-1) край определяет ВНЕШНИЙ тонкий бордер. Плоская: float-тень
+    // снята (медаль сидит в потоке за дивайдером, не парит). Анализ/События
+    // (плавающие, не [data-inline]) сохраняют белую монету + тень.
+    --medal-plate: var(--sys-color-surface-2);
+    --medal-coin: var(--sys-color-surface-0);
+    box-shadow:
+        0 0 0 3px var(--medal-plate, var(--sys-color-surface-1)),
+        0 0 0 4px var(--sys-color-border-subtle);
+}
+
+// Внутренний диск тоже без лифт-тени в потоке (плоская медаль).
+[data-write-bar] .writeBarList[data-inline]::before {
+    box-shadow: none;
 }
 
 [data-expanded] .writeBarList[data-inline] {

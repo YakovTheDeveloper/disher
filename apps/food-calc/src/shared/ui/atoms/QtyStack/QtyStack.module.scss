@@ -1,4 +1,6 @@
-// QtyStack — стопка количества: значение / единица-под-началом. Тап = правка.
+// QtyStack — количество в одну строку «значение единица» («100г»). Ширина значения
+// = по содержимому (mirror-span, проект без field-sizing) → число у левого края,
+// единица прижата вплотную. Тап = правка.
 // См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
 
 .qty {
@@ -9,9 +11,16 @@
   line-height: 1;
   cursor: pointer;
   font-variant-numeric: tabular-nums;
-  // тёплый press-chip (token, не литерал) + focus-ring правки
-  padding-inline: 6px;
-  margin-inline: -6px;
+  // Впалая подложка-«колодец»: УНИВЕРСАЛЬНАЯ светлая заливка (одна на всех
+  // поверхностях, не привязана к цвету ряда) + мягкая ВНУТРЕННЯЯ тень даёт впалость.
+  // surface-2 (#fff) = «лист над листом»: инпут сидит светлее тонированной карточки.
+  // Inset-тень — базовый --sys-field-shadow (публикуется field-chip-palette на :root).
+  background-color: var(--sys-color-surface-hue-card-field);
+  box-shadow: var(--sys-field-shadow);
+  // padding/margin парой (как inline-инсет ниже) → лунка дышит по вертикали, но
+  // внешняя геометрия и базовая линия кластера не сдвигаются.
+  padding: 2px 6px;
+  margin: -2px -6px;
   border-radius: var(--sys-radius-control);
   transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
 
@@ -22,22 +31,43 @@
 
   &:focus-within {
     background-color: var(--sys-color-bg-focus-ring);
-    box-shadow: inset 0 0 0 1.5px var(--sys-color-border-focus); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- focus-ring (colored, не elevation) */
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- well-depth + focus-ring (colored, не elevation) */
+    box-shadow: var(--sys-field-shadow), inset 0 0 0 1.5px var(--sys-color-border-focus);
   }
 }
 
-// Значение: мин-ширина = ширине input'а правки (4ch) → при свопе число↔input
-// строка не дёргается, единица под ним не прыгает.
+// Значение: ширина ПО СОДЕРЖИМОМУ через mirror-span (как ProductQuantity; проект
+// сознательно без field-sizing). Скрытый `.mirror` отражает текущий текст инпута и
+// задаёт ширину бокса; реальный `<input>` лёг поверх через absolute. Итог: число у
+// ЛЕВОГО края, единица «г» прижата вплотную (gap родителя 0.3ch) — без 4ch-резерва
+// и без зазора число↔единица. baseline кластера берётся с in-flow `.mirror`.
 .value {
-  display: inline-flex;
-  min-width: 4ch;
+  position: relative;
+  display: inline-block;
+  min-width: 1ch; // не схлопывается в ноль на пустом инпуте (бэкспейс)
   font-size: var(--sys-numeral-base);
   line-height: 1.15; // совпасть с первой строкой имени в кластере
 }
 
-// NumberInput в правке — визуально как статичное значение (левый край).
+// Зеркало: невидимый span той же метрикой, что и input — его ширина = реальная
+// отрисованная ширина числа. `white-space: pre` хранит ведущие/хвостовые пробелы.
+.mirror {
+  display: inline-block;
+  visibility: hidden;
+  white-space: pre;
+  color: transparent;
+  pointer-events: none;
+  font-size: var(--sys-field-font-size); // ровно как у input — иначе бокс разъедется
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+// NumberInput в правке: тянет геометрию с `.mirror` через absolute inset:0 →
+// визуально как статичное значение, число у левого края, каретка растёт вправо.
 .value input {
-  width: 4ch;
+  position: absolute;
+  inset: 0;
+  width: 100%;
   padding: 0 !important;
   margin: 0;
   font-size: var(--sys-field-font-size) !important;

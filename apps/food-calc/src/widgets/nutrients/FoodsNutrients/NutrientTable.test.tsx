@@ -2,7 +2,9 @@
 // NutrientTable layout guards:
 //   • view-norms (экран «Моя норма», 2026-06-14) — плоский сгруппированный
 //     список как в пикере нутриентов: группы С заголовками (БЖУ / Минералы / …);
-//   • the DEFAULT view stays title-less (2026-06-08, project_nutrient_twocol);
+//   • the DEFAULT view ALSO carries quiet group titles now (2026-06-27 — заголовки
+//     добавлены во все места с группами нутриентов; сменило прежний title-less
+//     2-col, project_nutrient_twocol);
 //   • a view-norms row carries the nutrient name AND its norm value together.
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
@@ -21,7 +23,7 @@ const { default: NutrientTable } = await import('./NutrientTable');
 
 const ZERO = () => 0;
 
-describe('NutrientTable — view-norms grouped, default title-less', () => {
+describe('NutrientTable — group titles in both view-norms and default view', () => {
   it('renders group titles in view-norms alongside nutrient names', () => {
     const { getByText } = render(
       <NutrientTable getValue={ZERO} variant="view-norms" />,
@@ -31,10 +33,11 @@ describe('NutrientTable — view-norms grouped, default title-less', () => {
     expect(getByText('Минералы')).toBeInTheDocument();
   });
 
-  it('omits group titles in the default view too (2-col everywhere)', () => {
-    const { queryByText } = render(<NutrientTable getValue={ZERO} />);
-    expect(queryByText('Минералы')).toBeNull();
-    expect(queryByText('Витамины')).toBeNull();
+  it('renders quiet group titles in the default view too', () => {
+    const { getByText } = render(<NutrientTable getValue={ZERO} />);
+    expect(getByText('БЖУ')).toBeInTheDocument();
+    expect(getByText('Минералы')).toBeInTheDocument();
+    expect(getByText('Витамины')).toBeInTheDocument();
   });
 
   it('renders the norm value alongside the name in view-norms', () => {

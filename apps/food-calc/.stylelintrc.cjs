@@ -78,7 +78,9 @@ module.exports = {
           // gradients (stripe-fork canon) allowed; solid raw colors + legacy var() rejected.
           // currentColor blessed (фон-хайрлайн/точка красится текстом — §batch.2).
           background: ['/gradient/i', '/^var\\(--sys-/', 'none', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
-          '/^border(-(top|bottom)-(left|right))?-radius$/': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '0', '50%', 'inherit', 'initial', 'unset'],
+          // --sys-card-* — surface-component bundle радиус карточек (--sys-card-group-radius),
+          // зеркалит уже легитимный --sys-field-radius (component-bundle радиус полей).
+          '/^border(-(top|bottom)-(left|right))?-radius$/': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '/^var\\(--sys-card-/', '0', '50%', 'inherit', 'initial', 'unset'],
           'box-shadow': ['/^var\\(--sys-elevation-/', '/^var\\(--sys-field-shadow/', 'none', 'inherit', 'initial', 'unset'],
           // --sys-text-size-* (escape для не-прозовых размеров) + --sys-heading-size-* (размеры
           // заголовков по поверхности modal/drawer/field) + --sys-field-font-size (поля #1)

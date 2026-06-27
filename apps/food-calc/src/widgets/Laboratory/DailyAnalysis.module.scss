@@ -1,10 +1,10 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Слайд «Мои открытия» — typography-first. Подложка = стандартный off-white
-// Screen-лист (плоский, без стекла/тени). Разбор живёт текстом прямо на листе,
-// иерархию несёт ТИПОГРАФИКА: Apple Large Title «Анализ» → Headline под-заголовки
-// секций → Body/Footnote строки. Voice — SF Pro (системный стек) на Apple-
-// устройствах, Onest fallback.
+// Слайд «Анализ» (бывш. Laboratory) — typography-first. Подложка = стандартный
+// off-white Screen-лист (плоский, без стекла/тени). Разбор живёт текстом прямо
+// на листе, иерархию несёт ТИПОГРАФИКА: Apple Large Title «Анализ» → Headline
+// под-заголовки секций → Body/Footnote строки. Voice — SF Pro (системный стек)
+// на Apple-устройствах, Onest fallback.
 .ambientSheet {
     // Заголовок-плашка «Анализ» сидит вверху листа сама (без `contentHeader`).
 
@@ -62,17 +62,10 @@
     gap: var(--space-8);
 }
 
-// Лид-абзац (summary): чистый Apple-lead без тёплой канон-полосы слева.
-.ambientSheet :global([data-analysis-summary]) {
-    padding: 0;
-    font-size: var(--sys-text-size-base);
-    line-height: 1.55;
-    color: var(--sys-card-text-strong);
-
-    &::before {
-        display: none;
-    }
-}
+// Резюме (summary) теперь — общий indigo-блок (заливка + светлый текст),
+// определён в AnalysisResult.module.scss `.summary` и одинаков во всех консумерах
+// (дом / длинный разбор / блюдо). Локального override на доме больше нет — лист
+// лишь каскадит Apple `--font-sans` внутрь блока.
 
 // Под-заголовок секции (Наблюдения / Инсайты / Гипотезы) → Apple «Headline»:
 // слева, semibold sans, primary ink. Heading рендерится как <h3>; селектор
@@ -103,6 +96,13 @@
     box-sizing: border-box;
 }
 
+// Тело разбора (streaming / done / failed / interrupted). Бывший
+// DailyAnalysisSection заинлайнен — здесь только раскладка-колонка.
+.section {
+    display: flex;
+    flex-direction: column;
+}
+
 // In-flow split-ряд кнопок (только когда разбор есть): едет в `afterContent`
 // под лист на фон страницы. Небольшой зазор сверху, чтобы кнопки не липли к
 // нижней кромке листа, и нижний отступ под safe-area, чтобы не липли к краю
@@ -119,6 +119,39 @@
     padding: var(--space-2) 0;
 }
 
-// «Мои открытия»-кнопка стала каноном `Button variant="link"` (см.
-// Laboratory.tsx) — локальная пилюля `.discoveriesBtn` удалена как мёртвый CSS
-// (ни одного консумера в .tsx; UiKitPage лишь документирует слияние в Button).
+// ── failed / interrupted banner ──────────────────────────────────────
+.banner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: var(--sys-radius-container);
+
+    &[data-tone='error'] {
+        background: var(--sys-color-status-danger-surface);
+        border: 1px solid rgba(192, 57, 43, 0.18);
+    }
+
+    &[data-tone='muted'] {
+        background: var(--sys-color-bg-hover);
+        border: 1px solid rgba(15, 23, 42, 0.1);
+    }
+}
+
+.bannerTitle {
+    margin: 0;
+    color: var(--sys-color-text-system);
+}
+
+.bannerBody {
+    margin: 0;
+    line-height: 1.45;
+    color: var(--sys-color-text-secondary);
+}
+
+// Вид «Повторить» владеет `Button variant="system-secondary"` (белая пилюля + ink
+// press-fill). Здесь — ТОЛЬКО раскладка внутри баннера: прижать влево + зазор.
+.bannerButton {
+    align-self: flex-start;
+    margin-top: 8px;
+}

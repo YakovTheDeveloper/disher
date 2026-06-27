@@ -48,6 +48,15 @@ const SEED_PATH = join(__dirname, "../seed/combined-foods-final.json");
 const IMAGES_PATH = join(__dirname, "../seed/catalog-images.json");
 const OUT_PATH = join(__dirname, "../../food-calc/src/shared/data/catalog.json");
 
+// A bare "100 г" / grams:100 portion carries no information: the frontend
+// (buildQuantityOptions) already synthesizes a «На 100 г» base option for every
+// food, so shipping this portion only renders the redundant «100 г · 100 г» row
+// in the quantity picker. Strip it at the catalog boundary. Labeled 100g
+// portions ("порция (100 г)", "банка (100 г)", "1 плитка (100 г)") DO carry
+// meaning (the typical serving/container weighs 100g) and are kept.
+const isBareHundredGram = (p: { label: string; grams: number }): boolean =>
+  p.grams === 100 && /^\s*100\s*г\s*$/.test(p.label);
+
 const seed = JSON.parse(readFileSync(SEED_PATH, "utf8")) as SeedFood[];
 
 // id → "/catalog-food/<id>.webp". Missing key = no image for that food.
@@ -65,7 +74,7 @@ const rows: CatalogProductRow[] = seed
     name: f.name,
     source: f.source,
     nutrients: f.nutrients,
-    portions: f.portions ?? [],
+    portions: (f.portions ?? []).filter((p) => !isBareHundredGram(p)),
     categories: f.categories ?? [],
     serving_basis: "100g",
     serving_unit: null,

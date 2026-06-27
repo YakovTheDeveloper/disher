@@ -335,6 +335,8 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
           value={draft.details}
           onChange={(value) => setDraft((d) => ({ ...d, details: value }))}
           productId={draft.productId}
+          // Хост = ModalShell (surface-0, бежевый стол) → чип резолвится в светлый тир 1.
+          surface={0}
         />
       </ModalByLabelDetails>
     </div>

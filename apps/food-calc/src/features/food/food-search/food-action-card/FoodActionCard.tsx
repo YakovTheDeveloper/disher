@@ -52,6 +52,12 @@ type Props = {
    * preventDefault to avoid the label's focus delegation.
    */
   htmlFor?: string;
+  /**
+   * True when the search is filtered to «Мое» (mine). The list is then all
+   * user-owned, so the «мой» prefix is redundant — the kind label collapses to
+   * just «продукт» / «блюдо». In the «Все» list it stays «мой продукт».
+   */
+  mineFilter?: boolean;
 };
 
 // Богатство нутриентом: тускло-серый (мало) → мягкий жёлтый (середина) →
@@ -102,6 +108,7 @@ const FoodActionCard = ({
   richNutrientNorm,
   monoRichness = false,
   htmlFor,
+  mineFilter = false,
 }: Props) => {
   const navigate = useNavigate();
   const { pressed, pressProps } = usePressFeedback();
@@ -188,12 +195,28 @@ const FoodActionCard = ({
   // свой продукт → «мой продукт», каталожный продукт → ничего. Добавка (продукт
   // с serving-basis) дописывается в ту же строку через серединную точку:
   // «мой продукт · добавка» (раньше «добавка» висела отдельной плашкой справа).
-  const kindLabel = variant === 'product' ? 'мой продукт' : 'блюдо';
+  // В фильтре «Мое» список целиком свой → префикс «мой» избыточен, оставляем
+  // только сам вид («продукт»). В «Все» свой продукт остаётся «мой продукт»,
+  // чтобы отличаться от каталожных. Блюдо всегда «блюдо» (всегда своё).
+  const kindLabel =
+    variant === 'product' ? (mineFilter ? 'продукт' : 'мой продукт') : 'блюдо';
   const showKindLabel = userCreated;
   const isSupplement = variant === 'product' && item.servingBasis === 'serving';
   const subtitle = [showKindLabel ? kindLabel : null, isSupplement ? 'добавка' : null]
     .filter(Boolean)
     .join(' · ');
+
+  // Подпись-вид («мой продукт» / «блюдо · добавка») переезжает в правый слот
+  // (.infoBtn) и САМА становится надписью инфо-кнопки — для СВОИХ рядов вместо ⓘ.
+  // Каталожные ряды (без subtitle) сохраняют иконку. Если инфо-слота нет
+  // (onInfoClick не передан — напр. free-text edit-модалка), подпись остаётся под
+  // именем: ехать ей некуда, иначе бы исчезла.
+  const infoSlotContent = subtitle ? (
+    <QuietLabel className={styles.infoLabel}>{subtitle}</QuietLabel>
+  ) : (
+    <InfoIcon />
+  );
+  const showSubtitleUnderName = subtitle && !onInfoClick;
 
   const richNutrientValue =
     richNutrientId && item.getTotalNutrients
@@ -263,7 +286,9 @@ const FoodActionCard = ({
           <Text as="span" role="body" className={styles.name}>
             {item.name}
           </Text>
-          {subtitle && <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>}
+          {showSubtitleUnderName && (
+            <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
+          )}
         </label>
       ) : (
         <p
@@ -276,7 +301,9 @@ const FoodActionCard = ({
           <Text as="span" role="body" className={styles.name}>
             {item.name}
           </Text>
-          {subtitle && <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>}
+          {showSubtitleUnderName && (
+            <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
+          )}
         </p>
       )}
       {onInfoClick &&
@@ -296,7 +323,7 @@ const FoodActionCard = ({
               );
             }}
           >
-            <InfoIcon />
+            {infoSlotContent}
           </button>
         ) : (
           // Блюдо → страница /dish/:id (та же раскадровка 'push', что и «Анализ
@@ -307,9 +334,13 @@ const FoodActionCard = ({
             aria-label="Информация"
             onClick={goToInfo}
           >
-            <InfoIcon />
+            {infoSlotContent}
           </button>
         ))}
+      {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки
+          (свои продукты + блюда, в обоих фильтрах). Не цветная — это признак
+          владения, а не данные (цвет несёт левый квадрат-гейдж richValue). */}
+      {userCreated && <span className={styles.ownerStripe} aria-hidden />}
     </li>
   );
 };

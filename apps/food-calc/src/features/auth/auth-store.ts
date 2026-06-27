@@ -6,6 +6,7 @@ import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify
 import { clear as idbKeyvalClear } from 'idb-keyval';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
+import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 
 // Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
 // drafts) before switching identities. Without this clear, user B on a shared
@@ -189,6 +190,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     } catch (e) {
       console.error('cache clear during signOut failed', e);
     }
+    // The cloud-sync consent flag lives in localStorage (Zustand persist), which
+    // survives the Dexie / idb-keyval wipe. Reset it to the default (ON) so a
+    // shared device doesn't leak user A's switch position to user B on next
+    // sign-in (the same shared-device hazard the data wipe closes).
+    useSyncPrefStore.getState().setSyncEnabled(true);
     applyUser(set, null);
     set({ pendingVerificationEmail: null });
     // applyUser(null) flips AuthGate → it unmounts App and with it the

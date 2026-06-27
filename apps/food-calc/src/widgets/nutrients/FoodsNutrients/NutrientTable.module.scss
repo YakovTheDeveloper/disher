@@ -1,9 +1,8 @@
 .container {
-  // Прогресс-бар accent (gradient-knob, читается через background-image, image не
-  // гейтится) + затухающая бровка-хайрлайн (gradient, разрешён). Текст/% — нейтральные
-  // sys-токены: bespoke cool-slate «mist»-палитра выпилена (per-surface theming вне
-  // канона, см. no-per-surface-theming).
-  --nt-accent: linear-gradient(45deg, transparent 0%, rgba(104, 128, 158, 0.5) 100%);
+  // Прогресс-бар = сплошная заливка --sys-color-surface-fill (холодный серый, парный
+  // к -track; бывший nt-accent градиент снят 2026-06-27). Затухающая бровка-хайрлайн
+  // (gradient, разрешён). Текст/% — нейтральные sys-токены: bespoke cool-slate «mist»-
+  // палитра выпилена (per-surface theming вне канона, см. no-per-surface-theming).
   --nt-hairline: var(--sys-color-divider); // единый холодный divider (унификация 2026-06-26)
 
   display: flex;
@@ -29,8 +28,8 @@
   gap: var(--space-1);
 }
 
-// Заголовок группы = sans-метка (Heading role="title") — типографику владеет
-// примитив, тут только раскладка.
+// Заголовок группы = тихий <NutrientGroupTitle> (caption uppercase, приглушённый
+// холодный цвет) — типографику/цвет владеет примитив, тут только раскладка.
 .normGroupTitle {
   margin: 0 0 var(--space-1);
   padding: 0 var(--space-2);
@@ -44,8 +43,9 @@
 }
 
 // Нутриенты идут СПИСКОМ (одна колонка): имя слева, % справа, прогресс-бар во
-// всю ширину. Один путь для глаза + значения выровнены в один столбец. Группы
-// без заголовков, поэтому секции читаются как один сплошной список. Раньше 2-col.
+// всю ширину. Один путь для глаза + значения выровнены в один столбец. Над каждой
+// группой — тихий заголовок (<NutrientGroupTitle>): делит сплошной список на
+// БЖУ / Минералы / Витамины / Аминокислоты, не перетягивая внимание. Раньше 2-col.
 .section {
   display: flex;
   flex-direction: column;
@@ -57,6 +57,14 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+// Тихий заголовок группы в основном виде — выравнен по левому краю содержимого
+// ряда (.row padding-left = --space-1), с воздухом до первой строки. Голос/цвет
+// владеет <NutrientGroupTitle>; тут только раскладка.
+.sectionTitle {
+  padding-left: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .row {
@@ -72,18 +80,10 @@
   // overflow НЕ скрываем — юнит значения спущен под число (absolute, top:100%)
   // и садится в нижний margin карточки; overflow:hidden обрезал бы его (и листик
   // клетчатки).
-  // Тень убрана — между строками затухающая бровка-разделитель (как в списке
-  // SearchFood, см. `.section .row::after`). Полупрозрачная подложка на ::before
-  // (z-index -2), чтобы пилюли имён БЖУ (.name::before, z-index -1) были над ней.
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--sys-radius-control);
-    background: var(--sys-color-surface-1);
-    z-index: -2;
-  }
+  // Подложка (::before surface-1) СНЯТА 2026-06-27: на белом дровере (surface-2)
+  // она была ~невидимой плашкой-шумом, а её прежнее оправдание (пилюли имён БЖУ
+  // над wash'ем) протухло — mist-палитра выпилена. Разделение строк держат
+  // прогресс-бар + вертикальный зазор (margin-bottom), бровку не добавляем.
 }
 
 // Бровка-разделитель между строками — затухающая хайрлайн-линия как в списке
@@ -120,26 +120,6 @@
   overflow: visible;
 }
 
-.dots {
-  opacity: 0;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  position: relative;
-  bottom: -3px;
-
-  &::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 6px;
-    background-image: radial-gradient(circle, currentColor 2.5px, transparent 2.5px);
-    background-size: 6px 6px;
-    background-position: left center;
-    background-repeat: repeat-x;
-  }
-}
-
 .rowBottom {
   display: flex;
   justify-content: space-between;
@@ -173,18 +153,18 @@
 
   margin-top: -3px;
   height: 8px;
-  border-radius: var(--sys-radius-tmp); /* was 2px */
-  // Empty-track contrast bumped 0.12 → 0.17 so the bar reads as a clear
-  // line from the name to the percent even at low fill.
-  background: var(--sys-color-bg-sunk);
+  border-radius: var(--sys-radius-tmp);
+  /* was 2px */
+  // Светлый фон-трек (парный к -fill); был bg-sunk rgba-ink.
+  background: var(--sys-color-surface-track);
   overflow: hidden;
 }
 
 .progressBar {
   height: 100%;
-  border-radius: var(--sys-radius-tmp); /* was 2px */
-  // gradient-knob через background-image (image не гейтится; canon split-pattern).
-  background-image: var(--nt-accent);
+  border-radius: var(--sys-radius-tmp);
+  /* was 2px */
+  background: var(--sys-color-surface-fill);
   transition: width 0.3s ease;
 }
 
@@ -192,7 +172,8 @@
 
 .name {
   position: relative;
-  border-radius: var(--sys-radius-control); /* was 6px */
+  border-radius: var(--sys-radius-control);
+  /* was 6px */
   // Имя нутриента = роль Title — типографику (family/size/weight/lh/tracking)
   // владеет примитив <Heading role="title"> (см. NutrientTable.tsx, решение
   // 2026-06-22). Здесь только раскладка; цвет + line-height вынесены в
@@ -224,8 +205,15 @@
   padding-bottom: 2px;
 }
 
+// Колонка нормы сдвинута на --space-3 от правого края строки — освобождает
+// боковой жёлоб дровера под юнит (.valueRight .unit ниже едет ВПРАВО от числа).
+// Сдвиг РОВНЫЙ (то же на .pct), так что числа нормы и % держат один столбик.
+// Самый широкий юнит «ккал» (28.4px @13px) укладывается в жёлоб (12px сдвиг +
+// 12px row padding-right + 12px inset .body = 36px) без клипа overflow-x,
+// с запасом ~3.6px даже при отодвинутом на --space-1 юните.
 .valueRight {
   text-align: right;
+  margin-right: var(--space-3);
 }
 
 
@@ -238,17 +226,33 @@
   position: absolute;
   top: 100%;
   // Юнит = <Text role="caption"> (типографику владеет примитив); тут раскладка.
-  opacity: 0.4;
+  // opacity поднят 0.4 → 0.55 (2026-06-27): на 0.4 поверх secondary юнит был
+  // почти нечитаем.
+  opacity: 0.55;
   line-height: 1;
   pointer-events: none;
+  // Курсивный наклон единицы — тихая «подпись» при числе-герое. font-style вне
+  // typo-encapsulation gate (намеренный followup): локальный наклон, не голос роли.
+  font-style: italic;
 }
 
+// Юнит еды (no-norm) — под числом; чуть отодвинут вниз, чтобы не липнул к цифре.
 .valueLeft .unit {
   left: 0;
+  margin-top: 2px;
 }
 
+// Юнит нормы — НЕ под числом (как слева в no-norm), а СПРАВА от него, торчит в
+// боковой жёлоб дровера. Абсолют от правого края числа (left:100%), по центру
+// строки. padding-left = --space-1 отодвигает единицу от числа. white-space:nowrap
+// — «ккал» не переносится.
 .valueRight .unit {
-  right: 0;
+  top: 50%;
+  left: 100%;
+  right: auto;
+  transform: translateY(-50%);
+  padding-left: var(--space-1);
+  white-space: nowrap;
 }
 
 .pct {
@@ -257,6 +261,8 @@
   text-align: right;
   line-height: 28px;
   color: var(--sys-color-text-primary);
+  // Тот же сдвиг, что у .valueRight — % держит один столбик с числом нормы под ним.
+  margin-right: var(--space-3);
 }
 
 // Значок «%» вынесен из потока вправо (left:100% → в правый padding карточки),
@@ -363,7 +369,8 @@
   align-items: center;
   justify-content: flex-end;
   padding: 6px;
-  border-radius: var(--sys-radius-control); /* was 8px */
+  border-radius: var(--sys-radius-control);
+  /* was 8px */
   /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- frosted-glass overlay (полупрозрачный белый + backdrop-blur); sys не моделирует translucent surface */
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(6px);
@@ -377,7 +384,8 @@
   justify-content: center;
   padding: 6px 12px;
   border: none;
-  border-radius: var(--sys-radius-control); /* was 8px */
+  border-radius: var(--sys-radius-control);
+  /* was 8px */
   background: var(--sys-color-surface-action-system-soft);
   color: var(--sys-color-text-system);
   cursor: pointer;

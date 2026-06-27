@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Heading, Numeral, Text } from '@/shared/ui/atoms/Typography';
+import { NutrientGroupTitle } from '@/entities/nutrient/ui/NutrientGroupTitle';
 
 interface Props {
   getValue: (id: string) => number;
@@ -132,7 +133,6 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
           <Heading as="span" role="title" className={s.name}>
             {nutrient.displayNameRu}
           </Heading>
-          <span className={s.dots} />
           {showPctView && (
             <Numeral as="span" size="base" weight="regular" className={s.pct}>
               {pct}
@@ -145,7 +145,12 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
             <>
               <Numeral as="span" size="sm" className={clsx(s.value, s.valueLeft)}>
                 <span>{Math.round(value)}</span>
-                <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+                {/* Юнит значения еды убран, когда норма задана (его несёт юнит
+                    нормы справа). Без нормы — оставляем, иначе в карточке не
+                    было бы ни одной единицы измерения. */}
+                {!hasNorm && (
+                  <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+                )}
               </Numeral>
               {showProgress && (
                 <div className={s.progressTrack}>
@@ -242,7 +247,10 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
             <>
               <Numeral as="span" size="sm" className={clsx(s.value, s.valueLeft)}>
                 <span>{nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}</span>
-                <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+                {/* см. renderRow: юнит еды убран при заданной норме, оставлен без неё. */}
+                {!hasNorm && (
+                  <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>
+                )}
               </Numeral>
               {showProgress && norm > 0 && (
                 <div className={s.progressTrack}>
@@ -314,9 +322,9 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
       <div className={clsx(s.container, s.containerNorms)}>
         {normGroups.map((group) => (
           <section key={group.key} className={s.normGroup}>
-            <Heading as="h3" role="title" className={s.normGroupTitle}>
+            <NutrientGroupTitle as="h3" className={s.normGroupTitle}>
               {group.title}
-            </Heading>
+            </NutrientGroupTitle>
             <div className={s.normList}>{group.rows}</div>
           </section>
         ))}
@@ -326,10 +334,18 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
 
   return (
     <div className={s.container}>
-      <div className={s.section}>{mainNutrients.map(renderRow)}</div>
+      <div className={s.section}>
+        <NutrientGroupTitle className={s.sectionTitle}>
+          {nutrientGroups[0].displayName}
+        </NutrientGroupTitle>
+        {mainNutrients.map(renderRow)}
+      </div>
 
       {nutrientGroups.slice(1).map((group) => (
         <div key={group.name} className={`${s.section} ${s[group.name]}`}>
+          <NutrientGroupTitle className={s.sectionTitle}>
+            {group.displayName}
+          </NutrientGroupTitle>
           {group.content.map(renderGroupRow)}
         </div>
       ))}

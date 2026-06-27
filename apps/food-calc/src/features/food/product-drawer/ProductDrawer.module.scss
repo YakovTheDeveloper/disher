@@ -73,24 +73,12 @@
     margin-bottom: var(--sys-stack-row);
 }
 
-// Строгий Select: плоский белый фон + тонкая чёрная обводка, малый радиус,
-// без тёплой тени. Левая половина ряда. Переопределяем --sys-field-* токены,
-// которые читает Select-триггер (он наш потомок; popup портируется и берёт
-// surface-токены).
+// Левая половина ряда. Стиль самого Select-триггера/попапа канонизирован в
+// атоме (Select.module.scss): триггер = surface-aware лунка (field-depth из
+// surface-2 дровера), попап = surface-2 + overlay-тень. Здесь только раскладка.
 .quantityControl {
     flex: 1 1 0;
     min-width: 0;
-
-    --sys-field-bg-from: var(--color-white);
-    --sys-field-bg-mid: var(--color-white);
-    --sys-field-bg-to: var(--color-white);
-    --sys-field-hairline: var(--color-ink);
-    --sys-field-hairline-focus: var(--color-ink);
-    --sys-field-radius: var(--radius-sm);
-    --sys-field-shadow: 0 0 0 transparent;
-    --sys-field-shadow-focus: 0 0 0 transparent;
-    --sys-field-text: var(--text-primary);
-    --sys-field-adornment: var(--text-primary);
 }
 
 .quantitySelect {

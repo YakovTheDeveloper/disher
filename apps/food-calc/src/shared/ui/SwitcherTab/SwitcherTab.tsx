@@ -3,10 +3,11 @@ import type { ButtonHTMLAttributes } from 'react';
 import { Heading, QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './SwitcherTab.module.scss';
 
-// Угловая кавычка (guillemet) как указатель направления. Не иконка, а ГЛИФ той же
-// Source Serif italic, что и подпись — одинаковая модуляция штриха + наклон, один
-// материал с QuietLabel (геометрический stroke-шеврон выбивался из serif-вайба).
-const GUILLEMET = { left: '‹', right: '›' } as const;
+// Стрелка-указатель направления НАРИСОВАНА в CSS (тонкий стержень + головка, см.
+// SwitcherTab.module.scss `.tileArrow*`) — НЕ шрифтовой глиф. Глиф ⟵/⟶ выпадал в
+// системный фолбэк (Source Serif этих кодпойнтов не содержит) и терял serif-наклон
+// + плыл по платформам; CSS-стрелка одинакова везде и подстраивается под voice.
+// JSX рендерит лишь пустой span-носитель направления; всю форму держит CSS.
 
 export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Подпись таба. */
@@ -18,9 +19,11 @@ export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Подпись остаётся чёрной и непрозрачной даже у active-плитки. */
   solidLabel?: boolean;
   /**
-   * Направленный шеврон у неактивной подписи — указывает, с какой стороны лежит
-   * её экран (`left` ‹ / `right` ›). Аффорданс «разделы листаются» переезжает на
-   * сами табы (см. ScreenIndicator `tab-arrows`). У активного таба не рендерится.
+   * Направленная CSS-стрелка у неактивной подписи — указывает, с какой стороны
+   * лежит её экран (`left` ← слева от слова / `right` → справа). Аффорданс
+   * «разделы листаются» живёт на самих табах. У активного таба не рендерится;
+   * показ у неактивных решает ScreenIndicator (`arrowHint`: по дефолту у всех,
+   * либо одна правая стрелка на серединном слайде — `middle-right`).
    */
   arrow?: 'left' | 'right';
 };
@@ -62,19 +65,12 @@ export const SwitcherTab = ({
       </Heading>
     ) : (
       <QuietLabel as="span" className={s.tileTitle}>
-        {/* Левый guillemet СВЕШИВАЕТСЯ в поле (hanging punctuation) — слово остаётся
-            выровнено с активным заголовком. Правый идёт в потоке после слова. */}
-        {arrow === 'left' && (
-          <span className={s.tileArrowLead} aria-hidden="true">
-            {GUILLEMET.left}
-          </span>
-        )}
+        {/* Левая стрелка СВЕШИВАЕТСЯ в поле (hanging punctuation, absolute) — слово
+            остаётся выровнено с активным заголовком. Правая идёт в потоке после
+            слова. Носители пустые — форму стрелки рисует CSS (.tileArrow*). */}
+        {arrow === 'left' && <span className={s.tileArrowLead} aria-hidden="true" />}
         {label}
-        {arrow === 'right' && (
-          <span className={s.tileArrowTrail} aria-hidden="true">
-            {GUILLEMET.right}
-          </span>
-        )}
+        {arrow === 'right' && <span className={s.tileArrowTrail} aria-hidden="true" />}
       </QuietLabel>
     )}
   </button>

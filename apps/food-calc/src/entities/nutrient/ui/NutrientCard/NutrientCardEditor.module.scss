@@ -87,7 +87,7 @@
 // --- Progress bar ---
 .progressBar {
   height: var(--nutrient-progress-height, 3px);
-  background: var(--sys-color-bg-sunk);
+  background: var(--sys-color-surface-track);
   border-radius: var(--sys-radius-indicator);
   overflow: hidden;
   margin-top: var(--space-1);

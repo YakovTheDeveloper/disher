@@ -23,11 +23,11 @@
     @include paper-mono-cards;
 
     // Тёплый-soft фон страницы (n100) под белой группой = база-стол surface-0.
-    background: var(--sys-color-surface-0);
+    background: var(--sys-color-surface-1);
 
     // Поле поиска (шапка) сидит на surface-0 → surface-aware глубина (стратегия C):
     // лунка узнаётся бровкой + inset-тенью, не растворяется в ровной тёплой бумаге.
-    @include field-depth-surface-0;
+    @include field-depth(--sys-color-surface-1);
 
     // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
     // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
@@ -98,7 +98,7 @@
     // Сплошная непрозрачная подложка в цвет страницы + скруглённый низ + тень.
     // surface-0 (#f7f3eb, та же тёплая бумага-база, что фон .content) — панель
     // бесшовно сливается с верхом страницы.
-    background: var(--sys-color-surface-0);
+    background: var(--sys-color-surface-1);
     border-bottom-left-radius: var(--sys-radius-container);
     border-bottom-right-radius: var(--sys-radius-container);
     box-shadow: var(--sys-elevation-overlay);

@@ -18,7 +18,10 @@
   // лежащий на бумаге → ось глубины surface-1 (#fefcf9, парящий лист).
   background: var(--sys-color-surface-1);
   box-shadow: none;
-  border-radius: var(--sys-radius-sheet);
+  // Концентрично листу-странице (`.headerOverlap` = --sys-radius-sheet) через
+  // общий page-gutter: r_внутр = r_лист − инсет-страницы (40 − 12 = 28). НЕ
+  // повторяем 40 1:1 — иначе угол карточки торчит «стадионом» в углу листа.
+  border-radius: var(--sys-radius-sheet-page-inner);
   overflow: hidden;
 
   // pearl-глянец (база): яркий верхне-левый угол + еле заметный прохладный блик

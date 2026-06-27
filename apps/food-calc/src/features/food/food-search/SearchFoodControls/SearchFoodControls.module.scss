@@ -12,7 +12,6 @@
     align-items: center;
     gap: var(--space-1);
     width: 100%;
-    padding: var(--space-2) var(--space-3);
     border: none;
 }
 
@@ -35,8 +34,8 @@
 // placeholder/иконка/каретка. Палитра приходит из app-wide тона
 // (`body[data-modal-fields]` — живой ModalShell-вариант).
 
-// The common pill — fills the bar beside the back button and holds the search
-// field, the Еда|Мое toggle and the nutrient («richness») button in one surface.
+// The common pill — fills the bar beside the back button and holds ONLY the search
+// field now (the Еда|Мое toggle + nutrient button moved into the filter popover).
 .pill {
     display: flex;
     align-items: center;
@@ -44,8 +43,7 @@
     flex: 1;
     min-width: 0;
     border: none;
-    // Tighter right padding: the toggle / nutrient button live flush at the end.
-    padding: var(--space-1) 0 var(--space-1) var(--space-2);
+    padding: var(--space-1) var(--space-2);
     border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
             var(--sys-field-bg-from, #fffefb) 0%,
@@ -143,7 +141,8 @@
     &:-internal-autofill-selected {
         background-image: none !important;
         background-color: transparent !important;
-        box-shadow: 0 0 0 100px transparent inset !important; /* stylelint-disable-line scale-unlimited/declaration-strict-value -- autofill-killer (функциональный inset, не elevation) */
+        /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- autofill-killer (функциональный inset, не elevation) */
+        box-shadow: 0 0 0 100px transparent inset !important;
         -webkit-text-fill-color: inherit !important;
     }
 }
@@ -175,19 +174,16 @@
 
 // ─── Controls column (поиск-ряд + нутриент-ряд) ──────────────────────────────
 
-// ─── Selected nutrient — чёрная пилюля «иконка · имя · ×» ─────────────────────
-// Раньше был выносной треугольник-callout; теперь компактная чёрная пилюля в духе
-// сегмента Всё|Мое, живёт в баре справа. Инпут (flex:1, min-width:0) ужимается под
-// неё; имя обрезается ellipsis, чтобы не распирать бар. idle (нутриент не выбран) —
-// ghost-иконка внутри pill (см. .nutrientIconButton).
+// ─── Selected nutrient — тёмная пилюля «иконка · имя · ×» ─────────────────────
+// Выбранный нутриент в секции «Богатая нутриентом» popover-панели: компактная
+// тёмная пилюля. Тап по имени открывает NutrientPickerDrawer (сменить), крестик —
+// снимает фильтр. Имя обрезается ellipsis.
 .nutrientPill {
-    flex-shrink: 0;
+    align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    min-height: 32px;
-    margin-left: var(--space-1);
-    margin-right: var(--space-1);
+    min-height: 36px;
     padding: 0 3px 0 9px;
     border-radius: var(--sys-radius-indicator);
     background: var(--sys-color-surface-action-system);
@@ -257,14 +253,82 @@
     }
 }
 
-// Иконка-кнопка «Нутриенты» (idle, нутриент не выбран) = примитив IconButton
-// tone="neutral" size=36 (см. SearchFoodControls.tsx). Тихий глиф, на press —
-// заливка чернилами + on-accent глиф. Bespoke-блок снят (унификация).
-//
-// Глиф в покое — ХОЛОДНЫЙ (indigo): «инструмент» в контраст к тёплой бумаге списка
-// (запрос юзера 2026-06-26, как back-шеврон/divider). `.pill`-scope (0,2,1) бьёт
-// .neutral (0,1,0) без !important; `:not([data-pressed])` оставляет press-инверсию
-// (.neutral[data-pressed] → on-accent глиф на угле) нетронутой.
-.pill .nutrientIconCold:not([data-pressed]) {
+// ─── Кнопка-«ползунки» (фильтр+сортировка за popover) ────────────────────────
+// Сидит в баре справа от search-пилюли (зеркалит back-кнопку слева) = триггер
+// PopoverTrigger. Примитив IconButton tone="neutral" size=36: тихий глиф, на press —
+// заливка чернилами + on-accent глиф. Глиф в покое — ХОЛОДНЫЙ (indigo) «инструмент»
+// в контраст к тёплой бумаге списка (канон 2026-06-26, как back-шеврон/нутриенты).
+// `:not([data-pressed])` оставляет press-инверсию (.neutral[data-pressed]) нетронутой.
+.filterButton {
+    flex-shrink: 0;
+    position: relative;
+
+    &:not([data-pressed]) {
+        color: var(--sys-color-text-accent);
+    }
+}
+
+// Активный (не-дефолт) фильтр = точка-индикатор в правом-верхнем углу кнопки:
+// состояние читается, не открывая panel. Холодный indigo акцент.
+.filterButtonActive::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-text-accent);
+    // 2px кольцо в цвет бара (surface-0) отделяет точку от глифа под ней.
+    border: 2px solid var(--sys-color-surface-0);
+}
+
+// ─── Popover-панель фильтров (содержимое PopoverTrigger.content) ──────────────
+// Компактная колонка-панель под кнопкой: секция «Показывать» (сегмент Всё|Мое) +
+// секция «Богатая нутриентом» (триггер выбора / выбранная пилюля). Подложку/тень/
+// радиус несёт сам .content PopoverTrigger (surface-2 + overlay-elevation).
+.filterPanel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 200px;
+    padding: var(--space-1);
+}
+
+.filterSection {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.filterSectionLabel {
+    color: var(--sys-color-text-secondary);
+}
+
+// Idle-строка выбора нутриента (нутриент не выбран): тихий ряд «иконка + текст»,
+// тап открывает боковой NutrientPickerDrawer. Холодный indigo глиф/текст.
+.nutrientPickRow {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: 0 var(--space-2);
+    border: 1px solid var(--sys-color-border-subtle);
+    border-radius: var(--sys-radius-control);
+    background: var(--sys-color-surface-1);
     color: var(--sys-color-text-accent);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform var(--press-in) ease;
+
+    &:active {
+        transform: scale(0.97);
+    }
+
+    svg {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+    }
 }

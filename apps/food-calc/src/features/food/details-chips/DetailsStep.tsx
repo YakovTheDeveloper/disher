@@ -1,4 +1,5 @@
 import { DetailsChips } from './DetailsChips';
+import type { ChipSurface } from '@/shared/ui/atoms/Chip';
 import s from './DetailsStep.module.scss';
 
 /**
@@ -14,9 +15,11 @@ type Props = {
   value: string;
   onChange: (next: string) => void;
   productId: string | null;
+  /** Surface-тир хоста (модалки), на котором лежат чипы. Дефолт 0 (бежевый стол). */
+  surface?: ChipSurface;
 };
 
-export function DetailsStep({ foodName, textareaId, value, onChange, productId }: Props) {
+export function DetailsStep({ foodName, textareaId, value, onChange, productId, surface = 0 }: Props) {
   const placeholder = foodName
     ? `Особенности приема ${foodName.toLowerCase()}`
     : 'Особенности приема, если есть';
@@ -29,6 +32,7 @@ export function DetailsStep({ foodName, textareaId, value, onChange, productId }
         onChange={onChange}
         productId={productId}
         placeholder={placeholder}
+        surface={surface}
       />
     </div>
   );

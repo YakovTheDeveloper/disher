@@ -1,9 +1,19 @@
-// Select-примитив на Base UI. Все цвета/радиусы — через `--sys-field-*` токены
-// surface-палитры (lavender на ProductPage), плюс базовые `--radius-*` /
-// `--text-*`. Сырых hex нет (stylelint token-gate). Градиенты в `background`
-// каноном не гейтятся — используем field-градиент как подложку.
+// Select-примитив на Base UI. Все цвета/радиусы — через `--sys-field-*` токены,
+// плюс базовые `--radius-*` / `--text-*`. Сырых hex нет (stylelint token-gate).
+// Градиенты в `background` каноном не гейтятся — используем field-градиент как
+// подложку.
+//
+// Триггер surface-aware: @include field-depth(--sys-color-surface-2) выводит
+// лунку из поверхности дровера (surface-2), где Select и живёт — фон совпадает
+// с остальными полями приложения. Попап портируется в <body>, поэтому НЕ
+// наследует surface дровера: красим его surface-2 напрямую + drop-тень overlay,
+// чтобы лист «над листом» отделялся от поверхности (крайний подъём стопки).
+
+@import '@/shared/assets/style/mixin.scss';
 
 .trigger {
+    // Лунка из поверхности, на которой стоит Select (drawer = surface-2).
+    @include field-depth(--sys-color-surface-2);
     display: inline-flex;
     align-items: center;
     justify-content: space-between;
@@ -65,8 +75,10 @@
     overflow-y: auto;
     padding: var(--space-1);
     border-radius: var(--sys-radius-container);
-    background: linear-gradient(180deg, var(--sys-field-bg-from) 0%, var(--sys-field-bg-to) 100%);
-    box-shadow: var(--sys-field-shadow-popup);
+    // Портал в <body>: surface дровера не наследуется — красим лист surface-2
+    // напрямую + overlay-тень (крайний подъём), чтобы отделиться от поверхности.
+    background: var(--sys-color-surface-2);
+    box-shadow: var(--sys-elevation-overlay);
     transform-origin: var(--transform-origin);
     transition:
         transform 0.16s ease,
@@ -101,7 +113,7 @@
     }
 
     &[data-selected] {
-        color: var(--sys-field-caret);
+        color: var(--sys-color-text-system);
     }
 }
 
@@ -114,7 +126,7 @@
 .itemIndicator {
     display: inline-flex;
     flex-shrink: 0;
-    color: var(--sys-field-caret);
+    color: var(--sys-color-text-system);
 
     svg {
         width: 14px;

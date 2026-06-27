@@ -1,5 +1,5 @@
 // An insight the user saved from an analysis result. Read-only after save —
-// it only ever enters the list from an LLM answer («Добавить к себе»), never
+// it only ever enters the list from an LLM answer («Сохранить»), never
 // authored by hand (that's the difference from a hypothesis). The union types
 // are duplicated here rather than imported from features/analysis: the entity
 // layer sits BELOW features and must not import upward.

@@ -44,7 +44,7 @@ $pill-h: 44px;
   gap: 6px;
   width: 100%;
   box-sizing: border-box;
-  padding: var(--space-3) var(--space-3);
+  padding: var(--space-3);
   background: transparent;
   border: none;
   box-shadow: none;
@@ -230,8 +230,8 @@ $pill-h: 44px;
   display: flex;
   align-items: baseline;
   width: auto;
-  padding-left: 8px;
-  border-left: 1px solid var(--sys-color-on-floating-divider);
+  // padding-left: 8px;
+  // border-left: 1px solid var(--sys-color-on-floating-divider);
   line-height: 1.2;
 }
 

@@ -274,9 +274,11 @@ export const WriteBarShell = ({
           className={s.writeBarRow}
           data-expanded={expanded || undefined}
           data-pressed={barPressed || undefined}
-          data-has-left={leftSlot ? '' : undefined}
+          data-has-left={leftSlot && !expanded ? '' : undefined}
         >
-          {leftSlot}
+          {/* На фокусе боковые слоты НЕ рендерятся (2026-06-27) — поле забирает всю
+              ширину пилюли. Send-монета остаётся (она не боковой слот). */}
+          {!expanded && leftSlot}
           {fieldOverride ?? (
             <div
               className={clsx(s.writeField, s.writeBarInput)}
@@ -336,13 +338,12 @@ export const WriteBarShell = ({
         </div>
         {/* trailingSlot — in-flow sibling of the pill (food «Список»), divider via
             `.trailingSlot::before`. Pill (`.writeBarRow`) is flex:1 → shrinks for it. */}
-        {trailingSlot ? <div className={s.trailingSlot}>{trailingSlot}</div> : null}
+        {trailingSlot && !expanded ? <div className={s.trailingSlot}>{trailingSlot}</div> : null}
       </div>
       {/* Detached medal — wrap-level sibling of `.barLine` (moved out 2026-06-25).
-          Anchored absolute to `.wrap` so it floats at the screen edge, ignoring
-          the wrap's side inset that the pill row takes. Collapses on focus (reads
-          `[data-expanded]` off `.wrap`). */}
-      {rightSlot}
+          Anchored absolute to `.wrap` so it floats at the screen edge. На фокусе
+          не рендерится (2026-06-27) — поле на всю ширину. */}
+      {!expanded && rightSlot}
     </div>
   );
 };

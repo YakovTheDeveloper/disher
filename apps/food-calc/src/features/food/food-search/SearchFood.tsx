@@ -307,10 +307,6 @@ const SearchFoodHeavy = ({
   );
 
   const trimmedQuery = searchQuery.trim();
-  const isSearchActive = trimmedQuery.length >= 2;
-
-  const visibleHasResults =
-    (showProducts && products.length > 0) || (showDishes && dishes.length > 0);
 
   // When the host provides onPickCreate + createInputHtmlFor, the empty-state
   // actions delegate to a create-name modal via <label htmlFor> focus. Otherwise
@@ -322,10 +318,8 @@ const SearchFoodHeavy = ({
 
   const createButtons = (
     <FoodSearchEmpty
-      query={trimmedQuery}
       onCreateProduct={showProducts ? productHandler : undefined}
       onCreateDish={showDishes ? dishHandler : undefined}
-      showMessage={isSearchActive && !visibleHasResults}
       createInputHtmlFor={createInputHtmlFor}
     />
   );
@@ -358,6 +352,7 @@ const SearchFoodHeavy = ({
           richNutrientMax={richNutrientMax}
           richNutrientNorm={richNutrientNorm}
           htmlFor={itemHtmlFor}
+          mineFilter={userOnlyProducts}
         />
       );
     },
@@ -370,6 +365,7 @@ const SearchFoodHeavy = ({
       richNutrientMax,
       richNutrientNorm,
       itemHtmlFor,
+      userOnlyProducts,
     ]
   );
 

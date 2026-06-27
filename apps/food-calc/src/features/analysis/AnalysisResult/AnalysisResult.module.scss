@@ -22,30 +22,18 @@
 }
 
 // ─── Резюме разбора ────────────────────────────────────────────────────────
-// Lead-абзац над первой плашкой. Тихий левый акцент (тающий 2px) привязывает
-// его к монохромному «rail»-языку — раньше абзац висел в воздухе между дилом и
-// плашкой. Тонкий 2px-акцент — некатегоризируемая декорация → radius-tmp.
+// Lead-вывод разбора — насыщенный indigo-блок (заливка accent-полюса канона +
+// светлый on-accent текст). Намеренный цветовой акцент (решение юзера
+// 2026-06-27): монохромный разбор получает один громкий «вывод дня» сверху,
+// карточки ниже остаются нейтральными. Цвет текста встаёт без боя — примитив
+// <Text> цвет не моделирует (контекстный), так что класс `.summary` красит сам.
 .summary {
-    // font-size/family → <Text role="body"> (typo-encapsulation); здесь только layout.
-    position: relative;
+    // font-size/family → <Text role="body"> (typo-encapsulation); здесь layout + цвет.
     line-height: 1.6;
-    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-5);
-
-    &::before {
-        content: '';
-        position: absolute;
-        left: var(--space-3);
-        top: 5px;
-        bottom: 5px;
-        width: 2px;
-        border-radius: var(--sys-radius-tmp); /* was 2px */
-        background: linear-gradient(180deg,
-                transparent 0%,
-                color-mix(in srgb, var(--sys-card-text-rest) 22%, transparent) 18%,
-                color-mix(in srgb, var(--sys-card-text-rest) 22%, transparent) 82%,
-                transparent 100%);
-        pointer-events: none;
-    }
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--sys-radius-container);
+    background: var(--sys-color-surface-action-accent); // indigo-600 #3a2d6b
+    color: var(--sys-color-on-action-accent); // светлый текст на индиго
 
     :global(p) {
         margin: 0 0 8px;
@@ -78,6 +66,8 @@
 .list {
     display: flex;
     flex-direction: column;
-    gap: var(--sys-stack-row);
+    // Карточки безрамочные (бровка снята из канона) — воздух несёт всю границу
+    // между ними, поэтому зазор щедрее строкового ритма (--space-5 vs stack-row 12).
+    gap: var(--space-5);
     padding: 0 var(--space-3) var(--space-3);
 }

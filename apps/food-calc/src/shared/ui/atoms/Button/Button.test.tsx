@@ -80,3 +80,43 @@ describe('Button — disabled / loading contract', () => {
     });
   });
 });
+
+// Surface-режим — класс-маппинг плоскости (onSurface): рамка vs тень vs fill.
+// Презентационная развилка clsx (легко сломать рефактором). Классы матчим по
+// подстроке — CSS-модули резолвятся в `[folder]-[local]__[hash]` (vite.config).
+describe('Button — surface variant', () => {
+  const classOf = (props: React.ComponentProps<typeof Button>) =>
+    render(<Button {...props}>x</Button>).getByRole('button').className;
+
+  it('onSurface=0 → fill surface-1 + рамка, без тени', () => {
+    const c = classOf({ variant: 'surface', onSurface: 0 });
+    expect(c).toContain('surfaceBordered');
+    expect(c).toContain('surfacePlane0');
+    expect(c).not.toContain('surfaceShadow');
+  });
+
+  it('onSurface=1 → рамка, без тени и без plane-0 fill', () => {
+    const c = classOf({ variant: 'surface', onSurface: 1 });
+    expect(c).toContain('surfaceBordered');
+    expect(c).not.toContain('surfacePlane0');
+    expect(c).not.toContain('surfaceShadow');
+  });
+
+  it('onSurface=2 → тень, без рамки', () => {
+    const c = classOf({ variant: 'surface', onSurface: 2 });
+    expect(c).toContain('surfaceShadow');
+    expect(c).not.toContain('surfaceBordered');
+  });
+
+  it('onSurface без variant всё ещё включает surface-режим (обратная совместимость)', () => {
+    const c = classOf({ onSurface: 1 });
+    expect(c).toContain('surfaceBordered');
+  });
+
+  it('variant="surface" без onSurface дефолтит на плоскость 1 (рамка, без тени/fill-0)', () => {
+    const c = classOf({ variant: 'surface' });
+    expect(c).toContain('surfaceBordered');
+    expect(c).not.toContain('surfaceShadow');
+    expect(c).not.toContain('surfacePlane0');
+  });
+});

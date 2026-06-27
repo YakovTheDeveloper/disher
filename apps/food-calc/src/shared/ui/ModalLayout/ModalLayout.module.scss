@@ -10,7 +10,7 @@
     // border-radius: 24px 24px 0 0;
     background: var(--sys-color-surface-2);
     // Modal-store модалка = surface-2 (белый) → surface-aware глубина поля (стратегия C).
-    @include field-depth-surface-2;
+    @include field-depth(--sys-color-surface-2);
     // background: linear-gradient(135deg, rgb(224, 229, 246) 0%, rgb(235, 242, 250) 100%);
     // background: linear-gradient(180deg, rgb(223, 242, 255) 0%, rgb(215, 229, 241) 75%, rgba(235, 242, 250, 0.196) 100%);
 

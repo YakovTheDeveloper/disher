@@ -45,6 +45,13 @@
   --tile-img-y: 10px; // + вниз
   --tile-img-scale: 1; // >1 — плотнее обрезка
   --tile-img-opacity: 0.07;
+
+  // Геометрия CSS-стрелки-указателя (рисуется в .tileArrow*; em → тянется за
+  // кеглем подписи). Правится потребителем переопределением этих vars.
+  --tile-arrow-len: 0.92em; // длина стержня
+  --tile-arrow-thick: 1px; // толщина штриха (стержень + головка)
+  --tile-arrow-head: 0.3em; // плечо головки (бокс под 45°)
+  --tile-arrow-gap: var(--space-2); // зазор слово↔стрелка
 }
 
 // Press-feedback — только opacity (см. ScreenIndicator анимационный бюджет).
@@ -80,29 +87,61 @@
   white-space: nowrap;
 }
 
-// Guillemet-указатели направления. Глиф той же serif-italic (наследуется от
-// QuietLabel — font-* НЕ задаём), холодный --sys-color-icon (канон cold-icon-palette,
-// чуть светлее cool-600 подписи → подчинён). Голос подписи не трогаем.
-//
-// ЛЕВЫЙ свешивается в поле (hanging punctuation): абсолют с `right:100%` ставит
-// правый край span'а на левый край слова, зазор — через padding-right.
-// Слово остаётся выровнено с активным заголовком (оба `.tileTitle` стартуют с
-// одного inset'а ряда). Вертикаль — статик-позиция (без top), держит базовую линию.
-.tileArrowLead {
-  position: absolute;
-  right: 100%;
-  // Зазор глиф↔слово: padding тянет правый край бокса (закреплён на левом краю
-  // слова) влево → глиф отъезжает дальше в поле.
-  padding-right: var(--space-2);
+// Стрелка-указатель направления НАРИСОВАНА в CSS (не шрифтовой глиф — ⟵/⟶
+// выпадали в системный фолбэк, теряли serif-наклон и плыли по платформам):
+// span-носитель = стержень (background), ::after = головка (две стороны бокса
+// под 45° = шевронный наконечник). Холодный --sys-color-icon (канон
+// cold-icon-palette) через currentColor, opacity 0.7 → подчинена подписи.
+@mixin tile-arrow {
+  display: inline-block;
+  width: var(--tile-arrow-len);
+  height: var(--tile-arrow-thick);
+  background: currentColor;
   color: var(--sys-color-icon);
   opacity: 0.7;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: var(--tile-arrow-head);
+    height: var(--tile-arrow-head);
+  }
 }
 
-// ПРАВЫЙ — в потоке после слова (на левое выравнивание не влияет).
+// ЛЕВАЯ (←) свешивается в поле (hanging punctuation): absolute, правый край у
+// левого края слова + зазор → слово остаётся выровнено с активным заголовком
+// (оба `.tileTitle` стартуют с одного inset'а ряда). Вертикаль — центр строки.
+.tileArrowLead {
+  @include tile-arrow;
+  position: absolute;
+  right: calc(100% + var(--tile-arrow-gap));
+  top: 50%;
+  transform: translateY(-50%);
+
+  // Головка у левого острия: bottom+left борта под 45° = «<».
+  &::after {
+    left: 0;
+    border-bottom: var(--tile-arrow-thick) solid currentColor;
+    border-left: var(--tile-arrow-thick) solid currentColor;
+    transform: translateY(-50%) rotate(45deg);
+  }
+}
+
+// ПРАВАЯ (→) — в потоке после слова (на левое выравнивание не влияет).
 .tileArrowTrail {
-  padding-left: var(--space-2);
-  color: var(--sys-color-icon);
-  opacity: 0.7;
+  @include tile-arrow;
+  position: relative;
+  margin-left: var(--tile-arrow-gap);
+  vertical-align: middle;
+
+  // Головка у правого острия: top+right борта под 45° = «>».
+  &::after {
+    right: 0;
+    border-top: var(--tile-arrow-thick) solid currentColor;
+    border-right: var(--tile-arrow-thick) solid currentColor;
+    transform: translateY(-50%) rotate(45deg);
+  }
 }
 
 .tileImg {

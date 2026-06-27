@@ -17,17 +17,17 @@
     position: relative;
     // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
     // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
-    margin: var(--space-6) 0 var(--space-2);
+    margin: var(--space-10) 0 var(--space-2);
 
     // Тающая волосяная бровка — копия `Masthead::after`. Боковой инсет даёт сам
     // лист (`--sys-inset-page` на `.headerOverlap`) → бровка симметрична краям (0/0).
     &::before {
         content: '';
         position: absolute;
-        left: 0;
         right: 0;
         top: 0;
         height: 1px;
+        width: 80%;
         // Канон Divider через общий `hairline()`-миксин + единый холодный токен
         // (`--sys-color-divider`); раньше — хэнд-ролл с тёплым `--color-ink` 14%.
         @include hairline(var(--sys-color-divider));

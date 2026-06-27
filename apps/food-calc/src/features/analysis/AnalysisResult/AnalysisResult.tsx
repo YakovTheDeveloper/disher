@@ -81,7 +81,7 @@ const AnalysisResult = ({
   const renderSection = (
     sectionKey: 'observations' | 'insights' | 'hypotheses',
     title: string,
-    children: React.ReactNode,
+    children: React.ReactNode
   ) => {
     if (bare) {
       // `data-analysis-*` are stable styling hooks (the hashed module classes
@@ -101,8 +101,7 @@ const AnalysisResult = ({
         </section>
       );
     }
-    const header =
-      sectionKey === firstSectionKey ? sheetHeader || undefined : undefined;
+    const header = sectionKey === firstSectionKey ? sheetHeader || undefined : undefined;
     return (
       <SheetCard header={header}>
         <div className={styles.list}>{children}</div>
@@ -163,7 +162,7 @@ const AnalysisResult = ({
                     source: insightSource,
                   });
                 }}
-                addLabel="Добавить себе"
+                addLabel="Сохранить"
                 addedAriaLabel="Инсайт сохранён"
                 addSuccessToast="Инсайт сохранён"
                 addErrorToast="Не удалось добавить инсайт"
@@ -189,7 +188,7 @@ const AnalysisResult = ({
                 onAdd={async () => {
                   await saveHypothesis({ title: hypothesis.title, body: hypothesis.body });
                 }}
-                addLabel="Добавить себе"
+                addLabel="Сохранить"
                 addedAriaLabel="Гипотеза сохранена"
                 addSuccessToast="Гипотеза сохранена"
                 addErrorToast="Не удалось добавить гипотезу"

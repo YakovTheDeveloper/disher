@@ -18,9 +18,22 @@
     // Геометрия дока (мессенджер-пропорции, выбраны 2026-06-24): низкая пилюля,
     // компактная send-монета, медаль Еды держит легибельный 60px. Раньше эти
     // значения жили в `[data-dv-v='frost']`-форке; форк выпилен, значения — база.
-    --pill-h: 42px;
+    // Высота пилюли + размер send-монеты. ОБЯЗАТЕЛЬНЫ: их потребляют `.sendCoin`
+    // (width: calc(var(--coin-size) …)) и `.writeBarInput`/`.writeFieldInput`
+    // (высота поля). Без них `calc()` становится невалидным и браузер ВЫБРАСЫВАЕТ
+    // всю декларацию width → send-монета схлопывается (баг 2026-06-27). Также
+    // читается FoodWriteBar `.listCtaButton`.
+    //
+    // --pill-h поднята 42 → 56 (2026-06-27): поле (well) заполняет почти всю
+    // высоту док-плашки. Плашка = pill-h(56) + верт. падинг (--space-2 ×2 = 16) =
+    // 72 = канон --bottom-action-h. Раньше well был 42 в 74px-плашке → мёртвые
+    // полосы сверху/снизу (см. стрелки в репорте).
+    --pill-h: 56px;
     --coin-size: 34px;
-    --medal-size: 60px;
+    --medal-size: 56px;
+    --shell-radius: var(--sys-radius-sheet);
+    --shell-inset: var(--sys-inset-page);
+    --input-container-inset: calc(var(--sys-inset-page) * 2);
 
     // Пилюля = СТАНДАРТНОЕ ПОЛЕ ФОРМЫ проекта (как `.shell` в AutoGrowSearch):
     // плоская тёплая «утопленная» заливка --sys-field-bg-* + мягкая ВНУТРЕННЯЯ
@@ -45,24 +58,29 @@
     // Боковой инсет страницы (--sys-inset-page) — пилюля отступает от кромок
     // экрана; медаль вынесена на уровень `.wrap` и анкорится `right:0` к padding-
     // box, поэтому продолжает парить у самой кромки, игнорируя этот инсет.
-    padding: var(--sys-inset-page) var(--sys-inset-sheet);
+    // Верт. падинг (--space-2 = 8px) МЕНЬШЕ бокового (--shell-inset) — well почти
+    // дотягивается до верх/низ кромок плашки (заполняет высоту, 2026-06-27).
+    padding: var(--space-2) var(--shell-inset);
     position: relative;
     box-sizing: border-box;
     // ПОДЛОЖКА ИМИТИРУЕТ ВОЗВЫШЕННОСТЬ: яркая (белее тёплой бумаги Screen) плашка
     // + overlay-тень + скруглённая верхняя кромка дока. Оттенок НЕ меняем —
     // высоту несут тень + радиус, а утопленное тёмное поле (well) сверху лишь
-    // усиливает глубину (recessed slot в raised-плашке).
-    background: var(--sys-color-surface-1);
-    box-shadow: var(--sys-elevation-2);
+    // усиливает глубину (recessed slot в raised-плашке). Плашка = поверхность
+    // ЯРУСА 2 → fill surface-2 + ПАРНАЯ тень elevation-2 через миксин
+    // surface-elevation(2): ярус заливки и ярус тени связаны в ОДНОЙ точке вызова,
+    // промахнуться номером (был рассинхрон: fill surface-1 + тень elevation-2) нельзя.
+    background: var(--sys-color-surface-2);
+    @include surface-elevation(2);
     border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
 
 
 
-    // Пилюля-поле сидит на этой raised-плашке (surface-1) → surface-aware глубина
-    // (стратегия C): well-заливка под поверхность + видимая бровка/inset-тень
-    // усиливают recessed-slot. Inner `.writeFieldInput` гасит field-роли в ноль —
+    // Пилюля-поле сидит на этой raised-плашке (surface-2) → surface-aware глубина:
+    // well-заливка выводится из той же surface-2 (на один шаг темнее) + inset-тень
+    // дают recessed-slot. Inner `.writeFieldInput` гасит field-роли в ноль —
     // well несёт сама пилюля (`.writeBarRow`), текст-инпут плоский.
-    @include field-depth-surface-1;
+    @include field-depth(--sys-color-surface-2);
 }
 
 // ─── Focus-hint: example shown in a strip ABOVE the bar ────────────────────
@@ -97,11 +115,11 @@
 // Голос (caption-ярус) несёт примитив <Text role="caption">; здесь — раскладка,
 // поверхность, цвет и числовой font-feature (tnum/lnum для счётчиков в подсказке).
 .focusHintInner {
+    // Без подложки и тени (2026-06-27): голый текст-подсказка над баром, не пилюля.
+    // Раньше тут были background --sys-color-surface-2 + box-shadow + radius-full —
+    // сняты по запросу. Осталась только раскладка/цвет/числовой font-feature.
     max-width: 100%;
     padding: 4px var(--space-3);
-    border-radius: var(--radius-full);
-    background: var(--sys-color-surface-2);
-    box-shadow: var(--sys-elevation-action-rest);
     color: var(--sys-color-text-secondary);
     text-align: center;
     white-space: pre-line;
@@ -126,7 +144,7 @@
     align-items: center;
     // Зазор между пилюлей и trailing-входом (Еда). Без trailingSlot (Анализ/
     // События — один потомок) ни на что не влияет → обратносовместимо.
-    gap: var(--space-4);
+    gap: var(--shell-inset);
     width: 100%;
     // Anchor для плавающей медали Еды (она абсолютна относительно строки, см.
     // `.barLine .writeBarList` в WriteBarMedal.module.scss).
@@ -140,22 +158,24 @@
     min-width: 0;
     display: flex;
     align-items: center;
-    min-height: var(--pill-h);
     position: relative;
 
-    // Поверхность = стандартное поле формы (`.shell`): плоский тёплый well-
-    // градиент --sys-field-bg-* + мягкая ВНУТРЕННЯЯ тень (утопленный слот), без
-    // видимой рамки. Скругление пилюли (--radius-full) — единственное отличие.
+    // Поверхность = стандартное поле формы (`.shell`): ПОТРЕБЛЯЕТ well-токены
+    // --sys-field-bg-* / --sys-field-shadow, опубликованные родителем `.wrap`
+    // (он = surface-2 и делает @include field-depth — лунка выводится из ТОЙ
+    // плашки, на которой сидит пилюля). Сам ряд surface НЕ переопределяет: иначе
+    // лунка калибровалась бы под чужую поверхность. Плоский градиент + мягкая
+    // ВНУТРЕННЯЯ тень (утопленный слот), без видимой рамки.
     background: linear-gradient(90deg,
             var(--sys-field-bg-from) 0%,
             var(--sys-field-bg-mid) 55%,
             var(--sys-field-bg-to) 100%);
+    box-shadow: var(--sys-field-shadow);
     border: 1px solid transparent;
     // Скругление пилюли — переопределяемо консумером (`--wb-pill-radius`): дефолт
     // стадион (--radius-full); высокий бар Еды подаёт концентричный --sys-radius-
     // overlay-inner, чтобы рифмоваться с углом док-плашки, а не торчать стадионом.
-    border-radius: var(--sys-radius-sheet-inner);
-    box-shadow: var(--sys-field-shadow);
+    border-radius: calc(var(--shell-radius) - var(--shell-inset));
     transition: box-shadow 0.15s ease, background 0.15s ease;
 
     // Фокус — как у поля: углубляем мягкую внутреннюю тень (бровка-хайрлайн ниже
@@ -250,7 +270,7 @@
     display: flex;
     align-items: center;
     // Вертикальные инсеты сняты — текст центрируется align-items в низкой пилюле.
-    padding: 0 var(--space-2);
+    padding: 0 var(--input-container-inset);
     min-height: var(--pill-h);
 }
 
@@ -276,6 +296,11 @@
     --sys-field-shadow-focus: none;
     --sys-field-hairline: transparent;
     --sys-field-hairline-focus: transparent;
+    // Внутренний паддинг textarea держим МАЛЫМ (4px): высоту well'а несёт
+    // `.writeBarInput` (min-height: --pill-h), а одна строка центрируется через
+    // `align-items: center` на ряду. Паддингом строку НЕ центрируем — при высоком
+    // pill-h (56) паддинг > line-height сломал бы autogrow (floor(scrollHeight /
+    // line-height) насчитал бы 2 строки на одну). На фокусе поле растёт строками.
     --sys-field-pad-top: 4px;
     --sys-field-pad-bottom: 4px;
     flex: 1;

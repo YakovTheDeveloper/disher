@@ -118,9 +118,10 @@ const ScheduleFoodItemInline = ({
         </TitleCluster>
       </Card.Title>
 
-      {/* Meta = детали (Card строит caption + label htmlFor + клэмп-2); тот же htmlFor что имя. */}
+      {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
+          противовес жирному имени; Card строит label htmlFor + клэмп-2). */}
       {item.details && (
-        <Card.Meta htmlFor={foodHtmlFor} onPointerDown={handleFoodPointerDown}>
+        <Card.Meta size="card-caption" htmlFor={foodHtmlFor} onPointerDown={handleFoodPointerDown}>
           {item.details}
         </Card.Meta>
       )}

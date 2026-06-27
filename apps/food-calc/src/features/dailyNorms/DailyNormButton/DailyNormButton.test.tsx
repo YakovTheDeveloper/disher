@@ -32,10 +32,10 @@ describe('DailyNormButton', () => {
     expect(getByText('Задать дневную норму')).toBeInTheDocument();
   });
 
-  it('reads «Посмотреть дневную норму» when a norm exists', () => {
+  it('reads «Дневная норма» when a norm exists', () => {
     h.items = { '1': 100 };
     const { getByText } = render(<DailyNormButton />);
-    expect(getByText('Посмотреть дневную норму')).toBeInTheDocument();
+    expect(getByText('Дневная норма')).toBeInTheDocument();
   });
 
   it('opens DailyNormDrawer on click', () => {

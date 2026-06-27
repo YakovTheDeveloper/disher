@@ -1,8 +1,9 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
+import { NutrientGroupTitle } from '@/entities/nutrient/ui/NutrientGroupTitle';
 import styles from './NutrientPickerDrawer.module.scss';
 
 export type RichNutrientPick = { id: string; unit: string };
@@ -42,9 +43,9 @@ export function NutrientPickerDrawer({ onClose, activeId }: Props) {
         >
           {nutrientGroups.map((group) => (
             <section key={group.name} className={styles.group}>
-              <Heading as="h3" role="title" className={styles.groupTitle}>
+              <NutrientGroupTitle as="h3" className={styles.groupTitle}>
                 {group.displayName}
-              </Heading>
+              </NutrientGroupTitle>
               <div className={styles.list}>
                 {group.content.map((nutrient) => (
                   <ChoiceItem key={nutrient.id} value={nutrient.id}>

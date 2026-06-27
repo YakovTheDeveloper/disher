@@ -4,12 +4,14 @@ import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
+import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import type { SearchFilter } from '../SearchFood';
 import { FILTER_LABELS } from '../searchFilterLabels';
 
 import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import NutrientIcon from '@/shared/assets/icons/chart-bars.svg?react';
+import FilterIcon from '@/shared/assets/icons/filter-icon.svg?react';
 
 type Props = {
   searchQuery: string;
@@ -50,12 +52,92 @@ const SearchFoodControls = ({
     filterOptions && filterOptions.length > 1 && selectedFilter && onSelectFilter
   );
 
+  // Кнопка-«ползунки» (фильтр+сортировка за popover) встаёт только когда есть что
+  // прятать: сегмент Всё|Мое и/или нутриент-фильтр. В dishes-only обоих нет — бар
+  // несёт только статичный заголовок рядом с поиском.
+  const showFilterButton = hasFilter || Boolean(showNutrientFilter);
+
+  // Активный фильтр (не-дефолт) подсвечивает кнопку точкой — состояние читается, не
+  // открывая panel. «Мое» (сужает каталог) или выбранный нутриент = активны.
+  const filterActive = (hasFilter && selectedFilter === 'mine') || Boolean(selectedNutrientLabel);
+
+  // Содержимое popover: тот же сегмент Всё|Мое + строка нутриент-фильтра, но
+  // собранные в компактную панель под кнопкой (раньше распирали search-пилюлю).
+  // Выбор нутриента по-прежнему уводит в боковой NutrientPickerDrawer (длинный
+  // сгруппированный список не лезет в popover) — здесь только триггер + текущее
+  // состояние с крестиком отмены.
+  const filterPanel = (
+    <div className={styles.filterPanel}>
+      {hasFilter && filterOptions && (
+        <div className={styles.filterSection}>
+          <Text as="span" role="label" className={styles.filterSectionLabel}>
+            Показывать
+          </Text>
+          <ChoiceGroup
+            variant="segmented"
+            value={selectedFilter}
+            onChange={(next) => onSelectFilter?.(next as SearchFilter)}
+            aria-label="Фильтр поиска"
+            className={styles.segmented}
+          >
+            {filterOptions.map((opt) => (
+              <ChoiceItem key={opt} value={opt}>
+                {FILTER_LABELS[opt]}
+              </ChoiceItem>
+            ))}
+          </ChoiceGroup>
+        </div>
+      )}
+
+      {showNutrientFilter && (
+        <div className={styles.filterSection}>
+          <Text as="span" role="label" className={styles.filterSectionLabel}>
+            Богатая нутриентом
+          </Text>
+          {!selectedNutrientLabel ? (
+            <button
+              type="button"
+              className={styles.nutrientPickRow}
+              onClick={onOpenNutrientPicker}
+            >
+              <NutrientIcon />
+              <Text as="span" role="label">
+                Выбрать нутриент
+              </Text>
+            </button>
+          ) : (
+            <div className={styles.nutrientPill}>
+              <button
+                type="button"
+                className={styles.nutrientPillMain}
+                onClick={onOpenNutrientPicker}
+                aria-label={`Нутриент: ${selectedNutrientLabel}. Изменить`}
+              >
+                <NutrientIcon />
+                <Text as="span" role="label" className={styles.nutrientPillLabel}>
+                  {selectedNutrientLabel}
+                </Text>
+              </button>
+              <button
+                type="button"
+                className={styles.nutrientPillClear}
+                onClick={onClearNutrient}
+                aria-label="Отменить выбор нутриента"
+              >
+                <CrossIcon />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    // One common bar = the component root (бывшая обёртка .controls убрана 2026-06-26 —
-    // была пустой колонкой-пустышкой). The back button sits OUTSIDE to the left,
-    // everything else — search field + (segmented Еда|Мое) + the nutrient («richness»)
-    // button — rides inside a single pill. In dishes-only mode there's no filter and
-    // no nutrient button, so a static serif title stands beside the pill.
+    // One common bar = the component root. The back button sits OUTSIDE to the left,
+    // the search field rides inside a single pill, and filtering/sorting hide behind a
+    // sliders button (popover) on the right. In dishes-only mode there's no filter, so
+    // a static serif title stands beside the pill and the filter button is absent.
     <div className={clsx(styles.bar, className)}>
       {onBack && <BackButton onClick={onBack} />}
 
@@ -90,62 +172,24 @@ const SearchFoodControls = ({
             icon={<CrossIcon />}
           />
         )}
-
-        {hasFilter && filterOptions && (
-          <ChoiceGroup
-            variant="segmented"
-            value={selectedFilter}
-            onChange={(next) => onSelectFilter?.(next as SearchFilter)}
-            aria-label="Фильтр поиска"
-            className={styles.segmented}
-          >
-            {filterOptions.map((opt) => (
-              <ChoiceItem key={opt} value={opt}>
-                {FILTER_LABELS[opt]}
-              </ChoiceItem>
-            ))}
-          </ChoiceGroup>
-        )}
-
-        {/* Нутриент-фильтр в баре: idle — ghost-иконка (открывает drawer-выбор);
-              выбран — чёрная пилюля «иконка · имя · ×» в духе сегмента Всё|Мое.
-              Инпут (flex:1, min-width:0) ужимается под неё. */}
-        {showNutrientFilter && !selectedNutrientLabel && (
-          <IconButton
-            tone="neutral"
-            size={36}
-            className={styles.nutrientIconCold}
-            onClick={onOpenNutrientPicker}
-            aria-label="Фильтр по нутриенту"
-            title="Нутриенты"
-            icon={<NutrientIcon width={20} height={20} />}
-          />
-        )}
-
-        {showNutrientFilter && selectedNutrientLabel && (
-          <div className={styles.nutrientPill}>
-            <button
-              type="button"
-              className={styles.nutrientPillMain}
-              onClick={onOpenNutrientPicker}
-              aria-label={`Нутриент: ${selectedNutrientLabel}. Изменить`}
-            >
-              <NutrientIcon />
-              <Text as="span" role="label" className={styles.nutrientPillLabel}>
-                {selectedNutrientLabel}
-              </Text>
-            </button>
-            <button
-              type="button"
-              className={styles.nutrientPillClear}
-              onClick={onClearNutrient}
-              aria-label="Отменить выбор нутриента"
-            >
-              <CrossIcon />
-            </button>
-          </div>
-        )}
       </div>
+
+      {showFilterButton && (
+        <PopoverTrigger
+          placement="bottom-end"
+          trigger={
+            <IconButton
+              tone="neutral"
+              size={36}
+              className={clsx(styles.filterButton, filterActive && styles.filterButtonActive)}
+              aria-label="Фильтры поиска"
+              title="Фильтры"
+              icon={<FilterIcon width={20} height={20} />}
+            />
+          }
+          content={filterPanel}
+        />
+      )}
     </div>
   );
 };

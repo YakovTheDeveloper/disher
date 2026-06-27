@@ -52,6 +52,11 @@
     --sys-field-bg-from: #f4efe6;
     --sys-field-bg-mid: #f4efe6;
     --sys-field-bg-to: #f4efe6;
+    // SURFACE-AWARE well (формула field-depth($surface) ниже): поле = поверхность,
+    // утопленная на ОДИН постоянный шаг. Два knob'а — тон «тени» в канавке + её
+    // глубина; меняешь глубину ВЕЗДЕ одним числом, лунки не разъезжаются.
+    --sys-field-well-shade: #7c410f; // warm-brown — «мёд в канавке» (тёплый тон тени)
+    --sys-field-well-depth: 4%; // глубина утопления, единый knob на все ярусы
     --sys-field-text: var(--text-primary);
     --sys-field-placeholder: rgba(34, 31, 25, 0.4);
     --sys-field-adornment: rgba(34, 31, 25, 0.55);
@@ -68,7 +73,7 @@
     --sys-field-caret: #{$accent};
 
     --sys-chip-bg: linear-gradient(135deg,
-            #{list.nth($pill, 1)} 0%, #{list.nth($pill, 2)} 60%, #{list.nth($pill, 3)} 100%);
+        #{list.nth($pill, 1)} 0%, #{list.nth($pill, 2)} 60%, #{list.nth($pill, 3)} 100%);
     --sys-chip-border: #{rgba($accent, 0.5)};
     --sys-chip-text: #{$text};
     --sys-chip-text-muted: color-mix(in srgb, var(--sys-chip-text) 55%, transparent); // приглушённый chip-текст (remove ✕)
@@ -83,40 +88,28 @@
     --sys-chip-separator: var(--sys-color-divider);
 }
 
-// ── Strategy C (Edge-led) · SURFACE-AWARE field depth · #field-depth-surface ──
-// Approval-driven: юзер выбрал стратегию C на /предложке suggestion_e1cb2641
-// (2026-06-26). База поля (field-chip-palette выше) = ОДНА плоская «лунка» #f4efe6;
-// на ровной surface-0 (#f7f3eb, ΔL*≈1.4) она почти растворяется. Эти миксины делают
-// глубину SURFACE-AWARE: заливка сдвинута ЧУТЬ (~ΔL*1.5, почти в цвет поверхности), а
-// «утопленность» держит ВИДИМАЯ бровка (rest-хайрлайн, не только фокус) + углублённая
-// inset-тень — поле читается одинаково на любой поверхности (Material outlined-field).
-// Значения-кандидаты живут ЗДЕСЬ (mixin.scss exempt от token-gate); включаются на
-// surface-рутах через @include — НЕ сырьём в компонентах (приём ModalShell.wrapper).
-// Тёмная (inverted/floating) = лунка СВЕТЛЕЕ фона (инверсия) + светлые роли текста/
-// плейсхолдера/адорнмента/каретки. Источник истины формы — s_e1cb2641/data.ts стратегия C.
-// Фокус-роли (hairline-focus/shadow-focus) НЕ трогаем — наследуются от базы.
-
-@mixin field-depth-surface-0 {
-    --sys-field-bg-from: #f3efe7;
-    --sys-field-bg-mid: #f3efe7;
-    --sys-field-bg-to: #f3efe7;
-    --sys-field-hairline: rgba(124, 65, 15, 0.18);
-    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
-}
-
-@mixin field-depth-surface-1 {
-    --sys-field-bg-from: #faf6ef;
-    --sys-field-bg-mid: #faf6ef;
-    --sys-field-bg-to: #faf6ef;
-    --sys-field-hairline: rgba(124, 65, 15, 0.18);
-    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
-}
-
-@mixin field-depth-surface-2 {
-    --sys-field-bg-from: #f8f4ec;
-    --sys-field-bg-mid: #f8f4ec;
-    --sys-field-bg-to: #f8f4ec;
-    --sys-field-hairline: rgba(124, 65, 15, 0.18);
+// ── SURFACE-AWARE field depth · #field-depth ──────────────────────────────────
+// Поле = «утопленный слот» (well): дно канавки ТЕМНЕЕ доски, в которую врезано →
+// well = surface − ОДИН постоянный шаг. Шаг единый на всех ярусах, поэтому лунка
+// МОНОТОННО следует за поверхностью (белее лист → белее лунка, но всегда на
+// --sys-field-well-depth ниже), и ощущаемая глубина одинакова везде.
+//
+// РАНЬШЕ три яруса задавались РУЧНЫМИ хексами и разъехались: well-2 (#f8f4ec) вышел
+// ТЕМНЕЕ well-1 (#faf6ef), хотя surface-2 (#fff) светлее surface-1 — глубина скакала
+// 12/20/37 (сумма RGB-дельт) вместо константы. Заменено ФОРМУЛОЙ: лунка вычисляется
+// из ТОЙ ЖЕ surface-переменной, что покрасил контейнер (color-mix in oklch — канон
+// проекта: status-surface, row-bg). Передаёшь тот же токен, что в `background`, →
+// промахнуться номером поверхности нельзя, направление и глубина гарантированы.
+// Knob'ы (тон тени + глубина) — в field-chip-palette. Rest-бровки нет (2026-06-27);
+// фокус-бровка (hairline-focus) наследуется от базы. mixin.scss exempt от token-gate.
+//
+//   .modal { background: var(--sys-color-surface-2); @include field-depth(--sys-color-surface-2); }
+//
+@mixin field-depth($surface) {
+    --sys-field-bg-from: color-mix(in oklch, var(#{$surface}), var(--sys-field-well-shade) var(--sys-field-well-depth));
+    --sys-field-bg-mid: var(--sys-field-bg-from);
+    --sys-field-bg-to: var(--sys-field-bg-from);
+    --sys-field-hairline: transparent;
     --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
 }
 
@@ -128,12 +121,30 @@
     --sys-field-bg-from: #363029;
     --sys-field-bg-mid: #363029;
     --sys-field-bg-to: #363029;
-    --sys-field-hairline: rgba(255, 255, 255, 0.16);
+    --sys-field-hairline: transparent;
     --sys-field-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
     --sys-field-text: rgba(255, 255, 255, 0.92);
     --sys-field-placeholder: rgba(255, 255, 255, 0.45);
     --sys-field-adornment: rgba(255, 255, 255, 0.55);
     --sys-field-caret: rgba(255, 255, 255, 0.92);
+}
+
+// ── SURFACE-AWARE elevation · #surface-elevation ──────────────────────────────
+// Companion to field-depth($surface) above. There you pass the surface a field
+// sits ON and get the well-bg derived from it; here you pass the depth LEVEL a
+// surface sits AT (0/1/2) and get its PAIRED drop shadow. The pairing already
+// lives in tokens.scss (#sys-surface-depth: surface-0↔elevation-0(none),
+// surface-1↔elevation-1, surface-2↔elevation-2 — «Парные тени — --sys-elevation-*»);
+// this mixin binds fill-tier and shadow-tier at the ONE call site so a tier-1
+// sheet can't accidentally wear a tier-2 shadow (promahnut'sya nomerom nel'zya,
+// same guarantee field-depth gives the well). Sets ONLY box-shadow — the consumer
+// owns `background` (same split as field-depth owning only the well), so it
+// composes over whatever fill the surface already paints. mixin.scss exempt от token-gate.
+//
+//   .sheet { background: var(--sys-color-surface-1); @include surface-elevation(1); }
+//
+@mixin surface-elevation($level) {
+    box-shadow: var(--sys-elevation-#{$level});
 }
 
 // ── CARD & LIST palette ──────────────────────────────────────────────────────
@@ -593,7 +604,6 @@
     // Трек квадрата-гейджа — нейтрально-серый (был cool-blue #eef0f3, синил под
     // тёплыми жёлто-зелёными заливками). Де-холожено в нейтраль без желтизны, чтобы
     // не слиться с заливкой богатства. 2026-06-26.
-    --sys-card-rich-track: #eeeeec;
     --sys-card-rich-text: #2a2a2a;
     --sys-card-rich-unit: rgba(42, 42, 42, 0.6);
     --sys-card-rich-percent: rgba(42, 42, 42, 0.4);

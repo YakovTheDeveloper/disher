@@ -76,27 +76,27 @@ describe('ProductQuantity — portion selection', () => {
     expect(updateQuantity).toHaveBeenLastCalledWith(63);
   });
 
-  it('shows the multiplier row only after a portion is active', async () => {
+  it('shows the stepper only after a portion is active', async () => {
     const user = userEvent.setup();
     renderQuantity({ quantity: 0, product: { portions } });
 
-    expect(screen.queryByPlaceholderText('×')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Увеличить количество' })).not.toBeInTheDocument();
 
     await user.click(screen.getByText('среднее (50г)'));
 
-    expect(screen.getByPlaceholderText('×')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Увеличить количество' })).toBeInTheDocument();
   });
 
-  it('tapping the active portion again deselects it and hides the multiplier row', async () => {
+  it('tapping the active portion again deselects it and hides the stepper', async () => {
     const user = userEvent.setup();
     renderQuantity({ quantity: 0, product: { portions } });
 
     await user.click(screen.getByText('среднее (50г)'));
-    expect(screen.getByPlaceholderText('×')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Увеличить количество' })).toBeInTheDocument();
 
     // Second tap on the same portion clears the selection.
     await user.click(screen.getByText('среднее (50г)'));
-    expect(screen.queryByPlaceholderText('×')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Увеличить количество' })).not.toBeInTheDocument();
   });
 
   it('increasing the multiplier scales the active portion grams', async () => {
@@ -105,8 +105,33 @@ describe('ProductQuantity — portion selection', () => {
 
     await user.click(screen.getByText('среднее (50г)'));
     // "+" → multiplier 1.5 → round(50 × 1.5) = 75
-    await user.click(screen.getByRole('button', { name: '+' }));
+    await user.click(screen.getByRole('button', { name: 'Увеличить количество' }));
 
     expect(updateQuantity).toHaveBeenLastCalledWith(75);
+  });
+
+  it('shows a ×N readout derived from grams, not a stored multiplier', async () => {
+    const user = userEvent.setup();
+    renderQuantity({ quantity: 0, product: { portions } });
+
+    await user.click(screen.getByText('среднее (50г)'));
+    expect(screen.getByText('×1')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Увеличить количество' }));
+    expect(screen.getByText('×1.5')).toBeInTheDocument();
+  });
+
+  it('decreasing below half a portion is floored at ×0.5', async () => {
+    const user = userEvent.setup();
+    const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
+
+    await user.click(screen.getByText('среднее (50г)'));
+    // ×1 → "−" → ×0.5 → 25
+    await user.click(screen.getByRole('button', { name: 'Уменьшить количество' }));
+    expect(updateQuantity).toHaveBeenLastCalledWith(25);
+
+    // Already at the floor — another "−" stays at ×0.5 (25).
+    await user.click(screen.getByRole('button', { name: 'Уменьшить количество' }));
+    expect(updateQuantity).toHaveBeenLastCalledWith(25);
   });
 });

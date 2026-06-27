@@ -12,8 +12,10 @@
   // Surface-aware глубина поля (стратегия C, выбор юзера 2026-06-26): на ровной
   // surface-0 дефолтная лунка #f4efe6 (ΔL*≈1.4) растворялась — раньше её углубляла
   // временная проба #eee9e0. Теперь канон: per-surface override через миксин
-  // (mixin.scss · #field-depth-surface) — поле узнаётся бровкой + inset-тенью.
-  @include field-depth-surface-0;
+  // (mixin.scss · #field-depth) — поле узнаётся inset-тенью + фокус-бровкой.
+  @include field-depth(--sys-color-surface-0);
+
+  padding-inline: var(--sys-inset-modal-fullscreen);
 }
 
 .springOrbs {

@@ -5,8 +5,9 @@ import { Text } from '@/shared/ui/atoms/Typography/Text';
 
 // Ось ТОНА × ось ГРОМКОСТИ. Тона: system (уголь, строгий монохром) · primary
 // (амбра, бренд) · accent (индиго, холодный). Громкость: filled (сплошная) и
-// `-secondary` (тихий soft-tonal ярус). link/ghost — текстовые утилиты (ссылка /
-// тихая «отмена»), вне тоновой оси. Цвета — sys-токены `--sys-color-surface-action-*`.
+// `-secondary` (тихий soft-tonal ярус). surface — нейтральная приподнятая плитка
+// (плоскость задаёт `onSurface`), вне тоновой оси. link/ghost — текстовые утилиты
+// (ссылка / тихая «отмена»), вне тоновой оси. Цвета — sys-токены `--sys-color-surface-action-*`.
 export type ButtonVariant =
   | 'system'
   | 'primary'
@@ -14,6 +15,7 @@ export type ButtonVariant =
   | 'system-secondary'
   | 'primary-secondary'
   | 'accent-secondary'
+  | 'surface'
   | 'link'
   | 'ghost';
 
@@ -25,6 +27,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    * с тенью. Через проп, а не [data-surface] (per-surface темизация запрещена).
    */
   flat?: boolean;
+  /**
+   * Surface-lift: плоскость, НА которой лежит кнопка. Идёт в связке с
+   * `variant="surface"` (а также сам по себе включает surface-режим — обратная
+   * совместимость). Кнопка поднимается на ярус выше и отделяется от плоскости:
+   * · `0` (на surface-0, фон страницы) → fill surface-1 + РАМКА (hairline).
+   * · `1` (на surface-1) → fill surface-2 + РАМКА. Цветом на белом не отделить
+   *   (surface-2 #fff ≈ surface-1 #fefcf9) — отделяем кромкой.
+   * · `2` (на surface-2) → fill surface-2 + ТЕНЬ (elevation-2). Цветом выше некуда
+   *   — отделяемся подъёмом.
+   * Делает кнопку НЕЙТРАЛЬНОЙ плиткой — тон (system/primary/accent) игнорируется.
+   */
+  onSurface?: 0 | 1 | 2;
   /**
    * Полная ширина (width:100%). Ширина ортогональна тону — её объявляет консумер
    * (этим пропом или родительским flex), а не вшита в variant.
@@ -56,6 +70,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
   'system-secondary': s.systemSecondary,
   'primary-secondary': s.primarySecondary,
   'accent-secondary': s.accentSecondary,
+  surface: s.surface,
   link: s.link,
   ghost: s.ghost,
 };
@@ -66,6 +81,7 @@ const Button: ButtonComponent = ({
   trailingIcon,
   children,
   variant = 'system',
+  onSurface,
   flat = false,
   fullWidth = false,
   isLoading = false,
@@ -85,9 +101,22 @@ const Button: ButtonComponent = ({
   // блокировка в as="label" режиме (у <label> нет disabled-атрибута).
   const isDisabled = Boolean(isLoading || disabled);
 
+  // surface-режим: нейтральная приподнятая плитка. Включается variant="surface"
+  // ИЛИ самим onSurface (обратная совместимость). Тон игнорируется. Плоскость
+  // (onSurface) выбирает отделение: 0|1 → рамка (0 ещё и fill surface-1), 2 → тень.
+  // Дефолт — 1.
+  const isSurface = variant === 'surface' || onSurface != null;
+  const plane = onSurface ?? 1;
+
   const buttonClasses = clsx(
     s.button,
-    VARIANT_CLASS[variant],
+    isSurface
+      ? clsx(
+          s.surface,
+          plane === 2 ? s.surfaceShadow : s.surfaceBordered,
+          plane === 0 && s.surfacePlane0
+        )
+      : VARIANT_CLASS[variant],
     flat && s.flat,
     fullWidth && s.fullWidth,
     isDisabled && s.disabled,
@@ -98,8 +127,13 @@ const Button: ButtonComponent = ({
   // Подпись кнопки несёт типо-РОЛЬ через <Text> (миграция «везде на Text»,
   // 2026-06-24): tone-варианты (filled + secondary) → label (16/600), link → body
   // (16/500), ghost — bespoke (italic, роли нет) → без <Text>, размер из CSS.
-  const labelRole: 'label' | 'body' | null =
-    variant === 'ghost' ? null : variant === 'link' ? 'body' : 'label';
+  const labelRole: 'label' | 'body' | null = isSurface
+    ? 'label'
+    : variant === 'ghost'
+      ? null
+      : variant === 'link'
+        ? 'body'
+        : 'label';
   const labelNode = isLoading ? 'Loading...' : children;
 
   const content = (

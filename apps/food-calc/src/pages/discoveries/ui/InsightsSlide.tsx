@@ -30,7 +30,7 @@ const InsightsSlide = ({ topSlot }: Props) => {
           <EmptyState
             className={styles.empty}
             title="Пока нет инсайтов"
-            description="Инсайты появляются на разборе дня или блюда — это связки и предостережения по твоей еде. Нажми «Добавить к себе» на разборе, и они окажутся здесь."
+            description="Инсайты появляются на разборе дня или блюда — это связки и предостережения по твоей еде. Нажми «Сохранить» на разборе, и они окажутся здесь."
           />
         ) : (
           <InsightListPanel insights={insights} onDelete={handleDelete} />

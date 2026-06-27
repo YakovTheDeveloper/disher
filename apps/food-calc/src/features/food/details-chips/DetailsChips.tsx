@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Chip } from '@/shared/ui/atoms/Chip';
+import { Chip, type ChipSurface } from '@/shared/ui/atoms/Chip';
 import { getSuggestionsForProduct } from '@/shared/data/tag-suggestions';
 import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
@@ -33,6 +33,8 @@ type Props = {
   productId: string | null;
   textareaId: string;
   placeholder?: string;
+  /** Surface-тир хоста, на котором лежат чипы — пробрасывается в <Chip>. */
+  surface?: ChipSurface;
 };
 
 function readCategories(product: { categories: string } | null): readonly string[] {
@@ -61,6 +63,7 @@ export function DetailsChips({
   productId,
   textareaId,
   placeholder = 'Уточнение к записи...',
+  surface = 0,
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
@@ -118,6 +121,7 @@ export function DetailsChips({
               <Chip
                 key={tag}
                 active={active}
+                surface={surface}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleToggle(tag)}
                 aria-pressed={active}
@@ -140,6 +144,7 @@ export function DetailsChips({
                 key={tag}
                 tag={tag}
                 active={hasTag(value, tag)}
+                surface={surface}
                 onToggle={() => handleToggle(tag)}
                 onDelete={() => handleDeleteCustom(tag)}
               />
@@ -157,13 +162,14 @@ export function DetailsChips({
 type CustomChipProps = {
   tag: string;
   active: boolean;
+  surface?: ChipSurface;
   onToggle: () => void;
   onDelete: () => void;
 };
 
 // Long-press (~500ms) opens a confirm + delete. Toggle on regular click is
 // suppressed when the long-press fired so a hold doesn't also flip the chip.
-function CustomChip({ tag, active, onToggle, onDelete }: CustomChipProps) {
+function CustomChip({ tag, active, surface = 0, onToggle, onDelete }: CustomChipProps) {
   const timerRef = useRef<number | null>(null);
   const firedRef = useRef(false);
   const startRef = useRef<{ x: number; y: number } | null>(null);
@@ -217,6 +223,7 @@ function CustomChip({ tag, active, onToggle, onDelete }: CustomChipProps) {
   return (
     <Chip
       active={active}
+      surface={surface}
       // styles.customChipPress отключает iOS callout/text-selection для long-press
       // явно на корне CustomChip — не зависит от структуры Chip (см. SCSS-комментарий).
       className={styles.customChipPress}

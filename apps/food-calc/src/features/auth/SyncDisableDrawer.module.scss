@@ -1,0 +1,70 @@
+// OFF-warning drawer. Content owns padding (surface owns bg) — drawer-layout
+// canon. Cancel / danger buttons hand-styled (not the Button atom) so the
+// danger tone stays token-driven — mirrors ConfirmDrawer's cancel /
+// confirmDanger; «Скачать выгрузку» above them is the Button atom.
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+    padding: 4px var(--sys-inset-sheet) 24px;
+}
+
+.title {
+    text-align: center;
+    text-wrap: balance;
+}
+
+.message {
+    text-align: center;
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+
+    > * {
+        flex: 1;
+    }
+}
+
+.cancel,
+.confirmDanger {
+    padding: 12px 16px;
+    border-radius: var(--sys-radius-cta);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        transform var(--press-out) var(--easing-default),
+        filter var(--press-out) var(--easing-default),
+        background var(--press-out) var(--easing-default),
+        color var(--press-out) var(--easing-default);
+
+    &:active {
+        transform: scale(0.97);
+        transition-duration: var(--sys-duration-press-in);
+    }
+}
+
+// Тихая отмена: рамка по ink-токену, при нажатии заливается ink + белый текст.
+.cancel {
+    border: 1px solid var(--sys-color-border-subtle);
+    background: transparent;
+    color: var(--sys-color-text-secondary);
+
+    &:active {
+        background: var(--sys-color-surface-action-system);
+        border-color: var(--sys-color-border-action-system);
+        color: var(--sys-color-text-on-accent);
+    }
+}
+
+.confirmDanger {
+    border: none;
+    background: var(--sys-color-status-danger);
+    color: var(--sys-color-text-on-accent);
+
+    &:active {
+        filter: brightness(0.9);
+    }
+}

@@ -55,6 +55,7 @@ export function EditableQuantity({
   return (
     <QtyStack
       unit={unit}
+      mirror={String(draft)}
       data-entity-edit={dataEntityEdit || undefined}
       onKeyDown={(e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
