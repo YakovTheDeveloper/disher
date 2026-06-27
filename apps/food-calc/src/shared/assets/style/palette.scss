@@ -1,7 +1,6 @@
 :root {
     // ─── Raw palette ───────────────────────────────────────────
     --color-blue-2: #0071e3;
-    --color-purple: rgb(115, 45, 255);
     --color-deep-blue: rgb(55, 0, 255);
 
     --color-accent: var(--color-deep-blue);
@@ -10,10 +9,7 @@
     --color-danger: rgb(236, 0, 0);
     // Semantic warning (амбер) — единственный «осторожно» акцент (mass-warning
     // в редакторе нутриентов). Раньше эти значения хардкодились в ProductPage.
-    --color-warning: rgb(184, 110, 26);
-    --color-warning-surface: rgba(235, 137, 39, 0.1);
     --color-warning-border: rgba(235, 137, 39, 0.25);
-    --color-light-gray: #8a8a8a;
 
     // ─── Semantic: surfaces (warm-soft v2 OKLCH, hue-locked 85 — «paper, not screen») ──
     // Канон 2026-06-24: тёплая-мягкая палитра (tds/ANALYSIS/token-canon-rename §4.0,

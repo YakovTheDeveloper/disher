@@ -45,7 +45,6 @@
   --text-lg: 1.25rem; // 20px
   --text-xl: 1.563rem; // 25px
   --text-2xl: 1.953rem; // 31.3px
-  --text-meta: 12px; // compact meta line, off-scale (HomeTopBar)
 
   // ─── Font families — #font-families ──────────────────────────
   --font-sans: var(--sys-text-family-sans); // Onest-first body voice
@@ -440,10 +439,8 @@
   //  ниже; бывший --sys-color-text-on-action слит в --sys-color-on-action-primary 2026-06-26.)
   --sys-color-status-danger: var(--ref-color-terracotta-600);
   --sys-color-status-warning: var(--ref-color-amber-earth-600);
-  --sys-color-status-done: var(--ref-color-moss-600);
   --sys-color-status-stale: var(--ref-color-sepia-500);
-  --sys-color-status-pending: var(--ref-color-neutral-400);
-  --sys-color-status-success: var(--ref-color-moss-600); // = done value; имя для positive-status семантики
+  --sys-color-status-success: var(--ref-color-moss-600); // positive-status семантика (= moss; бывш. -done/-pending сняты 2026-06-27, 0 консументов)
   // status · faint surface tints (баннеры/чипы статуса). OKLCH-смесь якоря статуса
   // с тёплой бумагой — снап сырых red/amber/green washes сюда.
   --sys-color-status-danger-surface: color-mix(in oklch, var(--ref-color-terracotta-600) 9%, var(--surface-base));
