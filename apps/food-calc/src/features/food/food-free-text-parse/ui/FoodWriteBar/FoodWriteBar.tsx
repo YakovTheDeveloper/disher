@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, type CSSProperties } from 'react';
 import clsx from 'clsx';
 import { WriteBarShell, WriteBarMedal } from '@/shared/ui/WriteBarShell';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -14,31 +14,38 @@ const ARC_BOTTOM = 'вручную';
 const FOOD_TILE_IMG = '/art/plate.png';
 // aria-label медали (видимый текст дуг одинаков; сведён к одному 2026-06-25).
 const SEARCH_LABEL = 'Найти еду';
-const PLACEHOLDER = 'Напишите, что вы ели';
+// Двухстрочный плейсхолдер — занимает обе строки высокого бара (textarea-
+// плейсхолдер чтит `\n`). Список-кнопка справа держит оффлайн-путь; инпут —
+// онлайн free-text. На populated-экране виден этот статичный текст (карусель
+// примеров крутится только на пустом онбординг-экране, см. PLACEHOLDER_EXAMPLES).
+const PLACEHOLDER = 'Опишите прием пищи, типа: овсянка 100, банан 1 шт';
 const ANCHOR_SELECTOR = '[data-write-food-anchor]';
 
-// DesignBar-анкор «FoodListCta»: как выглядит правый affordance «добавить еду».
-// `medal` — текущий канон (монета-печать). Остальные — эксперимент: обычная
-// Button «Список» с ведущей иконкой «вилка+нож», в разных цветовых обликах. Все
-// варианты остаются `<label htmlFor>` → делегируют фокус в каталог-инпут (тот же
-// механизм, что у медали). Цвет каждого облика задан в .module.scss по `data-dv-v`
-// (заливка + парный контрастный текст: тёмная заливка → светлый текст и наоборот).
-const LIST_CTA_LABEL = 'Список';
-const LIST_CTA_VARIANTS = [
-  'medal', // канон — монета-печать
-  // ── наша палитра (sys-токены) ──
-  'coal', // тёмный уголь · белый текст
-  'floating', // near-black floating ink · белый текст
-  'indigo', // accent indigo · белый текст
-  'indigo-soft', // soft indigo · indigo текст
-  'amber', // бренд-медовый · тёмный ink-текст
-  'amber-soft', // soft медовый · deep-amber текст
-  // ── родная жёлтая палитра ──
-  'lemon', // яркий лимон · тёмный текст
-  'gold', // золотой мёд · тёмный текст
-  // ── ещё один ──
-  'lime', // свежий зелёный · тёмный текст
-] as const;
+// DesignBar-анкор «FoodListCta»: ФОРМА входа «список еды» в высоком (2-строчном)
+// баре. Оба варианта = «еда» справа за фейдинг-дивайдером, в потоке (не перекрывает
+// список); отличие только в облике affordance. «Список» — не вторичная кнопка:
+// free-text-инпут требует интернет (LLM), а приложение offline-first → каталог
+// (в бандле) и есть единственный рабочий путь добавить еду оффлайн. Поэтому
+// оффлайн-эмфаза (`data-net='on'|'off'`): тихо онлайн → заметнее оффлайн.
+//
+//   tall-split — круг-иконка (вилка-нож), оффлайн-адаптивная амбра
+//   tall-medal — монета-печать «Список еды / вручную» (тот же канон-медальон)
+const LIST_CTA_VARIANTS = ['tall-split', 'tall-medal'] as const;
+
+// DesignBar-анкор «FoodListTint»: ПОДЛОЖКА круг-кнопки tall-split — отдельная ось
+// для подбора цвета фона глазами (предложка-стиль). Первый = дефолт (медовый soft,
+// как было). Оффлайн-эмфаза перебивает любой тинт сплошной амброй (см. .module.scss).
+//   amber-soft · amber · paper (тёплый лист) · ink (тёмная) · accent (индиго)
+const LIST_CTA_TINTS = ['amber-soft', 'amber', 'paper', 'ink', 'accent'] as const;
+
+// Высокий бар: 2 строки + крупная send-монета + концентричный радиус пилюли
+// (рифмуется с углом док-плашки, см. --sys-radius-overlay-inner). Подаётся инлайн-
+// override geometry-vars на .wrap — минимальный API, без правки базовых классов.
+const TALL_STYLE = {
+  '--pill-h': '68px',
+  '--coin-size': '64px',
+  '--wb-pill-radius': 'var(--sys-radius-overlay-inner)',
+} as CSSProperties;
 
 // Вилка+нож (Lucide «utensils») — ведущая иконка кнопки «Список». Залита
 // currentColor → наследует цвет текста кнопки, поэтому контраст к заливке (белый
@@ -73,8 +80,7 @@ const PLACEHOLDER_EXAMPLES = [
 
 // Подсказка-пример над баром в фокусе. Переносы — через `\n` (CSS white-space:
 // pre-line); без них длинные строки авто-переносит по ширине 80%.
-const HINT =
-  'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30';
+const HINT = 'Например, 9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30';
 
 export interface FoodWriteBarProps {
   /** free-text-food flow (см. `useWriteFoodFlow`). */
@@ -95,9 +101,9 @@ export interface FoodWriteBarProps {
  * 2026-06-25) и редундантную пару `AppBottomBar`(write) + `raisedFoodDock`.
  *
  * Весь облик и тексты вшиты (максимальная конвергенция экранов); наружу торчат
- * только функциональные пропы. Медаль едет на штатном шве `rightSlot` (как `clip`
- * на `leftSlot` у Событий/Гипотез) — её float/collapse владеют `WriteBarShell`/
- * `WriteBarMedal`, тут только конфиг + подъём дока (`.dock` padding-bottom).
+ * только функциональные пропы. Вход «список еды» едет в `trailingSlot` высокого
+ * бара (в потоке, за фейдинг-дивайдером, не перекрывает список) — облик выбирает
+ * DesignBar-анкор `FoodListCta` (tall-split круг-иконка / tall-medal монета).
  * Caller обязан НЕ монтировать `<WriteFoodModals>` overlay — иначе дубль `inputId`.
  */
 export const FoodWriteBar = ({
@@ -110,12 +116,30 @@ export const FoodWriteBar = ({
   const isReady = flow.state === 'ready';
   const isLoading = flow.state === 'loading';
 
-  // Эксперимент-облик правого affordance (см. LIST_CTA_VARIANTS).
+  // Эксперимент-облик affordance «список еды» (см. LIST_CTA_VARIANTS).
   const { variant: listCta, anchor: listCtaAnchor } = useDesignVariant(
     'FoodListCta',
-    LIST_CTA_VARIANTS,
+    LIST_CTA_VARIANTS
   );
-  const ctaIsButton = listCta !== 'medal';
+  // tall-medal = монета-печать в trailing; иначе (tall-split) круг-иконка.
+  const isMedalTrail = listCta === 'tall-medal';
+  // Подложка круг-кнопки (tall-split) — отдельная ось DesignBar (см. LIST_CTA_TINTS).
+  const { anchor: listTintAnchor } = useDesignVariant('FoodListTint', LIST_CTA_TINTS);
+  // Оффлайн-эмфаза: онлайн тихо, оффлайн — заметный единственный путь.
+  const netAttr = online ? 'on' : 'off';
+
+  // Кнопка-«Список» (tall-split) — icon-only круг вилка-нож. Облик/вес задаёт
+  // обёртка `.listCtaTrail[data-dv-v='tall-split']` в .module.scss.
+  const ctaButton = (
+    <Button
+      as="label"
+      htmlFor={searchHtmlFor}
+      aria-label={SEARCH_LABEL}
+      variant="system"
+      icon={<ForkKnifeIcon />}
+      className={clsx(s.listCtaButton, isReady && s.listCtaDim)}
+    />
+  );
 
   const handleSubmit = useCallback(
     (text: string) => {
@@ -152,6 +176,33 @@ export const FoodWriteBar = ({
         hint={HINT}
         writeState={isReady ? 'ready' : 'idle'}
         scrollToOnSubmit={ANCHOR_SELECTOR}
+        minRows={2}
+        style={TALL_STYLE}
+        autoHideSend
+        trailingSlot={
+          // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,
+          // не перекрывает список). Обёртка несёт DesignBar-анкор + оффлайн-эмфазу.
+          <div className={s.listCtaTrail} data-net={netAttr} {...listCtaAnchor}>
+            {isMedalTrail ? (
+              // tall-medal: монета-печать в потоке (floating={false} → не уезжает
+              // в плавающий режим, не сворачивается на фокусе).
+              <WriteBarMedal
+                htmlFor={searchHtmlFor}
+                ariaLabel={SEARCH_LABEL}
+                img={FOOD_TILE_IMG}
+                arcTop={ARC_TOP}
+                arcBottom={ARC_BOTTOM}
+                floating={false}
+                dimmed={isReady}
+              />
+            ) : (
+              // tall-split: tint-обёртка несёт ось `FoodListTint` (подбор подложки).
+              <span className={s.listCtaTint} {...listTintAnchor}>
+                {ctaButton}
+              </span>
+            )}
+          </div>
+        }
         fieldOverride={
           isReady ? (
             // Канон-вариант `link` (скроллит к предложке). `.readyCta` оставляет
@@ -160,35 +211,6 @@ export const FoodWriteBar = ({
               Посмотреть варианты
             </Button>
           ) : undefined
-        }
-        rightSlot={
-          // Обёртка несёт DesignBar-анкор (data-dv*/ref) и — для button-вариантов
-          // — плавающее позиционирование у правого края (медаль позиционирует себя
-          // сама, обёртка для неё прозрачна — static, 0-высоты вне потока).
-          <div className={s.listCtaSlot} {...listCtaAnchor}>
-            {ctaIsButton ? (
-              <Button
-                as="label"
-                htmlFor={searchHtmlFor}
-                aria-label={SEARCH_LABEL}
-                variant="system"
-                icon={<ForkKnifeIcon />}
-                className={clsx(s.listCtaButton, isReady && s.listCtaDim)}
-              >
-                {LIST_CTA_LABEL}
-              </Button>
-            ) : (
-              <WriteBarMedal
-                htmlFor={searchHtmlFor}
-                ariaLabel={SEARCH_LABEL}
-                img={FOOD_TILE_IMG}
-                arcTop={ARC_TOP}
-                arcBottom={ARC_BOTTOM}
-                lifted
-                dimmed={isReady}
-              />
-            )}
-          </div>
         }
       />
     </div>

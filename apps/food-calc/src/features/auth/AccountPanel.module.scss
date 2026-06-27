@@ -10,21 +10,21 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  // Шестерёнка живёт в тёмной floating-пилюле бара (--sys-color-surface-floating):
-  // приглушённый БЕЛЫЙ глиф (бывш. приглушённый чёрный rgba(0,0,0,0.2) под белую
-  // пилюлю; канон тёмной обвязки 2026-06-23).
-  color: var(--sys-color-on-floating-muted);
+  // Обёртка .accountSlot — светлая бумажная system-soft пилюля (re-anchor
+  // 2026-06-26). Глиф должен читаться на ней → system-soft чернила (тёмно-тональный
+  // foreground), а не бывший приглушённый БЕЛЫЙ on-floating (он под старую тёмную
+  // пилюлю → на бумаге почти невидим, кнопка читалась «кривой»).
+  color: var(--sys-color-text-action-system-soft);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Светлый флэш (канон 2026-06-23): тёмная пилюля на press заливается белым,
-  // иконка чернеет.
+  // Press: ступень system-soft-pressed (видимый «вдав» бумажной пилюли), глиф
+  // остаётся тёмным.
   &:active {
-    background: var(--sys-color-surface-floating-pressed);
-    color: var(--sys-color-text-system);
+    background: var(--sys-color-surface-action-system-soft-pressed);
     transform: scale(0.94);
     transition-duration: var(--sys-duration-press-in);
   }

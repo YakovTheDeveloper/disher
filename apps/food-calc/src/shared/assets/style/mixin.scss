@@ -83,6 +83,59 @@
     --sys-chip-separator: var(--sys-color-divider);
 }
 
+// ── Strategy C (Edge-led) · SURFACE-AWARE field depth · #field-depth-surface ──
+// Approval-driven: юзер выбрал стратегию C на /предложке suggestion_e1cb2641
+// (2026-06-26). База поля (field-chip-palette выше) = ОДНА плоская «лунка» #f4efe6;
+// на ровной surface-0 (#f7f3eb, ΔL*≈1.4) она почти растворяется. Эти миксины делают
+// глубину SURFACE-AWARE: заливка сдвинута ЧУТЬ (~ΔL*1.5, почти в цвет поверхности), а
+// «утопленность» держит ВИДИМАЯ бровка (rest-хайрлайн, не только фокус) + углублённая
+// inset-тень — поле читается одинаково на любой поверхности (Material outlined-field).
+// Значения-кандидаты живут ЗДЕСЬ (mixin.scss exempt от token-gate); включаются на
+// surface-рутах через @include — НЕ сырьём в компонентах (приём ModalShell.wrapper).
+// Тёмная (inverted/floating) = лунка СВЕТЛЕЕ фона (инверсия) + светлые роли текста/
+// плейсхолдера/адорнмента/каретки. Источник истины формы — s_e1cb2641/data.ts стратегия C.
+// Фокус-роли (hairline-focus/shadow-focus) НЕ трогаем — наследуются от базы.
+
+@mixin field-depth-surface-0 {
+    --sys-field-bg-from: #f3efe7;
+    --sys-field-bg-mid: #f3efe7;
+    --sys-field-bg-to: #f3efe7;
+    --sys-field-hairline: rgba(124, 65, 15, 0.18);
+    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
+}
+
+@mixin field-depth-surface-1 {
+    --sys-field-bg-from: #faf6ef;
+    --sys-field-bg-mid: #faf6ef;
+    --sys-field-bg-to: #faf6ef;
+    --sys-field-hairline: rgba(124, 65, 15, 0.18);
+    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
+}
+
+@mixin field-depth-surface-2 {
+    --sys-field-bg-from: #f8f4ec;
+    --sys-field-bg-mid: #f8f4ec;
+    --sys-field-bg-to: #f8f4ec;
+    --sys-field-hairline: rgba(124, 65, 15, 0.18);
+    --sys-field-shadow: inset 0 1px 2px rgba(124, 65, 15, 0.12);
+}
+
+// Тёмная поверхность (floating bar). Пока БЕЗ потребителя в живом app (тёмных
+// текстовых полей нет — floating-обвязка несёт кнопки, не поля); определён ради
+// полноты набора + соответствия /предложке. Завести = один @include на тёмном
+// field-руте, когда он появится.
+@mixin field-depth-surface-inverted {
+    --sys-field-bg-from: #363029;
+    --sys-field-bg-mid: #363029;
+    --sys-field-bg-to: #363029;
+    --sys-field-hairline: rgba(255, 255, 255, 0.16);
+    --sys-field-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.28);
+    --sys-field-text: rgba(255, 255, 255, 0.92);
+    --sys-field-placeholder: rgba(255, 255, 255, 0.45);
+    --sys-field-adornment: rgba(255, 255, 255, 0.55);
+    --sys-field-caret: rgba(255, 255, 255, 0.92);
+}
+
 // ── CARD & LIST palette ──────────────────────────────────────────────────────
 // The lavender-gradient `card-palette` mixin was REMOVED 2026-06-22: the single
 // card canon is `paper-mono-cards()` below (flat, hue-free — chosen via предложка
@@ -493,10 +546,11 @@
 // `@include stripe-fork-row`. mixin.scss exempt от token-gate → сырые литералы тут ок.
 
 @mixin paper-mono-cards() {
-    // Фон страницы под группой списка. 2026-06-26: догрет в тёплую бумагу (запрос
-    // юзера «более тёплым список») — осознанный контраст с холодными инструментами
-    // (divider/back-шеврон/иконка нутриентов). Было #f5f3f0 (почти нейтраль, chroma .005).
-    --cards-page-bg: #f7f3eb; // тёплая бумага (warm-gap R-B=12 vs прежних 5; APCA tert 61.2 ≥60)
+    // Фон страницы под группой списка = тёплая бумага. Теплота живёт в ref-лестнице
+    // (--ref-color-neutral-100, ре-якорь 2026-06-26 по запросу «список теплее») —
+    // осознанный контраст с холодными инструментами (divider/back-шеврон/иконка
+    // нутриентов). Здесь bespoke-литерал снят, замкнуто на ref (sys→ref начисто).
+    --cards-page-bg: var(--ref-color-neutral-100); // = #f7f3eb (бывший bespoke)
 
     // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
     --sys-card-bg: transparent;

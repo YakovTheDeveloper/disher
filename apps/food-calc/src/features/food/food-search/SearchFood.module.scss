@@ -22,8 +22,12 @@
     // единый источник правды в mixin.scss. Поле/чипы наследуют :root mono.
     @include paper-mono-cards;
 
-    // Тёплый-soft фон страницы (n100) под белой группой.
-    background: var(--sys-color-surface-grouped);
+    // Тёплый-soft фон страницы (n100) под белой группой = база-стол surface-0.
+    background: var(--sys-color-surface-0);
+
+    // Поле поиска (шапка) сидит на surface-0 → surface-aware глубина (стратегия C):
+    // лунка узнаётся бровкой + inset-тенью, не растворяется в ровной тёплой бумаге.
+    @include field-depth-surface-0;
 
     // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
     // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
@@ -92,9 +96,9 @@
     right: 0;
 
     // Сплошная непрозрачная подложка в цвет страницы + скруглённый низ + тень.
-    // surface-grouped = var(--cards-page-bg) (та же тёплая бумага, что фон .content) —
-    // sys-токен под per-property гейт; панель бесшовно сливается с верхом страницы.
-    background: var(--sys-color-surface-grouped);
+    // surface-0 (#f7f3eb, та же тёплая бумага-база, что фон .content) — панель
+    // бесшовно сливается с верхом страницы.
+    background: var(--sys-color-surface-0);
     border-bottom-left-radius: var(--sys-radius-container);
     border-bottom-right-radius: var(--sys-radius-container);
     box-shadow: var(--sys-elevation-overlay);
@@ -136,7 +140,7 @@
 // ряда (per-row radius не нужен). min-height тянет бумагу до низа при коротком списке.
 .sheet {
     min-height: 100%;
-    background: var(--sys-color-surface-bright);
+    background: var(--sys-color-surface-0);
     padding-top: var(--sys-inset-page);
     box-shadow: var(--sys-elevation-overlay);
     overflow: hidden;

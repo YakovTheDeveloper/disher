@@ -163,7 +163,7 @@ const AnalysisResult = ({
                     source: insightSource,
                   });
                 }}
-                addLabel="Сохранить инсайт"
+                addLabel="Добавить себе"
                 addedAriaLabel="Инсайт сохранён"
                 addSuccessToast="Инсайт сохранён"
                 addErrorToast="Не удалось добавить инсайт"
@@ -189,7 +189,7 @@ const AnalysisResult = ({
                 onAdd={async () => {
                   await saveHypothesis({ title: hypothesis.title, body: hypothesis.body });
                 }}
-                addLabel="Сохранить гипотезу"
+                addLabel="Добавить себе"
                 addedAriaLabel="Гипотеза сохранена"
                 addSuccessToast="Гипотеза сохранена"
                 addErrorToast="Не удалось добавить гипотезу"

@@ -23,6 +23,12 @@ export interface AutoGrowSearchProps extends TextareaProps {
   onSubmit?: (value: string) => void;
   placeholder?: string;
   maxRows?: number;
+  /**
+   * Resting floor — the field never shrinks below this many rows, even empty.
+   * Default 1 (single-line at rest). Set to 2 for a "tall" messenger bar that
+   * shows two lines by default. Ignored in `singleLine` mode (always 1).
+   */
+  minRows?: number;
   collapseOnBlur?: boolean;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
@@ -53,6 +59,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       onSubmit,
       placeholder = 'Search',
       maxRows = 6,
+      minRows = 1,
       collapseOnBlur = true,
       startAdornment,
       endAdornment,
@@ -82,13 +89,14 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
       }
       el.style.height = '0';
       const cap = singleLine ? 1 : maxRows;
+      const floor = singleLine ? 1 : minRows;
       const next = Math.min(
-        Math.max(1, Math.floor(el.scrollHeight / lineHeightRef.current)),
+        Math.max(floor, Math.floor(el.scrollHeight / lineHeightRef.current)),
         cap
       );
       if (el.rows !== next) el.rows = next;
       el.style.height = '';
-    }, [maxRows, singleLine]);
+    }, [maxRows, minRows, singleLine]);
 
     useEffect(() => {
       recomputeRows();
@@ -132,7 +140,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
 
     const handleBlur = (e: FocusEvent<HTMLTextAreaElement>) => {
       if (collapseOnBlur && value === '' && innerRef.current) {
-        innerRef.current.rows = 1;
+        innerRef.current.rows = singleLine ? 1 : minRows;
       }
       onBlur?.(e);
     };
@@ -158,7 +166,7 @@ export const AutoGrowSearch = forwardRef<HTMLTextAreaElement, AutoGrowSearchProp
             data-base-ui-swipe-ignore=""
             {...rest}
             ref={innerRef}
-            rows={1}
+            rows={singleLine ? 1 : minRows}
             value={value}
             placeholder={placeholder}
             onChange={handleInput}

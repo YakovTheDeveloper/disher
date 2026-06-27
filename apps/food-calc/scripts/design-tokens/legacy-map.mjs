@@ -32,7 +32,7 @@ const COLOR_TEXT = {
   '--text-tertiary': '--sys-color-text-tertiary',
   '--text-muted': '--sys-color-text-muted',
   '--text-on-accent': '--sys-color-text-on-accent',
-  '--cta-brand-ink': '--sys-color-text-on-action',
+  '--cta-brand-ink': '--sys-color-on-action-primary',
   '--color-ink': '--sys-color-text-primary',
 };
 const SURFACE = {

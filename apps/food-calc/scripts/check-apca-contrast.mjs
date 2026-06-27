@@ -72,15 +72,35 @@ function tokenValue(file, name) {
   return m[1].split('//')[0].trim();
 }
 
+// Резолвер var()-цепочек: токен-граф многоярусный (sys→ref), значение поверхности
+// может быть var(--ref-…) вместо литерала. Карта всех --token:value из палитр-файлов
+// → разворачиваем ссылку до литерала (hex/rgba), который умеет parse(). No-op на литерале.
+const TOKEN_FILES = ['tokens.scss', 'palette.scss', 'mixin.scss'];
+const TOKEN_MAP = (() => {
+  const map = new Map();
+  for (const f of TOKEN_FILES) {
+    const text = readFileSync(join(STYLE, f), 'utf8');
+    for (const m of text.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
+      if (!map.has(m[1])) map.set(m[1], m[2].split('//')[0].trim());
+    }
+  }
+  return map;
+})();
+function resolve(value, depth = 0) {
+  const v = value.trim().match(/^var\(\s*(--[\w-]+)\s*(?:,[^)]*)?\)$/);
+  if (v && depth < 16 && TOKEN_MAP.has(v[1])) return resolve(TOKEN_MAP.get(v[1]), depth + 1);
+  return value.trim();
+}
+
 const TEXT = {
-  'text-primary': { value: tokenValue('palette.scss', '--text-primary'), min: 75 },
-  'text-secondary': { value: tokenValue('palette.scss', '--text-secondary'), min: 60 },
-  'text-tertiary': { value: tokenValue('palette.scss', '--text-tertiary'), min: 60 },
+  'text-primary': { value: resolve(tokenValue('palette.scss', '--text-primary')), min: 75 },
+  'text-secondary': { value: resolve(tokenValue('palette.scss', '--text-secondary')), min: 60 },
+  'text-tertiary': { value: resolve(tokenValue('palette.scss', '--text-tertiary')), min: 60 },
 };
 
-const surfaceBase = tokenValue('palette.scss', '--surface-base'); // #fefcf9
-const surfaceRaised = tokenValue('palette.scss', '--surface-raised'); // rgba(...)
-const cardsPageBg = tokenValue('mixin.scss', '--cards-page-bg'); // #f5f3f0
+const surfaceBase = resolve(tokenValue('palette.scss', '--surface-base')); // #fefcf9
+const surfaceRaised = resolve(tokenValue('palette.scss', '--surface-raised')); // rgba(...)
+const cardsPageBg = resolve(tokenValue('mixin.scss', '--cards-page-bg')); // → #f7f3eb (var→ref)
 
 // Реальные непрозрачные фоны под текстом (raised композитим над обоими backdrop'ами).
 const SURFACES = {

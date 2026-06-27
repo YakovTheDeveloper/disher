@@ -3,9 +3,9 @@
   font-family: var(--sys-text-family-serif);
   font-style: italic;
   font-weight: 500;
-  font-size: var(--sys-text-size-label);
+  font-size: var(--sys-text-size-base); // 16 — label-рунг через t-shirt-шкалу (escape = только шкала, без имён ролей)
   letter-spacing: -0.2px;
   line-height: 1.1;
-  color: var(--sys-color-text-primary);
-  opacity: 0.5;
+  color: var(--sys-color-text-quiet);
+  opacity: 0.7;
 }

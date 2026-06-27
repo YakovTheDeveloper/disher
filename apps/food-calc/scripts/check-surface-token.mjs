@@ -73,7 +73,11 @@ function approved(value, vars, seen = new Set()) {
 function surfaceFills(src, selector) {
   const fills = [];
   const sel = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`(?:^|\\})\\s*${sel}\\s*\\{`, 'g');
+  // Anchor the surface-root selector at start-of-file, after a closing `}`, or
+  // after a `;` — the last case covers a leading `@import '…/mixin.scss';` above
+  // the selector (needed once a surface root @includes a field-depth mixin). The
+  // registry holds only top-level roots, so `;` can't smuggle in a nested rule.
+  const re = new RegExp(`(?:^|\\}|;)\\s*${sel}\\s*\\{`, 'g');
   let m;
   while ((m = re.exec(src))) {
     let depth = 0;

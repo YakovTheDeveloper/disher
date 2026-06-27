@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
-import clsx from 'clsx';
 import { SwitcherTab } from '@/shared/ui/SwitcherTab';
-import { QuietLabel } from '@/shared/ui/atoms/Typography';
 import s from './ScreenIndicator.module.scss';
 
 export type TileTitleStyle = 'serif-initial' | 'display-sans' | 'mono-track';
 
-// Номера таблиц для индикатора-варианта `tab-numerals` (рендерятся в <QuietLabel>).
-const PLATE_NUMERALS = ['I', 'II', 'III', 'IV', 'V'];
+// Аффорданс «листаемые разделы» живёт на самих табах: у неактивной подписи
+// guillemet-указатель в сторону её экрана (‹ слева / › справа) — знакомит юзера
+// с тем, что разделы свайпаются. Отдельного ряда-индикатора (легаси I · II · III)
+// больше нет — баком до tab-arrows-only.
 
 export type ScreenEntry = {
   label: string;
@@ -85,35 +85,25 @@ export const ScreenIndicator = ({
         />
       )}
       <div className={s.tilesRow} role="tablist" aria-label={tablistLabel}>
-        {screens.map((screen, i) => (
-          <SwitcherTab
-            key={screen.label}
-            role="tab"
-            aria-selected={screen.label === activeLabel}
-            label={screen.label}
-            image={screen.image}
-            active={screen.label === activeLabel}
-            style={{ gridColumnStart: i + 1 + colOffset }}
-            onClick={() => onSelect(i)}
-          />
-        ))}
-      </div>
-
-      {/* Индикатор-точки «листаемые разделы». Рендерится всегда (дёшево), но
-          по умолчанию display:none — показывается только в NavSwitcher-вариантах,
-          где ряд табов превратился в крупный заголовок и нужен явный сигнал
-          «свайпай между разделами» (см. .swipeDots в ScreenIndicator.module.scss). */}
-      <div className={s.swipeDots} aria-hidden="true">
-        {screens.map((screen, i) => (
-          <span
-            key={screen.label}
-            className={clsx(s.swipeDot, i === displayIndex && s.swipeDotActive)}
-          >
-            <QuietLabel as="span" className={s.swipeDotNum}>
-              {PLATE_NUMERALS[i] ?? String(i + 1)}
-            </QuietLabel>
-          </span>
-        ))}
+        {screens.map((screen, i) => {
+          const isActive = screen.label === activeLabel;
+          // Guillemet у неактивного таба указывает в сторону его экрана относительно
+          // текущего: левее → ‹, правее → ›. У активного — нет.
+          const arrow = isActive ? undefined : i < displayIndex ? 'left' : 'right';
+          return (
+            <SwitcherTab
+              key={screen.label}
+              role="tab"
+              aria-selected={isActive}
+              label={screen.label}
+              image={screen.image}
+              active={isActive}
+              arrow={arrow}
+              style={{ gridColumnStart: i + 1 + colOffset }}
+              onClick={() => onSelect(i)}
+            />
+          );
+        })}
       </div>
 
       {title != null && <div className={s.band}>{title}</div>}

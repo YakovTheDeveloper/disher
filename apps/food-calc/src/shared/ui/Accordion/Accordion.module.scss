@@ -44,9 +44,11 @@
   flex-shrink: 0;
 }
 
-// Шеврон наследует currentColor шапки (svg stroke=currentColor); притушён.
+// Шеврон = ХОЛОДНЫЙ серый тинт (--sys-color-icon), единый для всех глифов app —
+// не наследует ink/danger шапки (svg stroke=currentColor ← этот color). Тон несёт
+// сам токен, поэтому opacity-приглушение снято.
 .chevron {
-  opacity: 0.5;
+  color: var(--sys-color-icon);
   transition: transform var(--duration-normal) var(--easing-default);
 }
 

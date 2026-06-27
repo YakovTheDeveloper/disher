@@ -38,7 +38,7 @@
   padding: 0 var(--space-6);
   border: none;
   border-radius: var(--sys-radius-cta);
-  color: var(--sys-color-on-system);
+  color: var(--sys-color-on-action-system);
   box-shadow: var(--sys-elevation-action-rest);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -78,7 +78,7 @@
 
 .primary {
   background: var(--sys-color-surface-action-primary);
-  color: var(--sys-color-on-primary);
+  color: var(--sys-color-on-action-primary);
   /* warm-coal ink на светлой амбре */
 }
 
@@ -91,7 +91,7 @@
 
 .accent {
   background: var(--sys-color-surface-action-accent);
-  color: var(--sys-color-on-accent);
+  color: var(--sys-color-on-action-accent);
 }
 
 .accent:not(:disabled):active {

@@ -176,6 +176,24 @@
     pointer-events: none;
 }
 
+// In-flow mode (`floating={false}`, tall bar trailing slot): opt OUT of the float
+// anchor + the focus-collapse. Higher specificity ([data-write-bar] … [data-inline]
+// = 0,3,0) beats the float (0,2,0) and collapse (0,2,0) rules regardless of order.
+[data-write-bar] .writeBarList[data-inline] {
+    position: static;
+    top: auto;
+    right: auto;
+    margin: 0;
+}
+
+[data-expanded] .writeBarList[data-inline] {
+    width: var(--medal-size, calc(var(--pill-h) - var(--space-1)));
+    border-width: 0;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+
 // Center glyph — engraving png (Food) ghosted by the coin.
 .writeBarListImg {
     position: absolute;

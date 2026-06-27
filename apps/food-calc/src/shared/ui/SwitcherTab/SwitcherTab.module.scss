@@ -57,7 +57,7 @@
 .tileActive {
   // ACTIVE = выпуклая: белая бумага + мягкая 2-слойная тень.
   // Ambient (если задан) накладывается на белый поверх.
-  background-color: var(--sys-color-surface-bright);
+  background-color: var(--sys-color-surface-1);
   background-image: var(--nav-ambient);
   box-shadow: var(--sys-elevation-action-rest);
 
@@ -78,6 +78,31 @@
   display: inline-block;
   text-align: center;
   white-space: nowrap;
+}
+
+// Guillemet-указатели направления. Глиф той же serif-italic (наследуется от
+// QuietLabel — font-* НЕ задаём), холодный --sys-color-icon (канон cold-icon-palette,
+// чуть светлее cool-600 подписи → подчинён). Голос подписи не трогаем.
+//
+// ЛЕВЫЙ свешивается в поле (hanging punctuation): абсолют с `right:100%` ставит
+// правый край span'а на левый край слова, зазор — через padding-right.
+// Слово остаётся выровнено с активным заголовком (оба `.tileTitle` стартуют с
+// одного inset'а ряда). Вертикаль — статик-позиция (без top), держит базовую линию.
+.tileArrowLead {
+  position: absolute;
+  right: 100%;
+  // Зазор глиф↔слово: padding тянет правый край бокса (закреплён на левом краю
+  // слова) влево → глиф отъезжает дальше в поле.
+  padding-right: var(--space-2);
+  color: var(--sys-color-icon);
+  opacity: 0.7;
+}
+
+// ПРАВЫЙ — в потоке после слова (на левое выравнивание не влияет).
+.tileArrowTrail {
+  padding-left: var(--space-2);
+  color: var(--sys-color-icon);
+  opacity: 0.7;
 }
 
 .tileImg {

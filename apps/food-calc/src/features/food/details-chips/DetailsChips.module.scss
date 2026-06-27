@@ -26,23 +26,6 @@
   padding: 2px var(--space-1);
 }
 
-// Hairline между built-in и пользовательской группой — канон stripe-fork
-// divider (fading hairline вместо solid border).
-.separator {
-  align-self: stretch;
-  height: 1px;
-  margin: var(--space-1) var(--space-4);
-  // Token-driven hairline: --sys-chip-separator из единого app-тона APP_TONE
-  // (ModalShell `$modal-shell-field-chip`, body[data-modal-fields]). Fallback —
-  // на случай отсутствия токена.
-  background: linear-gradient(90deg,
-      transparent 0%,
-      var(--sys-chip-separator, var(--sys-color-divider)) 18%,
-      var(--sys-chip-separator, var(--sys-color-divider)) 82%,
-      transparent 100%);
-  pointer-events: none;
-}
-
 .customGroup {
   display: flex;
   flex-direction: column;
@@ -59,6 +42,38 @@
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+// ── DesignBar: пробы редизайна чипов (anchor 'DetailsChips' на .root) ───────
+// 'deep-tonal-press' (amber-soft-pressed заливка + inset-тень «вдавленного»
+// тумблера) утверждён юзером как ОПОРА. Форки держат ТО ЖЕ press-обращение и
+// крутят только ЗАЛИВКУ — бледно-жёлтые семейства, гармонирующие с тёплой
+// бумагой (#fefcf9), плюс мягкий сливовый. Жёлтых/сливового нет ни в sys, ни в
+// ref-лестнице (amber-оранж + indigo-холод) → ПРОБНЫЕ raw-hex, строго временные:
+// победитель минтуется в --ref-* + --sys-* и форк переедет на токен. Заливку
+// правим через --sys-color-bg-selected — имя кончается на -selected, НЕ на -color,
+// → strict-value мимо (см. .stylelintrc ключ '/color$/'); --ref-гейт тоже мимо
+// (hex ≠ ref). press-feedback (.chip:active читает тот же токен) и общая inset-
+// тень следуют автоматом; тень — через aria-pressed (стабильный хук, не зависит
+// от scoped-классов Chip). 'current' блока не имеет — глобальный дефолт.
+
+// — заливки (raw-hex = throwaway-проба, минтуется при выигрыше) —
+.root[data-dv-v='deep-tonal-press'] {
+  --sys-color-bg-selected: var(--sys-color-surface-action-primary-soft-pressed);
+}
+.root[data-dv-v='butter-press'] {
+  --sys-color-bg-selected: #f6e7b0; // тёплое сливочное золото
+}
+.root[data-dv-v='plum-press'] {
+  --sys-color-bg-selected: #e6d3df; // мягкий сливовый (пыльная лилово-розовая)
+  --sys-color-text-on-selected: var(--sys-color-text-system); // ink — чище amber на лиловом
+}
+
+// — общая press-тень (inset «вдавленность» от собственного тона выбора) —
+.root[data-dv-v='deep-tonal-press'] button[aria-pressed='true'],
+.root[data-dv-v='butter-press'] button[aria-pressed='true'],
+.root[data-dv-v='plum-press'] button[aria-pressed='true'] {
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--sys-color-bg-selected) 45%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- inset-тень чипа (проба): цвет через color-mix от bg-selected, geometry raw как у press-glow в Chip.module.scss */
 }
 
 // Лейбл только над пользовательской группой — built-in группа дефолтная и

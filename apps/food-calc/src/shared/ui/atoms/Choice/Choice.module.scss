@@ -16,7 +16,7 @@
   padding: 9px 14px;
   border: 1px solid var(--sys-color-border-subtle);
   border-radius: var(--sys-radius-control);
-  background: var(--sys-color-surface-raised);
+  background: var(--sys-color-surface-2);
   color: var(--sys-color-text-primary);
   cursor: pointer;
   transition:
@@ -63,10 +63,12 @@
 }
 
 // Галочка-маркер «выбрано» — круглая плашка ЦЕНТРОМ ТОЧНО В правом-верхнем углу
-// (top/right: -10px = половина диаметра). Фон = непрозрачная floating-поверхность
-// (--sys-color-surface-bright), тик внутри = активный bg (navy), мягкая тень.
+// (top/right: -10px = половина диаметра). Фон = непрозрачная всплывающая
+// поверхность surface-2, тик внутри = активный bg (navy), мягкая тень.
 // Светлый кружок с navy-тиком читается на заливке как «наклейка». Тик меньше
 // диаметра — воздух вокруг галочки.
+//
+// Фон = непрозрачная всплывающая поверхность surface-2 (#fff, «лист над листом»).
 .marker {
   position: absolute;
   top: -10px;
@@ -77,7 +79,7 @@
   width: 20px;
   height: 20px;
   border-radius: var(--sys-radius-indicator);
-  background: var(--sys-color-surface-bright);
+  background: var(--sys-color-surface-2);
   box-shadow: var(--sys-elevation-action-rest);
   opacity: 0;
   transform: scale(0.6);

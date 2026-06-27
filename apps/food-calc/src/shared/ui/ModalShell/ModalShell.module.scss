@@ -1,9 +1,19 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .wrapper {
   display: flex;
   flex-direction: column;
   height: 100dvh;
   width: 100%;
-  background: var(--sys-color-surface-page);
+  // Полноэкранная модалка = базовая поверхность экрана (НЕ всплывающий лист) →
+  // ось глубины «стол» surface-0 (#f7f3eb, тёплая бумага). Орбы выключены — фон ровный.
+  background: var(--sys-color-surface-0);
+
+  // Surface-aware глубина поля (стратегия C, выбор юзера 2026-06-26): на ровной
+  // surface-0 дефолтная лунка #f4efe6 (ΔL*≈1.4) растворялась — раньше её углубляла
+  // временная проба #eee9e0. Теперь канон: per-surface override через миксин
+  // (mixin.scss · #field-depth-surface) — поле узнаётся бровкой + inset-тенью.
+  @include field-depth-surface-0;
 }
 
 .springOrbs {
@@ -11,6 +21,8 @@
   inset: 0;
   pointer-events: none;
   z-index: 0;
+  // [ВРЕМЕННО · probe 2026-06-26] орбы скрыты, чтобы фон был ровным.
+  display: none;
 }
 
 .orb {
@@ -37,10 +49,9 @@
 // ── ModalShell ambient background — single monochrome tone ───────────────────
 // After the «great unification» (2026-06-19) ModalShell carries one fixed `mono`
 // tone, baked directly on `.wrapper` (dev-форк `data-dv='ModalShell'` снят
-// 2026-06-22 — был single-variant). Surface = `--sys-color-surface-page` (тот же
-// paper #fefcf9, что у Screen и DrawerLayout — единый тон оверлеев, не per-surface
-// серый; overlay-токен удалён 2026-06-24 как 0-консумерный, см. no-per-surface-
-// theming). Был cool bespoke #f0f1f4 до 2026-06-24. Дифференциацию от страницы
+// 2026-06-22 — был single-variant). Surface = `--sys-color-surface-0` (полноэкранная
+// модалка = база-стол #f7f3eb, ось глубины; не всплывающий лист — под ней ничего нет).
+// Был cool bespoke #f0f1f4 до 2026-06-24. Дифференциацию от страницы
 // несут backdrop-scrim + пять desaturated warm-sand orbs в верхней зоне (часть
 // LIGHTER к крему, часть DARKER) — единый тёплый hue, без cool/lavender дрейфа.
 // Орбы = `background`-градиенты, NOT token-gated (stripe-fork canon). Orbs walk the spatial path orb2 → orb4 → orb5 → orb3 → orb1
@@ -138,13 +149,13 @@
 // Боковой отступ контента для модалок РЕДАКТИРОВАНИЯ сущностей
 // (Hypothesis / Dish / Product). Дефолтные --space-1 (4px) по бокам у `.body`
 // читаются как «без отступов» — пилюли упираются в края. Опт-ин через
-// `<ModalShell.Body inset>`; значение из семантического --sys-inset-md.
+// `<ModalShell.Body inset>`; значение из семантического --sys-inset-panel.
 // Longhand left/right переопределяют только горизонталь shorthand'а `.body`
 // (top --space-3 и bottom 0 остаются); идёт ПОСЛЕ `.body` — равная
 // специфичность, побеждает порядком.
 .bodyInset {
-  padding-left: var(--sys-inset-md);
-  padding-right: var(--sys-inset-md);
+  padding-left: var(--sys-inset-panel);
+  padding-right: var(--sys-inset-panel);
 }
 
 // Layout shell for ModalShell.Title — typography comes from the <Heading>

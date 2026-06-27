@@ -27,11 +27,11 @@
     --surface-raised: rgba(255, 254, 250, 0.7); // тёплый полупрозрачный raised
     // (--surface-overlay удалён 2026-06-24 — 0 консумеров, см. рельс --sys-color-surface-overlay снят)
 
-    // ─── Semantic: text — worst-surface APCA |Lc| (на #f5f3f0, самый тёмный из реальных фонов) ──
-    // Числа из scratchpad/crit.mjs (APCA-W3): primary 96.4 / secondary 66.7 / tertiary 61.1.
+    // ─── Semantic: text — worst-surface APCA |Lc| (на #f7f3eb, самый тёмный из реальных фонов) ──
+    // Числа из scratchpad/crit.mjs (APCA-W3): primary 96.4 / secondary 66.7 / tertiary 61.2.
     --text-primary: #221f19; // n900 · oklch(0.24 0.011 85) — тёплый-уголь, worst |Lc| 96.4 (≥75)
     --text-secondary: #757169; // n500 · oklch(0.55 0.013 85) — worst |Lc| 66.7 (≥60)
-    --text-tertiary: #817d76; // n400 · oklch(0.59 0.012 82) — worst |Lc| 61.1 (≥60; было #89867e = 57 < 60)
+    --text-tertiary: #817d76; // n400 · oklch(0.59 0.012 82) — worst |Lc| 61.2 (≥60; было #89867e = 57 < 60)
     --text-muted: rgba(34, 31, 25, 0.15); // тёплый mute (был чёрный-альфа)
     --text-on-accent: #ffffff;
 

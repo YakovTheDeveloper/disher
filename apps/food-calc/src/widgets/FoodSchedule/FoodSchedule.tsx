@@ -131,9 +131,18 @@ const FoodSchedule = ({
           if (res.ok) toaster.success('Удалено');
         },
         actions: buildInfoActions(item, navigate),
+        // Ряд правок под «Информация…»: каждая кнопка закрывает дровер и открывает
+        // соответствующий шаг edit-флоу (startEdit ставит editingItem + step →
+        // FoodEntryEditModals разворачивает нужную модалку). Карандаш у всех рисует
+        // сам дровер. Ряд только у расписания — у ингредиента блюда «Время» нет.
+        editActions: [
+          { label: 'Количество', onClick: () => onEditQuantity(item) },
+          { label: 'Особенности', onClick: () => onEditFood(item) },
+          { label: 'Время', onClick: () => onEditTime(item) },
+        ],
       });
     },
-    [navigate]
+    [navigate, onEditQuantity, onEditFood, onEditTime]
   );
 
   return (

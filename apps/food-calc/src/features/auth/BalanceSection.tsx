@@ -68,7 +68,7 @@ export function BalanceSection() {
             Списывается за запросы к ИИ — разбор еды и анализы. Пополнение пока
             вручную.
           </Text>
-          <Button variant="system-secondary" disabled fullWidth>
+          <Button variant="system-secondary" flat disabled fullWidth>
             Пополнить — скоро
           </Button>
 

@@ -7,7 +7,7 @@
 // (--sys-color-text-secondary) — цифра не сливается с сокращением. Отделена от еды
 // тающей волосяной бровкой (как `Masthead::after`) с воздухом до/после. Весь блок
 // кликабелен → дровер. Облик зафиксирован — design-variants сняты. Типошкала «как
-// gofmt» (число + капс-подпись) берёт sys-токены: число = `--sys-text-size-title`
+// gofmt» (число + капс-подпись) берёт sys-токены: число = `--sys-text-title-size`
 // (17, reuse tile-title), капс = bespoke `--sys-text-size-bar-cap` (10.5px). SCSS-$vars
 // сняты — sys-only token-gate (2026-06-24) флагает `$scss` в font-size.
 
@@ -68,11 +68,12 @@
 }
 
 // Шеврон-намёк «открыть» — тихий, flex-сосед справа от колонки чисел (не absolute).
+// Холодный icon-материал (cool-neutral) — контрапункт тёплому ink; токен несёт
+// приглушение (opacity снят, как у эталона Accordion .chevron).
 .chevron {
     width: 16px;
     height: 16px;
-    color: var(--sys-color-text-secondary);
-    opacity: 0.5;
+    color: var(--sys-color-icon-muted);
     flex-shrink: 0;
 }
 

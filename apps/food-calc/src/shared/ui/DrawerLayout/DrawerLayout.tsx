@@ -15,7 +15,7 @@ type Props = {
    * on the same row. When the chrome row is visible, the title IS the single
    * `Drawer.Title` (the dialog's `<h2>` AND its accessible name — see precedence
    * on `a11yLabel`), styled with the canonical drawer-heading tokens (Source
-   * Serif italic, `--heading-size-drawer`). Pass a plain string for canonical
+   * Serif italic, `--sys-heading-size-drawer`). Pass a plain string for canonical
    * styling, or a custom node if you need a bespoke heading. Body headings
    * inside the drawer should be `<h3>`+ to keep the document outline correct.
    */
@@ -166,7 +166,9 @@ const DrawerLayout = ({
                 className={clsx(styles.topLeft, styles.actionHeaderButton, styles.actionHeaderButton_back)}
                 onClick={(e) => e.stopPropagation()}
               >
-                <CrossIcon />
+                {/* Явный 22×22 — в одной сетке со стрелкой «назад» и topRight-урной
+                    (раньше крест шёл без размера → крупнее соседей, ломал ряд). */}
+                <CrossIcon width={22} height={22} />
               </Drawer.Close>
             )}
             {showVisibleTitle &&

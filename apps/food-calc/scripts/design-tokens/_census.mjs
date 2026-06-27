@@ -2,7 +2,7 @@ import stylelint from 'stylelint';
 import path from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { loadTokenMap, resolveToken } from './lib.mjs';
-const COLOR_TEXT = { '--text-primary':'--sys-color-text-primary','--text-secondary':'--sys-color-text-secondary','--text-tertiary':'--sys-color-text-tertiary','--text-muted':'--sys-color-text-muted','--text-on-accent':'--sys-color-text-on-accent','--cta-brand-ink':'--sys-color-text-on-action','--color-ink':'--sys-color-text-primary' };
+const COLOR_TEXT = { '--text-primary':'--sys-color-text-primary','--text-secondary':'--sys-color-text-secondary','--text-tertiary':'--sys-color-text-tertiary','--text-muted':'--sys-color-text-muted','--text-on-accent':'--sys-color-text-on-accent','--cta-brand-ink':'--sys-color-on-action-primary','--color-ink':'--sys-color-text-primary' };
 const SURFACE = { '--surface-base':'--sys-color-surface-page','--surface-bright':'--sys-color-surface-bright' };
 const RADIUS = { '--radius-full':'--sys-radius-indicator','--radius-sm':'--sys-radius-control','--radius-md':'--sys-radius-container','--radius-lg':'--sys-radius-cta','--radius-xl':'--sys-radius-overlay','--radius-2xl':'--sys-radius-sheet','--radius-xs':'--sys-radius-tmp' };
 const DURATION = { '--press-in':'--sys-duration-press-in','--press-out':'--sys-duration-press-out','--duration-fast':'--sys-duration-fast','--duration-normal':'--sys-duration-normal','--duration-slow':'--sys-duration-slow','--duration-ios':'--sys-duration-ios' };

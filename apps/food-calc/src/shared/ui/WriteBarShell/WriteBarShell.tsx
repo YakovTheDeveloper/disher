@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useState, type CSSProperties, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -103,6 +103,8 @@ export interface WriteBarShellProps {
   maxLength?: number;
   /** Rows the field grows to on focus. Default 4. */
   maxRowsFocused?: number;
+  /** Resting floor in rows (AutoGrowSearch `minRows`). Default 1; 2 = tall bar. */
+  minRows?: number;
   readOnly?: boolean;
   online: boolean;
   /**
@@ -114,6 +116,12 @@ export interface WriteBarShellProps {
   /** Render a spinner in the send slot instead of the button (loading). */
   busy?: boolean;
   sendAriaLabel?: string;
+  /**
+   * Hide the send button at rest — show it only while focused or with text.
+   * Default false (persistent coin, 2026-06-23 messenger canon). Food bar opts
+   * in: its primary entry is the catalog «Список», send is the secondary path.
+   */
+  autoHideSend?: boolean;
   /** Affordance before the field, inside the pill (e.g. paperclip). Never collapses. */
   leftSlot?: ReactNode;
   /**
@@ -122,6 +130,14 @@ export interface WriteBarShellProps {
    * end before it (food bar). Collapses on focus so the pill takes its place.
    */
   rightSlot?: ReactNode;
+  /**
+   * Affordance IN FLOW to the right of the pill, inside the bar row (sibling of
+   * the pill, not floating). The pill shrinks to leave room; a fading vertical
+   * divider separates them. Unlike `rightSlot` it does not collapse on focus.
+   */
+  trailingSlot?: ReactNode;
+  /** Inline style on the wrap — used to override geometry vars (`--pill-h`, `--coin-size`). */
+  style?: CSSProperties;
   /** Replaces the entire input field (e.g. Food ready-state CTA). Forces collapsed. */
   fieldOverride?: ReactNode;
   hint?: string;
@@ -159,13 +175,17 @@ export const WriteBarShell = ({
   examplesActive = true,
   maxLength,
   maxRowsFocused = 4,
+  minRows = 1,
   readOnly,
   online,
   computeSend,
   busy = false,
   sendAriaLabel,
+  autoHideSend = false,
   leftSlot,
   rightSlot,
+  trailingSlot,
+  style,
   fieldOverride,
   hint,
   writeState,
@@ -193,9 +213,10 @@ export const WriteBarShell = ({
 
   const showSpinner = busy;
   // Постоянная иконка «отправить» (предложка 2026-06-23): рендерим всегда, пока
-  // есть поле и нет загрузки — disabled, пока send не enabled. Усиливает айдентику
-  // мессенджер-инпута (раньше пряталась до фокуса+текста через send.visible).
-  const showSend = !busy && !fieldOverride;
+  // есть поле и нет загрузки. `autoHideSend` возвращает старое поведение — монета
+  // появляется только в фокусе или при тексте (Еда: send вторичен, primary = «Список»).
+  const showSend =
+    !busy && !fieldOverride && (!autoHideSend || expanded || hasText);
 
   const handleSubmit = useCallback(() => {
     if (!send.enabled) return;
@@ -224,6 +245,7 @@ export const WriteBarShell = ({
   return (
     <div
       className={clsx(s.wrap, className)}
+      style={style}
       data-write-state={writeState}
       // `data-expanded` rides the wrap so the detached medal — now a wrap-level
       // sibling of `.barLine` (moved out 2026-06-25 so it floats at the screen
@@ -279,7 +301,8 @@ export const WriteBarShell = ({
                       <RotatingPlaceholder examples={placeholderExamples!} active={!hasText} />
                     ) : undefined
                   }
-                  maxRows={focused ? maxRowsFocused : 1}
+                  maxRows={focused ? maxRowsFocused : minRows}
+                  minRows={minRows}
                   maxLength={maxLength}
                   collapseOnBlur={false}
                   className={s.writeFieldInput}
@@ -311,6 +334,9 @@ export const WriteBarShell = ({
             </button>
           ) : null}
         </div>
+        {/* trailingSlot — in-flow sibling of the pill (food «Список»), divider via
+            `.trailingSlot::before`. Pill (`.writeBarRow`) is flex:1 → shrinks for it. */}
+        {trailingSlot ? <div className={s.trailingSlot}>{trailingSlot}</div> : null}
       </div>
       {/* Detached medal — wrap-level sibling of `.barLine` (moved out 2026-06-25).
           Anchored absolute to `.wrap` so it floats at the screen edge, ignoring

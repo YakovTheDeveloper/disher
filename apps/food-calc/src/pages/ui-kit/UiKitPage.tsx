@@ -299,7 +299,7 @@ const ANATOMY: AnatomyEntity[] = [
       {
         part: 'label',
         role: 'подпись к контролу / секции',
-        css: 'serif italic, weight 400, size --heading-size-field, opacity 0.72',
+        css: 'serif italic, weight 400, size --sys-heading-size-field, opacity 0.72',
         why: 'код: «тихая подпись, а не жирный микро-капс (канон против label-as-placeholder)»',
       },
       {

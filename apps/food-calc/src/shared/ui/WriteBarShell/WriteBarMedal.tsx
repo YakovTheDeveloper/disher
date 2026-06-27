@@ -19,6 +19,12 @@ export interface WriteBarMedalProps {
   dimmed?: boolean;
   /** Nudge the coin up a touch above the pill centre (Food bar — «приподнятая» кнопка). */
   lifted?: boolean;
+  /**
+   * Float over the pill's right edge (default, absolute anchor to `[data-write-bar]`)
+   * vs sit IN FLOW (set `false`) — e.g. inside a tall bar's trailing slot, where it
+   * reserves its own width and never collapses on focus.
+   */
+  floating?: boolean;
 }
 
 /**
@@ -35,6 +41,7 @@ export const WriteBarMedal = ({
   arcBottom,
   dimmed,
   lifted,
+  floating = true,
 }: WriteBarMedalProps) => {
   const { pressed, pressProps } = usePressFeedback();
   // Unique ids for the SVG arc paths (textPath references them by #id).
@@ -49,6 +56,7 @@ export const WriteBarMedal = ({
       aria-label={ariaLabel}
       data-pressed={pressed || undefined}
       data-dim={dimmed || undefined}
+      data-inline={!floating || undefined}
       {...pressProps}
     >
       {img ? (

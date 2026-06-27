@@ -80,9 +80,10 @@ module.exports = {
           background: ['/gradient/i', '/^var\\(--sys-/', 'none', 'transparent', 'currentColor', 'currentcolor', 'inherit', 'initial', 'unset'],
           '/^border(-(top|bottom)-(left|right))?-radius$/': ['/^var\\(--sys-radius-/', '/^var\\(--sys-field-radius/', '0', '50%', 'inherit', 'initial', 'unset'],
           'box-shadow': ['/^var\\(--sys-elevation-/', '/^var\\(--sys-field-shadow/', 'none', 'inherit', 'initial', 'unset'],
-          // --sys-text-size-* (escape для не-прозовых размеров) + --sys-field-font-size (поля #1)
+          // --sys-text-size-* (escape для не-прозовых размеров) + --sys-heading-size-* (размеры
+          // заголовков по поверхности modal/drawer/field) + --sys-field-font-size (поля #1)
           // + --sys-numeral-* (числовой ярус примитива <Numeral>) + --sys-icon-size-* (глиф-иконки).
-          'font-size': ['/^var\\(--sys-text-size-/', '/^var\\(--sys-field-font-size/', '/^var\\(--sys-numeral-/', '/^var\\(--sys-icon-size-/', 'inherit', 'initial', 'unset'],
+          'font-size': ['/^var\\(--sys-text-size-/', '/^var\\(--sys-heading-size-/', '/^var\\(--sys-field-font-size/', '/^var\\(--sys-numeral-/', '/^var\\(--sys-icon-size-/', 'inherit', 'initial', 'unset'],
           // --sys-duration-* / --sys-easing-* not minted yet (mechanical aliases pending).
           '/duration$/': ['/^var\\(--sys-duration-/', '0s', '0ms', '0', 'inherit', 'initial', 'unset'],
           '/timing-function$/': ['/^var\\(--sys-easing-/', 'inherit', 'initial', 'unset', 'step-start', 'step-end'],

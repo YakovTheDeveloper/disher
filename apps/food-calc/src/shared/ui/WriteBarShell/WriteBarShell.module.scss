@@ -45,16 +45,24 @@
     // Боковой инсет страницы (--sys-inset-page) — пилюля отступает от кромок
     // экрана; медаль вынесена на уровень `.wrap` и анкорится `right:0` к padding-
     // box, поэтому продолжает парить у самой кромки, игнорируя этот инсет.
-    padding: var(--space-2) var(--sys-inset-page);
+    padding: var(--sys-inset-page) var(--sys-inset-sheet);
     position: relative;
     box-sizing: border-box;
     // ПОДЛОЖКА ИМИТИРУЕТ ВОЗВЫШЕННОСТЬ: яркая (белее тёплой бумаги Screen) плашка
     // + overlay-тень + скруглённая верхняя кромка дока. Оттенок НЕ меняем —
     // высоту несут тень + радиус, а утопленное тёмное поле (well) сверху лишь
     // усиливает глубину (recessed slot в raised-плашке).
-    background: var(--sys-color-surface-bright);
-    box-shadow: var(--sys-elevation-overlay);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--sys-color-surface-1);
+    box-shadow: var(--sys-elevation-2);
+    border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
+
+
+
+    // Пилюля-поле сидит на этой raised-плашке (surface-1) → surface-aware глубина
+    // (стратегия C): well-заливка под поверхность + видимая бровка/inset-тень
+    // усиливают recessed-slot. Inner `.writeFieldInput` гасит field-роли в ноль —
+    // well несёт сама пилюля (`.writeBarRow`), текст-инпут плоский.
+    @include field-depth-surface-1;
 }
 
 // ─── Focus-hint: example shown in a strip ABOVE the bar ────────────────────
@@ -92,7 +100,7 @@
     max-width: 100%;
     padding: 4px var(--space-3);
     border-radius: var(--radius-full);
-    background: var(--sys-color-surface-raised);
+    background: var(--sys-color-surface-2);
     box-shadow: var(--sys-elevation-action-rest);
     color: var(--sys-color-text-secondary);
     text-align: center;
@@ -116,6 +124,9 @@
 .barLine {
     display: flex;
     align-items: center;
+    // Зазор между пилюлей и trailing-входом (Еда). Без trailingSlot (Анализ/
+    // События — один потомок) ни на что не влияет → обратносовместимо.
+    gap: var(--space-4);
     width: 100%;
     // Anchor для плавающей медали Еды (она абсолютна относительно строки, см.
     // `.barLine .writeBarList` в WriteBarMedal.module.scss).
@@ -140,8 +151,10 @@
             var(--sys-field-bg-mid) 55%,
             var(--sys-field-bg-to) 100%);
     border: 1px solid transparent;
-    border-radius: var(--radius-full);
-    padding: 0 var(--space-2) 0 var(--space-4);
+    // Скругление пилюли — переопределяемо консумером (`--wb-pill-radius`): дефолт
+    // стадион (--radius-full); высокий бар Еды подаёт концентричный --sys-radius-
+    // overlay-inner, чтобы рифмоваться с углом док-плашки, а не торчать стадионом.
+    border-radius: var(--sys-radius-sheet-inner);
     box-shadow: var(--sys-field-shadow);
     transition: box-shadow 0.15s ease, background 0.15s ease;
 
@@ -184,6 +197,37 @@
                 var(--sys-field-hairline-focus) 82%,
                 transparent 100%);
     }
+}
+
+// ─── Trailing slot — in-flow affordance right of the pill (food «Список») ──────
+// Sibling of the pill inside `.barLine`; the pill is flex:1 so it shrinks to leave
+// room. A fading vertical hairline (::before) separates them — same divider voice
+// as the pill's horizontal hairline (canon: fading line, never a hard rule).
+.trailingSlot {
+    flex-shrink: 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    // Зазор до пилюли несёт `gap` на `.barLine` (не margin/padding здесь —
+    // прежняя двойная вставка читалась криво). Дивайдер (::before) центрируется
+    // в этом зазоре отрицательным сдвигом на половину gap.
+    position: relative;
+}
+
+.trailingSlot::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-4) / -2);
+    top: 50%;
+    width: 1px;
+    height: 56%;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg,
+            transparent 0%,
+            var(--sys-field-hairline) 22%,
+            var(--sys-field-hairline) 78%,
+            transparent 100%);
+    pointer-events: none;
 }
 
 // ─── Inner write-field (input + send + spinner) ────────────────────────────

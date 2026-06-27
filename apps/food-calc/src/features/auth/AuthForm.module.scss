@@ -147,7 +147,7 @@
   border: none;
   border-radius: var(--sys-radius-cta);
   background: var(--sys-color-surface-action-system);
-  color: var(--sys-color-on-system); // white on coal action (был text-on-selected по ошибке конфляции, M4 2026-06-25)
+  color: var(--sys-color-on-action-system); // white on coal action (был text-on-selected по ошибке конфляции, M4 2026-06-25)
   cursor: pointer;
   transition:
     background var(--press-out) var(--easing-default),

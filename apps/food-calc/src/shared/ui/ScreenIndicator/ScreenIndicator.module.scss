@@ -97,49 +97,8 @@
     justify-content: center;
 }
 
-// ─── Индикатор «листаемые разделы»: номера таблиц (plate numerals) ───────────
-// Вшитый дефолт (баком tab-numerals-left 2026-06-22): авторский индикатор
-// «дневника натуралиста» — I · II · III антиквой-италик, активный чёрный/жирный,
-// остальные бледные. Разметка — пустой span + `data-num`, глиф через
-// `::before { content: attr(data-num) }`. Всегда виден (раньше display:none +
-// gate на варианте). Лево по умолчанию; центр — через `data-nav-align='center'`.
-.swipeDots {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding-top: var(--space-2);
-    // `-left`: ряд номеров выровнен под заголовок (та же inline-полка space-4).
-    padding-inline: var(--space-4);
-    justify-content: flex-start;
-}
-
-:global([data-nav-align='center']) .swipeDots {
-    justify-content: center;
-}
-
-.swipeDot {
-    width: auto;
-    height: auto;
-    background: transparent;
-    border-radius: 0;
-    opacity: 1;
-    line-height: 1;
-}
-
-// Сериф-италик «музейная табличка» номера живёт в <QuietLabel>; здесь — только
-// цвет + состояние (тусклый неактивный / полный активный).
-.swipeDotNum {
-    color: var(--sys-color-text-system);
-    opacity: 0.3;
-}
-
-.swipeDotActive {
-    width: auto;
-
-    .swipeDotNum {
-        opacity: 1;
-    }
-}
+// (Легаси-ряд «листаемые разделы» I · II · III снят 2026-06-26 — аффорданс
+//  переехал на guillemet-указатели самих неактивных табов, см. SwitcherTab.)
 
 // Картинка активного экрана. Живёт в `.root`. Колонка активного тайла
 // задаётся через `--active-idx` / `--tiles-total` CSS-vars, прокинутые

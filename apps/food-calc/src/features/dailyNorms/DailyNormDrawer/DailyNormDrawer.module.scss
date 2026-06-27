@@ -1,6 +1,7 @@
-// Surface владеет фоном (drawer-канон: surface owns bg). Чистый белый.
+// Surface владеет фоном (drawer-канон: surface owns bg). Чистый белый = surface-2
+// (всплывающий лист над контентом, ось глубины).
 .surface {
-    background: var(--sys-color-surface-bright);
+    background: var(--sys-color-surface-2);
 }
 
 // Боковой «воздух» = `--sys-inset-sheet` (24px) — роль full-width-поверхности

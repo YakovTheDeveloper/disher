@@ -44,7 +44,7 @@ $accent: rgba(24, 24, 105, 0.92);
 
 .h1 {
     margin: 0 0 var(--space-3);
-    font-size: var(--heading-size-modal, 32px);
+    font-size: var(--sys-heading-size-modal, 32px);
     font-weight: 700;
     letter-spacing: -0.022em;
 }
@@ -79,7 +79,7 @@ $accent: rgba(24, 24, 105, 0.92);
 
 .h2 {
     margin: 0;
-    font-size: var(--heading-size-drawer, 24px);
+    font-size: var(--sys-heading-size-drawer, 24px);
     font-weight: 700;
     letter-spacing: -0.018em;
 }
@@ -157,7 +157,7 @@ $accent: rgba(24, 24, 105, 0.92);
 
 .colTitle {
     margin: 0;
-    font-size: var(--heading-size-field, 16px);
+    font-size: var(--sys-heading-size-field, 16px);
     font-weight: 600;
     line-height: 1.3;
     letter-spacing: -0.01em;

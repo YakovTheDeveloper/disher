@@ -11,10 +11,16 @@
     display: flex;
     align-items: flex-start;
     // Плоская paper-mono content-карточка: поверхности нет, строки делит воздух.
-    padding: var(--space-3) var(--space-4);
+    // Отступы по умолчанию СНЯТЫ — карточка прижата к краям своего контейнера
+    // (SheetCard сам даёт воздух). Включаются опционально через `.padded`.
     border-radius: 0;
     background: transparent;
     box-shadow: var(--sys-elevation-flat);
+}
+
+// Опциональные собственные поля (проп `padded`) — для карточки на голой поверхности.
+.padded {
+    padding: var(--space-3) var(--space-4);
 }
 
 .text {

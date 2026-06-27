@@ -130,10 +130,10 @@ export function ProfileDrawer() {
             Скачать копию данных в файл или загрузить ранее сохранённую.
           </Text>
           <div className={styles.dataActions}>
-            <Button variant="system-secondary" onClick={handleExport}>
+            <Button variant="system-secondary" flat onClick={handleExport}>
               Скачать файл
             </Button>
-            <Button variant="system-secondary" onClick={handleImport}>
+            <Button variant="system-secondary" flat onClick={handleImport}>
               Загрузить из файла
             </Button>
           </div>
@@ -165,6 +165,7 @@ export function ProfileDrawer() {
             </Text>
             <Button
               variant="system-secondary"
+              flat
               fullWidth
               onClick={handleBackup}
               disabled={backupState === 'saving'}

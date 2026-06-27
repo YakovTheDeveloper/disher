@@ -54,8 +54,8 @@
             height: 1px;
             background: linear-gradient(90deg,
                     transparent 0%,
-                    var(--sys-color-divider) 30%,
-                    var(--sys-color-divider) 70%,
+                    var(--sys-color-divider-card) 30%,
+                    var(--sys-color-divider-card) 70%,
                     transparent 100%);
             pointer-events: none;
             z-index: 2;

@@ -111,7 +111,7 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
         action={
           <>
             <Button
-              variant="primary"
+              variant="accent"
               onClick={handleRun}
               disabled={!isOnline || !hasIngredients}
             >
@@ -152,7 +152,7 @@ const DishAnalysisScreen = ({ dishId, hasIngredients }: Props) => {
         />
       )}
       <Button
-        variant="primary"
+        variant="accent"
         className={styles.rerunSlot}
         onClick={handleRun}
         disabled={!isOnline || !hasIngredients}

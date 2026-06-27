@@ -27,12 +27,10 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  // ─── Inset (sys · inset · size) — side air — #inset ──────────
+  // ─── Inset (sys · inset · role) — side air — #inset ──────────
   --sys-inset-panel: var(--space-3); // 12 — narrow side-drawer
   --sys-inset-sheet: var(--space-6); // 24 — full-width sheet / modal frame
-  --sys-inset-md: var(--sys-inset-panel); // legacy shim (dead ModalShell.bodyInset)
-  --sys-inset-lg: var(--sys-inset-sheet); // legacy shim (DailyNormDrawer)
-  --sys-inset-page: var(--space-3); // 20 — single Screen gutter (canon 2026-06-22)
+  --sys-inset-page: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
 
   --sys-inset-screen-asymmetrical-air: var(--space-12);
 
@@ -61,9 +59,9 @@
   --heading-style: normal;
   --heading-weight: 700;
   --heading-letter: -0.022em;
-  --heading-size-modal: 2rem; // 32 — ModalShell.Title
-  --heading-size-drawer: 1.5rem; // 24 — drawer header
-  --heading-size-field: 1rem; // 16 — in-modal field/section label
+  --sys-heading-size-modal: 2rem; // 32 — ModalShell.Title
+  --sys-heading-size-drawer: 1.5rem; // 24 — drawer header
+  --sys-heading-size-field: 1rem; // 16 — in-modal field/section label
   --modal-title-offset: var(--space-6); // 24 — single top gap above overlay title
 
   // ─── sys · text roles (CTI: sys · text · role) — #text-roles ──
@@ -112,9 +110,15 @@
   --sys-text-caption-tracking: 0;
 
   // sys-text-size-* — sanctioned font-size escape for non-prose — #text-size-escape
-  --sys-text-size-label: var(--sys-text-label-size); // 16 — control label (alias to role)
-  --sys-text-size-title: var(--sys-text-title-size); // 17 — tile title
-  --sys-text-size-caption: var(--sys-text-caption-size); // 13 — secondary label
+  // ЗАКОН ИМЕНОВАНИЯ (2026-06-26 — убивает зеркало size-<role> ↔ <role>-size):
+  //   • --sys-text-size-<SCALE> — ГОЛЫЙ font-size, ТОЛЬКО t-shirt-шкала (xs/sm/base/
+  //     lg/2xl). Имён ролей тут НЕТ. Единственное семейство в whitelist'е strict-value
+  //     для `font-size` (regex /^var(--sys-text-size-/).
+  //   • --sys-text-<ROLE>-size — под-свойство КОМПОЗИТА роли, ТОЛЬКО через text-role()
+  //     / <Text>. В голый `font-size` гейтом НЕ принимается (роли — за примитивом).
+  // У шкалы и ролей нет общих слов → зеркалить нечем (size-base vs title-size). Раньше
+  // тут жили --sys-text-size-{label,title,caption} — зеркалили роли и путали; сняты
+  // 2026-06-26 (QuietLabel переведён на --sys-text-size-base, 16=16).
   // (escape-токены --sys-text-size-field*/-glyph-*/-bar-cap сняты 2026-06-25 — мигрированы
   //  в --sys-field-font-size* / --sys-icon-size-* / <Numeral>; см. burndown в плане.)
   // --sys-icon-size-* — размер ГЛИФА-иконки (× / ‹ / ›), заданного font-size на
@@ -178,7 +182,7 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-  --radius-2xl: 40px; // sheet overlays (headerOverlap)
+  --radius-2xl: 40px;
   --radius-full: 9999px;
 
   // ─── Shadows — #shadows ──────────────────────────────────────
@@ -208,7 +212,7 @@
   // совпадения длины списка теней). NutrientsDrawer header-stuck.
   --sys-elevation-seam-rest: 0 0 0 transparent, 0 0 0 transparent;
   --sys-elevation-seam: 0 1px 0 var(--sys-card-hairline),
-    0 6px 12px -6px color-mix(in srgb, var(--sys-card-text-rest) 8%, transparent);
+    0 6px 12px -6px color-mix(in oklch, var(--sys-card-text-rest) 8%, transparent);
 
   // Dock — нижний прикреплённый лист (position:fixed bottom:0) приподнимается НАД
   // контентом: тень светит ВВЕРХ (отрицательный y), чего нет у drop-рунгов.
@@ -283,9 +287,12 @@
   // {0}=paper … {1000}=ink. hue floats 78–91° (warm band, NOT one point).
   // Ladder NOT perceptually uniform: ΔL≈0.28 cliff between 300/400 (purpose-stepping:
   // 0–300 "paper", 400–1000 "ink"). Measured oklch/APCA in tokens-rationale.md.
+  // Абсолютный белый — НЕ рунг warm-ramp (белый ломает hue-lock 85). Отдельный
+  // ref-якорь для вершины оси глубины (surface-2 = лист над листом).
+  --ref-color-white: #ffffff;
   --ref-color-neutral-0: #fefcf9; // = surface-base
   --ref-color-neutral-50: #faf9f6;
-  --ref-color-neutral-100: #f5f3f0; // = cards-page-bg
+  --ref-color-neutral-100: #f7f3eb; // тёплая бумага · ре-якорь 2026-06-26 (был #f5f3f0, almost-neutral) → surface-0 «стол» + cards-page-bg; warm-gap R−B=12
   --ref-color-neutral-200: #ebe9e5;
   --ref-color-neutral-300: #e2dfda; // = border-default
   --ref-color-neutral-400: #817d76; // = text-tertiary
@@ -295,6 +302,19 @@
   --ref-color-neutral-800: #312d27;
   --ref-color-neutral-900: #221f19; // = color-ink (warm-coal)
   --ref-color-neutral-1000: #0d0b07; // = color-ink-strong
+
+  // ─── ref · COOL-NEUTRAL (cold slate, 2026-06-26) — #ref-cool ──
+  // Холодная нейтраль (hue ≈222° blue, низкая chroma) — контрапункт ТЁПЛОМУ
+  // --ref-color-neutral. Якорь {900}= cool-night #1f2a44, который уже жил ad-hoc в
+  // --sys-color-divider (rgba 31,42,68) и --sys-color-text-placeholder (slate). Дом
+  // для тинта НЕсемантических глифов: шевроны/иконки/значки (см. --sys-color-icon*).
+  --ref-color-cool-200: #d2d6df;
+  --ref-color-cool-300: #b5bbc8;
+  --ref-color-cool-400: #939aab;
+  --ref-color-cool-500: #6f7689;
+  --ref-color-cool-600: #515a70;
+  --ref-color-cool-700: #3a4259;
+  --ref-color-cool-900: #1f2a44; // = cool-night anchor (divider / placeholder slate)
 
   // ref · navy RETIRED 2026-06-25 (M4): «выбрано» → warm amber, brand-action → indigo.
   // navy-600/700 had 0 consumers after the split; removed. See #ref-accent-ramps below.
@@ -345,6 +365,22 @@
   --sys-color-surface-sunken: var(--surface-base); // no separate sunken primitive
   --sys-color-surface-grouped: var(--cards-page-bg); // n100 — фон страницы под inset-grouped списком (SearchFood)
 
+  // ─── sys · DEPTH AXIS (0/1/2) — #sys-surface-depth ───────────
+  // Лестница глубины (Material-combined, но lightness-only, БЕЗ hue-tint —
+  // surfaces намеренно hue-free, paper-mono канон). Светлота растёт с высотой:
+  // база приглушена (тёплая бумага), у 1/2 «запас на подъём» к белому.
+  // ДРЕМЛЮЩИЕ — потребители (surface-page/bright/raised/grouped) пока НЕ мигрированы
+  // (отдельный goal). Парные тени — --sys-elevation-* (применять вместе с уровнем).
+  --sys-color-surface-0: var(--ref-color-neutral-100); // стол/основа · #f7f3eb · тень none
+  --sys-color-surface-1: var(--ref-color-neutral-0); // парящий лист (card/sheet) · #fefcf9
+  --sys-color-surface-2: var(--ref-color-white); // лист над листом (modal/drawer/popover) · #ffffff
+  --sys-elevation-0: none;
+  --sys-elevation-1: var(--ref-shadow-1);
+  --sys-elevation-2: var(--ref-shadow-3);
+  // Тёмная инверсия — ОТДЕЛЬНАЯ ось полярности (плавающий тёмный бар), НЕ вершина
+  // высоты. Не «уровень 3» лестницы.
+  --sys-color-surface-inverted: var(--ref-color-neutral-800);
+
   --sys-color-surface-floating: var(--ref-color-neutral-800);
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
@@ -370,10 +406,23 @@
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
   --sys-color-text-sepia: #6b4a23; // FabricLoader gravure ink — sepia art-слой (бледная гравюра)
+  // Тихий «музейная табличка» текст (QuietLabel: неактивный таб, шаг-крошка,
+  // индикатор разделов). ХОЛОДНЫЙ slate — контрапункт тёплому ink основного
+  // текста, парный к холодному --sys-color-icon. Дом цвета тихого яруса
+  // (заведён 2026-06-26): примитив QuietLabel ссылается на него, а не льёт
+  // --ref-* напрямую (2-ярус ref→sys).
+  --sys-color-text-quiet: var(--ref-color-cool-600);
   // Placeholder-подсказка поля — ХОЛОДНЫЙ нейтральный (cool slate). Семантический
   // дом цвета подсказки (вынесен для переиспользования 2026-06-26): поля ссылаются
   // на него через --sys-field-placeholder. Холодный контрапункт к тёплому field-ink.
   --sys-color-text-placeholder: rgba(74, 80, 94, 0.5);
+
+  // color · icon — нейтральный тинт НЕсемантических глифов: шевроны аккордеонов,
+  // декоративные значки, caret'ы. ХОЛОДНЫЙ серый (cool-neutral) — контрапункт
+  // тёплому ink текста; единый дом, чтобы иконки по всему приложению читались как
+  // один холодный материал. Семантические иконки (статус) берут --sys-color-status-*.
+  --sys-color-icon: var(--ref-color-cool-500);
+  --sys-color-icon-muted: var(--ref-color-cool-400);
 
   // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
@@ -384,9 +433,11 @@
   // текут отсюда: `--sys-card-hairline`, NutrientsBar, headerOverlap-бровка листа.
   // Крути alpha здесь — 1px-линия, значение чувствительно (tunable одним местом).
   --sys-color-divider: rgba(31, 42, 68, 0.11);
+  --sys-color-divider-card: rgb(255, 255, 255);
 
   // color · intents (action / status)
-  --sys-color-text-on-action: var(--cta-brand-ink); // warm-coal ink on brand CTA
+  // (foreground текста/иконки НА залитой кнопке — семейство --sys-color-on-action-*
+  //  ниже; бывший --sys-color-text-on-action слит в --sys-color-on-action-primary 2026-06-26.)
   --sys-color-status-danger: var(--ref-color-terracotta-600);
   --sys-color-status-warning: var(--ref-color-amber-earth-600);
   --sys-color-status-done: var(--ref-color-moss-600);
@@ -402,7 +453,7 @@
   // color · interactive states (cross-element; "selected" = single source)
   // «выбрано» = warm amber light-tonal (2026-06-25, M4 navy→amber). text-on-selected =
   // deep amber: works AS text on the pale fill AND as a standalone selected-hue glyph/tick.
-  --sys-color-bg-selected: color-mix(in srgb, var(--ref-color-amber-600) 14%, var(--ref-color-neutral-0));
+  --sys-color-bg-selected: color-mix(in oklch, var(--ref-color-amber-600) 14%, var(--ref-color-neutral-0));
   --sys-color-text-on-selected: var(--ref-color-amber-700);
   --sys-color-border-selected: var(--ref-color-amber-700);
   // Галочка-глиф selection-маркера — ХОЛОДНАЯ искра (indigo accent-полюс), контрапункт
@@ -438,28 +489,31 @@
   // disabled — единая нейтральная «погасшая» заливка: выключенная кнопка теряет
   // цветовую идентичность (один источник на все 3 яруса; per-tier имена — для API).
   --sys-color-surface-action-disabled: rgba(0, 0, 0, 0.08);
-  --sys-color-surface-action-primary: var(--ref-color-amber-500); // #e0b581 — медовый brand-fill (ref-рунг, не cta)
-  --sys-color-surface-action-primary-pressed: var(--ref-color-amber-600); // #b18042 — ступень ref-лестницы вниз
+  --sys-color-surface-action-primary: var(--ref-color-amber-500); // #9f6c22 — медовый brand-fill (ref-рунг, не cta)
+  --sys-color-surface-action-primary-pressed: var(--ref-color-amber-600); // #8a5700 — ступень ref-лестницы вниз
   --sys-color-surface-action-primary-disabled: var(--sys-color-surface-action-disabled);
   --sys-color-surface-action-accent: var(--ref-color-indigo-600);
   --sys-color-surface-action-accent-pressed: var(--ref-color-indigo-700);
   --sys-color-surface-action-accent-disabled: var(--sys-color-surface-action-disabled);
   // Soft (светлая) indigo-подложка + accent-text рампа — consolidation бывшей sky-палитры
   // ($sky-bg/$sky-ink) на indigo-ярус (решение юзера «indigo вместо navy» 2026-06-25).
+  // NB: это БАЗА для НЕ-кнопочных accent-поверхностей (AddPortionButton/FoodWriteBar bg).
+  // --sys-color-surface-action-accent-soft (ниже) её АЛИАСИТ ради параллелизма
+  // secondary-кнопок — это намеренный single-source, НЕ дубль (не путать с #2-кейсом).
   --sys-color-surface-accent-soft: var(--ref-color-indigo-100);
-  --sys-color-text-accent-muted: color-mix(in srgb, var(--sys-color-text-accent) 55%, transparent);
-  --sys-color-text-accent-faint: color-mix(in srgb, var(--sys-color-text-accent) 35%, transparent);
+  --sys-color-text-accent-muted: color-mix(in oklch, var(--sys-color-text-accent) 55%, transparent);
+  --sys-color-text-accent-faint: color-mix(in oklch, var(--sys-color-text-accent) 35%, transparent);
   --sys-color-surface-action-system: var(--ref-color-neutral-900);
   --sys-color-surface-action-system-pressed: var(--ref-color-neutral-1000);
   --sys-color-surface-action-system-disabled: var(--sys-color-surface-action-disabled);
 
-  // color · ON-action — контент (текст/иконка) ПОВЕРХ залитой кнопки. `on-*`
-  // читается «НА surface этого тона»: парный foreground к surface-action-<tone>.
+  // color · ON-action — контент (текст/иконка) ПОВЕРХ залитой кнопки. Имя зеркалит
+  // заливку: surface-action-<tone> ↔ on-action-<tone> (видно пару с одного взгляда).
   // (Отдельно от текстовых ролей `text-*`, которые красят свободный текст на
   // странице — их перекраска не должна тащить за собой кнопки, и наоборот.)
-  --sys-color-on-system: var(--text-on-accent); // #fff на угле
-  --sys-color-on-primary: var(--cta-brand-ink); // warm-coal на амбре
-  --sys-color-on-accent: var(--text-on-accent); // #fff на индиго
+  --sys-color-on-action-system: var(--text-on-accent); // #fff на угле
+  --sys-color-on-action-primary: var(--cta-brand-ink); // warm-coal на амбре (бывш. text-on-action)
+  --sys-color-on-action-accent: var(--text-on-accent); // #fff на индиго
 
   // color · surface-action SECONDARY (тихий ярус кнопки) — те же 3 тона, но soft:
   // светлая тональная подложка + тональный текст + опц. тональный бордюр. Press =
@@ -467,7 +521,7 @@
   // «заливка vs бордюр» — DesignBar `ButtonSecondary` (`<html data-btn-secondary>`),
   // дефолт = заливка. Тональный текст здесь = `text-*` роль (НЕ on-*: это не белый
   // контент на сплошной заливке, а тёмно-тональный foreground на светлом soft).
-  --sys-color-surface-action-system-soft: var(--ref-color-neutral-100); // #f5f3f0
+  --sys-color-surface-action-system-soft: var(--ref-color-neutral-100); // #f7f3eb — теплеет с ре-якорем n100 (2026-06-26, намеренно: общая бумага нижних поверхностей)
   --sys-color-surface-action-primary-soft: var(--ref-color-amber-50); // #ffedd9
   --sys-color-surface-action-accent-soft: var(--sys-color-surface-accent-soft); // indigo-100
   --sys-color-surface-action-system-soft-pressed: var(--ref-color-neutral-300); // #e2dfda
@@ -510,7 +564,11 @@
   // ровный зазор в углу; НЕ «половина»). 40 − 24 = 16. Считаем здесь, в
   // примитивном ярусе (gate-exempt); компоненты потребляют готовую роль, не calc.
   // Меняешь sheet/inset — внутренний радиус едет следом сам.
-  --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-sheet)); // → 16
+  --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-sheet));
+  // Вложенный радиус для пилюли внутри overlay-плашки (нижний док WriteBar): тот же
+  // канон концентричности r_внутр = r_внеш − inset (24 − 12 = 12). Пилюля рифмуется
+  // с углом плашки, а не торчит стадионом.
+  --sys-radius-overlay-inner: calc(var(--sys-radius-overlay) - var(--sys-inset-page)); // → 12
   --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
   // ─── Nutrient family — #nutrient ─────────────────────────────
@@ -566,8 +624,11 @@
 // Single MONOCHROME tone («great unification» 2026-06-19): neutral-gray text/ink,
 // dusty-lavender accent #877f9c (the one barely-there chromatic signal).
 // Args = (text, ink, accent, (pill ×3), (dark from, mid, to), on-dark).
+// $text (chip rest-текст) — charcoal #36363a, НЕ near-black: чип всегда на белой
+// пилюле (surface-1), и чистая чернь читалась жёстко (запрос юзера 2026-06-26).
+// Смягчён только chip-текст; текст поля/тела (--text-primary #221f19) не тронут.
 :root {
-  @include field-chip-palette(#1d1d1f, #2c2c30, #877f9c,
+  @include field-chip-palette(#36363a, #2c2c30, #877f9c,
     (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff);
   // Row-cards canon paper-mono (flat hue-free; lavender gradient removed 2026-06-22).
   // app-wide --sys-card-bg = WHITE so standalone rows don't dissolve; gradient

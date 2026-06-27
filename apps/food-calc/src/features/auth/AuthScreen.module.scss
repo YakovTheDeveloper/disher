@@ -1,5 +1,5 @@
 // ─── Fullscreen auth blocker — app-tone surface ────────────────
-// Single surface: paper (--sys-color-surface-page), как у остальных экранов.
+// Single surface: база-стол (--sys-color-surface-0), как фон остальных экранов.
 // Dark/photo `data-auth-variant` темы (v1-photo + dev-форки v2/v3/v4) сняты
 // 2026-06-24 — экран входа переведён на app-тон (форма читает field-токены).
 // Здесь — только layout-примитивы (позиционирование, safe-area, brand).
@@ -16,7 +16,7 @@
   padding-top: env(safe-area-inset-top, 0px);
   overflow: hidden;
   isolation: isolate;
-  background: var(--sys-color-surface-page);
+  background: var(--sys-color-surface-0);
 }
 
 .brand {

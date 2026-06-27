@@ -1,8 +1,8 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
 // Pills are ActionTile (shared atom, ink-fill + white text — its own styling). The dock
 // styles itself entirely on sys-tokens (no bespoke per-surface bundle handed down from
-// the screen): ОДНА плоская тёплая поверхность (`--sys-color-surface-page` #fefcf9),
-// закруглённая как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-
+// the screen): ОДНА плоская тёплая поверхность (`--sys-color-surface-1` #fefcf9 — парящий
+// лист-док над базой страницы), закруглённая как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-
 // blur + полупрозрачные зоны) выпилено 2026-06-25 — было холодное и пёстрое; список
 // больше НЕ просвечивает под доком (намеренный trade-off ради спокойствия). `.header`
 // и `.actions` остались только как зоны раскладки (padding), фон несёт `.root`.
@@ -22,7 +22,7 @@
     // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root может
     // нести непрозрачный фон, ничего не размывая). overflow:hidden клипит контент
     // к скруглённым углам (box-shadow рисуется снаружи border-box и не режется).
-    background: var(--sys-color-surface-page);
+    background: var(--sys-color-surface-1);
     border-radius: var(--sys-radius-overlay) var(--sys-radius-overlay) 0 0;
     overflow: hidden;
     box-shadow: var(--sys-elevation-dock);

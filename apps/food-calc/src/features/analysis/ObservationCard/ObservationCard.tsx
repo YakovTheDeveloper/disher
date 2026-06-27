@@ -2,8 +2,8 @@ import { memo, useState, type ReactNode } from 'react';
 import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { toast } from 'sonner';
+import clsx from 'clsx';
 import type { InsightValence, InsightStrength, InsightEvidence } from '@/entities/insight';
-import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { Button } from '@/shared/ui/atoms/Button';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Text } from '@/shared/ui/atoms/Typography';
@@ -45,6 +45,12 @@ type Props = {
   action?: ObservationAction;
   /** action='add': raw persistence (saveInsight / saveHypothesis). */
   onAdd?: () => Promise<void>;
+  /**
+   * Внутренние отступы карточки. По умолчанию ВЫКЛ (карточка прижата к краям
+   * своего контейнера — SheetCard сам даёт воздух). Включить там, где карточка
+   * стоит на голой поверхности и ей нужны собственные поля.
+   */
+  padded?: boolean;
   addLabel?: string;
   addedAriaLabel?: string;
   addSuccessToast?: string;
@@ -83,7 +89,8 @@ const ObservationCard = ({
   showDays = true,
   action = 'none',
   onAdd,
-  addLabel = 'Сохранить',
+  padded = false,
+  addLabel = 'Добавить себе',
   addedAriaLabel = 'Сохранено',
   addSuccessToast = 'Сохранено',
   addErrorToast = 'Не удалось сохранить',
@@ -117,7 +124,7 @@ const ObservationCard = ({
 
   return (
     <article
-      className={styles.card}
+      className={clsx(styles.card, padded && styles.padded)}
       data-strength={strength || undefined}
       data-valence={valence || undefined}
     >
@@ -166,12 +173,11 @@ const ObservationCard = ({
 
         {action === 'add' && (
           // Уменьшенный accent-CTA (класс .add режет min-height/padding с
-          // дефолтных 56px). Сохранено → soft-ярус (accent-secondary) с «✓
-          // сохранено», без bespoke data-added.
+          // дефолтных 56px). Без ведущей иконки — текст «Добавить себе» несёт
+          // действие сам. Сохранено → soft-ярус (accent-secondary) «✓ сохранено».
           <Button
             variant={added ? 'accent-secondary' : 'accent'}
             className={styles.add}
-            icon={added ? undefined : <PlusIcon variant="solid" aria-hidden />}
             onClick={handleAdd}
             disabled={added || saving}
             aria-label={added ? addedAriaLabel : addLabel}

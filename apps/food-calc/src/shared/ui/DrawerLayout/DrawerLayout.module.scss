@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 :root {
     --layout-footer-height: 40px;
 }
@@ -14,7 +16,10 @@
 .content {
     position: fixed;
     box-sizing: border-box;
-    background-color: var(--sys-color-surface-bright);
+    background-color: var(--sys-color-surface-2);
+    // Всплывающий лист (drawer) = surface-2 (белый) → surface-aware глубина поля
+    // (стратегия C): на белом лунка узнаётся бровкой + inset-тенью.
+    @include field-depth-surface-2;
     z-index: calc(5001 + var(--nested-drawers, 0) * 10);
     overscroll-behavior: contain;
     display: flex;
@@ -300,7 +305,11 @@
     height: 50px;
     top: 0;
     display: flex;
-    // align-items: center;
+    // Оба chrome-слота (крест слева, topRight-урна справа) — одинаковые 50×50
+    // ячейки с глифом по центру. Без этого topRight-контент центрировался лишь
+    // если сам заполнял 100% — крест и урна вставали по-разному → «не по сетке».
+    align-items: center;
+    justify-content: center;
     border-radius: var(--sys-radius-control);
 
     * {
@@ -327,7 +336,7 @@
 // and topRight are absolutely positioned, so the title centers in the flex row
 // (justify-content: center on .dragHandle). This element IS the Drawer.Title
 // (<h2>); styling mirrors the canonical `Heading role="headline"` via the shared
-// heading tokens (Onest bold-sans, --heading-size-drawer) — single source
+// heading tokens (Onest bold-sans, --sys-heading-size-drawer) — single source
 // of truth is the tokens. `margin: 0` strips the UA heading margin so it stays
 // centered in the 50px row; pointer-events off so taps fall through to the
 // (decorative) drag row.
@@ -340,6 +349,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none;
+
+    // Имена каталога хранятся lowercase («курага») — sentence-case первой буквы
+    // средствами CSS, не строкой. Тот же канон, что в HomeTopBar.centerLabel и
+    // NutrientsDrawer.title.
+    &::first-letter {
+        text-transform: uppercase;
+    }
 }
 
 // Title + subtitle column (account identity header: «Аккаунт» + email). Centers

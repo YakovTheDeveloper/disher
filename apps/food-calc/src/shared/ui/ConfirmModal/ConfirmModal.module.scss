@@ -54,7 +54,7 @@
 .confirm {
     border: none;
     background: var(--sys-color-surface-action-accent); // brand action → indigo accent (M4 navy→indigo, 2026-06-25)
-    color: var(--sys-color-on-accent);
+    color: var(--sys-color-on-action-accent);
 
     // Цветной отклик: сплошную кнопку затемняем фильтром.
     &:active {

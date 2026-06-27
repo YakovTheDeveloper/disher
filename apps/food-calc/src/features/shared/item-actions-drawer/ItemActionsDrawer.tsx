@@ -21,12 +21,18 @@ interface Props extends BaseDrawerProps<void> {
   /** Bottom vertical stack. The last entry reads as the "primary" action
    *  (e.g. «Информация о продукте» sits at the bottom). */
   actions: ItemAction[];
+  /** Optional horizontal row of edit-entry buttons rendered BELOW the action
+   *  stack — each is a pencil-icon + label that closes the drawer and opens the
+   *  matching edit step. Schedule-food rows pass [Количество, Особенности,
+   *  Время]; entities without inline-editable fields (dish ingredients, catalog
+   *  foods) omit it → no row. The pencil glyph is owned here (uniform). */
+  editActions?: ItemAction[];
 }
 
 // Each handler closes the drawer FIRST, then runs the callback. Order matters:
 // an info-action that navigates must not leave the drawer mounted over the new
 // page (see spec Edge cases).
-export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) => {
+export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActions }: Props) => {
   const handleDelete = () => {
     onClose();
     onDelete?.();
@@ -58,6 +64,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
           <Button
             key={`${action.label}-${i}`}
             variant="system-secondary"
+            flat
             fullWidth
             icon={action.icon}
             onClick={() => handleAction(action)}
@@ -66,9 +73,38 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions }: Props) 
           </Button>
         ))}
       </div>
+      {editActions && editActions.length > 0 && (
+        <div className={s.editRow}>
+          {editActions.map((action, i) => (
+            <Button
+              key={`${action.label}-${i}`}
+              className={s.editBtn}
+              variant="system-secondary"
+              flat
+              icon={<PencilIcon />}
+              onClick={() => handleAction(action)}
+            >
+              {action.label}
+            </Button>
+          ))}
+        </div>
+      )}
     </DrawerLayout>
   );
 };
+
+const PencilIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M4 20h4L18.5 9.5a2.121 2.121 0 0 0-3-3L5 17v3z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M13.5 6.5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
 
 const TrashIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
