@@ -64,8 +64,13 @@ const catTrigrams: Array<{ id: string; name: string; tri: Set<string> }> = catal
 // Import the Case arrays by structural copy from probe-matcher.ts.
 // Simplest: import the file for its data via dynamic import below.
 
-const { BASIC, TRICKY, OOV } = await import("./probe-cases.ts").catch(() => null)
-  ?? await extractCasesFromProbeMatcher();
+// probe-cases.ts is an optional, often-absent sibling (hence the .catch
+// fallback). Use a runtime-computed specifier so tsc doesn't try to resolve a
+// file that may not exist (TS2307) — resolution is deferred to runtime.
+const probeCasesSpecifier = "./probe-cases.ts";
+const { BASIC, TRICKY, OOV } =
+  (await import(probeCasesSpecifier).catch(() => null)) ??
+  (await extractCasesFromProbeMatcher());
 
 async function extractCasesFromProbeMatcher() {
   // Parse probe-matcher.ts source and eval the three arrays in a sandbox-ish way.

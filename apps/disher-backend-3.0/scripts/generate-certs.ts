@@ -34,20 +34,24 @@ function collectLanIps(): string[] {
 async function main() {
   const lanIps = collectLanIps();
 
-  const altNames = [
+  const altNames: { type: 1 | 2 | 6 | 7; value?: string; ip?: string }[] = [
     { type: 2, value: "localhost" },
     { type: 7, ip: "127.0.0.1" },
     { type: 7, ip: "::1" },
-    ...lanIps.map((ip) => ({ type: 7, ip })),
+    ...lanIps.map((ip) => ({ type: 7 as const, ip })),
   ];
 
-  const pems = await selfsigned.generate(null, {
-    algorithm: "sha256",
-    days: 365,
-    keySize: 2048,
-    extensions: [{ name: "subjectAltName", altNames }],
-    attrs: [{ name: "commonName", value: "localhost" }],
-  });
+  const pems = await selfsigned.generate(
+    // attrs is selfsigned's first positional arg (CertificateField[]), not an
+    // options key. selfsigned@5 defaults notAfterDate to +365 days, so the old
+    // `days` option (not in its types) is dropped as redundant.
+    [{ name: "commonName", value: "localhost" }],
+    {
+      algorithm: "sha256",
+      keySize: 2048,
+      extensions: [{ name: "subjectAltName", altNames }],
+    },
+  );
 
   writeFileSync(join(CERTS_DIR, "localhost-key.pem"), pems.private);
   writeFileSync(join(CERTS_DIR, "localhost-cert.pem"), pems.cert);
