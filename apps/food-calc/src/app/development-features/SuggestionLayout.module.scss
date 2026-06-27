@@ -126,7 +126,7 @@
 
 .cardPicked {
   --col-border: transparent;
-  box-shadow: 0 0 0 1.5px var(--color-accent), 0 12px 28px rgba(28, 28, 107, 0.14);
+  box-shadow: 0 0 0 1.5px var(--ref-color-indigo-600), 0 12px 28px rgba(28, 28, 107, 0.14);
 }
 
 .cardHead {
@@ -154,7 +154,7 @@
 }
 
 .badgePicked {
-  background: var(--color-accent);
+  background: var(--ref-color-indigo-600);
   color: var(--text-on-accent, #fff);
 }
 

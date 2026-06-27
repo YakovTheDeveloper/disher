@@ -157,13 +157,13 @@ button:focus-visible {}
 
 body {
   .is-selected {
-    background: var(--color-deep-blue);
+    background: var(--ref-color-indigo-600);
     border-color: rgba(124, 185, 255, 0.3);
     color: white;
     font-weight: 300;
 
     &:hover {
-      background: var(--color-deep-blue);
+      background: var(--ref-color-indigo-600);
     }
   }
 }

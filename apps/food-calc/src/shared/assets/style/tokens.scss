@@ -569,9 +569,7 @@
   --sys-radius-tmp: 0; // ⚠️ TEMP uncategorized — 0 is intentional (visible squares → grep & assign real role; each use has /* was Npx */)
 
   // ─── Nutrient family — #nutrient ─────────────────────────────
-  --nutrient-accent-main: var(--color-deep-blue);
-  --nutrient-accent-minerals: var(--color-deep-blue);
-  --nutrient-accent-vitamins: var(--color-deep-blue);
+  --nutrient-accent: var(--ref-color-indigo-600); // cold indigo accent (trio main/minerals/vitamins collapsed 2026-06-27)
   --nutrient-progress-height: 3px;
   --nutrient-card-radius: var(--radius-sm);
   --nutrient-card-surface: rgba(255, 255, 255, 0.55); // faint card backing on ::before (z-index -2)

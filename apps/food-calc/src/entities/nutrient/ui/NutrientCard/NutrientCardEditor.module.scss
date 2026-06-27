@@ -15,17 +15,11 @@
   opacity: 0.35;
 }
 
-// --- Group accent ---
-.main {
-  --sys-card-accent: var(--nutrient-accent-main);
-}
-
-.minerals {
-  --sys-card-accent: var(--nutrient-accent-minerals);
-}
-
+// --- Group accent (single indigo accent; per-group trio collapsed 2026-06-27) ---
+.main,
+.minerals,
 .vitamins {
-  --sys-card-accent: var(--nutrient-accent-vitamins);
+  --sys-card-accent: var(--nutrient-accent);
 }
 
 // --- Top row: label ---
