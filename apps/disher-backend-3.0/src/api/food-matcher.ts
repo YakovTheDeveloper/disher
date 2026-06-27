@@ -2,9 +2,26 @@ import { readFileSync, existsSync, statSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { pipeline, env, type FeatureExtractionPipeline } from "@xenova/transformers";
-import { generateEmbeddings } from "../../scripts/gen-food-embeddings.js";
+// NB: `generateEmbeddings` lives in scripts/, which tsconfig.build.json excludes
+// from the prod build — a top-level import would be ERR_MODULE_NOT_FOUND in the
+// `--prod deploy` image. It's only needed when embeddings are missing/stale
+// (a dev/build-time concern), so it's loaded via dynamic import() in that branch.
 
+// Cache the embedding model under a stable, writable path baked into the image
+// (warmed at build time), and never reach out to HuggingFace at runtime.
+// @xenova/transformers v2 ignores HF_HOME/TRANSFORMERS_CACHE — env.cacheDir is
+// the only knob it honours. Overridable via MODEL_CACHE_DIR for local runs.
 env.allowLocalModels = false;
+// In prod the model must already be in env.cacheDir (warmed at image-build
+// time) — never hit the network at runtime. In dev/build/test we still allow
+// the HF download so a fresh machine (and the Docker builder warmup) Just Works.
+// ALLOW_REMOTE_MODELS=true is an explicit escape hatch for prod if ever needed.
+env.allowRemoteModels =
+  process.env.NODE_ENV !== "production" ||
+  process.env.ALLOW_REMOTE_MODELS === "true";
+if (process.env.MODEL_CACHE_DIR) {
+  env.cacheDir = process.env.MODEL_CACHE_DIR;
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -50,7 +67,13 @@ export function isMatcherReady(): boolean {
 }
 
 function shouldRegenerate(): boolean {
+  // No embeddings at all → must build them.
   if (!existsSync(embPath)) return true;
+  // The seed is the FRONTEND catalog, which is not shipped in the backend-only
+  // prod image. If it's absent we cannot (and need not) check staleness — the
+  // baked embeddings are authoritative there. Only compare mtimes when both
+  // files exist (dev/build), so a catalog rebuild still triggers a regen.
+  if (!existsSync(seedPath)) return false;
   const seedMtime = statSync(seedPath).mtimeMs;
   const embMtime = statSync(embPath).mtimeMs;
   return seedMtime > embMtime;
@@ -59,6 +82,12 @@ function shouldRegenerate(): boolean {
 export async function initMatcher(): Promise<void> {
   if (shouldRegenerate()) {
     console.log("food-embeddings.json missing or stale — regenerating");
+    // Loaded lazily: scripts/ is excluded from the prod build, so a static
+    // import would break the prod image. This branch only runs in dev/build,
+    // where scripts/ is present.
+    const { generateEmbeddings } = await import(
+      "../../scripts/gen-food-embeddings.js"
+    );
     await generateEmbeddings();
   }
 
