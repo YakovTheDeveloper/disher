@@ -1,0 +1,54 @@
+# Build context filter. Context = REPO ROOT (compose build.context: ../..).
+# Goal: ship the pnpm-workspace install inputs + backend source, nothing heavy.
+
+# Dependencies & build output (re-created inside the builder stage).
+**/node_modules
+**/dist
+**/build
+**/.turbo
+*.tsbuildinfo
+
+# VCS & editor/tooling.
+.git
+.github
+.husky
+.vscode
+.idea
+.claude
+
+# Secrets & local env — never bake into an image layer.
+**/.env
+**/.env.*
+
+# Certs: the backend serves HTTP behind Caddy; TLS terminates at Caddy.
+apps/disher-backend-3.0/certs
+
+# Logs & test artifacts.
+**/*.log
+**/logs
+**/coverage
+**/playwright-report
+**/test-results
+
+# OS noise.
+.DS_Store
+Thumbs.db
+
+# Docker artifacts themselves (the Dockerfile is read via -f, not from context).
+**/Dockerfile
+**/docker-compose*.yml
+.dockerignore
+
+# ── Frontend: only its package.json is needed (pnpm workspace resolution). ────
+# `food-calc/*` excludes the dir CONTENTS, not the dir itself, so re-including a
+# direct child file is reliable.
+apps/food-calc/*
+!apps/food-calc/package.json
+
+# ── Backend data/: carve out ONLY the two JSONs the runtime bakes in. ─────────
+# Same reliable form — `data/*` excludes contents, the dir stays, the two files
+# are re-included. Everything else (analytics.db*, telemetry, bug-reports,
+# diag-logs, archived, reports, food-catalog-lite.json) is excluded.
+apps/disher-backend-3.0/data/*
+!apps/disher-backend-3.0/data/food-embeddings.json
+!apps/disher-backend-3.0/data/food-aliases.json
