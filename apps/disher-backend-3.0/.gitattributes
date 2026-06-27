@@ -1,0 +1,4 @@
+# Shell scripts ship to / run on Linux (VPS + alpine containers). Force LF in the
+# blob and on checkout so a CRLF shebang never breaks under sh on Linux, even with
+# core.autocrlf=true on a Windows working copy.
+*.sh text eol=lf
