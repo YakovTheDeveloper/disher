@@ -73,7 +73,7 @@
   --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
 
   // Display — poster / active swipe tab
-  --sys-text-display-size: 38px;
+  --sys-text-display-size: 42px;
   --sys-text-display-weight: 700;
   --sys-text-display-line: 1.05;
   --sys-text-display-tracking: -0.022em;
@@ -347,6 +347,11 @@
   --ref-color-indigo-900: #150537;
   --ref-color-indigo-1000: #0a0025;
 
+  // ref · focus — яркий насыщенный индиго (hue ~272°, L≈0.48): холодный полюс
+  // канона, но ВИДИМЫЙ как кольцо на тёплой бумаге (тёмный indigo-600 #3a2d6b
+  // невидим). Отдельный примитив фокуса — НЕ рунг indigo-ramp.
+  --ref-color-focus: #4f46e5;
+
   // ref · status — earthy-herbarium, warm-deep (2026-06-24) — #ref-status
   // ⚠️ 0 live sys-status-* consumers (Analysis draws locally via color-mix).
   --ref-color-terracotta-600: #983d1f; // danger
@@ -410,7 +415,7 @@
   // текста, парный к холодному --sys-color-icon. Дом цвета тихого яруса
   // (заведён 2026-06-26): примитив QuietLabel ссылается на него, а не льёт
   // --ref-* напрямую (2-ярус ref→sys).
-  --sys-color-text-quiet: var(--ref-color-cool-600);
+  --sys-color-text-quiet: var(--ref-color-cool-500);
   // Placeholder-подсказка поля — ХОЛОДНЫЙ нейтральный (cool slate). Семантический
   // дом цвета подсказки (вынесен для переиспользования 2026-06-26): поля ссылаются
   // на него через --sys-field-placeholder. Холодный контрапункт к тёплому field-ink.
@@ -445,7 +450,7 @@
   // с тёплой бумагой — снап сырых red/amber/green washes сюда.
   --sys-color-status-danger-surface: color-mix(in oklch, var(--ref-color-terracotta-600) 9%, var(--surface-base));
   --sys-color-status-warning-surface: color-mix(in oklch, var(--ref-color-amber-earth-600) 11%, var(--surface-base));
-  --sys-color-status-warning-border: color-mix(in oklch, var(--ref-color-amber-earth-600) 35%, transparent); // soft amber hairline (бывш. --color-warning-border)
+  --sys-color-status-warning-border: color-mix(in oklch, var(--ref-color-amber-earth-600) 35%, transparent); // soft amber hairline (replaced a raw warning-border rgba)
   --sys-color-status-success-surface: color-mix(in oklch, var(--ref-color-moss-600) 11%, var(--surface-base));
 
   // color · interactive states (cross-element; "selected" = single source)
@@ -537,7 +542,7 @@
   // text · faint — тихий серый ghost-link (вне тёплой neutral-лестницы — чеканка 1:1)
   --sys-color-text-faint: rgb(193, 193, 193);
 
-  --sys-color-border-focus: var(--color-blue-2); // one focus indicator app-wide (input ring + editable halo)
+  --sys-color-border-focus: var(--ref-color-focus); // one focus indicator app-wide (input ring + editable halo) — bright cold indigo
   --sys-color-bg-focus-ring: color-mix(in oklch, var(--sys-color-border-focus) 22%, transparent); // фокус-кольцо :focus-within (плоский токен вместо повторяемого color-mix)
   --sys-opacity-disabled: 0.4;
 
