@@ -445,6 +445,7 @@
   // с тёплой бумагой — снап сырых red/amber/green washes сюда.
   --sys-color-status-danger-surface: color-mix(in oklch, var(--ref-color-terracotta-600) 9%, var(--surface-base));
   --sys-color-status-warning-surface: color-mix(in oklch, var(--ref-color-amber-earth-600) 11%, var(--surface-base));
+  --sys-color-status-warning-border: color-mix(in oklch, var(--ref-color-amber-earth-600) 35%, transparent); // soft amber hairline (бывш. --color-warning-border)
   --sys-color-status-success-surface: color-mix(in oklch, var(--ref-color-moss-600) 11%, var(--surface-base));
 
   // color · interactive states (cross-element; "selected" = single source)

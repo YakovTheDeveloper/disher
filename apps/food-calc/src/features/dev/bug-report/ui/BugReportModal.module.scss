@@ -76,7 +76,7 @@
 .error {
   margin: 0;
   font-size: var(--text-sm);
-  color: var(--color-danger);
+  color: var(--sys-color-status-danger);
 }
 
 // ── Bottom block: actions (in flow) ─────────────────────────────────────────
@@ -390,7 +390,7 @@
   min-height: 40px;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-full);
-  background: var(--color-danger);
+  background: var(--sys-color-status-danger);
   border: none;
   color: var(--text-on-accent);
   font-size: var(--text-sm);
