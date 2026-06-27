@@ -8,28 +8,28 @@
     // Канон 2026-06-24: тёплая-мягкая палитра (tds/ANALYSIS/token-canon-rename §4.0,
     // scratchpad/v2.mjs). Один тёплый лин (hue 85), перцептивно-равномерные ступени,
     // текст L-locked под APCA. Hex = oklch-производные (универсально, без @supports).
-    --surface-base: #fefcf9; // n0  · oklch(0.992 0.004 85) — было #FAFAF7
+    --surface-base: var(--ref-color-neutral-0); // = #fefcf9 (alias → ref, single source)
     // Чистый белый — максимальный контраст к тёплой бумаге Screen (--surface-base):
     // floating-поверхности, которым нужно ЯВНО «всплыть» над экраном (write-бар
     // вариант `bright`). Намеренно НЕ тёплый — белее бумаги = сильнее выделяется.
-    --surface-bright: #ffffff; // n-1 · чистый белый, ярче бумаги
+    --surface-bright: var(--ref-color-white); // = #ffffff (alias → ref)
     --surface-raised: rgba(255, 254, 250, 0.7); // тёплый полупрозрачный raised
     // (--surface-overlay удалён 2026-06-24 — 0 консумеров, см. рельс --sys-color-surface-overlay снят)
 
     // ─── Semantic: text — worst-surface APCA |Lc| (на #f7f3eb, самый тёмный из реальных фонов) ──
     // Числа из scratchpad/crit.mjs (APCA-W3): primary 96.4 / secondary 66.7 / tertiary 61.2.
-    --text-primary: #221f19; // n900 · oklch(0.24 0.011 85) — тёплый-уголь, worst |Lc| 96.4 (≥75)
-    --text-secondary: #757169; // n500 · oklch(0.55 0.013 85) — worst |Lc| 66.7 (≥60)
-    --text-tertiary: #817d76; // n400 · oklch(0.59 0.012 82) — worst |Lc| 61.2 (≥60; было #89867e = 57 < 60)
+    --text-primary: var(--ref-color-neutral-900); // = #221f19 (alias → ref) — worst |Lc| 96.4 (≥75); полиморфен (chip-tint, ScheduleEvents) — держать алиасом, не инлайнить
+    --text-secondary: var(--ref-color-neutral-500); // = #757169 (alias → ref) — worst |Lc| 66.7 (≥60)
+    --text-tertiary: var(--ref-color-neutral-400); // = #817d76 (alias → ref) — worst |Lc| 61.2 (≥60)
     --text-muted: rgba(34, 31, 25, 0.15); // тёплый mute (был чёрный-альфа)
     --text-on-accent: #ffffff;
 
     // ─── Ink: brand near-black used across pill buttons, footer CTA, big digits ──
-    --color-ink: #221f19; // n900 — тёплый-уголь (было cool rgb(38,38,51))
-    --color-ink-strong: #0d0b07; // n1000 · oklch(0.15 0.009 85)
+    --color-ink: var(--ref-color-neutral-900); // = #221f19 (alias → ref)
+    --color-ink-strong: var(--ref-color-neutral-1000); // = #0d0b07 (alias → ref)
 
     // ─── Semantic: borders (тёплый-альфа, не чёрный — иначе холодит на тёплой бумаге) ──
     --border-hairline: rgba(34, 31, 25, 0.06);
     --border-subtle: rgba(34, 31, 25, 0.1);
-    --border-default: #e2dfda; // n300 · oklch(0.905 0.008 85) — было #e5e7eb
+    --border-default: var(--ref-color-neutral-300); // = #e2dfda (alias → ref)
 }
