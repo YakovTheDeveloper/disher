@@ -1,19 +1,17 @@
 import pg from "pg";
 
-// Single shared Pool to the remote production Postgres (currently hosted on
-// Supabase via Session Pooler). Session mode supports prepared statements
-// (default in pg) so no `prepare: false` gymnastics; Transaction mode would
-// need prepare:false per supabase docs.
+// Single shared Pool for /api/backup + /api/analyze + wallet. Points at the
+// self-hosted Postgres (the postgres service in docker-compose; formerly
+// Supabase managed PG). The backend validates user_id === session.userId itself
+// before every write — RLS does not run; this is plain Postgres, auth is
+// better-auth bearer.
 //
-// connectionString must point at the Session pooler:
-//   postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:5432/postgres
-//
-// We connect with the database superuser (not any JWT/service_role) — backend
-// validates user_id === jwt.sub itself before every write. RLS does not run.
-// (Supabase here is just managed Postgres hosting; auth is better-auth bearer.)
-
-// Prefer REMOTE_DATABASE_URL (prod). In dev it's typically unset — fall back
-// to LOCAL_DATABASE_URL so the same Postgres serves better-auth and /api/backup.
+// env unification: better-auth (auth/server.ts) reads ONLY LOCAL_DATABASE_URL,
+// so prod sets a single LOCAL_DATABASE_URL pointing at the postgres service and
+// leaves REMOTE_DATABASE_URL unset — both pools then hit the SAME database.
+// REMOTE_DATABASE_URL is retained only as an optional override (legacy / a
+// distinct managed PG); when unset we fall back to LOCAL so dev and prod share
+// one Postgres for better-auth and /api/backup.
 const connectionString =
   process.env.REMOTE_DATABASE_URL ?? process.env.LOCAL_DATABASE_URL;
 
