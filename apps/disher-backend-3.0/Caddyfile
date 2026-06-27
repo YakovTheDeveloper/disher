@@ -1,0 +1,42 @@
+# Caddy reverse proxy — automatic HTTPS (Let's Encrypt) for the disher API.
+# Domain + ACME email come from the container environment (.env.production).
+#
+# FIRST CUTOVER RUN: rate limits on the LE production CA are unforgiving while
+# DNS/firewall are still settling. Do the first `up` against the STAGING CA by
+# uncommenting `acme_ca` below, confirm a cert is issued (it'll be untrusted —
+# expected), then comment it back out and `docker compose exec caddy caddy reload
+# --config /etc/caddy/Caddyfile` to get a real trusted cert. See DEPLOY.md.
+
+{
+	email {$ACME_EMAIL}
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Reusable HSTS + header hardening (Caddy does NOT send HSTS by default).
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# ── API: api.<domain> → backend:3100 ─────────────────────────────────────────
+{$API_DOMAIN} {
+	import security_headers
+	reverse_proxy backend:3100
+}
+
+# ── Optional: serve the built SPA from the same Caddy ─────────────────────────
+# Uncomment and set SPA_DOMAIN in .env.production to host the Vite PWA here too.
+# Mount the build output into the caddy container (e.g. ./spa-dist:/srv/spa:ro)
+# and rebuild the SPA with VITE_API_BASE=https://{$API_DOMAIN} (see DEPLOY.md).
+#
+# {$SPA_DOMAIN} {
+# 	import security_headers
+# 	root * /srv/spa
+# 	encode gzip zstd
+# 	try_files {path} /index.html
+# 	file_server
+# }

@@ -1,0 +1,88 @@
+# Self-hosted disher stack: Caddy (TLS) → backend (Fastify) → postgres.
+# Run from this directory (apps/disher-backend-3.0). Build context is the repo
+# root so the pnpm-workspace install sees every member's package.json.
+#
+#   docker compose build
+#   ./scripts/pg-migrate.sh        # one-time, on a fresh DB (see DEPLOY.md)
+#   docker compose up -d --wait
+#
+# Secrets/domain config come from .env.production (NOT committed — see
+# .env.production.example). Deployment-topology vars (HOST/PORT/paths) are pinned
+# in `environment:` so they can't be clobbered by the env_file.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: .env.production # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # NOT published — only reachable on the internal compose network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 1g
+    mem_reservation: 256m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/disher-backend-3.0/Dockerfile
+    image: disher-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env.production # app secrets: BETTER_AUTH_*, LOCAL_DATABASE_URL, OPENROUTER_API_KEY, RESEND_*, FRONTEND_ORIGIN, …
+    environment:
+      # Topology — pinned here so an env_file slip can't break container reachability.
+      NODE_ENV: production
+      HOST: 0.0.0.0 # MUST bind all interfaces — Caddy reaches it as backend:3100
+      PORT: "3100"
+      MODEL_CACHE_DIR: /app/.hfcache
+      ANALYTICS_DB_PATH: /app/state/analytics.db
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - analytics_state:/app/state # sqlite analytics.db (ANALYTICS_DB_PATH)
+      - telemetry:/app/dist/data/telemetry # matcher telemetry jsonl
+      - llm_logs:/app/dist/logs # llm-output / matcher-queries jsonl
+    # NOT published — Caddy is the only ingress. HEALTHCHECK is baked in the image
+    # (/health/ready: db ping + matcher ready).
+    mem_limit: 1g
+    mem_reservation: 512m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file: .env.production # API_DOMAIN / ACME_EMAIL (+ optional SPA_DOMAIN)
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # LE certs/keys — persist to avoid rate limits
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+volumes:
+  pgdata:
+  analytics_state:
+  telemetry:
+  llm_logs:
+  caddy_data:
+  caddy_config:
