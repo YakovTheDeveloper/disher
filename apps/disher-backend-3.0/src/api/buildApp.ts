@@ -19,8 +19,32 @@ import { billingRoutes } from "./routes/billing.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator, requireUser } from "../auth/require-user.js";
+import { pool } from "./db.js";
+import { isMatcherReady } from "./food-matcher.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// CORS origin policy. In dev we reflect any Origin (LAN IPs vary per machine).
+// In prod we MUST NOT reflect arbitrary origins with credentials:true — build a
+// static allowlist from FRONTEND_ORIGIN + BETTER_AUTH_TRUSTED_ORIGINS (CSV).
+// An empty prod allowlist fails closed (blocks cross-origin) and is logged.
+function resolveCorsOrigin(): true | string[] {
+  if (process.env.NODE_ENV !== "production") return true;
+  const allow = [
+    ...(process.env.FRONTEND_ORIGIN ? [process.env.FRONTEND_ORIGIN] : []),
+    ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS
+      ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []),
+  ];
+  if (allow.length === 0) {
+    console.warn(
+      "[cors] production with empty allowlist — set FRONTEND_ORIGIN; SPA requests will be blocked"
+    );
+  }
+  return allow;
+}
 
 export type BuildAppOptions = {
   logger?: FastifyServerOptions["logger"];
@@ -51,12 +75,17 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     // 5MB body limit — analyze payloads with 30 days of foods/events can
     // legitimately reach 1-2MB; the default 1MB tripped power-user accounts.
     bodyLimit: 5 * 1024 * 1024,
+    // Behind Caddy (reverse proxy) every req.ip would otherwise collapse to the
+    // proxy's container IP, neutering the per-IP rate limits on the paid routes.
+    // trustProxy parses X-Forwarded-For so req.ip is the real client. Safe
+    // because the only hop in front of Fastify is our own Caddy.
+    trustProxy: true,
     ...(httpsOptions ? { https: httpsOptions } : {}),
   });
 
   await app.register(sensible);
   await app.register(cors, {
-    origin: true,
+    origin: resolveCorsOrigin(),
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   });
@@ -93,10 +122,37 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     }
   );
 
+  // Liveness: the process is up. Cheap, never touches the DB — used by the
+  // restart policy / load balancer to tell "alive" from "hung".
   app.get("/health", async (_req, reply) => {
     return reply.send({
       status: "ok",
       uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // Readiness: the process can actually serve traffic — Postgres reachable AND
+  // the embedding matcher initialized. The Docker HEALTHCHECK points here so a
+  // container with a dead DB or an unready matcher (which would 503 the paid
+  // routes) is reported unhealthy instead of silently "ok". Returns 503 so
+  // orchestrators gate on the status code, not just the body.
+  app.get("/health/ready", async (_req, reply) => {
+    let db = false;
+    try {
+      if (pool) {
+        await pool.query("SELECT 1");
+        db = true;
+      }
+    } catch (err) {
+      app.log.error({ err }, "health/ready db ping failed");
+    }
+    const matcherReady = isMatcherReady();
+    const ready = db && matcherReady;
+    return reply.status(ready ? 200 : 503).send({
+      status: ready ? "ok" : "not-ready",
+      db: db ? "ok" : "down",
+      matcherReady,
       timestamp: new Date().toISOString(),
     });
   });
@@ -128,8 +184,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     },
     { prefix: "/api/free-text-food" },
   );
+  // matcher-telemetry writes a client-controlled body to disk per request. It
+  // CANNOT be auth-gated: the client ships it via navigator.sendBeacon on
+  // page-hide (no way to attach an Authorization header), so a bearer hook
+  // would 401 every real event. Instead the route strictly validates the
+  // payload shape AND self-limits per IP (trustProxy makes req.ip the real
+  // client behind Caddy) — see matcher-telemetry.ts. That bounds the public
+  // disk-write surface without breaking the beacon.
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
-  await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.register(analyzeRoutes, { prefix: "/api" });
   await app.register(analyzeDishRoutes, { prefix: "/api" });
@@ -144,6 +206,11 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   if (process.env.NODE_ENV !== "production") {
     await app.register(bugReportRoutes, { prefix: "/api/bug-reports" });
     await app.register(devRoutes, { prefix: "/api/dev" });
+    // diag-logs is a dev-only diagnostic sink. The frontend only flushes to it
+    // when import.meta.env.DEV && VITE_DIAG===1 (see diagLog.ts) — prod never
+    // POSTs here. Registering it only in dev removes a public unauthenticated
+    // per-request disk-write from the production surface entirely.
+    await app.register(diagLogsRoutes, { prefix: "/api/diag-logs" });
   }
 
   const built = app as unknown as BuiltApp;

@@ -72,8 +72,33 @@ function validate(raw: unknown): TelemetryEvent | null {
   };
 }
 
+// Per-IP rate limit. This endpoint is unauthenticated (sendBeacon can't carry a
+// bearer) and writes to disk per request, so cap how fast a single client can
+// append. trustProxy (buildApp) makes req.ip the real client behind Caddy.
+const TELEMETRY_RATE_LIMIT = parseInt(
+  process.env.TELEMETRY_RATE_LIMIT ?? "60",
+  10
+);
+const TELEMETRY_WINDOW_MS = 60 * 60 * 1000;
+const telemetryRate = new Map<string, { count: number; resetAt: number }>();
+
+function allowTelemetry(ip: string): boolean {
+  const now = Date.now();
+  const entry = telemetryRate.get(ip);
+  if (!entry || now > entry.resetAt) {
+    telemetryRate.set(ip, { count: 1, resetAt: now + TELEMETRY_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= TELEMETRY_RATE_LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export async function matcherTelemetryRoutes(app: FastifyInstance) {
   app.post("/", async (req, reply) => {
+    if (!allowTelemetry(req.ip)) {
+      return reply.status(429).send({ error: "telemetry rate limit exceeded" });
+    }
     const event = validate(req.body);
     if (!event) {
       return reply.status(400).send({ error: "invalid telemetry payload" });
