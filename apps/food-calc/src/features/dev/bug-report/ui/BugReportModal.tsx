@@ -44,6 +44,9 @@ const BugReportModal = ({
       .then((url) => {
         if (alive) setScreenshot(url);
       })
+      // best-effort: screenshotPromise never rejects (best-effort → null); this
+      // guard just keeps the thumbnail absent, no user data involved.
+      // eslint-disable-next-line no-restricted-syntax
       .catch(() => {})
       .finally(() => {
         if (alive) setShotLoading(false);

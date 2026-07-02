@@ -1,7 +1,17 @@
+// ─────────────────────────────────────────────────────────────────────────
+// INVARIANT — "no silent failures": every data-affecting async operation must
+// end with a visible signal (toaster / banner / inline field error) if it
+// fails. A swallowing `.catch(() => {})` is allowed ONLY on a best-effort path
+// that cannot lose user data, and it MUST carry a `// best-effort: <why no data
+// loss>` annotation + an `// eslint-disable-next-line no-restricted-syntax`
+// (an ESLint rule bans the un-annotated form — see eslint.config.ts). This
+// module (`safeMutate`) is the load-bearing enforcer for user-triggered
+// mutations; fire-and-forget/background async is covered by the sync-status
+// store, the global unhandledrejection bridge, and per-feature toasters.
+// ─────────────────────────────────────────────────────────────────────────
 import toaster from '@/shared/lib/toaster/toaster';
-import { logMutationError } from '@/shared/lib/mutationLog';
-import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
-import { Sentry } from '@/shared/lib/observability/sentry';
+import { defaultUserMessage } from '@/shared/lib/errors/classify';
+import { reportError } from '@/shared/lib/errors/report';
 
 export type SafeMutateResult<T> =
   | { ok: true; value: T }
@@ -25,19 +35,7 @@ export async function safeMutate<T>(
     const value = await fn();
     return { ok: true, value };
   } catch (error) {
-    const kind = classifyError(error);
-    console.error('[mutation error]', { op: errorMessage, kind: kind.kind, error });
-
-    logMutationError(errorMessage, error, kind);
-
-    Sentry.captureException(error, {
-      tags: {
-        kind: kind.kind,
-        op: errorMessage,
-        ...('status' in kind && kind.status !== undefined ? { status: String(kind.status) } : {}),
-        ...('code' in kind && kind.code ? { code: kind.code } : {}),
-      },
-    });
+    const { kind } = reportError(errorMessage, error);
 
     // Caller passed a generic «Не удалось сохранить» style fallback — let the
     // classifier produce a kind-specific message instead. If the caller passed

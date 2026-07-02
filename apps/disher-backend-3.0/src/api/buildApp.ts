@@ -21,6 +21,8 @@ import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator, requireUser } from "../auth/require-user.js";
 import { pool } from "./db.js";
 import { isMatcherReady } from "./food-matcher.js";
+import { toProblem } from "./errors.js";
+import { resolveRequestId } from "../billing/http.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -157,9 +159,38 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     });
   });
 
-  app.setErrorHandler((error: FastifyError, _req, reply) => {
-    console.error("Unhandled error:", error);
-    reply.status(error.statusCode ?? 500).send({ error: error.message });
+  // Single error shape for the whole app: an RFC 9457-subset problem+json body
+  // (see api/errors.ts). `instance` is the per-request id (echoed as
+  // X-Request-Id) so a user can quote it and we can grep the logs. In production
+  // the `detail`/stack of a 5xx is stripped by toProblem — only the id crosses
+  // the wire. 4xx detail (which field, which limit) stays. The 402
+  // insufficient-balance body is sent directly in billing/http.ts and never
+  // reaches here, so it stays byte-compatible.
+  const exposeDetail = process.env.NODE_ENV !== "production";
+
+  app.setErrorHandler((error: FastifyError, req, reply) => {
+    const instance = resolveRequestId(req);
+    // Full error (message + stack) to the server log only.
+    req.log.error({ err: error, reqId: instance }, "request failed");
+    const problem = toProblem(error, { instance, exposeDetail });
+    reply
+      .header("X-Request-Id", instance)
+      .type("application/problem+json")
+      .status(problem.status)
+      .send(problem);
+  });
+
+  app.setNotFoundHandler((req, reply) => {
+    const instance = resolveRequestId(req);
+    const problem = toProblem(
+      { statusCode: 404, message: `Route ${req.method} ${req.url} not found` },
+      { instance, exposeDetail },
+    );
+    reply
+      .header("X-Request-Id", instance)
+      .type("application/problem+json")
+      .status(problem.status)
+      .send(problem);
   });
 
   await app.register(analyticsRoutes, { prefix: "/api/analytics" });

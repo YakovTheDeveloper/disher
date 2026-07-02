@@ -60,6 +60,7 @@ function Breadcrumbs<T extends string>({
           )}
           <QuietLabel
             as="button"
+            underline
             className={s.resultCrumb}
             onClick={() => onStepClick(stepName)}
             aria-label={stepLabels[stepName]}

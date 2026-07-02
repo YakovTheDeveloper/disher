@@ -64,7 +64,7 @@ export const SwitcherTab = ({
         {label}
       </Heading>
     ) : (
-      <QuietLabel as="span" className={s.tileTitle}>
+      <QuietLabel as="span" underline className={s.tileTitle}>
         {/* Левая стрелка СВЕШИВАЕТСЯ в поле (hanging punctuation, absolute) — слово
             остаётся выровнено с активным заголовком. Правая идёт в потоке после
             слова. Носители пустые — форму стрелки рисует CSS (.tileArrow*). */}

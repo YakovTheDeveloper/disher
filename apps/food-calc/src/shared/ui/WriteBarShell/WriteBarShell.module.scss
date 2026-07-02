@@ -217,6 +217,19 @@
                 var(--sys-field-hairline-focus) 82%,
                 transparent 100%);
     }
+
+    // fieldOverride: ряд подменён не-полем (ready-заголовок Еды). Well = аффорданс
+    // поля ввода; заголовок в утопленном слоте читается как текст в поиске. Гасим
+    // заливку/тень/хайрлайн → плоский заголовок прямо на плашке дока. trailingSlot
+    // (медаль) — сосед пилюли, его это не трогает.
+    &[data-field-override] {
+        background: transparent;
+        box-shadow: none;
+
+        &::after {
+            display: none;
+        }
+    }
 }
 
 // ─── Trailing slot — in-flow affordance right of the pill (food «Список») ──────

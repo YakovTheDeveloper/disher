@@ -1,17 +1,19 @@
 import type { ReactNode } from 'react';
-import { useAuthStore } from './auth-store';
-import { AuthScreen } from './AuthScreen';
+// ⚠️ TEMP: auth отключён для тестов с телефона — импорты ниже закомментированы,
+// чтобы линт не ругался на unused. Раскомментировать при возврате гейта.
+// import { useAuthStore } from './auth-store';
+// import { AuthScreen } from './AuthScreen';
 
 type Props = { children: ReactNode };
 
 // Public routes that must render even when there is no session — they ARE
 // the auth flow (verify-email click in the inbox, future password-reset, etc).
 // Keep them anchored under /auth/ so the prefix check stays trivial.
-const PUBLIC_PATH_PREFIXES = ['/auth/'] as const;
+// const PUBLIC_PATH_PREFIXES = ['/auth/'] as const;
 
-function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
-}
+// function isPublicPath(pathname: string): boolean {
+//   return PUBLIC_PATH_PREFIXES.some((p) => pathname.startsWith(p));
+// }
 
 /**
  * Authentication blocker. While the initial session check is in flight we
@@ -32,16 +34,17 @@ function isPublicPath(pathname: string): boolean {
  * "after verify-email" transition without needing reactive pathname tracking.
  */
 export function AuthGate({ children }: Props) {
-  // TEMP: auth gate disabled for cross-browser testing — revert this line.
+  // ⚠️ TEMP: авторизация отключена для тестов с телефона без логина.
+  // Чтобы вернуть auth-гейт: удалить этот return, раскомментировать импорты
+  // выше и тело ниже.
   return <>{children}</>;
 
-  // eslint-disable-next-line no-unreachable
-  const isReady = useAuthStore((s) => s.isReady);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
+  // const isReady = useAuthStore((s) => s.isReady);
+  // const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  // const pathname = typeof window !== 'undefined' ? window.location.pathname : '/';
 
-  if (isPublicPath(pathname)) return <>{children}</>;
-  if (!isReady) return null;
-  if (!isLoggedIn) return <AuthScreen />;
-  return <>{children}</>;
+  // if (isPublicPath(pathname)) return <>{children}</>;
+  // if (!isReady) return null;
+  // if (!isLoggedIn) return <AuthScreen />;
+  // return <>{children}</>;
 }

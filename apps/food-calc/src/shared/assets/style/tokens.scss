@@ -32,6 +32,7 @@
   --sys-inset-sheet: var(--space-6); // 24 — full-width sheet / modal frame
   --sys-inset-page: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
   --sys-inset-modal-fullscreen: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
+  --sys-inset-card: var(--space-4); // 16 — гор. инсет контента карточки-плитки (еда/анализ)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
   --sys-stack-row: var(--space-4); // 12 — rows/fields/cards in one list/form
@@ -117,8 +118,8 @@
   // --sys-color-text-card-caption, не в композите роли (text-role() цвет не несёт).
   --sys-text-card-caption-size: 16px;
   --sys-text-card-caption-weight: 200;
-  --sys-text-card-caption-line: 1.4;
-  --sys-text-card-caption-tracking: 1px;
+  --sys-text-card-caption-line: 1;
+  --sys-text-card-caption-tracking: 0.2px;
 
   // sys-text-size-* — sanctioned font-size escape for non-prose — #text-size-escape
   // ЗАКОН ИМЕНОВАНИЯ (2026-06-26 — убивает зеркало size-<role> ↔ <role>-size):
@@ -414,6 +415,14 @@
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
 
+  // Предложка (free-text-food) — ХОЛОДНЫЙ бледный wash. Отстраивает машинно-
+  // сгенерированные ряды предложки от ТЁПЛЫХ committed-рядов расписания: cool-500
+  // подмешан в парящий лист (neutral-0) → холодный, но почти белый. Голос
+  // «системного предложения», не «твоей записи» (см. ProposalFoodItem, парный
+  // к холодному --sys-color-icon). -pressed — ступень глубже для press-отклика.
+  --sys-color-surface-proposal: color-mix(in oklch, var(--ref-color-cool-500) 7%, var(--ref-color-neutral-0));
+  --sys-color-surface-proposal-pressed: color-mix(in oklch, var(--ref-color-cool-500) 14%, var(--ref-color-neutral-0));
+
 
 
   // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
@@ -444,11 +453,7 @@
 
   --sys-color-text-placeholder: rgba(74, 80, 94, 0.5);
 
-  // Card-caption text — особенности приёма пищи под именем еды («с кожурой»).
-  // Дедик-токен (НЕ --sys-color-icon — тот про глифы): тёмный ХОЛОДНЫЙ slate
-  // (cool-700 #3a4259). Тёмный тон компенсирует тонкий вес строки → читается как
-  // тихий, но чёткий ярус под жирным именем, не «тает» в тёплый фон карточки.
-  --sys-color-text-card-caption: var(--ref-color-cool-700);
+  --sys-color-text-card-caption: var(--ref-color-neutral-700);
 
   // color · icon — нейтральный тинт НЕсемантических глифов: шевроны аккордеонов,
   // декоративные значки, caret'ы. ХОЛОДНЫЙ серый (cool-neutral) — контрапункт

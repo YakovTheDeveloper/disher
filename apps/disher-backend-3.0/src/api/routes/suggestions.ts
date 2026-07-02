@@ -5,6 +5,7 @@ import { getLLMModel } from "../build-info.js";
 import { resolveNames, type LLMItem, LLM_ITEMS_JSON_SCHEMA } from "../resolve-names.js";
 import { chargeOr402, resolveRequestId } from "../../billing/http.js";
 import { refund } from "../../billing/wallet.js";
+import { aiProviderError } from "../errors.js";
 
 // ─── Head A: "infer recipe" ───
 //
@@ -174,8 +175,10 @@ async function callLLM(dishName: string, comment?: string): Promise<LLMCallResul
   }
 
   if (!response.ok) {
+    // Raw upstream status/body stays in the server log only; the client sees a
+    // stable ai_provider_error (502).
     const body = await response.text();
-    throw new Error(`OpenRouter error ${response.status}: ${body}`);
+    throw aiProviderError(`OpenRouter error ${response.status}`, { status: response.status, body });
   }
 
   const data = await response.json();
@@ -347,8 +350,10 @@ async function callNutrientLLM(
   }
 
   if (!response.ok) {
+    // Raw upstream status/body stays in the server log only; the client sees a
+    // stable ai_provider_error (502).
     const body = await response.text();
-    throw new Error(`OpenRouter error ${response.status}: ${body}`);
+    throw aiProviderError(`OpenRouter error ${response.status}`, { status: response.status, body });
   }
 
   const data = await response.json();

@@ -1,0 +1,28 @@
+.fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sys-stack-row);
+  padding: var(--sys-inset-panel);
+  border: 1px solid var(--sys-color-border-subtle);
+  border-radius: var(--sys-radius-container);
+  background: var(--sys-color-surface-1);
+}
+
+.message {
+  color: var(--sys-color-text-muted);
+}
+
+.retry {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--sys-color-border-subtle);
+  border-radius: var(--sys-radius-control);
+  background: transparent;
+  color: var(--sys-color-status-danger);
+  cursor: pointer;
+}
+
+.refId {
+  color: var(--sys-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,17 +1,91 @@
 // FoodWriteBar — food-specific bits only. Messenger-pill chrome (input + send +
 // medal + variants + keyboard-scroll) живёт в общем `WriteBarShell` (2026-06-09).
-// Тут остаётся только подъём дока + ready-state CTA «Посмотреть варианты»,
-// перенесённая из бывшего WriteFoodInput при слиянии (2026-06-25).
+// Тут: док (бар + панель предложки) + food-специфика trailing-входа «список».
 
 @import '@/shared/assets/style/mixin.scss';
 
-// Ready-state CTA «Посмотреть варианты» — канон `Button variant="link"` (вид +
-// press владеет примитив). Здесь остаётся ТОЛЬКО раскладка: заполнить ширину
-// поля (flex) и крупный размер через --btn-font-size (вариант его читает).
-.readyCta {
+// ─── Док = бар + панель предложки (по паттерну Событий .dock) ────────────────
+// bottomBar Screen = absolute-overlay (bottom:0). flex-колонка: бар (первый
+// ребёнок) сверху, панель предложки (второй) НИЖЕ бара — как EventScalePanel,
+// контент естественным продолжением вниз, в место клавиатуры. Весь `.dock`
+// bottom-pinned, поэтому панель уезжает вниз до края экрана, а бар поднимается
+// над ней. keyboard-stick лифтит весь `.dock` через inline transform.
+.dock {
+    display: flex;
+    flex-direction: column;
+}
+
+// «Бар + панель = ОДИН кусок» (по паттерну Событий merged-dock). Пока панель
+// открыта, ЕДИНУЮ плашку несёт сам `.dock`: тот же surface-2 + верхнее скругление
+// + ОДНА overlay-тень, что нёс бар в покое, `overflow:hidden` клипует детей по
+// радиусу. Бар (`.bar` = WriteBarShell `.wrap`) ложится заподлицо — снимаем его
+// собственную плашку (фон/радиус/тень), field-depth-токены пилюли остаются. В
+// покое (без панели) `.dock` прозрачен, а плашку показывает сам бар — resting-вид
+// не меняется.
+.dock[data-open] {
+    background: var(--sys-color-surface-2);
+    border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
+    overflow: hidden;
+    box-shadow: var(--sys-elevation-2);
+}
+
+.dock[data-open] .bar {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+// Панель предложки ниже бара — контент прямо на плашке дока (свою поверхность
+// SheetCard отдаёт, см. `.reviewSheet`). Свой внутренний скролл при длинном
+// списке — max-height по `dvh` (динамический вьюпорт, чтит URL-бар), как у
+// EventScalePanel; overscroll containment чтобы скролл не «протекал» в список
+// под панелью. Горизонтальный инсет от краёв листа + воздух сверху (шов от бара)
+// и снизу. Rise на открытии.
+.reviewPanel {
+    display: flex;
+    flex-direction: column;
+    max-height: 65dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-2) var(--sys-inset-page) var(--space-4);
+    animation: reviewPanelRise 0.22s var(--easing-default);
+}
+
+@keyframes reviewPanelRise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reviewPanel {
+        animation: none;
+    }
+}
+
+// ─── Ready-заголовок «Предложения» на месте инпута (fieldOverride) ───────────────
+// Подменяет `.writeField.writeBarInput` внутри пилюли. Держит высоту пилюли
+// (--pill-h, объявлена на `.wrap` WriteBarShell → наследуется) + вертикальный
+// центр — чтобы подмена инпут→заголовок не двигала бар по высоте. Well пилюли
+// погашен на override (WriteBarShell `[data-field-override]`), поэтому заголовок
+// лежит ПЛОСКО; левый инсет поля (--input-container-inset) НЕ берём — заголовок
+// прижат к левой кромке пилюли (боковой отступ несёт `.wrap` padding), как шапка
+// секции, а не как отступленный текст инпута. Голос — тот же `<Heading
+// role="headline">`, что нёс header SheetCard, откуда заголовок переехал.
+.readyHeader {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    min-height: var(--pill-h);
+    padding: 0;
     margin: 0;
-    --btn-font-size: var(--text-lg);
 }
 
 // ─── DesignBar-эксперимент «FoodListCta» — ОБЛИК входа «список еды» × оффлайн ────

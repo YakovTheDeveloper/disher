@@ -30,6 +30,17 @@
     // Default 1px = unchanged.
     outline: var(--row-rest-outline-w, 1px) solid color-mix(in oklch, var(--_outline-from) calc((1 - var(--t)) * 100%), var(--_outline-to));
 
+    // Светлая окаёмка — тонкий внутренний кант, осветлённый из ТОНА ряда (держит
+    // оттенок времени суток, но люминесцентный) → эффект «оправы»/рамки. Inset
+    // box-shadow, не border: не двигает лейаут и садится внутрь border-radius.
+    // Гасится потребителем через --card-rim. На :focus-within своя рамка ниже
+    // перебивает box-shadow целиком — окаёмка там уступает фокус-кольцу.
+    // Цвет канта вынесен в приватную --_card-rim: кластер (TimeGroup) переиспользует
+    // её для БОКОВОГО-только канта (лев+прав), отдавая верх/низ угасающему divider'у.
+    --_card-rim: var(--sys-color-divider-card);
+    /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- светлая окаёмка-кант (bespoke rim, не elevation) */
+    box-shadow: inset 0 0 0 1px var(--_card-rim);
+
     position: relative;
     // Vertical padding is consumer-overridable via --sys-row-pad-block. Default
     // (= --space-1, 4px) keeps existing rows unchanged; the Card.Root cards (food,

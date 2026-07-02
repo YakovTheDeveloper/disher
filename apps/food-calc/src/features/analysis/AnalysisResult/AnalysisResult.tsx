@@ -17,6 +17,9 @@ import styles from './AnalysisResult.module.scss';
 // DesignBar axis is retired).
 type Props = {
   summary: string;
+  /** Заголовок над лидом-summary («Анализ дня» на доме). Пусто → лид без
+   *  заголовка (длинный разбор / блюдо). */
+  summaryTitle?: string;
   /** Neutral patterns — read-only reference, NOT saveable (no «+ к себе»). */
   observations: AnalysisObservation[];
   insights: AnalysisInsight[];
@@ -52,6 +55,7 @@ type Props = {
 // `.length` never throws even if the data boundary (hydrate/mapper) missed it.
 const AnalysisResult = ({
   summary,
+  summaryTitle,
   observations = [],
   insights = [],
   hypotheses = [],
@@ -112,16 +116,23 @@ const AnalysisResult = ({
   return (
     <div className={styles.root} data-analysis-root="">
       {summary && (
-        <Text as="div" role="body" className={styles.summary} data-analysis-summary="">
-          <ReactMarkdown>{summary}</ReactMarkdown>
-        </Text>
+        <div className={styles.summaryBlock} data-analysis-summary="">
+          {summaryTitle && (
+            <Heading role="headline" as="h3" className={styles.summaryHead}>
+              {summaryTitle}
+            </Heading>
+          )}
+          <Text as="div" role="body" className={styles.summary}>
+            <ReactMarkdown>{summary}</ReactMarkdown>
+          </Text>
+        </div>
       )}
 
       <div className={styles.sections} data-analysis-sections="">
         {observations.length > 0 &&
           renderSection(
             'observations',
-            '',
+            'Наблюдения',
             // Read-only reference: ObservationCard with no valence (no sign) and
             // action="none" (no «+ к себе»). An observation is the insight shape
             // minus valence — strength + evidence still render.
@@ -141,7 +152,7 @@ const AnalysisResult = ({
         {insights.length > 0 &&
           renderSection(
             'insights',
-            '',
+            'Инсайты',
             insights.map((insight, idx) => (
               <ObservationCard
                 key={idx}
@@ -173,7 +184,7 @@ const AnalysisResult = ({
         {hypotheses.length > 0 &&
           renderSection(
             'hypotheses',
-            '',
+            'Гипотезы',
             hypotheses.map((hypothesis, idx) => (
               <ObservationCard
                 key={idx}

@@ -15,7 +15,7 @@ export interface SheetCardProps extends HTMLAttributes<HTMLDivElement> {
  * SheetCard — «карточка на листке»: плоская скруглённая плашка на бумаге
  * (off-white pearl-глянец, БЕЗ elevation). Общий контейнер предложки и секций
  * «Наблюдения» / «Гипотезы». Любые data-/event-пропсы (data-state,
- * data-write-food-anchor, onFocusCapture, …) и ref прокидываются на корневой узел.
+ * onFocusCapture, …) и ref прокидываются на корневой узел.
  */
 export const SheetCard = forwardRef<HTMLDivElement, SheetCardProps>(function SheetCard(
   { header, actions, children, className, ...rest },

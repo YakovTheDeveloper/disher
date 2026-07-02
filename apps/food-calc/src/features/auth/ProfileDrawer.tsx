@@ -3,7 +3,8 @@ import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ThemePicker } from '@/features/theme';
-import { dump, apply, syncNow, deleteBackup } from '@/shared/lib/snapshot';
+import { dump, apply, deleteBackup } from '@/shared/lib/snapshot';
+import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
 import { Text } from '@/shared/ui/atoms/Typography';
@@ -71,14 +72,13 @@ export function ProfileDrawer() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleBackup = async () => {
+    // Route the manual backup through runSyncTracked so a failure is recorded in
+    // the sync-status store AND surfaced as a toaster (not just the button
+    // label) — a manual save that silently fails would be a no-silent-failure
+    // violation. runSyncTracked never throws; the boolean drives the label.
     setBackupState('saving');
-    try {
-      await syncNow();
-      setBackupState('done');
-    } catch (e) {
-      console.error('manual backup sync failed', e);
-      setBackupState('error');
-    }
+    const ok = await runSyncTracked({ surfaceToast: true });
+    setBackupState(ok ? 'done' : 'error');
   };
 
   // Let the «Сохранено ✓» confirmation fade back to the idle label after a
@@ -98,7 +98,9 @@ export function ProfileDrawer() {
   const handleSyncToggle = async (next: boolean) => {
     if (next) {
       setSyncEnabled(true);
-      void syncNow().catch((e) => console.error('sync re-enable push failed', e));
+      // Re-push through the tracked wrapper so a failed re-enable is visible
+      // (toaster + store) instead of a console-only log.
+      void runSyncTracked({ surfaceToast: true });
       return;
     }
     const confirmed = await drawerStore.show(SyncDisableDrawer, {});

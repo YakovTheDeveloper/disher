@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
+import { handleSessionExpired } from '@/features/auth/handleSessionExpired';
 import { deriveStatus, mapServerAnalysis, type Analysis } from './types';
 
 // Poll backoff: a long analysis takes ~1–2 min, so a fixed 2s poll is far
@@ -11,8 +12,13 @@ const POLL_START_MS = 3000;
 const POLL_MAX_MS = 20000;
 const POLL_GROWTH = 1.6;
 
-const nextDelay = (prev: number): number =>
-  Math.min(POLL_MAX_MS, Math.round(prev * POLL_GROWTH));
+// Exponential growth + ±20% jitter (2026 backoff standard): several detail
+// modals polling the same window won't align into a synchronized thundering
+// herd against the server. Jitter is applied before the cap clamp.
+const nextDelay = (prev: number): number => {
+  const jitter = 0.8 + Math.random() * 0.4;
+  return Math.min(POLL_MAX_MS, Math.round(prev * POLL_GROWTH * jitter));
+};
 
 type UseAnalysisResult = {
   data: Analysis | null;
@@ -49,6 +55,13 @@ export function useAnalysis(id: string | undefined): UseAnalysisResult {
         if (cancelled) return;
         if (r.status === 404) {
           setError(new Error('analysis not found'));
+          return;
+        }
+        // A mid-session 401 (bearer expired) → shared funnel warns + signs out
+        // once. Stop polling; the app flips to AuthScreen.
+        if (r.status === 401) {
+          handleSessionExpired(r);
+          setError(new Error('session expired'));
           return;
         }
         if (!r.ok) {

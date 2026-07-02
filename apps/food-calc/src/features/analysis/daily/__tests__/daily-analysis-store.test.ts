@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clear as idbClear, get as idbGet, set as idbSet } from 'idb-keyval';
 import type { DailyAnalysis } from '../types';
 
+// A failed paid run must not be silent — it toasts. Stub the toaster (it pulls in
+// the router) and assert on the call.
+vi.mock('@/shared/lib/toaster/toaster', () => ({
+  default: { error: vi.fn(), warning: vi.fn(), success: vi.fn(), info: vi.fn(), notify: vi.fn() },
+}));
+import toaster from '@/shared/lib/toaster/toaster';
+
 // requestDailyAnalysis does real network — stub just that export. The real
 // DailyStreamError class is kept (importActual) so the store's `instanceof`
 // check and the errors thrown by this test refer to the same class.
@@ -53,6 +60,7 @@ beforeEach(async () => {
   await idbClear();
   useDailyAnalysisStore.setState({ byDate: {}, hydrated: false });
   mockRequest.mockReset();
+  vi.mocked(toaster.error).mockReset();
 });
 
 afterEach(() => {
@@ -139,6 +147,17 @@ describe('start', () => {
     expect(useDailyAnalysisStore.getState().byDate['15-05-2026'].reason).toBe(
       'server',
     );
+  });
+
+  it('surfaces a toaster with a «Повторить» action when the request rejects', async () => {
+    mockRequest.mockRejectedValue(new DailyStreamError('server', '500'));
+    await useDailyAnalysisStore
+      .getState()
+      .start('15-05-2026', { hypothesisIds: [] });
+
+    expect(vi.mocked(toaster.error)).toHaveBeenCalledOnce();
+    const [, opts] = vi.mocked(toaster.error).mock.calls[0];
+    expect(opts?.action?.label).toBeTruthy();
   });
 
   it('threads userMessage to the request and snapshots it on the record', async () => {

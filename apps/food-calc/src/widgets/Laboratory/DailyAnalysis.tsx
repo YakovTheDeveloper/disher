@@ -9,6 +9,7 @@ import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
 import { useDailyAnalysisStore, type DailyAnalysisReason } from '@/features/analysis/daily';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
+import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import styles from './DailyAnalysis.module.scss';
 
 type Props = {
@@ -116,14 +117,17 @@ const DailyAnalysis = ({ date, topSlot, topBarHide }: Props) => {
               // Заголовок «Анализ» рисует сам слайд (Masthead выше, всегда виден).
               // Здесь — только секции разбора. Под-заголовки секций ВКЛЮЧЕНЫ:
               // `.ambientSheet` переводит их в Apple «Headline» (sans, semibold).
-              <AnalysisResult
-                summary={daily.summary}
-                observations={daily.observations}
-                insights={daily.insights}
-                hypotheses={daily.hypotheses}
-                showDays={false}
-                bare
-              />
+              <FeatureErrorBoundary label="Разбор дня" resetKeys={[date]}>
+                <AnalysisResult
+                  summary={daily.summary}
+                  summaryTitle="Анализ дня"
+                  observations={daily.observations}
+                  insights={daily.insights}
+                  hypotheses={daily.hypotheses}
+                  showDays={false}
+                  bare
+                />
+              </FeatureErrorBoundary>
             )}
 
             {status === 'failed' && (

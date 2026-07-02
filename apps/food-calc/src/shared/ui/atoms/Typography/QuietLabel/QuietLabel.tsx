@@ -10,6 +10,7 @@ type Props = {
    */
   as?: ElementType;
   className?: string;
+  underline?: boolean;
 } & HTMLAttributes<HTMLElement>;
 
 /**
@@ -22,10 +23,13 @@ type Props = {
  * scss). Цвет + opacity — часть голоса (тихий = приглушённый), поэтому живут
  * здесь, а не у консумера.
  */
-const QuietLabel = ({ children, as, className, ...rest }: Props) => {
+const QuietLabel = ({ children, as, underline, className, ...rest }: Props) => {
   const Tag = as ?? 'span';
   return (
-    <Tag className={clsx(styles.quietLabel, className)} {...rest}>
+    <Tag
+      className={clsx(styles.quietLabel, className, underline && styles.quietLabel_underlined)}
+      {...rest}
+    >
       {children}
     </Tag>
   );

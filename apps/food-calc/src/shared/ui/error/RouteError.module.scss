@@ -1,0 +1,31 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sys-stack-row);
+  max-width: 32rem;
+  margin: var(--space-10) auto;
+  padding: var(--sys-inset-page);
+}
+
+.title {
+  color: var(--sys-color-text-system);
+}
+
+.body {
+  color: var(--sys-color-text-muted);
+}
+
+.retry {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--sys-color-border-subtle);
+  border-radius: var(--sys-radius-control);
+  background: transparent;
+  color: var(--sys-color-text-system);
+  cursor: pointer; // typography rides the nested <Text role="label">
+}
+
+.refId {
+  color: var(--sys-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

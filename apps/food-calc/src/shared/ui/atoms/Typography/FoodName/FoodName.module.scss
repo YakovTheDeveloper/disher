@@ -26,3 +26,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+// food-карточка: имя + инлайн-детали (after) текут одним потоком и переносятся.
+// Без nowrap/ellipsis — блок растёт в высоту только когда деталь реально не влезла.
+.wrap {
+    display: block;
+    min-width: 0;
+    overflow-wrap: break-word;
+}

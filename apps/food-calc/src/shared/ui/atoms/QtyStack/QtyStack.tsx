@@ -54,7 +54,7 @@ export function QtyStack<T extends ElementType = 'span'>({
         )}
         {children}
       </span>
-      <span className={styles.unit}>{unit}</span>
+      {/* <span className={styles.unit}>{unit}</span> */}
     </TapTarget>
   );
 }

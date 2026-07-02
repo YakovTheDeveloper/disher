@@ -1,0 +1,22 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: transparent;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: default;
+
+  &[data-tone='muted'] {
+    color: var(--sys-color-text-muted);
+  }
+
+  &[data-tone='danger'] {
+    color: var(--sys-color-status-danger);
+    background: var(--sys-color-status-danger-surface);
+    cursor: pointer;
+  }
+}

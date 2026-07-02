@@ -141,11 +141,7 @@ export interface WriteBarShellProps {
   /** Replaces the entire input field (e.g. Food ready-state CTA). Forces collapsed. */
   fieldOverride?: ReactNode;
   hint?: string;
-  /** Value for `data-write-state` on the wrap (external hooks). */
-  writeState?: string;
   className?: string;
-  /** After a successful submit, smooth-scroll to this selector. */
-  scrollToOnSubmit?: string;
   /**
    * Blur the input right after submit so the focus-scrim / expanded state drops
    * and the bar collapses (Events/Analysis: send → dismiss). Food keeps focus to
@@ -188,9 +184,7 @@ export const WriteBarShell = ({
   style,
   fieldOverride,
   hint,
-  writeState,
   className,
-  scrollToOnSubmit,
   blurOnSubmit = false,
   onFieldFocus,
 }: WriteBarShellProps) => {
@@ -233,20 +227,12 @@ export const WriteBarShell = ({
         }
       });
     }
-    if (scrollToOnSubmit) {
-      requestAnimationFrame(() => {
-        document
-          .querySelector(scrollToOnSubmit)
-          ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-      });
-    }
-  }, [send.enabled, onSubmit, value, scrollToOnSubmit, blurOnSubmit, inputId]);
+  }, [send.enabled, onSubmit, value, blurOnSubmit, inputId]);
 
   return (
     <div
       className={clsx(s.wrap, className)}
       style={style}
-      data-write-state={writeState}
       // `data-expanded` rides the wrap so the detached medal — now a wrap-level
       // sibling of `.barLine` (moved out 2026-06-25 so it floats at the screen
       // edge while the pill takes the wrap's side inset) — still reads collapse.
@@ -275,6 +261,10 @@ export const WriteBarShell = ({
           data-expanded={expanded || undefined}
           data-pressed={barPressed || undefined}
           data-has-left={leftSlot && !expanded ? '' : undefined}
+          // fieldOverride = ряд больше НЕ поле ввода (напр. ready-заголовок Еды) →
+          // снимаем well-заливку/тень/хайрлайн: утопленный слот под заголовком
+          // читался бы как текст в поиске. See `.writeBarRow[data-field-override]`.
+          data-field-override={fieldOverride ? '' : undefined}
         >
           {/* На фокусе боковые слоты НЕ рендерятся (2026-06-27) — поле забирает всю
               ширину пилюли. Send-монета остаётся (она не боковой слот). */}

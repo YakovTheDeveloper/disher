@@ -1,6 +1,7 @@
-import { forwardRef, useRef, useState } from 'react';
+import { forwardRef, useId, useRef, useState } from 'react';
 import styles from './NumberInput.module.scss';
 import clsx from 'clsx';
+import { FieldError } from '@/shared/ui/form/FieldError';
 
 type Props = {
   id?: string;
@@ -14,6 +15,14 @@ type Props = {
   disabled?: boolean;
   min?: number;
   maxLength?: number;
+  /**
+   * Inline validation message. When set (truthy), the field wires
+   * `aria-invalid` + `aria-describedby` to a rendered <FieldError> below the
+   * input (see useFieldError for the paired hook). When absent, the field stays
+   * a bare <input> — backward-compat for consumers that inline it in styled
+   * containers.
+   */
+  error?: string | null;
 };
 
 const NumberInput = forwardRef<HTMLInputElement, Props>(
@@ -29,11 +38,13 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       size,
       disabled,
       maxLength,
+      error,
     },
     // Ref is intentionally not forwarded — the field owns an internal ref for
     // focus/select; callers' refs were already dropped before this revision.
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
+    const errorId = useId();
 
     // Draft lets the field show an empty string while the user is editing
     // (backspacing the last digit) without snapping to "0". The emitted
@@ -66,6 +77,8 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
         pattern="[0-9]*"
         maxLength={maxLength}
         data-base-ui-swipe-ignore=""
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
         onFocus={handleFocus}
         className={clsx([styles.input, size && styles[size], className])}
         value={draft}
@@ -84,7 +97,16 @@ const NumberInput = forwardRef<HTMLInputElement, Props>(
       />
     );
 
-    return input;
+    // Bare <input> when valid (backward-compat); wrap with an announced
+    // <FieldError> only when a message is present.
+    return error ? (
+      <>
+        {input}
+        <FieldError id={errorId} message={error} />
+      </>
+    ) : (
+      input
+    );
   }
 );
 

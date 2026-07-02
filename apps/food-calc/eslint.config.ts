@@ -104,6 +104,19 @@ export default defineConfig([
                     message:
                         'Raw collection/filtered delete (.where(...)/.filter(...).delete()). Resolve ids first, then deleteRows() from @/shared/lib/dexie/write so each delete writes a tombstone.',
                 },
+                // "No silent failures" invariant (see safeMutate.ts doc-comment).
+                // An empty `.catch(() => {})` swallows a rejected promise with no
+                // user signal. Either surface it (toaster / reportError) OR, if
+                // it is genuinely best-effort and cannot lose user data, annotate
+                // the site with `// best-effort: <why no data loss>` and an
+                // `// eslint-disable-next-line no-restricted-syntax` so every
+                // swallow is deliberate and greppable.
+                {
+                    selector:
+                        "CallExpression[callee.property.name='catch'] > ArrowFunctionExpression[body.type='BlockStatement'][body.body.length=0]",
+                    message:
+                        'Empty .catch(() => {}) swallows the error silently (no-silent-failures invariant). Surface it (toaster/reportError), or if genuinely best-effort with no data loss, annotate with `// best-effort: <why>` + `// eslint-disable-next-line no-restricted-syntax`.',
+                },
             ],
         },
     },

@@ -15,22 +15,17 @@ import {
 } from '@/entities/dish';
 import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 import { Screen } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
-  InlineWriteFoodReview,
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
-import { Card } from '@/shared/ui/atoms/Card';
-import { TitleCluster } from '@/shared/ui/atoms/TitleCluster';
-import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
+import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import styles from './DishBuilderPage.module.scss';
@@ -258,20 +253,15 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     }
   };
 
-  // Semantic suggest: grab the dish name → head A → matched ingredients land
-  // in InlineWriteFoodReview below the list. rAF waits for the skeleton render
-  // (which carries [data-write-food-anchor]) before scrolling it into view.
+  // Semantic suggest: grab the dish name → head A → matched ingredients land in
+  // the FoodWriteBar dock (панель предложки над баром, паттерн Событий) — доскролл
+  // больше не нужен, панель всегда на виду.
   const handleSuggestIngredients = async () => {
     // Optional «Уточнения» step: undefined = cancelled/swipe-dismissed (don't
     // suggest); any string (incl. '') = proceed, the comment rides into head A.
     const comment = await drawerStore.show(SuggestIngredientsClarifyDrawer, {});
     if (comment === undefined) return;
     writeFoodFlow.submitDishName(dish.name, comment);
-    requestAnimationFrame(() => {
-      document
-        .querySelector('[data-write-food-anchor]')
-        ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    });
   };
 
   // Каждый слайд = свой `<Screen>`, получающий topSlot (плитки) в `stickyTop`.
@@ -319,20 +309,15 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             </>
           }
           bottomBar={
+            /* Предложка (InlineWriteFoodReview) живёт ВНУТРИ FoodWriteBar
+               (док над баром, паттерн Событий, 2026-07-02) — отдельный
+               afterContent-слот больше не нужен (паритет с FoodSchedule). */
             <FoodWriteBar
               flow={writeFoodFlow}
               inputId={writeFoodInputId}
               searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
               examplesActive={items.length === 0}
             />
-          }
-          afterContent={
-            /* Предложка в afterContent-слоте Screen (паритет с FoodSchedule):
-               результат typed-text-бара И кнопки «Предложить ингредиенты»
-               плавает на фоне страницы под листом со списком. Несёт
-               [data-write-food-anchor] — без него «Посмотреть варианты» в
-               баре скроллил в пустоту (живой баг до 2026-06-05). */
-            <InlineWriteFoodReview flow={writeFoodFlow} />
           }
         >
           <div {...paletteAnchor} className={styles.dishItemsGroup}>
@@ -346,56 +331,28 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                   if (trigger) trigger.dataset.activeItemId = item.id;
                 };
                 return (
-                  <Card.Root
+                  // Тонкий контейнер: строка dish_item → FoodEntryCard. Времени нет
+                  // (dish-ингредиент), qty коммитится в dish_items на blur. dataEntityEdit
+                  // НЕ ставим: бар тут не Screen-бар количества.
+                  <FoodEntryCard
                     key={item.id}
                     id={item.id}
                     index={index}
                     innerClassName={styles.dishFoodListItem}
-                    data-row-id={item.id}
                     onLongPress={() => openActionsDrawer(item)}
-                  >
-                    {/* Title = [qty][имя] кластер (qty ПЕРЕД именем, упакованы) —
-                        много-голосый узел → node-escape. qty правится ИНЛАЙН через
-                        EditableQuantity (унификация с расписанием/предложкой —
-                        2026-06-26), коммит в dish_items на blur. Имя/детали →
-                        DETAILS_INPUT. dataEntityEdit НЕ ставим: бар тут не Screen-
-                        бар количества. */}
-                    <Card.Title>
-                      <TitleCluster>
-                        <EditableQuantity
-                          value={item.quantity}
-                          unit="г"
-                          onCommit={(quantity) =>
-                            safeMutate(
-                              () => updateDishItem(item.id, { quantity }),
-                              'Не удалось обновить количество'
-                            )
-                          }
-                        />
-                        <TapTarget
-                          as="label"
-                          className={styles.foodName}
-                          htmlFor={editIds.DETAILS_INPUT}
-                          onPointerDown={stashDetails}
-                        >
-                          <FoodName content={{ name: item.product?.name ?? item.productId }} />
-                        </TapTarget>
-                      </TitleCluster>
-                    </Card.Title>
-
-                    {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
-                        противовес имени; Card строит label htmlFor + клэмп-2); тот же
-                        htmlFor что имя → тап по деталям тоже редактирует детали. */}
-                    {item.details && (
-                      <Card.Meta
-                        size="card-caption"
-                        htmlFor={editIds.DETAILS_INPUT}
-                        onPointerDown={stashDetails}
-                      >
-                        {item.details}
-                      </Card.Meta>
-                    )}
-                  </Card.Root>
+                    quantity={item.quantity}
+                    unit="г"
+                    onCommitQuantity={(quantity) =>
+                      safeMutate(
+                        () => updateDishItem(item.id, { quantity }),
+                        'Не удалось обновить количество'
+                      )
+                    }
+                    name={{ name: item.product?.name ?? item.productId }}
+                    nameHtmlFor={editIds.DETAILS_INPUT}
+                    onNamePointerDown={stashDetails}
+                    details={item.details || undefined}
+                  />
                 );
               })}
             </ItemsList>

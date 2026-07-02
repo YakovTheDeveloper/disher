@@ -10,17 +10,25 @@ type Props = {
   className?: string;
   content: { name: string } | null;
   htmlFor?: string;
+  /** food-карточка: имя переносится ВМЕСТЕ с инлайн-`after` (детали-особенности)
+   *  одним потоком — без 1-строчного ellipsis. По умолчанию off (прежнее усечение). */
+  wrap?: boolean;
 };
 
 // FoodName — доменная обёртка имени продукта: capitalize + ellipsis + sweep-
 // анимация смены значения. Рендерит свой <p>/<label> (как <label> при htmlFor —
 // для label-driven rename-флоу). Голос наследуется от консумера; типографику не
 // навязывает (это не Heading/Text-роль, а имя-сущности).
-const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor }: Props) => {
+const FoodName = ({ className, onClick, onTouchEnd, after, content, htmlFor, wrap }: Props) => {
   const initTitle = content?.name;
   const normalizedTitle = initTitle || 'не выбрано';
 
-  const cls = clsx(styles.ellipsis, styles.capitalize, !initTitle && styles.noTitle, className);
+  const cls = clsx(
+    wrap ? styles.wrap : styles.ellipsis,
+    styles.capitalize,
+    !initTitle && styles.noTitle,
+    className
+  );
   const handleTouchEnd = onTouchEnd
     ? () => onTouchEnd({} as React.TouchEvent<HTMLElement>)
     : undefined;

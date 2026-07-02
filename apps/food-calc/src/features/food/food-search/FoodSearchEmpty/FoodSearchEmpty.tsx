@@ -22,32 +22,37 @@ export const FoodSearchEmpty = ({ onCreateProduct, onCreateDish, createInputHtml
   const asTag = createInputHtmlFor ? 'label' : 'button';
   return (
     <div ref={ref} className={styles.root}>
-      {/* Подсказка слева базовой типографикой, действия справа — равновесная
-          строка без плавающих оверлеев. */}
-      <Text as="p" role="body" className={styles.hint}>
-        Не нашли еду?
-      </Text>
+      {/* Контейнер действий шириной 50%, прижат к правому краю; кнопки на всю
+          ширину контейнера, штабелем. Подпись «в два клика» — caption-ярус. */}
       <div className={styles.actions}>
-        {onCreateDish && (
-          <Button
-            variant="surface"
-            onSurface={1}
-            as={asTag}
-            htmlFor={createInputHtmlFor}
-            onClick={onCreateDish}
-          >
-            Блюдо
-          </Button>
-        )}
         {onCreateProduct && (
           <Button
             variant="surface"
-            onSurface={1}
+            onSurface={0}
+            fullWidth
             as={asTag}
             htmlFor={createInputHtmlFor}
             onClick={onCreateProduct}
           >
-            Продукт
+            Создать Еду
+            <Text as="span" role="caption" className={styles.clickHint}>
+              (в два клика)
+            </Text>
+          </Button>
+        )}
+        {onCreateDish && (
+          <Button
+            variant="surface"
+            onSurface={0}
+            fullWidth
+            as={asTag}
+            htmlFor={createInputHtmlFor}
+            onClick={onCreateDish}
+          >
+            Создать Блюдо
+            <Text as="span" role="caption" className={styles.clickHint}>
+              (в два клика)
+            </Text>
           </Button>
         )}
       </div>

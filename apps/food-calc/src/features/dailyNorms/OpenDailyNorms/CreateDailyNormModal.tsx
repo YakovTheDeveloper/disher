@@ -14,6 +14,7 @@ import {
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
+import { useFieldError } from '@/shared/ui/form/useFieldError';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
@@ -291,11 +292,23 @@ type NumberFieldProps = {
 };
 
 const NumberField = ({ unit, value, min, max, onChange }: NumberFieldProps) => {
-  const invalid = !isInRange(value, { min, max });
+  // Inline a11y harness (no RHF/Zod) — the field owns its own aria wiring via
+  // NumberInput's `error` prop; useFieldError just holds the message + a stable
+  // clear so a corrected value stops announcing.
+  const { error, setError, clear } = useFieldError();
+  const invalid = !!error || !isInRange(value, { min, max });
+
+  const handleChange = (v: number) => {
+    onChange(v);
+    // Non-negative + range check, evaluated inline on every keystroke.
+    if (v < 0 || !isInRange(v, { min, max })) setError(`Допустимо ${min}–${max}`);
+    else clear();
+  };
+
   return (
     <label className={clsx(styles.numberField, invalid && styles.numberFieldInvalid)}>
       <div className={styles.numberInputRow}>
-        <NumberInput value={value} onChange={onChange} maxLength={3} />
+        <NumberInput value={value} onChange={handleChange} maxLength={3} error={error} />
         <Text as="span" role="caption" className={styles.numberUnit}>{unit}</Text>
       </div>
     </label>

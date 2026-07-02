@@ -53,26 +53,26 @@ describe('InlineWriteFoodReview — SheetCard wiring', () => {
   beforeEach(() => localStorage.clear());
   afterEach(cleanup);
 
-  // Регрессия-страховка: предложка переведена на общий примитив SheetCard, а
-  // auto-scroll/shake (WriteFoodInput, DishBuilderPage) находят узел по
-  // [data-write-food-anchor] и вешают анимацию на класс reviewSheet. Если кто-то
-  // сломает {...rest}-проброс в SheetCard — типы зелёные, но scroll/shake тихо
-  // умрут. Этот тест ловит именно такую регрессию.
-  it('loading: root carries data-write-food-anchor, data-state and the reviewSheet class', () => {
+  // Регрессия-страховка: предложка переведена на общий примитив SheetCard;
+  // `data-state` + класс reviewSheet маркируют root (мёртвый доскролл/якорь к
+  // предложке выпилены 2026-07-02 — она теперь в доке бара). Если кто-то сломает
+  // {...rest}-проброс в SheetCard — типы зелёные, но маркеры тихо пропадут. Этот
+  // тест ловит именно такую регрессию.
+  it('loading: root carries data-state and the reviewSheet class', () => {
     const { container } = render(<InlineWriteFoodReview flow={makeFlow({ state: 'loading' })} />);
-    const root = container.querySelector('[data-write-food-anchor]');
+    const root = container.querySelector('[data-state="loading"]');
     expect(root).not.toBeNull();
-    expect(root).toHaveAttribute('data-state', 'loading');
     expect(root).toHaveClass(reviewStyles.reviewSheet);
     expect(screen.getByRole('heading', { name: 'Распознаём…' })).toBeInTheDocument();
   });
 
-  it('ready: renders the header + actions slot and keeps the anchor', () => {
+  it('ready: renders the actions slot; header moved to the bar', () => {
     const { container } = render(<InlineWriteFoodReview flow={makeFlow({ state: 'ready' })} />);
-    const root = container.querySelector('[data-write-food-anchor]');
+    const root = container.querySelector('[data-state="ready"]');
     expect(root).not.toBeNull();
-    expect(root).toHaveAttribute('data-state', 'ready');
-    expect(screen.getByRole('heading', { name: 'Предложения' })).toBeInTheDocument();
+    // Заголовок «Предложения» переехал в бар (FoodWriteBar.readyHeader, 2026-07-02)
+    // — на листке предложки его больше нет (иначе задваивался бы над панелью).
+    expect(screen.queryByRole('heading', { name: 'Предложения' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Отменить' })).toBeInTheDocument();
     // totalToAdd === 0 → commit задизейблен.
     expect(screen.getByRole('button', { name: 'Добавить 0' })).toBeDisabled();

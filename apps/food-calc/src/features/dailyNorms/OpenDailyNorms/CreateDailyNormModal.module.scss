@@ -203,13 +203,25 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 .numberInputRow {
     display: flex;
     align-items: baseline;
+    flex-wrap: wrap;
     gap: 4px;
 
+    // NumberInput renders its <FieldError> <p> as a sibling *between* the input
+    // and the unit (fragment order: input, <p>, unit). `order: 1` sorts the error
+    // last so number+unit stay together on line 1 and the error wraps onto its own
+    // full-width line below (flex-basis: 100% + the row's flex-wrap).
+    > p {
+        order: 1;
+        flex-basis: 100%;
+        margin: 0;
+    }
+
     // Force the NumberInput inside to behave inline; its own module styles the field.
+    // flex-basis 0 (not width:100%) so the input shares its line with the unit
+    // instead of filling the whole row and pushing the unit to wrap below it.
     input {
-        flex: 1 1 auto;
+        flex: 1 1 0;
         min-width: 0;
-        width: 100%;
         background: transparent;
         border: none;
         padding: 0;

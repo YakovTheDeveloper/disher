@@ -1,10 +1,18 @@
-import { useCallback, type CSSProperties } from 'react';
+import { useCallback, useEffect } from 'react';
 import clsx from 'clsx';
 import { WriteBarShell, WriteBarMedal } from '@/shared/ui/WriteBarShell';
+import type { SendState } from '@/shared/ui/WriteBarShell';
 import { Button } from '@/shared/ui/atoms/Button';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
+import toaster from '@/shared/lib/toaster/toaster';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
+import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
+import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
+import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import type { UseWriteFoodFlowResult } from '../../model/useWriteFoodFlow';
+import { InlineWriteFoodReview } from '../InlineWriteFoodReview';
 import s from './FoodWriteBar.module.scss';
 
 // Дуговые подписи медальона-печати «Список еды / вручную» (верх/низ, как на монете).
@@ -19,7 +27,10 @@ const SEARCH_LABEL = 'Найти еду';
 // онлайн free-text. На populated-экране виден этот статичный текст (карусель
 // примеров крутится только на пустом онбординг-экране, см. PLACEHOLDER_EXAMPLES).
 const PLACEHOLDER = 'Напишите, что Вы ели';
-const ANCHOR_SELECTOR = '[data-write-food-anchor]';
+// Плейсхолдер на время разбора: панель предложки во время `loading` НЕ
+// монтируется (спиннер в баре — единственный фидбэк), поэтому статус
+// «идёт разбор» несёт сам бар — пустое поле + этот плейсхолдер + спиннер-монета.
+const LOADING_PLACEHOLDER = 'Распознаём…';
 
 // DesignBar-анкор «FoodListCta»: ФОРМА входа «список еды» в высоком (2-строчном)
 // баре. Оба варианта = «еда» справа за фейдинг-дивайдером, в потоке (не перекрывает
@@ -90,6 +101,16 @@ export interface FoodWriteBarProps {
  * бара (в потоке, за фейдинг-дивайдером, не перекрывает список) — облик выбирает
  * DesignBar-анкор `FoodListCta` (tall-split круг-иконка / tall-medal монета).
  * Caller обязан НЕ монтировать `<WriteFoodModals>` overlay — иначе дубль `inputId`.
+ *
+ * Док = бар + панель предложки (`InlineWriteFoodReview`), по паттерну Событий
+ * (`EventsWriteBar` + `EventScalePanel`, 2026-07-02): пока разбор идёт/готов
+ * (`loading`/`ready`), панель монтируется НИЖЕ бара (как EventScalePanel) —
+ * контент выступает естественным продолжением вниз, в место клавиатуры, накрывая
+ * список (bottomBar Screen = absolute-overlay). Свой внутренний скролл (max-height
+ * 65dvh). Клавиатура/лок-свайпа/back берутся из Событий: `useKeyboardStick`
+ * (transform-mode лифтит весь док над клавиатурой при инлайн-правке кол-ва/времени),
+ * `useSwipeableLock` (блок дневного пейджера пока панель открыта), `useOverlayHistory`
+ * (браузерный Back закрывает предложку через `flow.cancel`).
  */
 export const FoodWriteBar = ({
   flow,
@@ -100,6 +121,26 @@ export const FoodWriteBar = ({
   const online = useOnline();
   const isReady = flow.state === 'ready';
   const isLoading = flow.state === 'loading';
+  // Панель открыта ТОЛЬКО когда разбор готов (`ready`). Во время `loading`
+  // (2026-07-02) панель больше НЕ монтируется — фидбэк разбора несёт сам бар
+  // (спиннер-монета + плейсхолдер «Распознаём…»), без большого скелетона и
+  // последующего layout-swap'а. Флаг питает монтирование панели и всю связку
+  // клавиатура/лок/back (как `atomsOpen` у Событий).
+  const panelOpen = isReady;
+
+  // Док = бар + панель. keyboard-stick лифтит весь док (transform-mode — bottomBar
+  // Screen absolute внутри трансформированного Embla-слайда, `fixed` резолвился бы
+  // против слайда). Включён только пока панель открыта — точная калька Событий.
+  const dockRef = useKeyboardStick<HTMLDivElement>({ mode: 'transform', enabled: panelOpen });
+  // Пока панель открыта: лочим дневной пейджер и заворачиваем Back на закрытие
+  // предложки (cancel() = единственный dismiss, он же у кнопки «Отменить»).
+  useSwipeableLock(panelOpen);
+  useOverlayHistory(panelOpen, flow.cancel);
+  // useKeyboardStick оставляет последний inline-transform при выключении — чистим
+  // его на закрытии, иначе keyboard-lift мог бы «залипнуть» на доке.
+  useEffect(() => {
+    if (!panelOpen) dockRef.current?.style.removeProperty('transform');
+  }, [panelOpen, dockRef]);
 
   // Эксперимент-облик affordance «список еды» (см. LIST_CTA_VARIANTS).
   const { variant: listCta, anchor: listCtaAnchor } = useDesignVariant(
@@ -120,45 +161,80 @@ export const FoodWriteBar = ({
       aria-label={SEARCH_LABEL}
       variant="system"
       icon={<ForkKnifeIcon />}
-      className={clsx(s.listCtaButton, isReady && s.listCtaDim)}
+      className={clsx(s.listCtaButton, panelOpen && s.listCtaDim)}
     />
+  );
+
+  // Ready-state: панель предложки открыта → free-text-инпут больше не нужен
+  // (пишут в предложку, не в бар). Его место занимает заголовок «Предложения»,
+  // перенесённый сюда из шапки SheetCard (`InlineWriteFoodReview`, 2026-07-02),
+  // чтобы бар не был мёртвой полосой над панелью. Через `fieldOverride`: он
+  // форсит collapsed → send-монета скрыта, а trailingSlot-медаль «Список» при
+  // этом остаётся (dimmed) — оффлайн-путь виден, как и в resting-виде. WriteBarShell
+  // гасит well-заливку пилюли на override (data-field-override) → заголовок лежит
+  // плоско на плашке, а не в утопленном поле-слоте.
+  const readyHeader = (
+    <Heading as="h2" role="headline" className={s.readyHeader}>
+      Предложения
+    </Heading>
   );
 
   const handleSubmit = useCallback(
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
+      // free-text-распознавание требует сети (LLM). Раньше офлайн молча гасился на
+      // гейте WriteBarShell (`send.enabled = online && hasText`) ДО вызова submit —
+      // ни предложки, ни фидбэка («предложка не появилась»). Теперь send включён
+      // при любом тексте (computeSend ниже), а сеть проверяем здесь и сообщаем
+      // тостером (канон freetext-error-toaster). Каталог («Список») — офлайн-путь.
+      if (!online) {
+        toaster.error('Нет сети — распознавание еды требует интернет. Добавьте через «Список».');
+        // false → WriteBarShell (blurOnSubmit) НЕ блюрит: фокус остаётся, текст
+        // сохранён, юзер может уйти в «Список» или повторить.
+        return false;
+      }
       flow.submit(trimmed);
     },
-    [flow]
+    [flow, online]
   );
 
-  // Ready-state: instant-scroll до предложки + короткий shake.
-  const handleViewResults = useCallback(() => {
-    const target = document.querySelector(ANCHOR_SELECTOR) as HTMLElement | null;
-    if (!target) return;
-    target.scrollIntoView({ block: 'start', behavior: 'instant' as ScrollBehavior });
-    target.removeAttribute('data-shake');
-    void target.offsetWidth;
-    target.setAttribute('data-shake', '');
-  }, []);
+  // Send-гейт: включаем при любом тексте (онлайн-гейт снят). Иначе офлайн-тап и
+  // Enter молча гасились бы в WriteBarShell ДО offline-тостера в handleSubmit.
+  const computeSend = useCallback(
+    ({ hasText }: { hasText: boolean }): SendState => ({ visible: hasText, enabled: hasText }),
+    []
+  );
 
   return (
-    <div className={s.dock}>
+    <div className={s.dock} ref={dockRef} data-open={panelOpen || undefined}>
       <WriteBarShell
-        value={flow.inputText}
+        // Во время `loading` поле пустеет (текст остаётся во flow.inputText для
+        // retry по ошибке, но визуально уступает место плейсхолдеру «Распознаём…»
+        // + спиннеру). На `ready` inputText уже '' (очищен на успехе), на `error`
+        // — вернётся отправленный текст под правку.
+        value={isLoading ? '' : flow.inputText}
         onChange={flow.setInputText}
         onSubmit={handleSubmit}
+        // Tagged so the dock (when the panel is open) can strip the bar's raised
+        // plate and sit it flush on the shared dock surface — «один кусок», по
+        // паттерну Событий (см. `.bar` в FoodWriteBar.module.scss).
+        className={s.bar}
         inputId={inputId}
-        placeholder={PLACEHOLDER}
+        placeholder={isLoading ? LOADING_PLACEHOLDER : PLACEHOLDER}
         placeholderExamples={PLACEHOLDER_EXAMPLES}
         examplesActive={examplesActive}
         online={online}
+        computeSend={computeSend}
         busy={isLoading}
         readOnly={isLoading}
+        // На ready подменяем инпут заголовком «Предложения» (см. readyHeader).
+        fieldOverride={panelOpen ? readyHeader : undefined}
+        // На сабмите блюрим (клавиатура уходит) → бар садится в спокойный
+        // pending-вид: спиннер-монета + «Распознаём…». Раньше фокус держался, чтобы
+        // дотечь до панели-скелетона; теперь панели во время loading нет.
+        blurOnSubmit
         hint={HINT}
-        writeState={isReady ? 'ready' : 'idle'}
-        scrollToOnSubmit={ANCHOR_SELECTOR}
         minRows={1}
         autoHideSend
         trailingSlot={
@@ -176,23 +252,26 @@ export const FoodWriteBar = ({
                 arcTop={ARC_TOP}
                 arcBottom={ARC_BOTTOM}
                 floating={false}
-                dimmed={isReady}
+                dimmed={panelOpen}
               />
             ) : (
               ctaButton
             )}
           </div>
         }
-        fieldOverride={
-          isReady ? (
-            // Канон-вариант `link` (скроллит к предложке). `.readyCta` оставляет
-            // только раскладку: flex-fill + крупный размер через --btn-font-size.
-            <Button variant="link" className={s.readyCta} onClick={handleViewResults}>
-              Посмотреть варианты
-            </Button>
-          ) : undefined
-        }
       />
+
+      {/* Панель предложки — НИЖЕ бара (паттерн Событий EventScalePanel): контент
+          выступает естественным продолжением вниз, в место клавиатуры. Монтируется
+          по флагу; свой внутренний скролл (max-height). Ошибку разбора ловит
+          FeatureErrorBoundary (перенесена сюда из afterContent-слота Screen). */}
+      {panelOpen && (
+        <div className={s.reviewPanel}>
+          <FeatureErrorBoundary label="Разбор еды">
+            <InlineWriteFoodReview flow={flow} />
+          </FeatureErrorBoundary>
+        </div>
+      )}
     </div>
   );
 };

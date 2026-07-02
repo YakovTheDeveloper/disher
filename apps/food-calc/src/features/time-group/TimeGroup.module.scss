@@ -21,6 +21,15 @@
         --row-rest-outline-w: 0;
         border: 0;
         border-radius: 0;
+
+        // Кант карточки в кластере = ТОЛЬКО боковой (лев+прав). Верх/низ отдаём
+        // угасающему divider'у (::before ниже): полный 4-сторонний кант
+        // LongPressRow рисовал белую линию поверх divider'а и боксил каждую
+        // карточку — divider «пропадал». Цвет берём из приватной --_card-rim ряда.
+        /* stylelint-disable-next-line scale-unlimited/declaration-strict-value -- боковой кант-окаёмка (bespoke rim, не elevation) */
+        box-shadow:
+            inset 1px 0 0 0 var(--_card-rim),
+            inset -1px 0 0 0 var(--_card-rim);
     }
 
     // Радиус карточек = body-токен группы `--sys-card-group-radius` (16). Еда лежит

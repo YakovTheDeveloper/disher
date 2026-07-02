@@ -28,17 +28,16 @@ const INPUT_TO_STEP: Record<string, Exclude<ReviewEditStep, 'idle'>> = {
   [REVIEW_INPUT_IDS.DETAILS_INPUT]: 'details',
 };
 
-// Палитра под общий schedule-row look: белая/светло-серая заливка,
-// нейтральный hairline outline, серый accent-stripe (без warm/coral
-// по статусу). Семантика статуса остаётся в section-заголовках
-// «Уточните» / «Не распознано».
-const NEUTRAL_PALETTE: CSSProperties = {
-  '--tod-bg-from': '#ffffff',
-  '--tod-bg-to': '#f4f4f6',
-  '--tod-outline-from': 'rgba(31, 42, 68, 0.08)',
-  '--tod-outline-to': 'rgba(31, 42, 68, 0.06)',
-  '--tod-tapped': 'rgba(31, 42, 68, 0.06)',
-  '--accent-stripe': 'rgba(31, 42, 68, 0.18)',
+// Палитра рядов предложки: ХОЛОДНАЯ бледная заливка через sys-токен
+// (--sys-color-surface-proposal), БЕЗ рамки (--row-rest-outline-w: 0).
+// Композиционно отстраивает машинно-сгенерированные ряды от тёплых
+// committed-рядов расписания. Красим через канон --row-bg/--row-tapped
+// (card-rim-okayomka), а не --tod-* градиент. Семантика статуса остаётся
+// в section-заголовках «Уточните» / «Не распознано».
+const PROPOSAL_PALETTE: CSSProperties = {
+  '--row-bg': 'var(--sys-color-surface-proposal)',
+  '--row-tapped': 'var(--sys-color-surface-proposal-pressed)',
+  '--row-rest-outline-w': '0',
 } as CSSProperties;
 
 export interface InlineWriteFoodReviewProps {
@@ -81,10 +80,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
   // (через tap в scheduleUndoExpiry-timer). Здесь его НЕ дублируем — child
   // не должен «решать», когда сбрасывать flow.
 
-  // Auto-scroll к предложке: триггерится прямо в AppBottomBar.handleSubmit
-  // через requestAnimationFrame после flow.submit(). Здесь нет state-tracking
-  // — просто помечаем root якорем `data-write-food-anchor`, по которому
-  // querySelector в submit'е находит узел.
+  // Предложка живёт внутри дока бара (слот bottomBar, над баром) — доскролл и
+  // якоря больше не нужны (панель всегда на виду). Перенос из afterContent →
+  // FoodWriteBar.dock по паттерну Событий, 2026-07-02.
 
   // На focus event:
   // - target — `<input id=SEARCH_INPUT|DETAILS_INPUT>` через label-делегацию из
@@ -149,7 +147,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         className={styles.reviewSheet}
         header="Распознаём…"
         data-state="loading"
-        data-write-food-anchor=""
       >
         {inputText && (
           <Text as="p" role="caption" className={styles.originalText}>
@@ -172,19 +169,11 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     <SheetCard
       key="wrap-ready"
       className={styles.reviewSheet}
-      header="Предложения"
+      // Заголовок «Предложения» переехал наверх — на место free-text-инпута в
+      // баре (FoodWriteBar.readyHeader, 2026-07-02). Здесь его больше нет, иначе
+      // задваивался бы (бар + шапка листка одна над другой).
       data-state="ready"
-      data-write-food-anchor=""
       onFocusCapture={handleReviewFocusCapture}
-      onAnimationEnd={(e) => {
-        // Снимаем data-shake после завершения СОБСТВЕННОЙ анимации wrap'а,
-        // чтобы следующий клик «Посмотреть варианты» давал чистый переход
-        // absent→present — единственное, что надёжно перезапускает CSS-
-        // анимацию во всех движках (re-add в том же тике после reflow
-        // перезапуск НЕ гарантирует). Гард target===currentTarget отсекает
-        // всплывшие animationend дочерних рядов.
-        if (e.target === e.currentTarget) e.currentTarget.removeAttribute('data-shake');
-      }}
       actions={
         // CTA-ряд: «Отменить» (fit-content, слева) чистит flow (cancel()) — это
         // теперь единственный способ закрыть предложку (× в шапке нет). «Добавить
@@ -244,7 +233,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                       onCommitTime={(uid, time) => updateResolved(uid, { time })}
                       onCommitQuantity={(uid, quantity) => updateResolved(uid, { quantity })}
                       searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                      paletteStyle={NEUTRAL_PALETTE}
+                      paletteStyle={PROPOSAL_PALETTE}
                     />
                     <button
                       type="button"
@@ -298,7 +287,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                         onCommitTime={(uid, time) => updateAmbiguous(uid, { time })}
                         onCommitQuantity={(uid, quantity) => updateAmbiguous(uid, { quantity })}
                         searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                        paletteStyle={NEUTRAL_PALETTE}
+                        paletteStyle={PROPOSAL_PALETTE}
                       />
                       <button
                         type="button"
@@ -362,7 +351,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                       onCommitTime={(uid, time) => updateUnresolved(uid, { time })}
                       onCommitQuantity={(uid, quantity) => updateUnresolved(uid, { quantity })}
                       searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                      paletteStyle={NEUTRAL_PALETTE}
+                      paletteStyle={PROPOSAL_PALETTE}
                     />
                     <button
                       type="button"

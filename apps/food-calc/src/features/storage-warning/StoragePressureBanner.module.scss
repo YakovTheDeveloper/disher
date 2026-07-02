@@ -1,0 +1,23 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--sys-inset-page);
+  background: var(--sys-color-status-danger-surface);
+  color: var(--sys-color-status-danger);
+}
+
+.text {
+  color: inherit;
+}
+
+.action {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid currentColor;
+  border-radius: var(--sys-radius-control);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}

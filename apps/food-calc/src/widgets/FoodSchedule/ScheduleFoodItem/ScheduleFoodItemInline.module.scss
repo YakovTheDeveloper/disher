@@ -1,6 +1,6 @@
-// ScheduleFoodItemInline — карточка еды на compound Card (card-chassis-simplify).
-// Колонку + строки Title/Meta держит Card.Root; qty-стопку — <QtyStack>; время —
-// <CardTime>. Здесь только специфика карточки: title-кластер, имя, детали.
+// ScheduleFoodItemInline — тонкий контейнер над презентационным FoodEntryCard.
+// Скелет [qty][имя+детали][время] держит FoodEntryCard/Card; qty-стопку — <QtyStack>;
+// время — <CardTime>. Здесь только специфика ряда: подложка + цвет имени по типу записи.
 
 .group {
   // Подложка LongPressRow голая по размеру: нулевой декоративный паддинг + нулевой
@@ -10,16 +10,8 @@
   color: var(--sys-color-text-primary);
 }
 
-// title-кластер [qty][имя] → общий <TitleCluster>. Деталь-строка → клэмп-2 в
-// общем `.meta` Card (card-chassis 2026-06-26). Локальные клоны кластера и
-// деталь-строки сняты.
-
-// имя: растягивается на остаток строки → тап-зона на всю ширину справа от qty.
-.foodName {
-  flex: 1;
-  min-width: 0;
-  line-height: 1.15;
-}
+// Скелет [qty][имя+детали][время] + раскладку тап-зоны имени держит FoodEntryCard;
+// деталь-строку — клэмп-2 в общем `.meta` Card. Тут только цвет имени по типу записи.
 
 // ── Имя: цвет/голос по типу записи (на FoodName) ──
 .customProduct {

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { db } from '@/shared/lib/dexie/schema';
-import { syncNow } from '@/shared/lib/snapshot';
 import { isSyncEnabled } from '@/shared/lib/sync-pref';
+import { runSyncTracked } from '@/shared/lib/sync/runSync';
 
 // On mount, reconcile with the vault via syncNow() (pull → merge → push) under
 // the 'disher-sync' lock. merge() handles both first-launch adoption (empty
@@ -26,17 +26,16 @@ export function BackupGate({ children }: { children: ReactNode }) {
         const counts = await Promise.all(db.tables.map((t) => t.count()));
         if (counts.some((c) => c > 0)) {
           // Local data present — render now, reconcile in the background.
-          void syncNow().catch(() => {
-            /* offline; next mount tries again */
-          });
+          // runSyncTracked records the outcome in the sync-status store and,
+          // when online, surfaces a retry-able toaster (dyra #1: a silently
+          // dropped push used to leave the user believing their data was safe
+          // in the cloud). It never throws, so boot is unaffected.
+          void runSyncTracked();
         } else {
           // First launch on this device — block until the vault is pulled and
-          // merged so the UI renders with the user's data.
-          try {
-            await syncNow();
-          } catch {
-            /* offline first-launch; render fresh */
-          }
+          // merged so the UI renders with the user's data. Still tracked: an
+          // online failure toasts; an offline first-launch renders fresh.
+          await runSyncTracked();
         }
       } finally {
         if (!cancelled) setReady(true);

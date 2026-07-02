@@ -1,26 +1,42 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // ObservationCard — unified card for observation / insight / hypothesis (merged
 // 2026-06-25, plan Slice 8 — was InsightCard + HypothesisCard, identical canon).
-// Сидит внутри pearl-плашки SheetCard (общий контейнер с предложкой). Поверхность —
-// плоский paper-mono content без рамки/тени: строки делит воздух (--space-3), и в
-// разборе (AnalysisResult), и в «Открытиях» (DiscoveriesSlides). Кегли — у
-// примитивов <Text>/<Heading> (миграция typo); font-size в scss мёртв. Token-driven
-// app-wide тоном (`--sys-card-*`). Layout — текст-колонка: «+ к себе» прижата в
-// правый-нижний угол текста, шеврон-удаление — row-сиблинг справа.
+// Предложка 0b728691 rev4 (2026-07-02): карточки автономны, но НЕ парят по-отдельно
+// — секция = ОДНА группа-плитка (iOS inset-grouped). Холодный wash предложки
+// (--sys-color-surface-proposal, «голос системы, не твоей записи») теперь на
+// КОНТЕЙНЕРЕ секции (AnalysisResult `.bareBlock .list`), а карточка — плоский РЯД
+// внутри неё: свой инсет (--sys-inset-card, общий с карточками еды), без подложки/
+// скругления, строки делит тающий hairline (канон Divider), у последней снят.
+// Кегли — у примитивов <Text>/<Heading> (миграция typo); font-size в scss мёртв.
+// Layout — текст-колонка + мета-угол справа-сверху.
 .card {
     position: relative;
     display: flex;
     align-items: flex-start;
-    // Плоская paper-mono content-карточка: поверхности нет, строки делит воздух.
-    // Отступы по умолчанию СНЯТЫ — карточка прижата к краям своего контейнера
-    // (SheetCard сам даёт воздух). Включаются опционально через `.padded`.
-    border-radius: 0;
-    background: transparent;
-    box-shadow: var(--sys-elevation-flat);
+    // Плоский ряд группы: свой гор.+верт. инсет, подложку держит группа-плитка.
+    padding: var(--space-3) var(--sys-inset-card);
 }
 
-// Опциональные собственные поля (проп `padded`) — для карточки на голой поверхности.
-.padded {
-    padding: var(--space-3) var(--space-4);
+// Тающий seam между рядами группы — ЯРКИЙ БЕЛЫЙ, 1:1 с межкарточным seam еды
+// (TimeGroup): `--sys-color-divider-card` (rgb 255) + фейд 30/70. Белая линия на
+// холодном wash-подложке = светлая «прорезь» (как оправа карточек еды), не тёмная
+// бровка. Инсет по бокам = card-инсет ряда. У ПОСЛЕДНЕГО ряда снят: в
+// InsightListPanel карточка — единственный ребёнок LongPressRow (всегда
+// :last-child) → там seam не рисуется (страница сохранённого делит ряды воздухом).
+.card::after {
+    content: '';
+    position: absolute;
+    left: var(--sys-inset-card);
+    right: var(--sys-inset-card);
+    bottom: 0;
+    height: 1px;
+    @include hairline(var(--sys-color-divider-card), 30%, 70%);
+    pointer-events: none;
+}
+
+.card:last-child::after {
+    display: none;
 }
 
 .text {
@@ -31,28 +47,61 @@
     gap: var(--space-1);
 }
 
+// Верхний ряд плитки: заголовок тянется влево, мета-угол прижат вправо-вверх
+// (предложка 0b728691 rev2). `align-items: flex-start` — угол садится у ПЕРВОЙ
+// строки заголовка (не по центру многострочного), держит контур верхней кромки.
 .head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: flex-start;
     gap: var(--space-2);
 }
 
 // Заголовок рендерится примитивом <Heading role="title"> — Onest sans 17px, вес
 // 600. Роль не моделирует цвет → здесь добавляем ТОЛЬКО surface-adaptive ink
 // карточки (`.head .cardTitle` = 0,2,0 перебивает базовый `.heading { color }`
-// 0,1,0 независимо от порядка загрузки CSS-модулей).
+// 0,1,0 независимо от порядка загрузки CSS-модулей). flex:1 — забирает строку,
+// толкая мета-угол к правому краю.
 .head .cardTitle {
+    flex: 1;
+    min-width: 0;
     color: var(--sys-card-text-rest, var(--color-ink));
 }
 
-// Голос (мелкая мета справа от заголовка) — strength-лейбл (инсайт/наблюдение)
-// или «проверить ~N дн.» (гипотеза). Примитив <Text role="caption">; здесь —
-// раскладка + surface-adaptive ink.
-.caption {
+// Мета-угол — знак valence + точки силы, прижаты в правый-верхний угол плитки.
+// Тихий контур контента (решение юзера 2026-07-02: не мешать заголовку). shrink:0
+// — не жмётся под длинный заголовок; садится у первой базовой линии title.
+.metaCorner {
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    // приподнять точки/знак к оптической линии заглавных букв title (17px)
+    padding-top: 2px;
+}
+
+// Сила связи ●●○ — тихий ряд точек (близость к утверждению). Заполнено = сила;
+// слово живёт в title/aria. Круг = --radius-full.
+.strength {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--sys-card-text-soft);
+    border-radius: var(--sys-radius-indicator); // full-round индикатор (badge/dot)
+}
+
+.dotOn {
+    background: var(--sys-card-text-soft);
+}
+
+// «проверить ~N дн.» (гипотеза) — тихая мета отдельным рядом под заголовком.
+// Примитив <Text role="caption">; здесь — surface-adaptive ink.
+.hint {
     line-height: 1;
-    white-space: nowrap;
     color: var(--sys-card-text-faint);
 }
 
@@ -64,41 +113,34 @@
 }
 
 // ── valence (без цвета, F3) ───────────────────────────────────────────────
-// Хорошо/плохо несёт монохромный знак ＋/− у заголовка. Оттенка нет. Вес несёт
-// примитив-заголовок (класс держит только отступ + цвет).
+// Хорошо/плохо несёт монохромный знак ＋/− в мета-углу (предложка 0b728691 rev2:
+// увели из заголовка, чтобы не мешал имени). Оттенка нет — только тихий ink.
+// Зазор до точек держит `.metaCorner { gap }`, свой margin не нужен.
 .valenceSign {
-    margin-right: var(--space-1);
     color: var(--sys-card-text-soft);
+    line-height: 1;
 }
 
-// ── evidence чипы (день / еда / событие) ──────────────────────────────────
+// ── evidence — инлайн-текст (предложка 0b728691: без пилюль) ───────────────
+// «13 июня · курица · тренировка» одной тихой строкой. Ярус — <Text role="caption">;
+// здесь только surface-adaptive faint-ink.
 .evidence {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1);
+    color: var(--sys-card-text-faint);
 }
 
-.chipDay,
-.chipFood,
-.chipEvent {
-    padding: 2px 8px;
-    border-radius: var(--sys-radius-control);
-    line-height: 1.4;
-    color: var(--sys-card-text-soft);
-    background: var(--sys-card-bg-sunk);
-}
-
-// ── действие «+ к себе» (результат) ───────────────────────────────────────
-// CTA = примитив <Button variant="accent"> (вид/тон/press/disabled — его). Класс
-// .add — только РЕДУКТОР размера: режет дефолтные 56px CTA до компактной плашки
-// в потоке текста + прижим в правый-нижний угол. Селектор `.text .add` (0,2,0)
-// перебивает `.accent`/`.accentSecondary` (0,1,0) из Button.module.css.
+// ── действие «Сохранить» (результат) ──────────────────────────────────────
+// CTA = белая плитка-кнопка <Button variant="surface" onSurface={1}> — лежит на
+// холодном wash карточки, заливка поднимается до белого surface-2 + hairline-кромка
+// (БЕЗ тени — держим всё плоским; белая плитка тёплее/светлее холодного wash → и
+// цветом, и кромкой отделяется). Класс .add — РЕДУКТОР размера: режет дефолтные
+// 48px до компактной плашки в потоке + прижим в правый-нижний угол. Селектор
+// `.text .add` (0,2,0) перебивает `.surface` (0,1,0) из Button.module.css.
 .text .add {
     align-self: flex-end;
     margin-top: var(--space-1);
     min-height: 40px;
     padding: 0 var(--space-4);
-    box-shadow: var(--sys-elevation-flat); // инлайн-CTA в потоке контента → плоский
+    box-shadow: var(--sys-elevation-flat); // плоско: отделение несёт кромка onSurface=1
 }
 
 // Удаление сохранённого инсайта переехало на long-press по ряду + ConfirmDrawer

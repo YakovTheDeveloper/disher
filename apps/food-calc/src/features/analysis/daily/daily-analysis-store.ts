@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { get as idbGet, set as idbSet } from 'idb-keyval';
 import { db } from '@/shared/lib/dexie/schema';
+import toaster from '@/shared/lib/toaster/toaster';
 import { collectFoods, collectEvents, collectNutrientsByDay } from '../api/runAnalysis';
+import { analysisFailureToast } from '../analysisErrorMessage';
 import { requestDailyAnalysis, DailyStreamError } from './requestDailyAnalysis';
 import type { DailyAnalysis, DailyAnalysisReason } from './types';
 
@@ -145,6 +147,14 @@ export const useDailyAnalysisStore = create<DailyAnalysisState>((set, get) => {
           err instanceof DailyStreamError ? err.kind : 'network';
         patch(date, (a) => ({ ...a, status: 'failed', reason }));
         persistNow();
+        // Surface the failure as a toaster too. The store banner only shows
+        // inside the analysis view; a paid AI run that failed after the user
+        // navigated away would otherwise be a silent failure. «Повторить»
+        // re-runs the same prompt (re-snapshots hypotheses + userMessage).
+        const { message, action } = analysisFailureToast(reason, {
+          onRetry: () => void get().start(date, { hypothesisIds, userMessage }),
+        });
+        toaster.error(message, { action });
       } finally {
         if (controllers.get(date) === controller) controllers.delete(date);
       }

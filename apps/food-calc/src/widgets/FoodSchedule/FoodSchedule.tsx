@@ -27,7 +27,6 @@ import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
-  InlineWriteFoodReview,
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 
@@ -178,20 +177,15 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
         </>
       }
       bottomBar={
+        /* Предложка (InlineWriteFoodReview) теперь живёт ВНУТРИ FoodWriteBar
+           (док над баром, по паттерну Событий, 2026-07-02) — отдельный
+           afterContent-слот больше не нужен. */
         <FoodWriteBar
           flow={writeFoodFlow}
           inputId={writeFoodInputId}
           searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
           examplesActive={isEmpty}
         />
-      }
-      afterContent={
-        /* Предложка живёт в afterContent-слоте Screen (2026-06-08): результат
-           разбора плавает на фоне страницы ПОД листом со списком, рядом с
-           write-баром (chat-pattern). Несёт [data-write-food-anchor] —
-           auto-scroll из FoodWriteBar.handleSubmit находит её по селектору.
-           Loading рисует skeleton-блок со спиннером. */
-        <InlineWriteFoodReview flow={writeFoodFlow} />
       }
     >
       <Heading role="headline" as="h2" className={styles.dateHeading}>
@@ -240,9 +234,7 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
           })()}
         </ItemsList>
       </div>
-      {/* Полоса-сводка нутриентов — в конце списка, всегда перед предложкой
-          (InlineWriteFoodReview живёт в afterContent → рендерится после контента).
-          На пустом дне не показываем. */}
+      {/* Полоса-сводка нутриентов — в конце списка. На пустом дне не показываем. */}
       {!isEmpty && <NutrientsBar totals={totals} onOpen={openNutrients} />}
     </Screen>
   );

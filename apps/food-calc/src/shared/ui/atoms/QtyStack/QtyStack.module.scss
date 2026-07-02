@@ -15,14 +15,10 @@
   // поверхностях, не привязана к цвету ряда) + мягкая ВНУТРЕННЯЯ тень даёт впалость.
   // surface-2 (#fff) = «лист над листом»: инпут сидит светлее тонированной карточки.
   // Inset-тень — базовый --sys-field-shadow (публикуется field-chip-palette на :root).
-  background-color: var(--sys-color-surface-hue-card-field);
-  box-shadow: var(--sys-field-shadow);
+  // background-color: var(--sys-color-surface-hue-card-field);
   // padding/margin парой (как inline-инсет ниже) → лунка дышит по вертикали, но
   // внешняя геометрия и базовая линия кластера не сдвигаются.
-  padding: 2px 6px;
-  margin: -2px -6px;
   border-radius: var(--sys-radius-control);
-  transition: background-color var(--press-out) ease, box-shadow var(--press-out) ease;
 
   &:active {
     background-color: var(--sys-color-bg-press-warm);
@@ -44,9 +40,10 @@
 .value {
   position: relative;
   display: inline-block;
-  min-width: 1ch; // не схлопывается в ноль на пустом инпуте (бэкспейс)
+  width: 40px; // не схлопывается в ноль на пустом инпуте (бэкспейс)
   font-size: var(--sys-numeral-base);
   line-height: 1.15; // совпасть с первой строкой имени в кластере
+
 }
 
 // Зеркало: невидимый span той же метрикой, что и input — его ширина = реальная
@@ -89,7 +86,12 @@
 }
 
 .unit {
-  color: var(--sys-color-text-muted);
+  // Наследует холодный числовой голос столбика (Card `.qtyCol` →
+  // --sys-color-text-on-hue-card), приглушён — тихий спутник числа. Раньше хардкод
+  // --sys-color-text-muted (тёплый) расходился с холодным числом/временем; теперь
+  // qty + единица + время звучат в один тон.
+  color: inherit;
+  opacity: 0.55;
   font-size: var(--sys-numeral-xs);
   line-height: 1;
 }

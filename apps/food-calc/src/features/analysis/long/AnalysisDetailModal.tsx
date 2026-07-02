@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import { ModalLayout } from '@/shared/ui/ModalLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
 import { AnalysisResult } from '../AnalysisResult';
+import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
@@ -40,6 +41,18 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
 
   const status = deriveStatus(analysis);
   const { appliedHypotheses } = analysis;
+
+  // Toast once when a running analysis terminally fails (server marked it
+  // failed). The in-modal banner shows it while open; the toaster persists the
+  // signal briefly. Guarded so transient 5xx retries (which keep polling at
+  // status 'running') never spam.
+  const failToastedRef = useRef(false);
+  useEffect(() => {
+    if (status === 'failed' && !failToastedRef.current) {
+      failToastedRef.current = true;
+      toast.error('Разбор не удался — можно запустить заново');
+    }
+  }, [status]);
 
   async function handleRestart() {
     if (restarting) return;
@@ -98,14 +111,16 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
         )}
 
         {status === 'done' && (
-          <AnalysisResult
-            summary={analysis.summary}
-            observations={analysis.observations}
-            insights={analysis.insights}
-            hypotheses={analysis.hypotheses}
-            insightSource="long"
-            bare
-          />
+          <FeatureErrorBoundary label="Разбор" resetKeys={[analysis.id]}>
+            <AnalysisResult
+              summary={analysis.summary}
+              observations={analysis.observations}
+              insights={analysis.insights}
+              hypotheses={analysis.hypotheses}
+              insightSource="long"
+              bare
+            />
+          </FeatureErrorBoundary>
         )}
 
         {(status === 'stale' || status === 'failed') && (

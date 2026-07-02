@@ -1,7 +1,6 @@
 // FoodSearchEmpty — bottom dock for create-product / create-dish actions in SearchFood.
-// Раскладка: подсказка слева базовой типографикой (<Text role="body">), две кнопки
-// справа — равновесная строка без плавающих оверлеев (плавающий serif-italic «штамп»
-// выпилен 2026-06-27 ради простоты). Док — ОДНА плоская тёплая поверхность
+// Раскладка: две кнопки бок-о-бок во всю ширину дока, делят строку поровну (был
+// штабель-колонка width:50% справа — флип в строку 2026-06-27). Док — ОДНА плоская тёплая поверхность
 // (`--sys-color-surface-1` #fefcf9 — парящий лист над базой страницы), закруглённая
 // как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-blur)
 // выпилено 2026-06-25 — список больше НЕ просвечивает под доком.
@@ -16,33 +15,43 @@
     right: 0;
     z-index: 10;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
 
-    // Безопасные отступы дока + safe-area-вынос под home-indicator. Слева чуть
-    // больше воздуха под текст подсказки.
-    padding: 12px 12px calc(12px + env(safe-area-inset-bottom)) 16px;
+    // Безопасные отступы дока + safe-area-вынос под home-indicator. Горизонт.
+    // gutter = --sys-inset-page (в цвет боковых полей листа списка), симметрично —
+    // кнопки-строка тянутся во всю ширину и рифмуются с краями бумаги-списка.
+    padding: var(--space-3) var(--sys-inset-page) calc(var(--space-3) + env(safe-area-inset-bottom));
     box-sizing: border-box;
 
     // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root несёт
-    // непрозрачный фон). Скруглённый фон клипится по border-radius.
-    background: var(--sys-color-surface-1);
+    // непрозрачный фон). Низ экрана = surface-0 (база-стол), парная инверсии
+    // SearchFood: верх/низ = уровень 0, список = уровень 1. Скруглённый фон
+    // клипится по border-radius.
+    background: var(--sys-color-surface-0);
     border-radius: var(--sys-radius-overlay) var(--sys-radius-overlay) 0 0;
     box-shadow: var(--sys-elevation-dock);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-// Подсказка слева — базовая body-типографика, цвет/размер несёт сам примитив <Text>.
-.hint {
-    margin: 0;
-    flex: 1;
-    min-width: 0;
-}
-
+// Строка действий (запрос юзера 2026-06-27 — был штабель-колонка width:50%): две
+// кнопки бок-о-бок, делят ширину дока поровну. Подпись кнопки центрируется.
 .actions {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    flex-direction: row;
+    gap: var(--space-2);
+    width: 100%;
+
+    // Каждая кнопка делит строку поровну (flex-basis:0 → равные колонки независимо
+    // от длины текста), min-width:0 разрешает усадку под общий gap.
+    > * {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    // Двухстрочная подпись кнопки центрируется (наследуется в <Text>-обёртку).
+    text-align: center;
+}
+
+// Вторая строка кнопки — тихий caption-ярус на отдельной строке.
+.clickHint {
+    display: block;
 }

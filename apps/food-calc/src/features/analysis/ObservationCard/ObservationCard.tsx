@@ -22,8 +22,10 @@ export type ObservationAction = 'none' | 'add';
 //                   дн.» caption, addable (action='add'). No valence/strength/
 //                   evidence (they're simply not passed → not rendered).
 // The card stays entity-agnostic: persistence + copy ride in via props (`onAdd`
-// + the add* labels). Layout — text column; the «+ к себе» CTA (Button accent,
-// reduced) pins bottom-right inside the text. Deletion of a saved insight is NOT
+// + the add* labels). Layout — flat row inside a section group-plate (the cool
+// proposal-wash lives on the container, not the card): title + a top-right meta
+// corner (valence sign + strength dots), then body/evidence, then a white «Сохранить»
+// tile (Button surface/onSurface=1) pinned bottom-right. Deletion of a saved insight is NOT
 // a card affordance anymore (Slice 3, 2026-06-26): it moved to a long-press on
 // the row + ConfirmDrawer, owned by the consumer (InsightListPanel).
 type Props = {
@@ -35,8 +37,8 @@ type Props = {
   /** Insight valence → a quiet monochrome ＋/− before the title. Omitted /
    *  'neutral' → no glyph (observations & hypotheses pass nothing). */
   valence?: InsightValence;
-  /** Confidence → a quiet caption («слабая связь» / «есть связь»). 'clear' and
-   *  omitted render nothing (a label on every card is noise). */
+  /** Confidence → a quiet row of dots ●●○ under the title (weak 1 / moderate 2 /
+   *  clear 3). Omitted → nothing (hypotheses pass none). The word lives in aria. */
   strength?: InsightStrength;
   /** Grounding chips (день / еда / событие). Omitted → none (hypotheses). */
   evidence?: InsightEvidence;
@@ -45,24 +47,32 @@ type Props = {
   action?: ObservationAction;
   /** action='add': raw persistence (saveInsight / saveHypothesis). */
   onAdd?: () => Promise<void>;
-  /**
-   * Внутренние отступы карточки. По умолчанию ВЫКЛ (карточка прижата к краям
-   * своего контейнера — SheetCard сам даёт воздух). Включить там, где карточка
-   * стоит на голой поверхности и ей нужны собственные поля.
-   */
-  padded?: boolean;
   addLabel?: string;
   addedAriaLabel?: string;
   addSuccessToast?: string;
   addErrorToast?: string;
 };
 
-// How sure the model is the pattern is real. Shown ONLY when it's not «явная»:
-// a label repeated identically on every card is noise.
-const STRENGTH_LABEL: Partial<Record<InsightStrength, string>> = {
-  weak: 'слабая связь',
-  moderate: 'есть связь',
+// How sure the model is the pattern is real → a quiet row of dots ●●○ right under
+// the title (предложка 0b728691: сила связи точками, не словами). Filled = сила;
+// the word survives only in title/aria. Rendered for all three strengths (unlike
+// the old word-label, dots at «явная» aren't noise — they're a quiet gauge).
+const STRENGTH_DOTS: Record<InsightStrength, { filled: number; label: string }> = {
+  weak: { filled: 1, label: 'слабая связь' },
+  moderate: { filled: 2, label: 'есть связь' },
+  clear: { filled: 3, label: 'явная связь' },
 };
+
+function StrengthDots({ strength }: { strength: InsightStrength }) {
+  const { filled, label } = STRENGTH_DOTS[strength];
+  return (
+    <span className={styles.strength} title={label} aria-label={label}>
+      {[0, 1, 2].map((i) => (
+        <span key={i} className={clsx(styles.dot, i < filled && styles.dotOn)} aria-hidden />
+      ))}
+    </span>
+  );
+}
 
 // Valence shown WITHOUT colour (F3 minimalism): a quiet monochrome ＋/− glyph
 // before the title. Neutral renders no glyph.
@@ -89,20 +99,20 @@ const ObservationCard = ({
   showDays = true,
   action = 'none',
   onAdd,
-  padded = false,
   addLabel = 'Сохранить',
   addedAriaLabel = 'Сохранено',
   addSuccessToast = 'Сохранено',
   addErrorToast = 'Не удалось сохранить',
 }: Props) => {
   const sign = valence ? VALENCE_SIGN[valence] : '';
-  const strengthLabel = strength ? STRENGTH_LABEL[strength] : undefined;
-  const headCaption = strengthLabel ?? caption;
 
+  // evidence — инлайн-текст «13 июня · курица · тренировка» (предложка 0b728691:
+  // без пилюль). Дни (форматированные) + еда + события в одну тихую строку.
   const days = showDays ? (evidence?.days ?? []) : [];
   const foods = evidence?.foods ?? [];
   const events = evidence?.events ?? [];
-  const hasEvidence = days.length + foods.length + events.length > 0;
+  const evidenceParts = [...days.map(formatDay), ...foods, ...events];
+  const hasEvidence = evidenceParts.length > 0;
 
   const [added, setAdded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -124,26 +134,35 @@ const ObservationCard = ({
 
   return (
     <article
-      className={clsx(styles.card, padded && styles.padded)}
+      className={styles.card}
       data-strength={strength || undefined}
       data-valence={valence || undefined}
     >
       <div className={styles.text}>
+        {/* Плитка-подложка (предложка 0b728691 rev2, 2026-07-02): заголовок держит
+            левую колонку, а мета-угол (знак valence + точки силы) прижат в правый-
+            верхний угол — тихий контур контента. Тело → evidence(инлайн) → кнопка. */}
         <div className={styles.head}>
           <Heading as="h3" role="title" className={styles.cardTitle}>
-            {sign && (
-              <span className={styles.valenceSign} aria-hidden>
-                {sign}
-              </span>
-            )}
             {title}
           </Heading>
-          {headCaption && (
-            <Text as="span" role="caption" className={styles.caption}>
-              {headCaption}
-            </Text>
+          {(sign || strength) && (
+            <span className={styles.metaCorner}>
+              {sign && (
+                <span className={styles.valenceSign} aria-hidden>
+                  {sign}
+                </span>
+              )}
+              {strength && <StrengthDots strength={strength} />}
+            </span>
           )}
         </div>
+
+        {caption && (
+          <Text as="span" role="caption" className={styles.hint}>
+            {caption}
+          </Text>
+        )}
 
         {detail && (
           <Text role="body" className={styles.detail}>
@@ -152,31 +171,19 @@ const ObservationCard = ({
         )}
 
         {hasEvidence && (
-          <div className={styles.evidence}>
-            {days.map((d) => (
-              <Text as="span" role="caption" key={`d-${d}`} className={styles.chipDay}>
-                {formatDay(d)}
-              </Text>
-            ))}
-            {foods.map((f) => (
-              <Text as="span" role="caption" key={`f-${f}`} className={styles.chipFood}>
-                {f}
-              </Text>
-            ))}
-            {events.map((e) => (
-              <Text as="span" role="caption" key={`e-${e}`} className={styles.chipEvent}>
-                {e}
-              </Text>
-            ))}
-          </div>
+          <Text as="span" role="caption" className={styles.evidence}>
+            {evidenceParts.join(' · ')}
+          </Text>
         )}
 
         {action === 'add' && (
-          // Уменьшенный accent-CTA (класс .add режет min-height/padding с
-          // дефолтных 56px). Без ведущей иконки — текст «Сохранить» несёт
-          // действие сам. Сохранено → soft-ярус (accent-secondary) «✓ сохранено».
+          // Белая плитка-кнопка (предложка 0b728691 rev3): карточка = холодный wash
+          // предложки, кнопка ЛЕЖИТ на нём → `onSurface={1}` (заливка поднимается до
+          // белого surface-2 + hairline-кромка, без тени — всё плоское). Класс .add
+          // режет высоту/паддинг с дефолтных 48px до компактной плашки. ✓ сохранено.
           <Button
-            variant={added ? 'accent-secondary' : 'accent'}
+            variant="surface"
+            onSurface={1}
             className={styles.add}
             onClick={handleAdd}
             disabled={added || saving}

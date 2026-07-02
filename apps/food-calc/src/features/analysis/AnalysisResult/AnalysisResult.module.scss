@@ -22,18 +22,28 @@
 }
 
 // ─── Резюме разбора ────────────────────────────────────────────────────────
-// Lead-вывод разбора — насыщенный indigo-блок (заливка accent-полюса канона +
-// светлый on-accent текст). Намеренный цветовой акцент (решение юзера
-// 2026-06-27): монохромный разбор получает один громкий «вывод дня» сверху,
-// карточки ниже остаются нейтральными. Цвет текста встаёт без боя — примитив
-// <Text> цвет не моделирует (контекстный), так что класс `.summary` красит сам.
+// Lead-вывод разбора (предложка 0b728691 rev4, 2026-07-02): индиго-заливка снята
+// (решение 2026-06-27 отменено юзером) — summary стал ЛИДОМ: заголовок «Анализ дня»
+// + тёмный текст на листе, без подложки. Иерархию несёт заголовок + полный ink, не
+// цветное пятно. Одинаков во всех консумерах (дом / длинный разбор / блюдо).
+.summaryBlock {
+    display: flex;
+    flex-direction: column;
+}
+
+// Заголовок лида — <Heading role="headline">; margin:0 (канон), зазор до текста
+// держит нижний отступ. Базово тихий; дом переводит в Apple «Headline» (см.
+// DailyAnalysis.module.scss `[data-analysis-summary] > h3`).
+.summaryHead {
+    // Канон Heading margin:0 — зазор до лида держит потребитель (дом: padding-bottom
+    // на `[data-analysis-summary] > h3`). Единственный потребитель заголовка = дом.
+    margin: 0;
+}
+
 .summary {
     // font-size/family → <Text role="body"> (typo-encapsulation); здесь layout + цвет.
     line-height: 1.6;
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--sys-radius-container);
-    background: var(--sys-color-surface-action-accent); // indigo-600 #3a2d6b
-    color: var(--sys-color-on-action-accent); // светлый текст на индиго
+    color: var(--sys-card-text-rest, var(--color-ink)); // полный ink лида (не индиго)
 
     :global(p) {
         margin: 0 0 8px;
@@ -66,8 +76,21 @@
 .list {
     display: flex;
     flex-direction: column;
-    // Карточки безрамочные (бровка снята из канона) — воздух несёт всю границу
-    // между ними, поэтому зазор щедрее строкового ритма (--space-5 vs stack-row 12).
-    gap: var(--space-5);
+    // Предложка 0b728691 rev4: секция = группа-плитка (iOS inset-grouped). Строки
+    // делит тающий hairline (у ObservationCard `.card::after`), НЕ воздух → gap 0.
+    // Базовый инсет — для sheet-режима (разбор блюда: список внутри pearl SheetCard).
+    gap: 0;
     padding: 0 var(--space-3) var(--space-3);
+}
+
+// bare (дом / длинная модалка): секция получает ХОЛОДНУЮ wash-подложку предложки
+// («голос системы») + скругление — одна плитка на секцию, ряды прозрачные, делит
+// hairline. overflow:hidden клипает углы. Гор. инсет несут сами ряды (--sys-inset-
+// card у `.card`), поэтому у плитки padding 0. В sheet-режиме (блюдо) wash НЕ нужен
+// — там подложку держит pearl SheetCard, ряды просто делит hairline.
+.bareBlock .list {
+    padding: 0;
+    background: var(--sys-color-surface-proposal);
+    border-radius: var(--sys-radius-container);
+    overflow: hidden;
 }

@@ -1,37 +1,141 @@
-// ─── Fullscreen auth blocker — app-tone surface ────────────────
-// Single surface: база-стол (--sys-color-surface-0), как фон остальных экранов.
-// Dark/photo `data-auth-variant` темы (v1-photo + dev-форки v2/v3/v4) сняты
-// 2026-06-24 — экран входа переведён на app-тон (форма читает field-токены).
-// Здесь — только layout-примитивы (позиционирование, safe-area, brand).
+@import '@/shared/assets/style/mixin.scss';
+
+// ─── Fullscreen auth blocker — язык HomePage ───────────────────
+// Слои снизу вверх: тёплая бумага (--sys-color-surface-0, база экрана) → hero-
+// обложка, прибитая к верхней кромке и тающая в бумагу тем же easing-scrim'ом,
+// что HomeHero → белая подложка-лист (surface-2), поднимающаяся самокат-overlap'ом
+// и несущая форму. Форма читает свои field-токены (AuthForm.module.scss), здесь —
+// только композиция экрана: обложка, scrim-маски, лист, лого.
 
 .screen {
   position: fixed;
   inset: 0;
-  // 100dvh shrinks when the iOS keyboard pushes — combined with overflow: hidden
-  // the form layout reflows up on its own. No scroll-padding hacks needed.
+  // iOS-клавиатура: единственный НАДЁЖНЫЙ способ поднять сфокусированный инпут
+  // над клавиатурой — отдать это нативному скроллу. iOS сам скроллит контейнер
+  // прокрутки к фокусу, но ТОЛЬКО если он один, а не вложенный overflow внутри
+  // ещё одного (VirtualKeyboard API и interactive-widget=resizes-content в Safari
+  // не реализованы, 2026 — рычагов больше нет). Раньше `.screen` был
+  // overflow:hidden, а скроллился вложенный `.sheet` → iOS скроллил не тот
+  // элемент, инпут оставался под клавиатурой. Теперь `.screen` — ЕДИНСТВЕННЫЙ
+  // скроллер на всю высоту: когда клавиатура съедает низ, 100dvh-контент
+  // перерастает видимую область, появляется запас прокрутки, iOS поднимает инпут
+  // сам. Ноль JS, ноль магических высот.
   height: 100dvh;
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top, 0px);
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  // Отступ, с которым нативный скролл ставит сфокусированный инпут (не впритык).
+  scroll-padding-block: var(--space-6);
+  // Запас снизу РОВНО на высоту клавиатуры (`--kb` пишет хук
+  // `useKeyboardAwareScroll` из visualViewport — там же весь CSS-контракт).
+  // Без него `.screen` (100dvh) и его контент (100dvh) равны → overflow нулевой
+  // → скроллить нечего. С запасом появляется диапазон прокрутки, и инпут можно
+  // поднять над клавиатурой.
+  padding-bottom: var(--kb, 0px);
   isolation: isolate;
+  // База — тёплая бумага: в неё растворяется низ обложки до того, как её накроет
+  // белый лист. Тот же приём слоистости, что HomeHero (обложка тает в фон экрана).
   background: var(--sys-color-surface-0);
 }
 
-.brand {
-  display: flex;
-  margin-top: auto;
-  margin-left: auto;
+// ─── Hero-обложка ──────────────────────────────────────────────
+// Прибита к самому верху (под статус-бар), тает в бумагу. Краевой фейд —
+// калька HomeHero: вертикальный easing-scrim (родитель, intersect) ∩ (верхняя
+// полоса ∪ боковой фейд) (картинка, add). Углы не скругляем — низ всё равно
+// уходит под лист.
+.hero {
   position: relative;
-  z-index: -1;
+  flex: 0 0 auto;
+  height: 46dvh;
+  pointer-events: none;
+  user-select: none;
+
+  // Вертикальный фейд (smootherstep ease-in-out — пологий на обоих концах, шва
+  // не видно). Маска работает по альфе, цвет стопов роли не играет.
+  //   ⬇️ КРУТИ ТОЛЬКО ЭТИ ДВА (в % высоты обложки).
+  --hero-fade-start: 58%; // с какой высоты НАЧИНАЕТСЯ растворение
+  --hero-fade-end: 100%; //   где обложка растворилась полностью
+  --hero-fade-span: calc(var(--hero-fade-end) - var(--hero-fade-start));
+  --hero-fade-v: linear-gradient(to bottom,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 1) var(--hero-fade-start),
+      rgba(0, 0, 0, 0.991) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.1),
+      rgba(0, 0, 0, 0.942) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.2),
+      rgba(0, 0, 0, 0.837) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.3),
+      rgba(0, 0, 0, 0.683) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.4),
+      rgba(0, 0, 0, 0.5) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.5),
+      rgba(0, 0, 0, 0.317) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.6),
+      rgba(0, 0, 0, 0.163) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.7),
+      rgba(0, 0, 0, 0.058) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.8),
+      rgba(0, 0, 0, 0.009) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.9),
+      rgba(0, 0, 0, 0) var(--hero-fade-end));
+
+  // Боковой фейд + «верх во всю ширину» (как HomeHero): где верхняя полоса
+  // непрозрачна — бока не срезаются; ниже вступает боковой фейд.
+  --hero-fade-h: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  --hero-side-keep: 34%;
+  --hero-top-keep: linear-gradient(to bottom, #000 0%, #000 calc(var(--hero-side-keep) - 8%), transparent var(--hero-side-keep));
+
+  // Родитель накладывает только вертикальный фейд (intersect клипует и маску
+  // картинки): итог = вертикаль ∩ (верх-полоса ∪ бок).
+  -webkit-mask-image: var(--hero-fade-v);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--hero-fade-v);
+  mask-composite: intersect;
 }
 
-// Wrapper around the raster <img> from DisherLogo (AuthScreen) или текстовый
-// <span> (VerifyEmailPage). Size — в DisherLogo.module.scss.
+.heroImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  // Прижата верхом — кадрируем от верхней кромки (низ уходит в фейд).
+  object-position: center top;
+  -webkit-mask-image: var(--hero-top-keep), var(--hero-fade-h);
+  -webkit-mask-composite: source-over; // union
+  mask-image: var(--hero-top-keep), var(--hero-fade-h);
+  mask-composite: add;
+  opacity: 0.92;
+}
+
+// Лого Disher — белый масочный силуэт по центру сверху (приём HomeHero/Screen-
+// watermark: PNG как маска, цвет даёт background-color). Сдвинут под безопасную
+// зону статус-бара.
 .logo {
-  display: inline-block;
-  margin-right: auto;
-  transform: rotate(-10deg);
-  color: var(--sys-color-text-primary);
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-8));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 132px;
+  height: 36px;
+  background-color: var(--sys-color-text-on-accent);
+  -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+  mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+}
+
+// ─── Светлая подложка-лист (surface-2) ─────────────────────────
+// Поднимается из-под обложки самокат-overlap'ом (отрицательный margin),
+// скруглён сверху радиусом листа, несёт парную тень elevation-2 (канон
+// surface-elevation: surface-2 ↔ elevation-2). Центрирует форму по вертикали.
+// НЕ скроллер: `flex: 1 0 auto` растёт минимум на остаток экрана, но при
+// нехватке места (клавиатура) перерастает его и отдаёт прокрутку `.screen` —
+// единственному скроллеру (см. коммент там про нативный iOS scroll-into-view).
+.sheet {
+  position: relative;
+  z-index: 1;
+  flex: 1 0 auto;
+  margin-top: calc(-1 * var(--space-6));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--space-6);
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+  background: var(--sys-color-surface-2);
+  border-top-left-radius: var(--sys-radius-sheet);
+  border-top-right-radius: var(--sys-radius-sheet);
+  @include surface-elevation(2);
 }

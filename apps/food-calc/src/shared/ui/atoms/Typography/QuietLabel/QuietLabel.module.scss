@@ -1,4 +1,5 @@
 .quietLabel {
+  position: relative;
   margin: 0;
   font-family: var(--sys-text-family-sans);
   font-style: italic;
@@ -8,3 +9,15 @@
   color: var(--sys-color-text-quiet);
   opacity: 0.35;
 }
+
+// .quietLabel_underlined::after {
+//   content: '';
+//   position: absolute;
+//   right: 10%;
+//   bottom: -3px;
+//   left: 10%;
+//   height: 1px;
+//   background: var(--sys-color-text-quiet);
+//   opacity: 0.15;
+//   pointer-events: none;
+// }

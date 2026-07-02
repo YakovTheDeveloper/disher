@@ -23,11 +23,13 @@
     @include paper-mono-cards;
 
     // Тёплый-soft фон страницы (n100) под белой группой = база-стол surface-0.
-    background: var(--sys-color-surface-1);
+    // Инверсия 2026-06-27 (запрос юзера): верх (шапка) и низ (док) = surface-0,
+    // список наоборот = surface-1. База-стол несёт уровень 0.
+    background: var(--sys-color-surface-0);
 
     // Поле поиска (шапка) сидит на surface-0 → surface-aware глубина (стратегия C):
     // лунка узнаётся бровкой + inset-тенью, не растворяется в ровной тёплой бумаге.
-    @include field-depth(--sys-color-surface-1);
+    @include field-depth(--sys-color-surface-0);
 
     // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
     // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
@@ -45,14 +47,30 @@
     //  бандл распущен; док стилит себя сам на sys-токенах. Не заводить тут заново.)
 }
 
-// Wrapper around SearchFoodHeavy: replicates .content's flex/positioning so
-// absolute children still anchor correctly, and fades in one frame after isActive
-// flips. Pure opacity (no translate) so reduced-motion is safe; M3 "Emphasized".
+// Скролл-рут: шапка `.header` (в потоке) + список уезжают вместе. Живёт в outer,
+// оборачивает и шапку, и Heavy. `display:flex column` → шапка (shrink:0) сверху,
+// `.heavyFade` (grow) тянется и при длинном контенте распирает рут → скролл.
+.scroller {
+    overflow-y: auto;
+    position: relative;
+    flex-grow: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    // 60px = .actions min-height в FoodSearchEmpty; +8px воздуха — контент не прячется
+    // под нижний док.
+    padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
+}
+
+// Wrapper around SearchFoodHeavy: fades in one frame after isActive flips. Pure
+// opacity (no translate) so reduced-motion is safe; M3 "Emphasized". В скролл-руте
+// flex-column тянется во всю высоту (grow), но распирается контентом (shrink:0 +
+// basis:auto) → бумага занимает экран при коротком списке и скроллится при длинном.
 .heavyFade {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    min-height: 0;
+    flex: 1 0 auto;
     position: relative;
     opacity: 0;
     animation: heavyFadeIn 260ms cubic-bezier(0.2, 0, 0, 1) forwards;
@@ -75,33 +93,17 @@
     }
 }
 
-// Парящая шапка (Telegram/HomeTopBar canon): бар лежит ПОВЕРХ списка
-// (`position:absolute`, z-index выше .heavyFade), список скроллится под ним.
-// 2026-06-26 (запрос юзера): панель СПЛОШНАЯ непрозрачная (в цвет страницы), со
-// скруглённым низом (--sys-radius-overlay) и sheet-тенью (--sys-elevation-overlay)
-// — самостоятельная плавающая «полка», под которую уезжает список. Раньше был
-// тающий книзу градиент-скрим (`::before`) — он давал бесшовный fade, но не читался
-// как панель. Не frosted (без backdrop-filter) — осознанный perf-выбор: backdrop-blur
-// запускал GPU-пересэмпл всего под баром НА КАЖДЫЙ кадр скролла. Высоту бара меряет
-// ResizeObserver в SearchFood.tsx → `--search-header-h`; список берёт её в
-// padding-top — без магического офсета. flex-shrink:0 не нужен — бар вне потока.
+// Шапка поиска лежит В ПОТОКЕ первым ребёнком скролл-рута и уезжает вверх ВМЕСТЕ
+// со списком (запрос 2026-06-27 — раньше парила `position:absolute` поверх списка
+// со скруглённым низом + тенью; список скроллился под ней). Теперь это обычная
+// верхняя секция на surface-0 (тёплая бумага-база, в цвет .content) — без скругления
+// и тени плавающей полки. `flex-shrink:0` — бар в flex-руте не сжимается.
 .header {
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    flex-shrink: 0;
     border: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-
-    // Сплошная непрозрачная подложка в цвет страницы + скруглённый низ + тень.
-    // surface-0 (#f7f3eb, та же тёплая бумага-база, что фон .content) — панель
-    // бесшовно сливается с верхом страницы.
-    background: var(--sys-color-surface-1);
-    border-bottom-left-radius: var(--sys-radius-container);
-    border-bottom-right-radius: var(--sys-radius-container);
-    box-shadow: var(--sys-elevation-overlay);
+    background: var(--sys-color-surface-0);
 }
 
 .bottomLeft {
@@ -111,37 +113,70 @@
     z-index: 50;
 }
 
+// FAB «наверх» — кружок внизу-слева, появляется когда шапка поиска уехала за верх.
+// Тон = floating-обвязка экрана (как BackButton поиска): серая подложка в цвет
+// страницы (`--sys-color-surface-floating` = --cards-page-bg, переопределён в .content)
+// + ХОЛОДНЫЙ indigo «инструмент»-шеврон (`--sys-color-text-on-floating`). Тень
+// отделяет от нижнего дока. z-index выше дока (10). Стрелка = arrowLeft, повёрнут вверх.
+.scrollTopFab {
+    position: absolute;
+    left: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 20;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: var(--sys-color-surface-floating);
+    color: var(--sys-color-text-on-floating);
+    box-shadow: var(--sys-elevation-overlay);
+    cursor: pointer;
+    animation: fabIn 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
+
+    svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        stroke: currentColor;
+        transform: rotate(90deg);
+    }
+}
+
+@keyframes fabIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .scrollTopFab {
+        animation: none;
+    }
+}
+
 // ─── Inline list (replaces VirtualList) ──────────────────────────────────────
-// Фон прозрачный — видно тёплый фон страницы (.content), ряды садятся на белую
-// inset-группу (.list). M3 integrated-dock: контент кончается НАД нижним баром.
-.listContainer {
-    overflow-y: auto;
-    position: relative;
-    flex-grow: 1;
-    min-height: 0;
-    background: transparent;
-    // 60px = .actions min-height в FoodSearchEmpty; +8px воздуха.
-    padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
-}
-
-// Бар парит поверх — резервируем под него место измеренной высотой
-// (--search-header-h от ResizeObserver) + воздух. Первая карточка садится ровно
-// под фрост-край, дальше строки скроллятся под матовый бар и тают в нём.
-// Фолбэк 72px ≈ один ряд бара, на случай первого кадра до измерения.
-.listContainerOffset {
-    padding-top: var(--search-header-h);
-}
-
-// Full-width sheet (headerOverlap-канон, 2026-06-26): список = одна бумага во всю
-// ширину экрана (без боковых инсетов), скруглённый верх --sys-radius-sheet (48) +
-// единая sheet-тень --sys-elevation-overlay (унификация с Drawer/EventScalePanel),
-// низ flush. Бумага начинается ПОД парящей шапкой (listContainer.padding-top) — её
-// скруглённый верх виден ниже бара. overflow:hidden клипит верхние углы первого
-// ряда (per-row radius не нужен). min-height тянет бумагу до низа при коротком списке.
+// Inset sheet (запрос юзера 2026-06-27): список = парящая бумага с боковыми полями
+// (--sys-inset-page) и sys-скруглением всех углов (--sys-radius-overlay, тот же
+// угол что у Drawer/bottom-sheet), единая sheet-тень --sys-elevation-overlay.
+// Раньше бумага шла во всю ширину flush; теперь это floating-карточка. Бумага идёт
+// В ПОТОКЕ ПОСЛЕ шапки (обе в скролл-руте) и уезжает вместе с ней. `flex-grow:1` в
+// flex-руте тянет бумагу до низа при коротком списке. overflow:hidden клипит углы
+// крайних рядов по border-radius (per-row radius не нужен).
 .sheet {
-    min-height: 100%;
-    background: var(--sys-color-surface-0);
+    flex-grow: 1;
+    margin: 0 var(--sys-inset-page);
+    background: var(--sys-color-surface-1);
     padding-top: var(--sys-inset-page);
+    border-radius: var(--sys-radius-overlay);
     box-shadow: var(--sys-elevation-overlay);
     overflow: hidden;
 }

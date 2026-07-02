@@ -48,7 +48,9 @@ export function sendMatcherTelemetry(payload: TelemetryEventPayload): void {
     headers: { 'Content-Type': 'application/json' },
     body,
     keepalive: true,
-  }).catch(() => {
-    // fire-and-forget; don't surface errors
-  });
+  })
+    // best-effort: matcher telemetry is analytics-only; a dropped beacon loses
+    // no user data and must not surface an error.
+    // eslint-disable-next-line no-restricted-syntax
+    .catch(() => {});
 }

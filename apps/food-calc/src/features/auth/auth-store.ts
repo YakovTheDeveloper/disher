@@ -7,6 +7,7 @@ import { clear as idbKeyvalClear } from 'idb-keyval';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
+import { resetSessionExpired } from './handleSessionExpired';
 
 // Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
 // drafts) before switching identities. Without this clear, user B on a shared
@@ -15,6 +16,9 @@ async function wipeLocalData(): Promise<void> {
   await db.transaction('rw', db.tables, async () => {
     await Promise.all(db.tables.map((t) => t.clear()));
   });
+  // best-effort: the Dexie wipe above is the load-bearing step; a failed
+  // idb-keyval clear only leaves stale Zustand drafts, no user data is lost.
+  // eslint-disable-next-line no-restricted-syntax
   await idbKeyvalClear().catch(() => {});
 }
 
@@ -155,6 +159,9 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       console.error('cache clear after signIn failed', e);
     }
     applyUser(set, result.user);
+    // Re-arm the once-per-session 401 funnel — a fresh session should be able to
+    // warn again if THIS one later expires.
+    resetSessionExpired();
     set({ isLoading: false, pendingVerificationEmail: null });
     return true;
   },

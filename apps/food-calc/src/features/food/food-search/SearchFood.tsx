@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
+import ArrowUpIcon from '@/shared/assets/icons/arrowLeft.svg?react';
 import { SearchFoodControls } from '@/features/food/food-search/SearchFoodControls';
 import {
   allNutrientsList,
@@ -86,21 +86,46 @@ const SearchFood = ({
   const [showHeavy, setShowHeavy] = useState(false);
   const [openTicket, setOpenTicket] = useState(0);
 
-  // Парящая шапка лежит поверх списка (см. .header в SearchFood.module.scss).
-  // Меряем её реальную высоту (меняется, когда появляется ряд «Нутриенты») и
-  // кладём в --search-header-h → список берёт её в padding-top. Так офсет точный
-  // и без магической константы.
-  const contentRef = useRef<HTMLDivElement>(null);
+  // Скролл-рут живёт в outer (не в Heavy), чтобы шапка `.header` лежала В ПОТОКЕ
+  // ПЕРВЫМ ребёнком и уезжала вверх ВМЕСТЕ со списком (запрос 2026-06-27 — раньше
+  // шапка парила `position:absolute` поверх, список скроллился под ней). Поле
+  // поиска (input) обязано рендериться в outer всегда (label-focus делегация на
+  // iOS, см. шапку файла) → и контейнер скролла, который его оборачивает, тоже.
+  const scrollerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const header = headerRef.current;
-    const content = contentRef.current;
-    if (!header || !content) return;
-    const ro = new ResizeObserver(() => {
-      content.style.setProperty('--search-header-h', `${header.offsetHeight}px`);
+  // Гард «программный скролл» (scroll-to-top по новому поиску / по кнопке) — чтобы
+  // не глушить клавиатуру и не считать его за пользовательский скролл. Шарится с
+  // Heavy (эффект scroll-to-top по смене запроса живёт там, где считается totalItems).
+  const isProgrammaticScrollRef = useRef(false);
+  // Сентинель низа списка (рендерит Heavy) + флаг «есть ещё ниже» считаем в outer —
+  // ScrollIndicator и FAB якорятся к viewport-размерному `.content`, а не к высокому
+  // скролл-контенту, поэтому и состояние скролла держим здесь.
+  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollerRef);
+
+  // FAB «наверх» — появляется, когда шапка поиска уехала за верх (scrollTop больше
+  // её высоты). Возврат скроллит контейнер к началу → шапка с полем поиска снова видна.
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const handleScroll = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    // Глушим клавиатуру на пользовательском скролле (mobile UX); программный — мимо.
+    if (!isProgrammaticScrollRef.current) {
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+        active.blur();
+      }
+    }
+    const threshold = headerRef.current?.offsetHeight ?? 72;
+    setShowScrollTop(el.scrollTop > threshold);
+  }, []);
+  const handleScrollTop = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    isProgrammaticScrollRef.current = true;
+    el.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      isProgrammaticScrollRef.current = false;
     });
-    ro.observe(header);
-    return () => ro.disconnect();
   }, []);
 
   const filterOptions = FILTER_OPTIONS_BY_MODE[mode];
@@ -156,42 +181,61 @@ const SearchFood = ({
   );
 
   return (
-    <div className={styles.content} ref={contentRef}>
-      <div className={styles.header} ref={headerRef}>
-        <SearchFoodControls
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onBack={onBack}
-          title={title}
-          inputId={inputId}
-          filterOptions={filterOptions ?? undefined}
-          selectedFilter={selectedFilter}
-          onSelectFilter={setSelectedFilter}
-          showNutrientFilter={mode !== 'dishes-only'}
-          selectedNutrientLabel={richNutrientName}
-          onOpenNutrientPicker={handleOpenNutrientPicker}
-          onClearNutrient={clearRichNutrient}
-        />
-      </div>
-
-      {showHeavy && (
-        <div key={openTicket} className={styles.heavyFade}>
-          <SearchFoodHeavy
+    <div className={styles.content}>
+      <div className={styles.scroller} ref={scrollerRef} onScroll={handleScroll}>
+        <div className={styles.header} ref={headerRef}>
+          <SearchFoodControls
             searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            mode={mode}
+            onSearchChange={setSearchQuery}
+            onBack={onBack}
+            title={title}
+            inputId={inputId}
+            filterOptions={filterOptions ?? undefined}
             selectedFilter={selectedFilter}
-            activeItemId={activeItemId}
-            richNutrient={richNutrient}
-            onInfoClick={onInfoClick}
-            onSelectFood={handleSelectFood}
-            bottomLeft={bottomLeft}
-            itemHtmlFor={itemHtmlFor}
-            createInputHtmlFor={createInputHtmlFor}
-            onPickCreate={onPickCreate}
-            excludeSupplements={excludeSupplements}
+            onSelectFilter={setSelectedFilter}
+            showNutrientFilter={mode !== 'dishes-only'}
+            selectedNutrientLabel={richNutrientName}
+            onOpenNutrientPicker={handleOpenNutrientPicker}
+            onClearNutrient={clearRichNutrient}
           />
         </div>
+
+        {showHeavy && (
+          <div key={openTicket} className={styles.heavyFade}>
+            <SearchFoodHeavy
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              mode={mode}
+              selectedFilter={selectedFilter}
+              activeItemId={activeItemId}
+              richNutrient={richNutrient}
+              onInfoClick={onInfoClick}
+              onSelectFood={handleSelectFood}
+              bottomLeft={bottomLeft}
+              itemHtmlFor={itemHtmlFor}
+              createInputHtmlFor={createInputHtmlFor}
+              onPickCreate={onPickCreate}
+              excludeSupplements={excludeSupplements}
+              scrollerRef={scrollerRef}
+              isProgrammaticScrollRef={isProgrammaticScrollRef}
+              sentinelRef={sentinelRef}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Индикатор «есть ещё ниже» + FAB «наверх» якорятся к viewport-размерному
+          `.content`, поверх скролл-рута и нижнего дока. */}
+      {showHeavy && <ScrollIndicator visible={hasMoreBelow} variant="dark" />}
+      {showHeavy && showScrollTop && (
+        <button
+          type="button"
+          className={styles.scrollTopFab}
+          onClick={handleScrollTop}
+          aria-label="Наверх, к началу списка"
+        >
+          <ArrowUpIcon />
+        </button>
       )}
     </div>
   );
@@ -211,6 +255,13 @@ type HeavyProps = {
   createInputHtmlFor?: string;
   onPickCreate?: (variant: 'product' | 'dish', name: string) => void;
   excludeSupplements?: boolean;
+  /** Скролл-рут живёт в outer (оборачивает шапку+список) — Heavy получает его ref,
+   *  чтобы скроллить к началу при новом поиске. */
+  scrollerRef: React.RefObject<HTMLDivElement | null>;
+  /** Гард «программный скролл» (шарится с outer onScroll). */
+  isProgrammaticScrollRef: React.MutableRefObject<boolean>;
+  /** Сентинель низа списка — рендерим в конце контента, наблюдает его outer. */
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const SearchFoodHeavy = ({
@@ -227,11 +278,10 @@ const SearchFoodHeavy = ({
   createInputHtmlFor,
   onPickCreate,
   excludeSupplements = false,
+  scrollerRef,
+  isProgrammaticScrollRef,
+  sentinelRef,
 }: HeavyProps) => {
-  const listContainerRef = useRef<HTMLDivElement>(null);
-  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(listContainerRef);
-  const isProgrammaticScrollRef = useRef(false);
-
   const userOnlyProducts = selectedFilter === 'mine';
   const { products, dishes, nutrientMap } = useFilteredFoods(
     searchQuery,
@@ -251,23 +301,15 @@ const SearchFoodHeavy = ({
   const showDishes = showDishesByMode;
   const totalItems = (showProducts ? products.length : 0) + (showDishes ? dishes.length : 0);
 
-  // Scroll to top when items change (search)
+  // Scroll to top when items change (search) — скроллит общий outer-контейнер,
+  // утаскивая и шапку обратно вверх. Гард глушит blur-on-scroll на этот рывок.
   useEffect(() => {
     isProgrammaticScrollRef.current = true;
-    listContainerRef.current?.scrollTo({ top: 0 });
+    scrollerRef.current?.scrollTo({ top: 0 });
     requestAnimationFrame(() => {
       isProgrammaticScrollRef.current = false;
     });
-  }, [totalItems]);
-
-  // Blur keyboard on user scroll (mobile UX)
-  const handleListScroll = useCallback(() => {
-    if (isProgrammaticScrollRef.current) return;
-    const active = document.activeElement;
-    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
-      active.blur();
-    }
-  }, []);
+  }, [totalItems, scrollerRef, isProgrammaticScrollRef]);
 
   // Compute max nutrient value across all products for richness bar scaling
   // eslint-disable-next-line react-hooks/preserve-manual-memoization -- результат примитив (number); референсная стабильность не важна, компилятор мемоизирует сам
@@ -386,21 +428,15 @@ const SearchFoodHeavy = ({
 
   return (
     <>
-      <div
-        ref={listContainerRef}
-        className={clsx(styles.listContainer, styles.listContainerOffset)}
-        onScroll={handleListScroll}
-        role="listbox"
-      >
-        <div className={styles.sheet}>
-          {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
-          {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
-        </div>
-        <div ref={sentinelRef} />
+      {/* Бумага списка сидит В ПОТОКЕ скролл-рута (outer `.scroller`), ПОСЛЕ шапки —
+          шапка уезжает вверх вместе с ней. Сентинель в конце наблюдает outer. */}
+      <div className={styles.sheet}>
+        {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
+        {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
       </div>
+      <div ref={sentinelRef} />
       {/* При выбранном нутриенте поиск = режим фильтра по богатству; create-пустышку прячем. */}
       {!richNutrient && createButtons}
-      <ScrollIndicator visible={hasMoreBelow} variant="dark" />
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
     </>

@@ -6,6 +6,7 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
+import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
 import { QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import styles from './HomeTopBar.module.scss';
 
@@ -91,7 +92,7 @@ const formatDateParts = (input: string): DateParts => {
 // видимость частей (полный/короткий день, месяц, крупные цифры) целиком ведёт
 // CSS под `[data-dv-v]` — markup один, варианты переключаются атрибутом.
 const DateButtonContent = ({ parts }: { parts: DateParts }) => {
-  const { weekday, weekdayShort, month, ddmm } = parts;
+  const { weekday, month, ddmm } = parts;
   return (
     <span className={styles.dateNumeral}>
       <span className={styles.dateWeekday}>{weekday}</span>
@@ -157,6 +158,9 @@ const HomeTopBar = ({
         <div className={styles.accountSlot}>
           <AccountPanel />
         </div>
+        {/* Ambient sync status — renders nothing unless offline / syncing /
+            failed, so it doesn't disturb the bar at rest. */}
+        <SyncStatusChip />
         {leadingSlot}
         {centerLabel != null &&
           (centerLabelHtmlFor ? (

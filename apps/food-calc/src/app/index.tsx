@@ -13,6 +13,8 @@ import { useAuthStore } from '@/features/auth/auth-store';
 import { installE2EBridge } from '@/shared/lib/e2e/bridge';
 import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
+import { installGlobalErrorHandlers } from '@/shared/lib/errors/installGlobalErrorHandlers';
+import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePressure';
 import { DesignVariantsBar, shouldShowDvBar, ButtonSecondaryProbe } from '@/app/ui/DesignVariantsBar';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
@@ -32,6 +34,9 @@ if (DIAG_ENABLED) {
     .then((est) => {
       diagLog('[boot] storage.estimate', est);
     })
+    // best-effort: diagnostics-only probe (gated behind VITE_DIAG); a failed
+    // estimate affects no user data.
+    // eslint-disable-next-line no-restricted-syntax
     .catch(() => {});
 
   (async () => {
@@ -77,6 +82,16 @@ navigator.storage
 document.addEventListener('touchstart', () => {}, { passive: true });
 
 installE2EBridge();
+
+// Global async-error safety net: toast any unhandledrejection / uncaught error
+// that leaked past the addressed toasters (tier-3 silent failures). Sentry's
+// integration already reports these — this only ADDS the user-visible toast.
+installGlobalErrorHandlers();
+
+// Always-on slim storage-pressure probe (boot + after any QuotaExceededError
+// from the write contract). Flips the persistent StoragePressureBanner once
+// local storage crosses 90% — before IndexedDB starts silently dropping writes.
+installStoragePressureWatcher();
 
 // Wrap document.startViewTransition once so `data-vt-type` (the storyboard
 // selector set right before each VT navigation) is cleared on every

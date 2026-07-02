@@ -43,7 +43,11 @@
     flex: 1;
     min-width: 0;
     border: none;
-    padding: var(--space-1) var(--space-2);
+    // Размер «обычного инпута формы» (запрос юзера 2026-06-27): высота и горизонт.
+    // отступ зеркалят field-атом AutoGrowSearch (min-height 50px, pad space-4) —
+    // поле перестаёт быть тонкой пилюлей, читается как полноценный input.
+    min-height: 50px;
+    padding: 0 var(--space-4);
     border-radius: var(--sys-field-radius, var(--radius-sm));
     background: linear-gradient(90deg,
             var(--sys-field-bg-from, #fffefb) 0%,

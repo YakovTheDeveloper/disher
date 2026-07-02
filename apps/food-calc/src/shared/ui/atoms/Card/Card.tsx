@@ -21,6 +21,7 @@ import styles from './Card.module.scss';
  * `{ content, htmlFor, onTap }`-объекта и без свитча типографики по роли.
  *
  *   <Card.Root id tod recent onLongPress …>
+ *     {hasQty && <Card.Qty>{qtyNode}</Card.Qty>}
  *     <Card.Title htmlFor onTap onPointerDown>{titleNode}</Card.Title>
  *     {hasMeta && <Card.Meta htmlFor onTap>{chipsOrDetails}</Card.Meta>}
  *     {showTime && <Card.Time htmlFor onTap dim>{clock}</Card.Time>}
@@ -28,9 +29,14 @@ import styles from './Card.module.scss';
  *
  * Ответственность:
  *  - `Card.Root` = подложка `LongPressRow` (фон/`data-tod`/жест/entrance/recent-
- *    dot) + 2-рядная геометрия. Гасит `--row-pad-inline:0` на строке, инсет
- *    контента владеет внутренний `.card` (drawer-layout канон: surface = фон,
- *    content = padding). Читает compound-детей и применяет ТРЕЙЛИНГ-ПРАВИЛО к `Card.Time`.
+ *    dot) + геометрия [qty-столбик | контент-столбик]. Гасит `--row-pad-inline:0`
+ *    на строке, инсет контента владеет внутренний `.card` (drawer-layout канон:
+ *    surface = фон, content = padding). Читает compound-детей и применяет
+ *    ТРЕЙЛИНГ-ПРАВИЛО к `Card.Time`.
+ *  - `Card.Qty` — ЛЕВЫЙ столбик (опционален): число садится на первую базовую
+ *    линию имени, холодный числовой голос в один тон с временем (еда/предложка/
+ *    dish-item; у события/анализа qty нет → столбик отсутствует). Узел владеет
+ *    собой (node-escape) — консумер кладёт `<EditableQuantity>`.
  *  - `Card.Title` — верх-лево, body. `Card.Meta` — низ-лево, caption, опционален
  *    (физически отсутствует, когда пусто). `Card.Time` — трейлинг-число numeral-sm.
  *
@@ -66,6 +72,8 @@ export type CardTimeProps = TapProps & {
   /** Dedup: время совпадает с рядом выше → сильно гасим (тап всё равно правит). */
   dim?: boolean;
 };
+/** qty-столбик: чистый узел (`<EditableQuantity>` владеет тап-правкой сам). */
+export type CardQtyProps = { children: ReactNode; className?: string };
 
 // Marker-компоненты: `Card.Root` читает их props через `React.Children` и сам
 // раскладывает (трейлинг-правило требует, чтобы Root размещал `Card.Time` в
@@ -78,9 +86,12 @@ export type CardTimeProps = TapProps & {
 // поколениями, и `===` молча промахивается → Root не находит детей → пустой
 // рендер (0 высоты). Чтение поля с `child.type` переживает обёртки компилятора и
 // горячую перезагрузку (обе копии функции несут одно и то же `cardSlot`).
-type SlotName = 'title' | 'meta' | 'time';
+type SlotName = 'qty' | 'title' | 'meta' | 'time';
 type SlotMarker<P> = FC<P> & { cardSlot: SlotName };
 
+const CardQty: SlotMarker<CardQtyProps> = Object.assign((() => null) as FC<CardQtyProps>, {
+  cardSlot: 'qty' as const,
+});
 const CardTitle: SlotMarker<CardTitleProps> = Object.assign((() => null) as FC<CardTitleProps>, {
   cardSlot: 'title' as const,
 });
@@ -190,13 +201,15 @@ export type CardRootProps = Omit<ComponentProps<typeof LongPressRow>, 'children'
 };
 
 function CardRoot({ children, style, ...rowProps }: CardRootProps) {
+  let qtyEl: ReactElement | undefined;
   let titleEl: ReactElement | undefined;
   let metaEl: ReactElement | undefined;
   let timeEl: ReactElement | undefined;
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
     const slot = (child.type as Partial<SlotMarker<unknown>>)?.cardSlot;
-    if (slot === 'title') titleEl = child;
+    if (slot === 'qty') qtyEl = child;
+    else if (slot === 'title') titleEl = child;
     else if (slot === 'meta') metaEl = child;
     else if (slot === 'time') timeEl = child;
   });
@@ -213,6 +226,7 @@ function CardRoot({ children, style, ...rowProps }: CardRootProps) {
   // JS-ветка, не CSS-протез — мы владеем деревом, ветка предсказуема.
   const hasMeta = metaEl != null;
   const timeSlot = timeEl ? renderTime(timeEl.props as CardTimeProps) : null;
+  const qtyProps = qtyEl?.props as CardQtyProps | undefined;
 
   return (
     <LongPressRow
@@ -223,26 +237,35 @@ function CardRoot({ children, style, ...rowProps }: CardRootProps) {
       style={{ ...style, '--row-pad-inline': 0 } as CSSProperties}
     >
       <div className={styles.card}>
-        <div className={styles.titleRow}>
-          <div className={styles.start}>
-            {titleEl && renderText('body', styles.title, titleEl.props as CardTitleProps)}
-          </div>
-          {!hasMeta && timeSlot && <div className={styles.end}>{timeSlot}</div>}
-        </div>
-
-        {hasMeta && (
-          <div className={styles.metaRow}>
-            {/* `.start` = flex:1 распорка, держит время прижатым вправо. */}
-            <div className={styles.start}>
-              {renderText(
-                (metaEl!.props as CardMetaProps).size ?? 'caption',
-                styles.meta,
-                metaEl!.props as CardMetaProps
-              )}
-            </div>
-            {timeSlot && <div className={styles.end}>{timeSlot}</div>}
-          </div>
+        {/* qty-столбик (node-escape): узел владеет тап-правкой; цвет/вес — на `.qtyCol`. */}
+        {qtyProps && (
+          <div className={clsx(styles.qtyCol, qtyProps.className)}>{qtyProps.children}</div>
         )}
+
+        {/* Контент-столбик: title/meta ряды + трейлинг-время. Без qty (событие/
+            анализ) = единственный ребёнок `.card` → лейаут как прежде. */}
+        <div className={styles.content}>
+          <div className={styles.titleRow}>
+            <div className={styles.start}>
+              {titleEl && renderText('body', styles.title, titleEl.props as CardTitleProps)}
+            </div>
+            {!hasMeta && timeSlot && <div className={styles.end}>{timeSlot}</div>}
+          </div>
+
+          {hasMeta && (
+            <div className={styles.metaRow}>
+              {/* `.start` = flex:1 распорка, держит время прижатым вправо. */}
+              <div className={styles.start}>
+                {renderText(
+                  (metaEl!.props as CardMetaProps).size ?? 'caption',
+                  styles.meta,
+                  metaEl!.props as CardMetaProps
+                )}
+              </div>
+              {timeSlot && <div className={styles.end}>{timeSlot}</div>}
+            </div>
+          )}
+        </div>
       </div>
     </LongPressRow>
   );
@@ -250,6 +273,7 @@ function CardRoot({ children, style, ...rowProps }: CardRootProps) {
 
 export const Card = {
   Root: CardRoot,
+  Qty: CardQty,
   Title: CardTitle,
   Meta: CardMeta,
   Time: CardTime,

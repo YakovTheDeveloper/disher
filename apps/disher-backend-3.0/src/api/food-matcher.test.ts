@@ -10,7 +10,7 @@ describe("normalizeForEmbedding", () => {
     expect(normalizeForEmbedding('Овсянка, с "бананом"!')).toBe("овсянка с бананом");
   });
   it("collapses whitespace", () => {
-    expect(normalizeForEmbedding("  гречка   варёная  ")).toBe("гречка варёная");
+    expect(normalizeForEmbedding("  гречка   варёная  ")).toBe("гречка вареная");
   });
 });
 

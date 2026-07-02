@@ -157,13 +157,13 @@ export async function push(): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body,
   });
-  if (!r.ok) throw new Error(`push failed: ${r.status}`);
+  if (!r.ok) throw statusError('push', r.status);
 }
 
 export async function pull(): Promise<Snapshot | null> {
   const r = await authedFetch(URL);
   if (r.status === 404) return null;
-  if (!r.ok) throw new Error(`pull failed: ${r.status}`);
+  if (!r.ok) throw statusError('pull', r.status);
   return (await r.json()) as Snapshot;
 }
 
@@ -173,7 +173,14 @@ export async function pull(): Promise<Snapshot | null> {
 // untouched, so re-enabling sync re-pushes it.
 export async function deleteBackup(): Promise<void> {
   const r = await authedFetch(URL, { method: 'DELETE' });
-  if (!r.ok && r.status !== 404) throw new Error(`delete failed: ${r.status}`);
+  if (!r.ok && r.status !== 404) throw statusError('delete', r.status);
+}
+
+// Backup HTTP failures carry the numeric `status` so the sync path can tell a
+// 401 (bearer expired mid-session → handleSessionExpired) from a 5xx (retry).
+// classifyError treats any object with a numeric `status` as response-like.
+function statusError(op: string, status: number): Error & { status: number } {
+  return Object.assign(new Error(`${op} failed: ${status}`), { status });
 }
 
 // One serialized round-trip: pull the vault, merge it into local Dexie (LWW +

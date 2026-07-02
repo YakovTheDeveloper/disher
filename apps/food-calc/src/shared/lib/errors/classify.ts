@@ -1,4 +1,4 @@
-import { PaymentRequiredError } from '@/shared/lib/api/apiError';
+import { PaymentRequiredError, ApiResponseError } from '@/shared/lib/api/apiError';
 
 export type ErrorKind =
   | { kind: 'network';     message: string; raw: unknown }
@@ -41,6 +41,16 @@ export function classifyError(err: unknown): ErrorKind {
 
   if (err instanceof PaymentRequiredError) {
     return { kind: 'payment_required', status: 402, message: err.message, needKop: err.needKop, haveKop: err.haveKop, raw: err };
+  }
+
+  // Typed backend error (problem+json) — the code/fieldErrors/retryAfter extensions
+  // are already parsed, so hand them straight to classifyByStatus.
+  if (err instanceof ApiResponseError) {
+    return classifyByStatus(err.status, err.message, err, {
+      code: err.code,
+      retryAfter: err.retryAfter,
+      fieldErrors: err.fieldErrors,
+    });
   }
 
   // AbortError / DOMException timeout

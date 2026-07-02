@@ -1,19 +1,13 @@
 import { memo } from 'react';
 import clsx from 'clsx';
 import styles from './ScheduleFoodItemInline.module.scss';
-import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
-import { Card } from '@/shared/ui/atoms/Card';
-import { TitleCluster } from '@/shared/ui/atoms/TitleCluster';
+import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
-import { CardTime } from '@/shared/ui/atoms/CardTime';
-import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
-import { formatClock } from '@/shared/lib/time/formatClock';
-import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
   className?: string;
@@ -48,10 +42,7 @@ const ScheduleFoodItemInline = ({
   const hideTime = useItemTimesStore((s) => s.hidden);
 
   const commitTime = (time: string) => {
-    safeMutate(
-      () => updateScheduleFood(item.id, { time }),
-      'Не удалось обновить время'
-    );
+    safeMutate(() => updateScheduleFood(item.id, { time }), 'Не удалось обновить время');
   };
 
   // <label htmlFor={SEARCH_EDIT_INPUT}> in FoodName focuses the always-mounted
@@ -74,65 +65,35 @@ const ScheduleFoodItemInline = ({
   const name = item.product ?? item.dish ?? null;
   const isCustom = item.type === 'food' && (item.product?.isUserCreated ?? false);
 
-  // Инлайн-правка количества — вынесена в EditableQuantity (был копипаст 1:1 с
-  // ProposalFoodItem). dataEntityEdit: Screen прячет нижний бар на время правки.
-  const qtyStack = (
-    <EditableQuantity
-      value={item.quantity}
-      unit={getQtyUnit(item.product)}
-      onCommit={(quantity) =>
-        safeMutate(
-          () => updateScheduleFood(item.id, { quantity }),
-          'Не удалось обновить количество'
-        )
-      }
-      dataEntityEdit
-    />
-  );
-
-  // Маппинг на compound Card (food-модель, см. card-chassis-simplify план):
-  // Title = [qty][имя] кластер; Meta = детали (опц.); Time = время (трейлинг —
-  // есть детали → низ-право, нет → верх-право, рендерит Card.Root).
+  // Тонкий контейнер: мапим строку расписания + мутации/сторы в пропсы общего
+  // презентационного FoodEntryCard (скелет [qty][имя+детали][время] — там же).
   return (
-    <Card.Root
+    <FoodEntryCard
       className={clsx(className, styles.group, isCustom && styles.customProduct)}
       style={{ '--item-t': totalCount > 1 ? index / (totalCount - 1) : 0 } as React.CSSProperties}
       id={id}
       index={index}
       tod={getTimeOfDay(item.time)}
-      data-row-id={id}
       onLongPress={onLongPress}
-    >
-      {/* Title = [qty][имя] кластер (qty ПЕРЕД именем) — много-голосый узел → node-escape. */}
-      <Card.Title>
-        <TitleCluster>
-          {qtyStack}
-          <TapTarget
-            as="label"
-            className={styles.foodName}
-            htmlFor={foodHtmlFor}
-            onPointerDown={handleFoodPointerDown}
-          >
-            <FoodName content={name} className={getFoodNameClassName()} />
-          </TapTarget>
-        </TitleCluster>
-      </Card.Title>
-
-      {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
-          противовес жирному имени; Card строит label htmlFor + клэмп-2). */}
-      {item.details && (
-        <Card.Meta size="card-caption" htmlFor={foodHtmlFor} onPointerDown={handleFoodPointerDown}>
-          {item.details}
-        </Card.Meta>
-      )}
-
-      {/* Time = stateful редактор → node-escape. */}
-      {!hideTime && (
-        <Card.Time>
-          <CardTime value={item.time} onCommit={commitTime} formatDisplay={formatClock} dim={dimTime} />
-        </Card.Time>
-      )}
-    </Card.Root>
+      quantity={item.quantity}
+      unit={getQtyUnit(item.product)}
+      onCommitQuantity={(quantity) =>
+        safeMutate(
+          () => updateScheduleFood(item.id, { quantity }),
+          'Не удалось обновить количество'
+        )
+      }
+      qtyDataEntityEdit
+      name={name}
+      nameClassName={getFoodNameClassName()}
+      nameHtmlFor={foodHtmlFor}
+      onNamePointerDown={handleFoodPointerDown}
+      details={item.details || undefined}
+      time={item.time}
+      onCommitTime={commitTime}
+      dimTime={dimTime}
+      hideTime={hideTime}
+    />
   );
 };
 

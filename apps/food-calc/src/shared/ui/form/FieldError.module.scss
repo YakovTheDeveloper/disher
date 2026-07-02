@@ -1,0 +1,8 @@
+// Mirrors AuthForm's .fieldError — danger palette, no default paragraph margin,
+// slight inset so the message aligns under a padded field. Typography rides the
+// nested <Text role="caption">.
+.error {
+  color: var(--sys-color-status-danger);
+  margin: 0;
+  padding-left: var(--space-2);
+}

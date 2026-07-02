@@ -1,12 +1,7 @@
 import { type CSSProperties } from 'react';
 import clsx from 'clsx';
-import { FoodName } from '@/shared/ui/atoms/Typography/FoodName';
 import { Text } from '@/shared/ui/atoms/Typography';
-import { Card } from '@/shared/ui/atoms/Card';
-import { TitleCluster } from '@/shared/ui/atoms/TitleCluster';
-import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
-import { CardTime } from '@/shared/ui/atoms/CardTime';
-import { formatClock } from '@/shared/lib/time/formatClock';
+import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import styles from './ProposalFoodItem.module.scss';
 
 interface MatchCandidate {
@@ -74,63 +69,35 @@ export const ProposalFoodItem = ({
   // FoodName ожидает content={name} | null — оборачиваем строку.
   const nameContent = { name: showOriginalFallback ? item.originalName : item.name };
 
-  // Инлайн-правка количества — вынесена в EditableQuantity (был копипаст 1:1 с
-  // ScheduleFoodItemInline). dataEntityEdit НЕ ставим: предложка не под Screen-
-  // баром, иначе бар начнёт прыгать на правке (см. critique Slice 2).
-  const qtyStack = (
-    <EditableQuantity
-      value={item.quantity}
-      unit="г"
-      onCommit={(quantity) => onCommitQuantity(uid, quantity)}
-    />
-  );
+  // «оригинал» тихой строкой ПОД именем (FoodEntryCard.belowName) — proposal-only
+  // довесок; вес/размер несёт <Text role="caption">, цвет/раскладку — nameOriginalHint.
+  const belowName = showOriginalHint ? (
+    <Text as="span" role="caption" className={styles.nameOriginalHint}>
+      «{item.originalName}»
+    </Text>
+  ) : undefined;
 
-  // Маппинг на compound Card (food-модель, card-chassis-simplify план): Time из
-  // левого желоба → в карточку (низ-право); qty ПЕРЕД именем (title-кластер);
-  // детали → Meta caption (sans, было serif QuietLabel — решение B). Card.Root
-  // (= LongPressRow + 2-рядная геометрия) владеет фоном/long-press/recent/tod и
-  // гасит --row-pad-inline:0, инсет владеет внутренний `.card` (16px) —
-  // выравнивает с ScheduleFoodItemInline. Статус-палитра (paletteStyle) и rescue/
-  // delete (в InlineWriteFoodReview, СНАРУЖИ) — сохранены.
+  // Тонкий контейнер: мапим item предложки + коммиты в общий FoodEntryCard. Статус-
+  // палитра (paletteStyle) и rescue/delete (в InlineWriteFoodReview, СНАРУЖИ) — как были.
+  // dataEntityEdit НЕ ставим: предложка не под Screen-баром (иначе бар прыгает на правке).
   return (
-    <Card.Root id={uid} className={styles.group} style={paletteStyle}>
-      {/* Title = [qty][имя] кластер (qty ПЕРЕД именем) — много-голосый узел → node.
-          Имя = FoodName(label htmlFor searchInputId): тап → правка через InlineWrite-
-          FoodReview focus-capture (onPointerDown стэшит uid ДО фокуса). «оригинал» —
-          тихой строкой под именем (nameWrap-колонка). */}
-      <Card.Title>
-        <TitleCluster>
-          {qtyStack}
-          <span className={styles.nameWrap} onPointerDown={handleNamePointerDown}>
-            <FoodName
-              content={nameContent}
-              className={clsx(showOriginalFallback && styles.nameOriginal)}
-              htmlFor={searchInputId}
-            />
-            {showOriginalHint && (
-              <Text as="span" role="caption" className={styles.nameOriginalHint}>
-                «{item.originalName}»
-              </Text>
-            )}
-          </span>
-        </TitleCluster>
-      </Card.Title>
-
-      {/* Meta = детали-особенности приёма пищи (card-caption: лёгкий холодный
-          противовес имени; Card строит клэмп-2 — решение B; было QuietLabel). */}
-      {item.details && <Card.Meta size="card-caption">{item.details}</Card.Meta>}
-
-      {/* Time = CardTime (из левого желоба В карточку, право-низ). */}
-      {!hideTime && (
-        <Card.Time>
-          <CardTime
-            value={item.time || '00:00'}
-            onCommit={(time) => onCommitTime(uid, time)}
-            formatDisplay={formatClock}
-          />
-        </Card.Time>
-      )}
-    </Card.Root>
+    <FoodEntryCard
+      id={uid}
+      className={styles.group}
+      style={paletteStyle}
+      quantity={item.quantity}
+      unit="г"
+      onCommitQuantity={(quantity) => onCommitQuantity(uid, quantity)}
+      name={nameContent}
+      nameClassName={clsx(showOriginalFallback && styles.nameOriginal)}
+      nameHtmlFor={searchInputId}
+      onNamePointerDown={handleNamePointerDown}
+      details={item.details || undefined}
+      belowName={belowName}
+      time={item.time || '00:00'}
+      onCommitTime={(time) => onCommitTime(uid, time)}
+      hideTime={hideTime}
+    />
   );
 };
 

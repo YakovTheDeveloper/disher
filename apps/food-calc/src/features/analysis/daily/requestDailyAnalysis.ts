@@ -1,6 +1,7 @@
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
 import { readApiError } from '@/shared/lib/api/apiError';
+import { handleSessionExpired } from '@/features/auth/handleSessionExpired';
 import {
   asObservations,
   asInsights,
@@ -99,6 +100,9 @@ export async function requestDailyAnalysis(
   // Any non-ok HTTP response (4xx auth/validation, 402 payment, 5xx) — surface
   // with the right kind. readApiError carries the localized RU message for 402.
   if (!res.ok) {
+    // A mid-session 401 (bearer expired) routes to the shared funnel — warn +
+    // signOut once — instead of being flattened into a generic 'server' failure.
+    if (res.status === 401) handleSessionExpired(res);
     const e = await readApiError(res);
     throw new DailyStreamError(e.paymentRequired ? 'payment' : 'server', e.message);
   }

@@ -1,10 +1,8 @@
-// ProposalFoodItem — карточка предложки на compound Card (card-chassis-simplify
-// 2026-06-25). Зеркалит ScheduleFoodItemInline.module.scss + proposal-only
-// надстройки (.nameWrap с «оригиналом», .nameOriginal/.nameOriginalHint).
-// Колонку и строки Title/Meta держит Card.Root; qty-стопку — <QtyStack>; время —
-// <CardTime>. Здесь только специфика карточки: title-кластер, имя+хинт, детали.
-// (Время/qty-chrome классы сняты — их несут CardTime/QtyStack. rescue/delete живут
-//  СНАРУЖИ ряда, в InlineWriteFoodReview.)
+// ProposalFoodItem — тонкий контейнер над презентационным FoodEntryCard
+// (card-chassis-simplify 2026-06-25). Скелет [qty][имя+детали][время] держит
+// FoodEntryCard/Card; раскладку имени+«оригинала» — `.name` во FoodEntryCard. Тут
+// только специфика ряда: подложка + proposal-only цвет (.nameOriginal/.nameOriginalHint).
+// (rescue/delete живут СНАРУЖИ ряда, в InlineWriteFoodReview.)
 
 .group {
     // Leaf-floor canon: контейнер без декоративного паддинга/пола; тап-пол живёт
@@ -14,20 +12,9 @@
     color: var(--sys-color-text-primary);
 }
 
-// title-кластер [qty][имя] → общий <TitleCluster>. Деталь-строка → клэмп-2 в
-// общем `.meta` Card (card-chassis 2026-06-26). Локальные клоны кластера и
-// деталь-строки сняты.
-
-// имя + «оригинал»: тянется на остаток строки (тап-зона на всю ширину справа от
-// qty). Колонка — чтобы тихий «оригинал» лёг строкой ПОД именем.
-.nameWrap {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    line-height: 1.15;
-}
+// Раскладку имени+«оригинала» (колонка, тихий хинт строкой ПОД именем) держит
+// `.name` во FoodEntryCard; деталь-строку — клэмп-2 в общем `.meta` Card. Тут
+// только proposal-only цвет имени/хинта.
 
 // ─── Proposal-only extras (нет в schedule) ───────────────────────
 

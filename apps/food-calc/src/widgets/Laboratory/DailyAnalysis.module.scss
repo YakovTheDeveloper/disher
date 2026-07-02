@@ -62,26 +62,20 @@
     gap: var(--space-8);
 }
 
-// Резюме (summary) теперь — общий indigo-блок (заливка + светлый текст),
-// определён в AnalysisResult.module.scss `.summary` и одинаков во всех консумерах
-// (дом / длинный разбор / блюдо). Локального override на доме больше нет — лист
-// лишь каскадит Apple `--font-sans` внутрь блока.
+// Резюме (summary) — лид разбора (rev4): индиго снят, это заголовок «Анализ дня»
+// (<Heading role="headline" → h3>) + тёмный текст на листе. Заголовок лида делит
+// стиль с под-заголовками секций (ниже); текст лида красит `.summary` (полный ink).
 
-// Под-заголовок секции (Наблюдения / Инсайты / Гипотезы) → Apple «Headline»:
-// слева, semibold sans, primary ink. Heading рендерится как <h3>; селектор
-// `.ambientSheet [data-analysis-section] > h3` (0,2,1) перебивает serif-канон
-// Heading (`.heading.drawer`, 0,1,0).
-.ambientSheet :global([data-analysis-section])>h3 {
+// Под-заголовок секции (Наблюдения / Инсайты / Гипотезы) И заголовок лида («Анализ
+// дня») — рендерятся примитивом <Heading role="headline"> (28px/700/sans, нативный
+// ярус). rev4: type-override СНЯТ — раньше дом душил headline до 16/20px + подменял
+// family (band-aid против инкапсуляции типографики). Теперь остаётся ТОЛЬКО layout,
+// что законно принадлежит консумеру: выравнивание влево (база `.bareHead` центрирует)
+// + нижний отступ до контента. Кегль/семейство/вес держит text-role('headline').
+.ambientSheet :global([data-analysis-section])>h3,
+.ambientSheet :global([data-analysis-summary])>h3 {
     justify-content: flex-start;
     padding: 0 0 var(--space-3);
-    font-family: var(--font-sans);
-    font-style: normal;
-    font-weight: 600;
-    font-size: var(--sys-text-size-base);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    color: var(--sys-card-text-rest);
-    text-transform: none;
 }
 
 .container {

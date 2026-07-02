@@ -1,93 +1,28 @@
-// Inline review (предложка) — рендерится ПОСЛЕ ItemsList в FoodSchedule.
+// Inline review (предложка) — рендерится в доке бара (`.reviewPanel` ниже
+// WriteBarShell, слот bottomBar), а не в afterContent (перенос 2026-07-02).
 // Обвязку «карточка на листке» (плоская плашка + глянец + варианты pearl/satin/
 // glass/frost) теперь владеет общий примитив SheetCard — у предложки, гипотез и
-// наблюдений одна суть, один контейнер. Здесь — только предложко-специфика:
-// внешний margin + enter/shake-анимации, навешенные на корень SheetCard через
-// класс `.reviewSheet`.
+// наблюдений одна суть, один контейнер. Здесь — только предложко-специфика
+// (секции, ряды, CTA), навешенная на корень SheetCard через класс `.reviewSheet`.
 
 .reviewSheet {
-  // space-3 по бокам: инсет от краёв листа (карточка уже бумаги). Сверху —
-  // воздух до списка/края; низ держит scroller-padding самого Screen.
-  margin: var(--space-12) var(--space-3) var(--space-3);
-}
+  // Живёт внутри дока (`.reviewPanel` в FoodWriteBar) — тот владеет инсетом от
+  // краёв листа и зазором до бара, а также rise-анимацией на открытии. Сама
+  // карточка (SheetCard) margin не несёт. Bespoke enter-шимми и vertical-shake
+  // (обслуживали мёртвый механизм доскролла к предложке) выпилены 2026-07-02.
+  margin: 0;
 
-// Mount-only enter-анимация ТОЛЬКО для ready-state: лёгкий
-// горизонтальный шимми (влево → вправо → settle) + fade-in. «Мы тебя
-// заметили» — UX-nudge, чтобы взгляд юзера сам нашёл новую карточку. Шаги
-// затухают (-10, +6, -2, 0), чтобы движение не выглядело резким. Skeleton
-// (`data-state='loading'`) не анимируем — он живёт через внутренний
-// spinner, лишнее движение поверх создавало бы двойной сигнал. Анимация
-// composite-only (transform+opacity) согласно animation budget.
-@keyframes inlineReviewEnter {
-  0% {
-    opacity: 0;
-    transform: translateX(0);
-  }
+  // В доке предложка — НЕ отдельная «карточка на листке», а органичное
+  // продолжение бара: делит единую плашку дока (`.dock[data-open]` = surface-2,
+  // FoodWriteBar). Отдаём собственную поверхность SheetCard (фон/скругление/
+  // перламутровый глянец ::before), чтобы шва между баром и предложкой не было —
+  // по паттерну Событий merged-dock (2026-07-02).
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
 
-  30% {
-    opacity: 1;
-    transform: translateX(-10px);
-  }
-
-  60% {
-    opacity: 1;
-    transform: translateX(6px);
-  }
-
-  85% {
-    opacity: 1;
-    transform: translateX(-2px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.reviewSheet[data-state='ready'] {
-  animation: inlineReviewEnter 480ms cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-// Vertical shake — триггерится из AppBottomBar.handleViewResults через
-// toggle `data-shake` на `[data-write-food-anchor]` (=`.reviewSheet`). Маленький
-// translateY вверх-вниз затухающей амплитуды, чтобы взгляд юзера прибил
-// к предложке после instant-scroll'а. Композит-only (transform).
-@keyframes inlineReviewShake {
-  0% {
-    transform: translateY(0);
-  }
-
-  20% {
-    transform: translateY(-6px);
-  }
-
-  40% {
-    transform: translateY(4px);
-  }
-
-  60% {
-    transform: translateY(-3px);
-  }
-
-  80% {
-    transform: translateY(2px);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
-}
-
-.reviewSheet[data-shake] {
-  animation: inlineReviewShake 380ms ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-
-  .reviewSheet[data-state='ready'],
-  .reviewSheet[data-shake] {
-    animation: none;
+  &::before {
+    display: none;
   }
 }
 

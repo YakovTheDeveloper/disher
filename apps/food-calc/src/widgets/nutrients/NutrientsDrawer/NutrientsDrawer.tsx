@@ -1,6 +1,7 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { BaseDrawerProps } from '@/shared/ui';
 import styles from './NutrientsDrawer.module.scss';
@@ -41,11 +42,13 @@ export function NutrientsDrawer({
         </Heading>
       </div>
       <div className={styles.body}>
-        <FoodsNutrients
-          totals={totals}
-          missingNutrientNames={missingNutrientNames}
-          isLoading={isLoading}
-        />
+        <FeatureErrorBoundary label={title}>
+          <FoodsNutrients
+            totals={totals}
+            missingNutrientNames={missingNutrientNames}
+            isLoading={isLoading}
+          />
+        </FeatureErrorBoundary>
       </div>
     </DrawerLayout>
   );
