@@ -1,21 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { buildStartArgs } from '../buildStartArgs';
 
-const H = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+const H = [
+  { id: 'a', title: 'A', body: 'ba' },
+  { id: 'b', title: 'B', body: 'bb' },
+  { id: 'c', title: 'C', body: 'bc' },
+];
 
 describe('buildStartArgs', () => {
-  it('maps ticked ids in live-list order', () => {
+  it('snapshots ticked hypotheses in live-list order ({id,title,body})', () => {
     const args = buildStartArgs(H, new Set(['c', 'a']), '');
-    expect(args.hypothesisIds).toEqual(['a', 'c']);
+    expect(args.hypotheses).toEqual([
+      { id: 'a', title: 'A', body: 'ba' },
+      { id: 'c', title: 'C', body: 'bc' },
+    ]);
   });
 
   it('drops a ticked id that is no longer in the live list', () => {
     const args = buildStartArgs(H, new Set(['a', 'gone']), '');
-    expect(args.hypothesisIds).toEqual(['a']);
+    expect(args.hypotheses.map((h) => h.id)).toEqual(['a']);
   });
 
   it('returns an empty array when nothing is ticked', () => {
-    expect(buildStartArgs(H, new Set(), '').hypothesisIds).toEqual([]);
+    expect(buildStartArgs(H, new Set(), '').hypotheses).toEqual([]);
   });
 
   it('trims the message', () => {

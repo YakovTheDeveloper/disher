@@ -1,5 +1,5 @@
-import { memo, useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { modalStore } from '@/shared/ui';
@@ -37,6 +37,7 @@ const AnalysesSlide = () => {
   // one tick). Rolled back if the DELETE fails.
   const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Optimistic rows first, then the server list with duplicates dropped, minus
   // anything we just deleted.
@@ -51,11 +52,25 @@ const AnalysesSlide = () => {
 
   const addOptimistic = useCallback(
     (a: Analysis) => {
-      setOptimistic((prev) => [a, ...prev]);
+      setOptimistic((prev) =>
+        prev.some((x) => x.id === a.id) ? prev : [a, ...prev]
+      );
       refetch();
     },
     [refetch]
   );
+
+  // A freshly-started daily analysis (from AnalysisClarificationModal, opened via
+  // the «О!» hub-drawer off HomeTopBar) arrives through navigation state. Seed it
+  // optimistically so it shows «идёт» at the top before the refetch lands, then
+  // clear the state so a back/forward or re-render can't re-seed it.
+  useEffect(() => {
+    const started = (location.state as { justStarted?: Analysis } | null)
+      ?.justStarted;
+    if (!started) return;
+    addOptimistic(started);
+    navigate('.', { replace: true, state: null });
+  }, [location.state, addOptimistic, navigate]);
 
   const openCreate = useCallback(async () => {
     const created = await modalStore.show(CreateLongAnalysisModal, {});
