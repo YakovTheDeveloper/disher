@@ -15,8 +15,6 @@ import { makeTestPool, truncateAllUserData } from "../../test/db-helpers.js";
 //   2. Cross-user isolation: data created/seeded under userA is invisible
 //      to userB.
 
-process.env.ANALYTICS_DB_PATH = ":memory:";
-
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;
 
@@ -26,29 +24,13 @@ let pool: ReturnType<typeof makeTestPool>;
 const PROTECTED_ROUTES = [
   { method: "PUT" as const, url: "/api/backup", body: {} },
   { method: "GET" as const, url: "/api/backup" },
-  { method: "GET" as const, url: "/api/analytics/v2/daily/01-01-2099" },
-  {
-    method: "POST" as const,
-    url: "/api/analytics/v2/daily/01-01-2099",
-    body: { tab: "food", foods: [], inputHash: "x" },
-  },
-  { method: "GET" as const, url: "/api/analytics/v2/weekly/01-01-2099" },
-  {
-    method: "POST" as const,
-    url: "/api/analytics/v2/weekly/01-01-2099",
-    body: { dates: ["01-01-2099"] },
-  },
 ];
 
 beforeAll(async () => {
   if (!ready) return;
   const { backupRoutes } = await import("../routes/backup.js");
-  const { analyticsRoutes } = await import("../routes/analytics.js");
-  const { initAnalyticsDb } = await import("../analytics-db.js");
-  initAnalyticsDb();
   app = Fastify({ logger: false });
   await app.register(backupRoutes, { prefix: "/api/backup" });
-  await app.register(analyticsRoutes, { prefix: "/api/analytics" });
   await app.ready();
   pool = makeTestPool();
 });
@@ -101,43 +83,6 @@ describeIfReady("protected routes — ownership invariant", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/backup",
-        headers: userB.headers,
-      });
-      expect(res.statusCode).toBe(404);
-    });
-
-    it("/api/analytics/v2/daily/:date — userB cache miss → 404", async () => {
-      const { upsertDailyAnalysis } = await import("../analytics-db.js");
-      upsertDailyAnalysis(
-        userA.userId,
-        "01-01-2099",
-        "food",
-        "userA's analysis",
-        "hashA",
-        "test-model",
-      );
-
-      const res = await app.inject({
-        method: "GET",
-        url: "/api/analytics/v2/daily/01-01-2099?tab=food",
-        headers: userB.headers,
-      });
-      expect(res.statusCode).toBe(404);
-    });
-
-    it("/api/analytics/v2/weekly/:weekStart — userB cache miss → 404", async () => {
-      const { upsertWeeklyAnalysis } = await import("../analytics-db.js");
-      upsertWeeklyAnalysis(
-        userA.userId,
-        "01-01-2099",
-        "userA's weekly",
-        ["hashA"],
-        "test-model",
-      );
-
-      const res = await app.inject({
-        method: "GET",
-        url: "/api/analytics/v2/weekly/01-01-2099",
         headers: userB.headers,
       });
       expect(res.statusCode).toBe(404);

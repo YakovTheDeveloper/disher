@@ -5,7 +5,6 @@ import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
 import path from "path";
 import { readFileSync, existsSync } from "fs";
-import { analyticsRoutes } from "./routes/analytics.js";
 import { suggestionsRoutes } from "./routes/suggestions.js";
 import { freeTextFoodRoutes } from "./routes/free-text-food.js";
 import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
@@ -14,7 +13,6 @@ import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
 import { analyzeRoutes } from "./routes/analyze.js";
 import { analyzeDishRoutes } from "./routes/analyze-dish.js";
-import { analyzeDailyRoutes } from "./routes/analyze-daily.js";
 import { billingRoutes } from "./routes/billing.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
@@ -193,8 +191,6 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
       .send(problem);
   });
 
-  await app.register(analyticsRoutes, { prefix: "/api/analytics" });
-
   // suggestions + free-text-food are PAID (debit the wallet per LLM call). They
   // used to be anonymous (IP-rate-limited) — the app now mandates signup
   // (AuthGate), so requiring a bearer is safe. requireUser is added on a scope
@@ -226,7 +222,6 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.register(analyzeRoutes, { prefix: "/api" });
   await app.register(analyzeDishRoutes, { prefix: "/api" });
-  await app.register(analyzeDailyRoutes, { prefix: "/api" });
   await app.register(billingRoutes, { prefix: "/api" });
 
   // Dev/test-only routes. Each handler also 404s when NODE_ENV === 'production'

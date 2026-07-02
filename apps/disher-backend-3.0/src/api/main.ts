@@ -5,10 +5,7 @@
 // fully-populated process.env. (Static imports are hoisted, so this could not
 // live in server.ts alongside a conditional dotenv load.)
 import { buildApp } from "./buildApp.js";
-import { initAnalyticsDb } from "./analytics-db.js";
 import { initMatcher } from "./food-matcher.js";
-
-initAnalyticsDb();
 
 initMatcher().catch((err) => {
   console.error("initMatcher failed:", err);
