@@ -7,6 +7,8 @@ import { refund } from "../../billing/wallet.js";
 import {
   runAnalysisJob,
   updateAnalysisFailed,
+  windowSpanDays,
+  USER_MESSAGE_MAX,
   type AnalyzePayload,
   type CallLLM,
   type DayNutrients,
@@ -30,10 +32,12 @@ import {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Long-analysis window bounds — kept in sync with the RangePickerWithFallback
-// presets (7/14/21/28/35) on the frontend. The client also disables submit
-// outside this range; this is the server-side backstop.
-const MIN_WINDOW_DAYS = 7;
+// Analysis window bounds. The weekly UI (RangePickerWithFallback presets
+// 7/14/21/28/35) still sends >=7; the floor is 1 so the DAILY flow (collapse of
+// the former /api/analyze/daily) rides the same route with a same-day window
+// (windowStart === windowEnd, span 1). runAnalysisJob branches the prompt by
+// span. The client disables submit outside this range; this is the backstop.
+const MIN_WINDOW_DAYS = 1;
 const MAX_WINDOW_DAYS = 35;
 
 type AnalyzeBody = {
@@ -45,6 +49,7 @@ type AnalyzeBody = {
     scheduleEvents?: unknown[];
     nutrientsByDay?: unknown[];
     hypotheses?: HypothesisContext[];
+    userMessage?: unknown;
   };
 };
 
@@ -64,14 +69,12 @@ function asNutrientsByDay(v: unknown): DayNutrients[] {
   return out;
 }
 
-// Number of calendar days the window covers — INCLUSIVE of both ends, so it
-// agrees with the frontend RangePickerWithFallback (a «7 дней» preset sends a
-// start/end 6 days apart). Returns null if either timestamp is unparseable.
-function windowSpanDays(start: string, end: string): number | null {
-  const s = Date.parse(start);
-  const e = Date.parse(end);
-  if (Number.isNaN(s) || Number.isNaN(e)) return null;
-  return Math.round((e - s) / 86_400_000) + 1;
+// Coerce the optional free-text «уточнения от пользователя» (daily flow) into a
+// trimmed, clamped string. Empty → undefined so it's absent from the payload.
+function asUserMessage(v: unknown): string | undefined {
+  if (typeof v !== "string") return undefined;
+  const trimmed = v.trim().slice(0, USER_MESSAGE_MAX);
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 type AnalysisRow = {
@@ -157,6 +160,10 @@ export async function analyzeRoutes(
       ...(Array.isArray(body.payload?.hypotheses)
         ? { hypotheses: body.payload!.hypotheses! }
         : {}),
+      ...(() => {
+        const userMessage = asUserMessage(body.payload?.userMessage);
+        return userMessage ? { userMessage } : {};
+      })(),
     };
 
     // Paid: debit before inserting. requestId = the analysis id, so a duplicate

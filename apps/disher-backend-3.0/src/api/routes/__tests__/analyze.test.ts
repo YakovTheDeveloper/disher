@@ -372,16 +372,17 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
     expect(userPromptArg).toContain("01-05-2026: Белки 88 г (норма ~51)");
   });
 
-  it("rejects a window shorter than 7 days with 400", async () => {
-    // 01-05 … 06-05 — 5 days apart = 6 inclusive days, just under the floor.
+  it("rejects a window below the 1-day floor (end before start) with 400", async () => {
+    // Floor is now 1 day (daily flow). Span < 1 only happens with end before
+    // start → negative inclusive span → below the floor.
     const res = await app.inject({
       method: "POST",
       url: "/api/analyze",
       headers: user.headers,
       payload: {
         id: crypto.randomUUID(),
-        windowStart: "2026-05-01T00:00:00Z",
-        windowEnd: "2026-05-06T00:00:00Z",
+        windowStart: "2026-05-08T00:00:00Z",
+        windowEnd: "2026-05-01T00:00:00Z",
         payload: { scheduleFoods: [], scheduleEvents: [] },
       },
     });
@@ -431,6 +432,111 @@ describeIfReady("/api/analyze + /api/analyses/:id", () => {
       },
     });
     expect(r35.statusCode).toBe(200);
+  });
+
+  it("daily window (windowStart === windowEnd) uses the daily prompt, not the cohort one", async () => {
+    const id = crypto.randomUUID();
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-01T00:00:00Z",
+        payload: {
+          scheduleFoods: [{ name: "овсянка" }],
+          scheduleEvents: [],
+        },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    await pollUntilDone(id, user.headers);
+    const systemPromptArg = mockCallLLM.mock.calls[0]?.[0] as string;
+    // Daily-prompt fingerprint present…
+    expect(systemPromptArg).toContain("Это разбор одного дня, не недельный");
+    // …and the weekly cohort-mining paragraph absent (its ≥20%-of-days gate).
+    expect(systemPromptArg).not.toContain("стройте когорты");
+    expect(systemPromptArg).not.toContain("Кластеризуй повторяющиеся явления");
+  });
+
+  it("daily window folds payload.userMessage into the prompt, clamped to 1000 chars", async () => {
+    const id = crypto.randomUUID();
+    const long = "уточнение " + "x".repeat(2000);
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-01T00:00:00Z",
+        payload: {
+          scheduleFoods: [{ name: "овсянка" }],
+          scheduleEvents: [],
+          userMessage: long,
+        },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+    const userPromptArg = mockCallLLM.mock.calls[0]?.[1] as string;
+    expect(userPromptArg).toContain("Уточнения от пользователя");
+    expect(userPromptArg).toContain("уточнение");
+    // Clamp: the section carries at most USER_MESSAGE_MAX (1000) chars of the
+    // message, so the full 2010-char paste never lands whole.
+    expect(userPromptArg).not.toContain("x".repeat(1001));
+  });
+
+  it("weekly window (>= 7 days) still uses the cohort base prompt (regression)", async () => {
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-08T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    await pollUntilDone(id, user.headers);
+    const systemPromptArg = mockCallLLM.mock.calls[0]?.[0] as string;
+    expect(systemPromptArg).toContain("стройте когорты");
+    expect(systemPromptArg).not.toContain("Это разбор одного дня, не недельный");
+  });
+
+  it("accepts a same-day window (span 1) with 200", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id: crypto.randomUUID(),
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-01T00:00:00Z",
+        payload: { scheduleFoods: [{ name: "овсянка" }], scheduleEvents: [] },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("empty daily window short-circuits: LLM is never called, row resolves to «День пустой»", async () => {
+    const id = crypto.randomUUID();
+    await app.inject({
+      method: "POST",
+      url: "/api/analyze",
+      headers: user.headers,
+      payload: {
+        id,
+        windowStart: "2026-05-01T00:00:00Z",
+        windowEnd: "2026-05-01T00:00:00Z",
+        payload: { scheduleFoods: [], scheduleEvents: [] },
+      },
+    });
+    const final = await pollUntilDone(id, user.headers);
+    expect(final.result_md).toContain("День пустой");
+    expect(mockCallLLM).not.toHaveBeenCalled();
   });
 
   it("GET /api/analyses returns pending, failed and done windows", async () => {

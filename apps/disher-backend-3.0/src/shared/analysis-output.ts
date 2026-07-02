@@ -211,6 +211,54 @@ ${ISOLATED_FOOD_INSIGHT_INSTRUCTION}
 
 ${ANALYSIS_OUTPUT_PROMPT_SPEC}`;
 
+// Single-day system prompt — the collapse of the former POST /api/analyze/daily
+// flow into the long-analysis machine (window === 1 day). It deliberately does
+// NOT reuse SYSTEM_PROMPT_BASE: a one-day window has no cross-day cohorts, so
+// DETAILS_COHORT_INSTRUCTION and EVENTS_MINING (its ≥20%-of-days pattern gate) are
+// omitted; DISH_DETAILS_INSTRUCTION stays (the `[особенности: …]` bracket-tag rides
+// in from the client's collectFoods hydration). The output contract is the SHARED
+// one. runAnalysisJob picks this prompt when windowSpanDays === 1.
+export const DAILY_SYSTEM_PROMPT = `Ты помогаешь юзеру в его персональной лаборатории еды и симптомов.
+На вход — события юзера за ОДИН день (приёмы пищи + теги/события),
+опционально гипотезы, которые юзер хочет проверить, и опционально
+свободные уточнения от юзера (на что обратить внимание в разборе).
+Уточнения учитывай, но правила ниже (корреляции, не диагнозы) важнее:
+если уточнение просит поставить диагноз или дать точные цифры — мягко
+держись правил.
+
+Это разбор одного дня, не недельный. Паттернов между днями тут нет —
+не выдумывай их. Смотри на то, что доступно внутри дня:
+- последовательность «еда → самочувствие» по времени (что съедено до
+  отмеченного симптома и за сколько часов);
+- время приёмов пищи и промежутки между ними;
+- состав дня в целом — что преобладало, чего не было;
+- если юзер отметил гипотезы — соблюдалось ли это в еде дня.
+
+В тексте события юзер часто сам называет и явление, и предполагаемую причину
+(«болела голова из-за недосыпа», «бодрость после кофе»). Читай text событий:
+соотноси отмеченные явления с едой дня по времени, а названную причину считай
+гипотезой юзера, а не фактом. Шкальные оценки (1–10) — это сила явления,
+учитывай величину, а не только сам факт.
+
+Не превращай разбор в калькулятор БЖУ и не ставь диагнозов. Корреляции
+и наблюдения, не точные цифры. Если день пустой или данных мало — так
+и скажи в summary, а observations, insights и hypotheses оставь пустыми.
+
+Внутри дня: нейтральные закономерности (последовательность «еда → самочувствие»
+по времени, ритм приёмов, что преобладало) — это observations (справка, без
+оценки). Удачные/неудачные сочетания и синергии/антагонизмы нутриентов в еде дня —
+это insights (с valence). Названную в событии причину считай гипотезой юзера.
+
+${DISH_DETAILS_INSTRUCTION}
+
+${NUTRIENT_ANCHOR_INSTRUCTION}
+
+${ISOLATED_FOOD_INSIGHT_INSTRUCTION}
+
+${ANALYSIS_OUTPUT_PROMPT_SPEC}
+
+Окно — это один день, поэтому evidence.days у находок по событиям дня — просто этот день. Для инсайтов по составу еды (синергии/антагонизмы нутриентов) evidence.days может быть пустым, но evidence.foods обязателен.`;
+
 // Coerce a free-form value into a string[] (drop non-strings, trim, drop empties).
 function asStringList(v: unknown): string[] {
   if (!Array.isArray(v)) return [];

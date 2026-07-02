@@ -1,6 +1,7 @@
 import { pool } from "../db.js";
 import { refund } from "../../billing/wallet.js";
 import {
+  DAILY_SYSTEM_PROMPT,
   SYSTEM_PROMPT_BASE,
   nutrientLineToken,
   safeStringifyArray,
@@ -28,6 +29,23 @@ const HYPOTHESES_BUDGET = 8_000;
 const NUTRIENTS_BUDGET = 40_000;
 
 const FAILURE_PREFIX = "⚠️ Анализ не удался";
+
+// Optional free-text «уточнения от пользователя», carried by a window===1
+// (daily) analysis. Clamped so a runaway paste can't bloat the prompt. Plain
+// text, no markdown contract. Kept transit-only — not persisted to a column.
+export const USER_MESSAGE_MAX = 1000;
+
+// Calendar days the window covers, INCLUSIVE of both ends — a same-day window
+// (windowStart === windowEnd) is 1, the «7 дней» preset (endpoints 6 days apart)
+// is 7. Single source of truth for both the route's window guard and this
+// module's daily-vs-weekly prompt branch. Returns null if a timestamp is
+// unparseable.
+export function windowSpanDays(start: string, end: string): number | null {
+  const s = Date.parse(start);
+  const e = Date.parse(end);
+  if (Number.isNaN(s) || Number.isNaN(e)) return null;
+  return Math.round((e - s) / 86_400_000) + 1;
+}
 
 // A failed long analysis produced no usable result → refund the kickoff charge.
 // requestId is the analysis id (see analyze.ts chargeOr402); refund is idempotent,
@@ -66,6 +84,9 @@ export type AnalyzePayload = {
   scheduleEvents: unknown[];
   nutrientsByDay?: DayNutrients[];
   hypotheses?: HypothesisContext[];
+  /** Free-text «уточнения от пользователя» — only sent for a daily (window===1)
+   *  analysis. Transit-only: folded into the prompt, never stored. */
+  userMessage?: string;
 };
 
 export type CallLLMOptions = {
@@ -136,6 +157,20 @@ function buildUserPrompt(payload: AnalyzePayload): string {
     lines.push("</hypotheses>");
   }
 
+  if (payload.userMessage) {
+    // Free-text clarification from the user (daily flow). Already trimmed +
+    // clamped at the route; strip the wrapper tag defensively so it can't break
+    // out of its section.
+    const safe = payload.userMessage
+      .replace(/<\/?user-message>/g, "")
+      .slice(0, USER_MESSAGE_MAX);
+    lines.push("");
+    lines.push("Уточнения от пользователя — учти при разборе:");
+    lines.push("<user-message>");
+    lines.push(safe);
+    lines.push("</user-message>");
+  }
+
   return lines.join("\n");
 }
 
@@ -204,12 +239,38 @@ export async function runAnalysisJob(
 ): Promise<void> {
   if (!pool) throw new Error("DB pool not initialised");
 
+  // Daily (window===1) vs weekly (window>=7) branch. A single-day window has no
+  // cross-day cohorts, so it runs on DAILY_SYSTEM_PROMPT (no cohort-mining);
+  // anything longer keeps SYSTEM_PROMPT_BASE. null span (unparseable dates)
+  // falls back to the weekly base — the route's guard already rejects those.
+  const span = windowSpanDays(payload.windowStart, payload.windowEnd);
+  const isDaily = span === 1;
+
+  // Empty-day short-circuit (backstop behind the client's `dailyDisabled` gate):
+  // a daily window with no foods AND no events has nothing to analyse — don't
+  // burn an LLM call. Resolve the pending row with a short «день пустой» summary
+  // and refund the kickoff charge.
+  if (
+    isDaily &&
+    payload.scheduleFoods.length === 0 &&
+    payload.scheduleEvents.length === 0
+  ) {
+    await pool.query(
+      `update public.analyses
+       set result_md = $1, idea_cards = '[]'::jsonb, insights = '[]'::jsonb, observations = '[]'::jsonb
+       where id = $2::uuid and result_md = ''`,
+      ["День пустой — за этот день нет ни еды, ни событий для разбора.", analysisId],
+    );
+    await refundAnalysis(analysisId);
+    return;
+  }
+
   const signal = AbortSignal.timeout(LLM_TIMEOUT_MS);
   const userPrompt = buildUserPrompt(payload);
 
   try {
     const result = await callLLMWithValidation(
-      SYSTEM_PROMPT_BASE,
+      isDaily ? DAILY_SYSTEM_PROMPT : SYSTEM_PROMPT_BASE,
       userPrompt,
       signal,
       callLLM,
