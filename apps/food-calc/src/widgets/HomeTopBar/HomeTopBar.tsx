@@ -1,10 +1,8 @@
 import { memo, useCallback, useMemo } from 'react';
 import { parse, isValid } from 'date-fns';
-import { drawerStore, modalStore } from '@/shared/ui';
-import { ConfirmModal } from '@/shared/ui/ConfirmModal';
+import { drawerStore } from '@/shared/ui';
 import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
-import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
@@ -39,14 +37,14 @@ type Props = {
    *  HomePage to mount mini-tile navigation inside the bar pill itself instead
    *  of stacking another absolute layer over it. */
   leadingSlot?: React.ReactNode;
-  /** Suppress the date-switch interrupt guard in `handleDateClick` — skips
-   *  BOTH the "analysis still streaming" confirm AND the
-   *  `interrupt(date, 'date-switch')` call. Product / dish pages feed a
-   *  service date (last-visited) just so the bar has a value: a confirm
-   *  about that unrelated date's analysis is misplaced there, and its
-   *  stream should keep running (it is store-managed and survives
-   *  navigation away). Schedule pages (HomePage) leave this off so leaving
-   *  a date they actually display still aborts the stream. */
+  /** Skip the `selectedDate === date` early-return in `handleDateClick`.
+   *  Product / dish pages feed a service date (last-visited) just so the bar
+   *  has a value; picking that same date there should STILL navigate to
+   *  `/schedule/<date>` (the user means "go there"), so they set this flag.
+   *  Schedule pages (HomePage) leave it off — picking the date they already
+   *  display is a no-op. (The former daily-stream interrupt confirm was
+   *  removed 2026-07-02: the daily analysis is now a persisted POST job that
+   *  survives navigation, so there is nothing to interrupt.) */
   noInterruptGuard?: boolean;
   /** Если `false`, centerLabel не рендерится (даже если значение передано).
    *  Используется страницами блюда/продукта: сначала имя живёт в hero на
@@ -143,21 +141,6 @@ const HomeTopBar = ({
     // тихо ничего не делает. На страницах расписания (без guard) равенство
     // означает «остаёмся на месте» — там ранний return корректен.
     if (!noInterruptGuard && selectedDate === date) return;
-
-    // Leaving the date mid-request interrupts the daily analysis (it cannot
-    // resume). Confirm before navigating away; on confirm, abort the request
-    // with the `date-switch` reason so the banner reads correctly.
-    const loading = useDailyAnalysisStore.getState().byDate[date]?.status === 'loading';
-    if (!noInterruptGuard && loading) {
-      const confirmed = await modalStore.show(ConfirmModal, {
-        title: 'Разбор ещё идёт',
-        message: 'Если уйти на другую дату, разбор дня прервётся.',
-        confirmLabel: 'Уйти',
-        cancelLabel: 'Остаться',
-      });
-      if (confirmed !== true) return;
-      useDailyAnalysisStore.getState().interrupt(date, 'date-switch');
-    }
 
     toScheduleBuilder(selectedDate);
   }, [date, toScheduleBuilder, noInterruptGuard]);

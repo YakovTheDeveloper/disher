@@ -3,7 +3,6 @@ import { useCallback, useEffect, type Ref } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
-import { DailyAnalysis } from '@/widgets/Laboratory';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
@@ -14,16 +13,17 @@ import { HomeHero } from './ui/HomeHero';
 import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { useRolloverNudge } from './useRolloverNudge';
 
-// Три раздела HomePage. Плитки текстовые — декоративный арт на плитках снят
-// (tile-art выпилен из проекта); единственная декор-картинка приложения — hero-
-// обложка над табами, и только здесь (см. heroForSlide ниже).
+// Два раздела HomePage — поверхности ВВОДА: Рацион (default) + События. Слайд
+// «Открытия»/дневной разбор снят 2026-07-02 (схлопнут в /analyses, окно=1);
+// вход в разбор/открытия переехал на кнопку «О!» в HomeTopBar. Плитки текстовые
+// — декоративный арт на плитках снят; единственная декор-картинка приложения —
+// hero-обложка над табами, и только здесь (см. heroForSlide ниже).
 const SCREENS: ScreenEntry[] = [
-  { label: 'Открытия', titleStyle: 'display-sans' },
   { label: 'Рацион', titleStyle: 'display-sans' },
   { label: 'События', titleStyle: 'display-sans' },
 ];
 
-const DEFAULT_SLIDE = 1;
+const DEFAULT_SLIDE = 0;
 
 const Page = ({ date }: { date: string }) => {
   // Тон страницы задаёт глобальный ModalShell-вариант (App.tsx → body
@@ -63,17 +63,13 @@ const Page = ({ date }: { date: string }) => {
   // смене даты; `topBarHide` ставит сам виджет.
   const slides: DeckSlide[] = [
     {
-      // Экран 1 (Открытия→Анализ) — при скролле уезжают ВСЕ кнопки бара.
-      render: (topSlot) => <DailyAnalysis key={date} date={date} topSlot={topSlot} topBarHide="all" />,
-    },
-    {
-      // Экран 2 (Рацион) — уезжают только настройки (нутриенты+дата нужны).
+      // Экран 1 (Рацион, default) — уезжают только настройки (нутриенты+дата нужны).
       render: (topSlot) => (
         <FoodSchedule key={date} date={date} items={items} topSlot={topSlot} topBarHide="settings" />
       ),
     },
     {
-      // Экран 3 (События) — уезжают только настройки.
+      // Экран 2 (События) — уезжают только настройки.
       render: (topSlot) => (
         <ScheduleEvents
           key={date}
@@ -94,10 +90,10 @@ const Page = ({ date }: { date: string }) => {
       renderTopBar={renderTopBar}
       onIndexChange={clearRecent}
       heroForSlide={heroForSlide}
-      // Одна правая стрелка-указатель на средней «Рацион» (по запросу) — «листай
-      // дальше»; у левого соседа и на крайних слайдах стрелок нет. Прочие деки —
-      // дефолт ('all', стрелка у всех неактивных табов).
-      arrowHint="middle-right"
+      // Дек стал 2-слайдовым (Рацион ↔ События) — «middle-right» больше не имеет
+      // среднего слайда, так что дефолт 'all': у неактивного соседа стрелка в его
+      // сторону (вправо на «Рацион», влево на «События»).
+      arrowHint="all"
     />
   );
 };

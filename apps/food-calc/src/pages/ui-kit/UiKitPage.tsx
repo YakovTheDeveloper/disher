@@ -48,8 +48,7 @@ import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
-import { AnalysisCtaButton } from '@/features/analysis/AnalysisCtaButton';
-import { AnalysisKindDrawer } from '@/features/analysis/AnalysisKindDrawer';
+import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import { DailyNormDrawer } from '@/features/dailyNorms/DailyNormDrawer';
 import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton/DailyNormButton';
 import { ProductDrawer } from '@/features/food/product-drawer';
@@ -705,16 +704,6 @@ const SEMANTIC_COMPS: KitComp[] = [
         builtOn: '← QuietActionButton',
         preview: <DailyNormButton />,
         essence: 'Кнопка дневной нормы (текст по состоянию) — по клику открывает DailyNormDrawer.',
-      },
-    ],
-  },
-  {
-    name: 'AnalysisCtaButton',
-    rows: [
-      {
-        builtOn: '← Button brand',
-        preview: <AnalysisCtaButton date={DEMO_DATE} label="Анализировать" />,
-        essence: 'Доменная CTA запуска разбора: открывает AnalysisKindDrawer, спиннер на стрим.',
       },
     ],
   },
@@ -1390,10 +1379,6 @@ const UiKitPage = () => {
                 </div>
               </Specimen>
 
-              <Specimen name="<AnalysisCtaButton>" note="CTA анализа → AnalysisKindDrawer">
-                <AnalysisCtaButton date={DEMO_DATE} />
-              </Specimen>
-
               <AnatomyBlock e={ANATOMY_BY_ID['an-row']} />
             </Section>
 
@@ -1559,8 +1544,8 @@ const UiKitPage = () => {
                 </DemoButton>
               </Specimen>
 
-              <Specimen name="AnalysisKindDrawer" note="выбор вида анализа (день / по неделям)">
-                <DemoButton onClick={() => drawerStore.show(AnalysisKindDrawer, { date: DEMO_DATE })}>
+              <Specimen name="AnalysisHubDrawer" note="«Разбор»-хаб: день / недели / открытия">
+                <DemoButton onClick={() => drawerStore.show(AnalysisHubDrawer, { date: DEMO_DATE })}>
                   Открыть
                 </DemoButton>
               </Specimen>
