@@ -135,6 +135,43 @@ $pill-h: 44px;
     opacity var(--duration-normal) var(--easing-default);
 }
 
+// «О!» hub button — persistent navigation anchor (курсивная «О» + «!» =
+// «Открытия» + удивление). Mirrors `.accountSlot` (light soft floating pill) so
+// it reads as a sibling of the account pill; only HomePage passes `hubDate`, so
+// it never shows on product/dish bars. Opens AnalysisHubDrawer.
+.hubButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: $pill-h;
+  min-height: $pill-h;
+  box-sizing: border-box;
+  padding: 0 var(--space-3);
+  appearance: none;
+  background: var(--sys-color-surface-action-system-soft);
+  border: 1px solid var(--sys-color-surface-action-system-soft);
+  box-shadow: var(--sys-elevation-action-rest);
+  border-radius: var(--sys-radius-indicator);
+  color: var(--sys-color-text-system);
+  font-family: var(--heading-font);
+  font-size: var(--sys-text-size-lg);
+  font-style: italic;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-normal) var(--easing-default),
+    opacity var(--duration-normal) var(--easing-default),
+    background var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--sys-color-surface-action-system-soft-pressed);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
 .segment {
   appearance: none;
   background: transparent;

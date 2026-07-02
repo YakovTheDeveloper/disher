@@ -52,7 +52,9 @@ const Page = ({ date }: { date: string }) => {
   const heroForSlide = useCallback((i: number) => <HomeHero slide={i} />, []);
 
   const renderTopBar = useCallback(
-    (shellRef: Ref<HTMLDivElement>) => <HomeTopBar date={date} shellRef={shellRef} />,
+    (shellRef: Ref<HTMLDivElement>) => (
+      <HomeTopBar date={date} shellRef={shellRef} hubDate={date} />
+    ),
     [date]
   );
 

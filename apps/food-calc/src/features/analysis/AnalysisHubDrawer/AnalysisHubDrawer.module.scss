@@ -1,0 +1,11 @@
+// AnalysisHubDrawer — «Разбор» hub opened from the «О!» button on HomeTopBar.
+// Three stacked option-cards (shared `ActionTile` primitive): day / weeks /
+// discoveries. Mirrors AnalysisKindDrawer's body layout (the two-row chooser it
+// supersedes — the third row is «Мои открытия»).
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px var(--sys-inset-sheet) 28px;
+}

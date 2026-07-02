@@ -3,6 +3,7 @@ import { parse, isValid } from 'date-fns';
 import { drawerStore, modalStore } from '@/shared/ui';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
+import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import { useDailyAnalysisStore } from '@/features/analysis/daily';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
@@ -58,6 +59,11 @@ type Props = {
    *  императивно писать `data-topbar-hide` (направление-зависимое скрытие
    *  кнопок при скролле). Обычный DOM-ref, ре-рендеров не вызывает. */
   shellRef?: React.Ref<HTMLDivElement>;
+  /** Дата (dd-MM-yyyy), под которую открывается «Разбор»-хаб по кнопке «О!».
+   *  Кнопка рендерится ТОЛЬКО когда передан `hubDate` — так якорь навигации
+   *  живёт лишь на HomePage, а страницы продукта/блюда (тот же HomeTopBar) его
+   *  не показывают. Открывает `AnalysisHubDrawer` через `drawerStore`. */
+  hubDate?: string;
 };
 
 type DateParts = {
@@ -118,9 +124,14 @@ const HomeTopBar = ({
   noInterruptGuard,
   centerLabelVisible = true,
   shellRef,
+  hubDate,
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
+  const openHub = useCallback(() => {
+    if (!hubDate) return;
+    void drawerStore.show(AnalysisHubDrawer, { date: hubDate });
+  }, [hubDate]);
   const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
@@ -161,6 +172,19 @@ const HomeTopBar = ({
         {/* Ambient sync status — renders nothing unless offline / syncing /
             failed, so it doesn't disturb the bar at rest. */}
         <SyncStatusChip />
+        {/* «О!» — persistent «Разбор»-хаб. Rendered only on HomePage (where
+            `hubDate` is passed); the navigation anchor that replaced the
+            removed analysis slide. */}
+        {hubDate ? (
+          <button
+            type="button"
+            className={styles.hubButton}
+            onClick={openHub}
+            aria-label="Разбор — открытия и анализ"
+          >
+            О!
+          </button>
+        ) : null}
         {leadingSlot}
         {centerLabel != null &&
           (centerLabelHtmlFor ? (
