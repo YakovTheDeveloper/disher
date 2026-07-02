@@ -10,6 +10,7 @@ import {
   rangeDayKeys,
   defaultRange,
   toKey,
+  formatWindowLabel,
 } from '../range';
 
 describe('windowSpanDays', () => {
@@ -116,5 +117,24 @@ describe('endsInFuture', () => {
 
   it('is false for an unparseable end', () => {
     expect(endsInFuture({ start: '2020-01-01', end: '' })).toBe(false);
+  });
+});
+
+describe('formatWindowLabel', () => {
+  it('collapses a window=1 (start === end) to the «· день» daily label', () => {
+    expect(formatWindowLabel('2026-07-02', '2026-07-02')).toBe('2 июл. · день');
+  });
+
+  it('renders a multi-day window as a «d MMM — d MMM» range', () => {
+    expect(formatWindowLabel('2026-07-02', '2026-07-08')).toBe('2 июл. — 8 июл.');
+  });
+
+  it('treats an identical ISO-timestamp window (server daily row) as daily', () => {
+    const iso = '2026-07-02T12:00:00.000Z';
+    expect(formatWindowLabel(iso, iso)).toBe('2 июл. · день');
+  });
+
+  it('returns «—» when either side is unparseable', () => {
+    expect(formatWindowLabel('', '2026-07-02')).toBe('—');
   });
 });
