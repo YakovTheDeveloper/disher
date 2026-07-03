@@ -10,6 +10,8 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { foodEntryInputIds, type FoodEntryKind } from './inputIds';
 import { scrollToNewRow } from './scrollToNewRow';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 
 // ── Цель флоу ────────────────────────────────────────────────────────────────
 // Единственное доменное расхождение еды в расписании и ингредиента блюда — в
@@ -113,6 +115,7 @@ export function useFoodEntryFlow({
   target: FoodEntryTarget;
 }) {
   const kind = target.kind;
+  const haptic = useHaptic();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(() => createEmptyDraft());
   const [editingItem, setEditingItem] = useState<FoodEntryEditItem | null>(null);
@@ -368,6 +371,11 @@ export function useFoodEntryFlow({
             if (!res.ok) return;
             void persistCustomTagsFromDetails(productIdForCustom, details);
             toaster.success('Добавлено в расписание');
+            // «Недавно добавлен»: помечаем строку recent'ом (синий кружок + разовый
+            // flash), как события/free-text — этот модальный путь добавления продукта
+            // раньше давал только тихий скролл (юзер не видел, что добавилось).
+            useRecentlyAddedStore.getState().addMany([res.value]);
+            haptic();
             scrollToNewRow(res.value);
           },
         );

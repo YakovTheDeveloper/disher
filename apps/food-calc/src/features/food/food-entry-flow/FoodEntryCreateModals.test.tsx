@@ -5,6 +5,7 @@ import '@testing-library/jest-dom/vitest';
 import FoodEntryCreateModals from './FoodEntryCreateModals';
 import { useFoodEntryFlow, type FoodEntryTarget } from './useFoodEntryFlow';
 import { foodEntryInputIds } from './inputIds';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
@@ -146,6 +147,7 @@ const clickActiveByText = (text: string) => {
 beforeEach(() => {
   vi.clearAllMocks();
   setHasHints(false);
+  useRecentlyAddedStore.getState().clear();
 });
 
 // ── schedule: time = «сейчас», no time step ──────────────────────────────────
@@ -166,6 +168,23 @@ describe('FoodEntryCreateModals (schedule) — commit stamps current time', () =
     const arg = vi.mocked(addScheduleFood).mock.calls[0][0] as { date: string; time: string };
     expect(arg.date).toBe('2026-05-19');
     expect([before, after]).toContain(arg.time);
+  });
+
+  it('помечает добавленную строку recent (синий кружок + flash) — фидбек «добавлено»', async () => {
+    // Регресс на пропущенный путь: продукт из ПОИСКА/модалки идёт через
+    // useFoodEntryFlow.handleCommit, а не useWriteFoodFlow.commit. Юзер добавил
+    // продукт и НЕ увидел фидбека, потому что этот путь не звал addMany. Теперь
+    // id новой строки попадает в recentlyAddedStore → ряд рисует recent-маркер.
+    render(<Harness target={SCHEDULE} />);
+
+    focusInput(SCH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('select-product'));
+    focusInput(SCH_IDS.QUANTITY_INPUT);
+    clickActiveByText('Готово');
+
+    await waitFor(() =>
+      expect(useRecentlyAddedStore.getState().ids.has('new-id')).toBe(true),
+    );
   });
 
   it('never mounts a time input in create', () => {
