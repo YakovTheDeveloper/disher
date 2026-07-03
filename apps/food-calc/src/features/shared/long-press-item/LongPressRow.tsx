@@ -44,6 +44,13 @@ const LongPressRow = ({
   ...rest
 }: Props) => {
   const entrance = useEntranceStagger(index);
+  // Только что добавленный (`recent`) ряд НЕ играет entrance-каскад: каскад — для
+  // ВХОДА НА ЭКРАН (весь список наплывает по stagger), а одиночное добавление
+  // должно появиться СРАЗУ непрозрачным и дать flash-подсветке (::before) отыграть
+  // на полную. Иначе butter-пик светит сквозь ещё прозрачный (opacity 0→1) ряд —
+  // видимая часть вспышки куцая, сколько ни повышай её длительность (баг «слишком
+  // быстро», 2026-07-03). Хук всё равно зовём безусловно (правило хуков).
+  const showEntrance = !recent;
   // Extract data-* attributes
   const dataAttrs = Object.fromEntries(
     Object.entries(rest).filter(([key]) => key.startsWith('data-'))
@@ -89,12 +96,12 @@ const LongPressRow = ({
       onClick={onClick}
       onKeyDown={interactive ? onKeyDown : undefined}
       {...press}
-      style={{ ...entrance.style, ...style }}
+      style={{ ...(showEntrance ? entrance.style : null), ...style }}
       className={clsx(
         className,
         innerClassName,
         styles.row,
-        entrance.className,
+        showEntrance && entrance.className,
         isPressed && styles.row_tapped,
         recent && styles.row_recent
       )}

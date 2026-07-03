@@ -2,6 +2,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import LongPressRow from './LongPressRow';
 import entranceStyles from '@/shared/lib/hooks/useEntranceStagger.module.scss';
+import rowStyles from './LongPressRow.module.scss';
 
 const LONG_PRESS_DELAY = 450; // keep in sync with LongPressRow
 
@@ -194,5 +195,20 @@ describe('LongPressRow', () => {
     expect(row.tagName).toBe('LI');
     expect(row.className).toContain(entranceStyles.entrance);
     expect(row.style.getPropertyValue('--enter-i')).toBe('3');
+  });
+
+  it('recent-ряд НЕ играет entrance (появляется сразу, чтобы flash не глушился прозрачностью)', () => {
+    const { container } = render(
+      <LongPressRow id="row-1" index={3} recent>
+        <span>content</span>
+      </LongPressRow>,
+    );
+    const row = container.firstElementChild as HTMLElement;
+
+    // recent → появляется мгновенно непрозрачным: entrance-класс и --enter-i сняты,
+    // но recent-маркер (dot + flash) на месте.
+    expect(row.className).not.toContain(entranceStyles.entrance);
+    expect(row.style.getPropertyValue('--enter-i')).toBe('');
+    expect(row.className).toContain(rowStyles.row_recent);
   });
 });

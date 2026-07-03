@@ -121,7 +121,7 @@
         background-color: var(--sys-color-bg-selected);
         opacity: 0;
         pointer-events: none;
-        animation: rowRecentFlash 1400ms ease-out forwards;
+        animation: rowRecentFlash 1600ms ease-in forwards;
     }
 
     // «Недавно добавлен» marker (recent-dot canon) — синий кружок СПРАВА, ВНЕ
@@ -196,14 +196,17 @@
     }
 }
 
-// Flash появления нового ряда: butter-оверлей держит пик первые ~30% (иначе ease-out
-// уводил цвет от t=0 мгновенно — глаз не ловил вспышку), затем плавно гаснет к 0.
+// Flash появления нового ряда: butter-оверлей держит ПИК первые ~45% времени
+// (солидная заметная вспышка), затем мягко гаснет к 0 (ease-in на всей анимации →
+// butter ещё и медленно стартует угасание, дольше «стоит» ярким). Ряд-`recent` не
+// играет entrance (см. LongPressRow.tsx), поэтому оверлей светит на НЕПРОЗРАЧНОМ
+// фоне и вспышка видна целиком.
 @keyframes rowRecentFlash {
     0% {
         opacity: 1;
     }
 
-    30% {
+    45% {
         opacity: 1;
     }
 
