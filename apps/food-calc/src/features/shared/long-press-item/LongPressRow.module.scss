@@ -94,15 +94,34 @@
         z-index: 2;
     }
 
-    // Flash появления: только что созданный ряд ОДИН раз подсвечивает фон цветом
-    // «выбрано» (butter, --sys-color-bg-selected) и гаснет к своему tod-фону
-    // (--sys-color-row-bg) за ~600ms. Триггерится вместе с `recent` (НЕ с index) —
+    // Flash появления: только что созданный ряд ОДИН раз подсвечивается цветом
+    // «выбрано» (butter, --sys-color-bg-selected) и плавно гаснет к прозрачному,
+    // открывая свой tod-фон. Триггерится вместе с `recent` (НЕ с index) —
     // добавление ОДНОЙ сущности не переигрывает entrance-каскад всего списка.
-    // Композит-безопасно: анимируем только background-color, без layout. Новых
-    // токенов не заводим — красим существующими sys-токенами (см. handoff).
-    // prefers-reduced-motion глушит (медиа-блок ниже).
-    &_recent {
-        animation: rowRecentFlash 600ms ease-out;
+    //
+    // ВАЖНО (баг 2026-07-03): flash живёт на отдельном псевдо-слое `::before`, а НЕ
+    // на `animation` самого ряда. Ряд уже несёт entrance-каскад (useEntranceStagger)
+    // в шоткате `animation`; новый ряд монтируется с ОБОИМИ классами (.entrance +
+    // .row_recent), а `animation` — единичный шоткат: вторая декларация молча
+    // перебивала первую, и flash не проигрывался (entrance выигрывал; точку `::after`
+    // было видно, т.к. у неё своя `animation`). Оверлей на псевдо-слое запускает
+    // СВОЮ анимацию независимо от `animation` ряда — оба идут параллельно.
+    //
+    // z-index:-1 (ряд = stacking context: position:relative + z-index:1) кладёт
+    // butter-оверлей НАД фоном ряда, но ПОД контентом карточки (.card непозиционирован),
+    // так что текст остаётся чётким. Композит-безопасно: анимируем только opacity.
+    // Базовый opacity:0 → под prefers-reduced-motion (animation:none) flash не мигает.
+    // Новых токенов не заводим — красим существующим --sys-color-bg-selected.
+    &_recent::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: var(--sys-radius-container);
+        background-color: var(--sys-color-bg-selected);
+        opacity: 0;
+        pointer-events: none;
+        animation: rowRecentFlash 900ms ease-out forwards;
     }
 
     // «Недавно добавлен» marker (recent-dot canon) — синий кружок СПРАВА, ВНЕ
@@ -177,19 +196,24 @@
     }
 }
 
-// Flash появления нового ряда: bg от «выбрано» (butter) к своему tod-фону.
+// Flash появления нового ряда: butter-оверлей держит пик первые ~30% (иначе ease-out
+// уводил цвет от t=0 мгновенно — глаз не ловил вспышку), затем плавно гаснет к 0.
 @keyframes rowRecentFlash {
-    from {
-        background-color: var(--sys-color-bg-selected);
+    0% {
+        opacity: 1;
     }
 
-    to {
-        background-color: var(--sys-color-row-bg);
+    30% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .row_recent,
+    .row_recent::before,
     .row_recent::after {
         animation: none;
     }
