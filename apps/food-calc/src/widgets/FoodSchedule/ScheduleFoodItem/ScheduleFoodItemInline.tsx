@@ -8,6 +8,7 @@ import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 
 type Props = {
   className?: string;
@@ -40,6 +41,9 @@ const ScheduleFoodItemInline = ({
   const id = item.id;
   // Global toggle (set from the TimeGroup time header): hide the per-row time.
   const hideTime = useItemTimesStore((s) => s.hidden);
+  // «Недавно добавлено» — паритет с событиями (ScheduleEventCard): синий кружок
+  // справа + разовый flash фона на созданном ряду (LongPressRow по `recent`).
+  const isRecent = useRecentlyAddedStore((s) => s.ids.has(id));
 
   const commitTime = (time: string) => {
     safeMutate(() => updateScheduleFood(item.id, { time }), 'Не удалось обновить время');
@@ -74,6 +78,7 @@ const ScheduleFoodItemInline = ({
       id={id}
       index={index}
       tod={getTimeOfDay(item.time)}
+      recent={isRecent}
       onLongPress={onLongPress}
       quantity={item.quantity}
       unit={getQtyUnit(item.product)}

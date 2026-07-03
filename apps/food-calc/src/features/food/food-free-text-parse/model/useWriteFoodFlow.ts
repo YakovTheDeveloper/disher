@@ -25,6 +25,8 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
+import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
 import {
   sendMatcherTelemetry,
@@ -143,6 +145,7 @@ const makeUid = () => Math.random().toString(36).slice(2, 10);
 
 export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const userId = useUserId();
+  const haptic = useHaptic();
   const hideTime = target.kind === 'dish';
 
   const [state, setState] = useState<WriteFoodFlowState>('idle');
@@ -883,9 +886,19 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       sendTelemetryIfNotSent('commit');
       toaster.success(`Добавлено: ${committed.length}`);
 
+      // «Недавно добавлен» dot у еды был снят 2026-06-20 — возвращаем его как у
+      // событий (паритет еда↔события, образец EventsWriteBar). Помечаем новые
+      // строки расписания recent'ом → ряд рисует синий кружок + один раз мигает
+      // фоном (flash по `recent`, LongPressRow). Только для расписания —
+      // ингредиенты блюда этот store не потребляют.
+      if (target.kind === 'schedule' && newScheduleIds.length > 0) {
+        useRecentlyAddedStore.getState().addMany(newScheduleIds);
+      }
+      // Haptic на успешное создание (progressive enhancement — no-op на iOS).
+      haptic();
+
       // Подскролл к первой добавленной строке (паритет с модальным созданием —
-      // см. food-entry-flow) на ОБОИХ экранах: еда в расписании и ингредиент
-      // блюда. «Недавно добавлен» dot у еды снят 2026-06-20.
+      // см. food-entry-flow) на ОБОИХ экранах: еда в расписании и ингредиент блюда.
       const firstNewRowId =
         target.kind === 'schedule' ? newScheduleIds[0] : newDishItemIds[0];
       if (firstNewRowId) scrollToNewRow(firstNewRowId);
@@ -910,6 +923,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     userId,
     sendTelemetryIfNotSent,
     resetAll,
+    haptic,
   ]);
 
   return {

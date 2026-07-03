@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useHaptic } from './useHaptic';
 
 type LongPressHandlers = {
   onPointerDown: (e: React.PointerEvent) => void;
@@ -55,6 +56,9 @@ export function useLongPress(
   // a second time, or onPressStart/onPressEnd stop being balanced for consumers
   // that count them).
   const pressedRef = useRef(false);
+  // Единый haptic-хук (feature-detect, no-op на iOS) — тот же, что дёргается на
+  // успешное создание сущности. Long-press = короткий buzz при срабатывании.
+  const haptic = useHaptic();
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {
@@ -112,14 +116,12 @@ export function useLongPress(
         pendingRef.current = false;
         wasLongRef.current = true;
         preventClickRef.current = true;
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate(10);
-        }
+        haptic();
         endVisual(); // press-visual ends the moment the long press succeeds
         onLongPress();
       }, delay);
     },
-    [delay, onLongPress, onPressStart, endVisual],
+    [delay, onLongPress, onPressStart, endVisual, haptic],
   );
 
   // Release pointer capture, cancel the pending timer, end the press-visual, and

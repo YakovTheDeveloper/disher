@@ -94,6 +94,17 @@
         z-index: 2;
     }
 
+    // Flash появления: только что созданный ряд ОДИН раз подсвечивает фон цветом
+    // «выбрано» (butter, --sys-color-bg-selected) и гаснет к своему tod-фону
+    // (--sys-color-row-bg) за ~600ms. Триггерится вместе с `recent` (НЕ с index) —
+    // добавление ОДНОЙ сущности не переигрывает entrance-каскад всего списка.
+    // Композит-безопасно: анимируем только background-color, без layout. Новых
+    // токенов не заводим — красим существующими sys-токенами (см. handoff).
+    // prefers-reduced-motion глушит (медиа-блок ниже).
+    &_recent {
+        animation: rowRecentFlash 600ms ease-out;
+    }
+
     // «Недавно добавлен» marker (recent-dot canon) — синий кружок СПРАВА, ВНЕ
     // подложки карточки, в правом отступе листа (`.headerOverlap` padding-inline:
     // 16px). Раньше открывали жёлоб через padding-right (карточка дёргалась);
@@ -166,7 +177,19 @@
     }
 }
 
+// Flash появления нового ряда: bg от «выбрано» (butter) к своему tod-фону.
+@keyframes rowRecentFlash {
+    from {
+        background-color: var(--sys-color-bg-selected);
+    }
+
+    to {
+        background-color: var(--sys-color-row-bg);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
+    .row_recent,
     .row_recent::after {
         animation: none;
     }
