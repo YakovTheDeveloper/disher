@@ -63,8 +63,11 @@ export async function addDishItem(params: {
   productId: string;
   quantity: number;
   details?: string;
+  /** Опциональный id — вызвавший может сгенерить его ЗАРАНЕЕ, чтобы пометить ряд
+   *  «только что добавлен» (markAdded) ДО записи (см. addScheduleFood). */
+  id?: string;
 }): Promise<string> {
-  const id = crypto.randomUUID();
+  const id = params.id ?? crypto.randomUUID();
   const row: Omit<DishItemRow, 'updated_at'> = {
     id,
     dish_id: params.dishId,

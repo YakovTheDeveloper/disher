@@ -33,8 +33,9 @@
 
 // (Focus-scrim удалён 2026-06-23: затемнение всего экрана при фокусе write-бара
 // давало вспышки контраста на фокус/блюр — особенно у Событий, где панель оценки
-// дёргает фокус. Подсказка переехала в in-flow прослойку над баром, см.
-// WriteBarShell `.focusHint`.)
+// дёргает фокус. Подсказка переехала в in-flow прослойку над баром, см. компонент
+// `WriteBarHint`. Позже (2026-07-05) dim-фон вернулся per-bar как `WriteBarShell`
+// `focusOverlay` — не глобальный `:has`, а React-стейт `expanded`.)
 
 .backgroundImage {
     position: absolute;
@@ -227,43 +228,6 @@
     align-items: center;
 }
 
-// ─── Content header (canon) ──────────────────────────────────────────────
-// Семантический заголовок контента (Screen `contentHeader`). Рендерится первым
-// ВНУТРИ листа `.headerOverlap`, выровнен ВЛЕВО с тем же левым инсетом, что текст
-// контента (`--space-4`) — единый канон заголовков всех Screen-экранов. Используют
-// Dish/Product (имя + rename-label).
-.contentHeader {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    // Верхний воздух (divider → заголовок) держит сама обёртка `.headerOverlap`
-    // через `padding-top` — единый отступ для всех экранов, с заголовком и без.
-    // Боковой gutter ТОЖЕ владеет лист (`--sys-inset-page`, канон 2026-06-22) —
-    // здесь горизонтали 0, иначе двойной инсет (был 8 лист + 16/12 свой). Низ — свой.
-    padding: 0 0 var(--space-8);
-    text-align: left;
-
-    // Имена продуктов хранятся lowercase («абрикос») — sentence-case первой
-    // буквы средствами CSS.
-    h1::first-letter,
-    h2::first-letter,
-    h3::first-letter {
-        text-transform: uppercase;
-    }
-
-    // Кликабельный rename-label вложен ВНУТРЬ heading-а (валидный HTML).
-    // Нейтрализуем cursor inheritance + clickable feedback.
-    label {
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-
-        &:active {
-            opacity: 0.6;
-        }
-    }
-}
-
 // Sticky-слот внутри `screenScroll`. Прилипает к `top: var(--top-bar-h)` —
 // под `HomeTopBar` (absolute поверх контейнера).
 //
@@ -281,7 +245,7 @@
 .stickyTop {
     position: sticky;
     top: 0;
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4);
     // Непрозрачный фон обязателен: между «залипанием» и моментом когда
     // `headerOverlap` накрывает индикатор есть прозрачные пиксели через
     // которые виден контент. Дефолт — белый; родитель может переопределить
@@ -290,13 +254,51 @@
 }
 
 
+// Верхняя строка листа: слот `topContent` (ужимается) + опциональный квадратный
+// `topContentRight` справа. Боковой gutter несёт САМ лист (`.headerOverlap`,
+// `--sys-inset-page`) — ряд свой инсет НЕ добавляет, иначе topContent/ⓘ получали бы
+// двойной инсет (лист 12 + свой) и разъезжались бы вправо с контентом ниже
+// (списком, NutrientsBar). Так же 0-горизонталь держал удалённый `.contentHeader`.
+// Ряд владеет только gap, мин-высотой полки и нижним зазором.
+.topRow {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sys-stack-row);
+    width: 100%;
+    padding-left: var(--sys-inset-card);
+    // `--sheet-band-h` определён в `.headerOverlap` (ряд всегда внутри листа в
+    // headerOverlap-режиме, где var резолвится). Не инертна: на Рационе `topContent`
+    // — absolute-дата (нулевая flow-высота), min-height резервирует полосу над
+    // списком. Fallback 0 — на случай non-overlap-ветки, где var не определён.
+    min-height: 40px;
+    padding-bottom: var(--space-4);
+}
+
+.topContent {
+    flex: 1 1 auto;
+    // Даёт слоту ужиматься вместо распирания ряда длинным контентом (иначе
+    // квадратную кнопку справа вытолкнет за край).
+    min-width: 0;
+}
+
+// Правый слот — квадратные кнопки-действия. Не ужимается, держит свою ширину;
+// `topContent` слева освобождает ровно это место + `gap`. `margin-left: auto`
+// прижимает вправо и когда `topContent` пуст (слот идёт один — напр. лист без
+// заголовка, только ⓘ-кнопка).
+.topContentRight {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
 .headerOverlap {
     position: relative;
     z-index: 1;
     flex: 1 0 auto;
 
-    --sheet-band-h: var(--space-8);
-    padding-top: calc(var(--sheet-band-h) + var(--space-4));
+    --sheet-band-h: var(--space-3);
+    padding-top: calc(var(--sheet-band-h) + var(--space-2));
     padding-bottom: calc(var(--bb-overlay-h) + 12px);
 
     margin-inline: var(--sys-inset-page);
@@ -318,6 +320,7 @@
     display: flex;
     align-items: center;
     pointer-events: none;
+    padding-right: var(--sys-inset-page);
 }
 
 // День недели слева — тихий serif (QuietLabel несёт голос). Капитализация первой
@@ -334,7 +337,7 @@
     top: 50%;
     transform: translate(-50%, -50%);
     width: 36px;
-    height: 4px;
-    border-radius: var(--sys-radius-control); // 4px-бар → control-радиус скругляет в пилюлю
+    height: 3px;
+    border-radius: var(--sys-radius-control);
     background: var(--sys-color-divider);
 }

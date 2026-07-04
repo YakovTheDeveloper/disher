@@ -18,6 +18,8 @@
     // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
     // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
     margin: var(--space-10) 0 var(--space-2);
+    margin-left: auto;
+    width: fit-content;
 
     // Тающая волосяная бровка — копия `Masthead::after`. Боковой инсет даёт сам
     // лист (`--sys-inset-page` на `.headerOverlap`) → бровка симметрична краям (0/0).
@@ -61,10 +63,35 @@
         transform var(--press-in) ease;
 }
 
-.block:active {
+// Расширенная область клика + тихий тинт-отклик. `::before` вылезает за границы
+// узкой колонки чисел РОВНО во все стороны (отрицательный inset), поэтому тап-таргет
+// заметно больше контейнера. `pointer-events: auto` — псевдоэлемент ловит клики
+// (клик по нему = клик по кнопке-хосту `.block`). Тинт красится по состоянию ХОСТА
+// (`.block:hover` / `:active`), а НЕ вложенным `&:hover` на самом `::before` — то
+// компилировалось в `.block::before:hover` и не срабатывало (баг: «before не работает»).
+.block::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--space-3));
+    border-radius: var(--sys-radius-container);
+    pointer-events: auto;
+    background: transparent;
+    transition: background var(--press-out) var(--easing-default);
+}
+
+.block:hover::before {
+    background: var(--sys-color-bg-hover);
+}
+
+.block:active::before {
     background: var(--sys-color-bg-press);
+}
+
+.block:active {
     transform: scale(0.99);
     transition-duration: var(--sys-duration-press-in);
+
+
 }
 
 // Шеврон-намёк «открыть» — тихий, flex-сосед справа от колонки чисел (не absolute).

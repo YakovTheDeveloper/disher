@@ -3,13 +3,11 @@ import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { groupItemsByTime } from '@/shared/lib/schedule';
-import { parse, isValid, format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ScheduleFoodItem } from '@/widgets/FoodSchedule/ScheduleFoodItem';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
 import {
   FoodEntryCreateModals,
@@ -20,7 +18,6 @@ import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedu
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
-import { useNavigate } from 'react-router-dom';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
@@ -38,13 +35,23 @@ type CommonProps = {
   items: ScheduleFoodWithRelations[];
   isActive?: boolean;
   topSlot?: React.ReactNode;
+  /**
+   * Заголовок-дата в верхнем слоте `Screen`. Владелец — HomePage (общий на оба
+   * экрана дека); FoodSchedule только прокидывает его в `Screen.topContent`.
+   */
+  topContent?: React.ReactNode;
   /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
   topBarHide?: TopBarHideTarget;
 };
 
-const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: CommonProps) => {
-  const navigate = useNavigate();
-
+const FoodSchedule = ({
+  date,
+  items,
+  isActive = true,
+  topSlot,
+  topContent,
+  topBarHide,
+}: CommonProps) => {
   const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'schedule', date } });
   const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'schedule', date } });
   const editIds = editFlow.inputIds;
@@ -95,17 +102,6 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
 
-  // Заголовок-дата в правом-верхнем углу листа (на месте снятого watermark-лого):
-  // только КРУПНОЕ имя дня недели (<Heading headline>) — число дня убрано, месяц
-  // тоже. Капитализуем ТОЛЬКО первую букву вручную (CSS `capitalize` заглавил бы
-  // лишнее).
-  const dateWeekday = useMemo(() => {
-    const parsed = parse(date, 'dd-MM-yyyy', new Date());
-    if (!isValid(parsed)) return '';
-    const weekday = format(parsed, 'EEEE', { locale: ru });
-    return weekday.charAt(0).toUpperCase() + weekday.slice(1);
-  }, [date]);
-
   // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
   // красит еду, блюдо и события. Раньше еда была жёстко `dv-palette-lemon`.
   const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
@@ -139,19 +135,21 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
           const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
           if (res.ok) toaster.success('Удалено');
         },
-        actions: buildInfoActions(item, navigate),
-        // Ряд правок под «Информация…»: каждая кнопка закрывает дровер и открывает
+        actions: buildInfoActions(item),
+        // Ряд правок под «Информация…»: каждая плитка закрывает дровер и открывает
         // соответствующий шаг edit-флоу (startEdit ставит editingItem + step →
-        // FoodEntryEditModals разворачивает нужную модалку). Карандаш у всех рисует
-        // сам дровер. Ряд только у расписания — у ингредиента блюда «Время» нет.
+        // FoodEntryEditModals разворачивает нужную модалку). Гравюра тематическая
+        // по смыслу действия (тарелка-порция · бирка-заметка · дисковый циферблат),
+        // втекает в правый край квадратной плитки. Ряд только у расписания — у
+        // ингредиента блюда «Время» нет.
         editActions: [
-          { label: 'Количество', onClick: () => onEditQuantity(item) },
-          { label: 'Особенности', onClick: () => onEditFood(item) },
-          { label: 'Время', onClick: () => onEditTime(item) },
+          { label: 'Кол-во', art: <img src="/art/plate.png" alt="" />, onClick: () => onEditQuantity(item) },
+          { label: 'Уточнения', art: <img src="/art/tag-2.png" alt="" />, onClick: () => onEditFood(item) },
+          { label: 'Время', art: <img src="/art/scale-2.png" alt="" />, onClick: () => onEditTime(item) },
         ],
       });
     },
-    [navigate, onEditQuantity, onEditFood, onEditTime]
+    [onEditQuantity, onEditFood, onEditTime]
   );
 
   return (
@@ -159,8 +157,10 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
       stickyTop={topSlot}
       headerOverlap
       topBarHide={topBarHide}
-      // Шапка листа = дата дня слева (<Heading> ниже, первый ребёнок). Полка несёт
-      // только хват-пилюлю по центру + watermark Disher справа (`.headerOverlap::after`).
+      // Дата дня — в нейтральный верхний слот Screen `topContent`. Сам элемент
+      // строит и владеет им HomePage (общий на оба экрана дека, 2026-07-04);
+      // FoodSchedule только прокидывает. Полка листа несёт только хват-пилюлю.
+      topContent={topContent}
       overlay={
         <>
           {isActive ? (
@@ -188,51 +188,56 @@ const FoodSchedule = ({ date, items, isActive = true, topSlot, topBarHide }: Com
         />
       }
     >
-      <Heading role="headline" as="h2" className={styles.dateHeading}>
-        {dateWeekday}
-      </Heading>
       <div {...anchor} className={styles.foodListAnchor}>
-        <ItemsList>
-          {(() => {
-            let globalIndex = 0;
-            const rendered = groups.map((group) => (
-              <Fragment key={group.startTime}>
-                <TimeGroup group={group}>
-                  {
-                    (() => {
-                      // Dedup the per-row time: a row whose time matches the row
-                      // above renders the label blank (still tappable to edit).
-                      // Reset per group so each group's first row always shows.
-                      let prevTime: string | null = null;
-                      return group.items.map((item) => {
-                        const itemIndex = globalIndex++;
-                        const dimTime = prevTime === item.time;
-                        prevTime = item.time;
-                        return (
-                          <ScheduleFoodItem
-                            key={item.id}
-                            item={item}
-                            index={itemIndex}
-                            dimTime={dimTime}
-                            totalCount={items.length}
-                            onLongPress={() => openActionsDrawer(item)}
-                            onEditTime={onEditTime}
-                            onEditFood={onEditFood}
-                            onEditQuantity={onEditQuantity}
-                            timeHtmlFor={editIds.TIME_INPUT}
-                            foodHtmlFor={editIds.DETAILS_INPUT}
-                            quantityHtmlFor={editIds.QUANTITY_INPUT}
-                          />
-                        );
-                      });
-                    })() as unknown as JSX.Element
-                  }
-                </TimeGroup>
-              </Fragment>
-            ));
-            return rendered;
-          })()}
-        </ItemsList>
+        {isEmpty ? (
+          <EmptyState
+            className={styles.empty}
+            title="Рацион пуст"
+            description="Здесь появится ваша еда за день. Найти её можно в каталоге по кнопке «Список» — потом это ложится в разбор."
+          />
+        ) : (
+          <ItemsList>
+            {(() => {
+              let globalIndex = 0;
+              const rendered = groups.map((group) => (
+                <Fragment key={group.startTime}>
+                  <TimeGroup group={group}>
+                    {
+                      (() => {
+                        // Dedup the per-row time: a row whose time matches the row
+                        // above renders the label blank (still tappable to edit).
+                        // Reset per group so each group's first row always shows.
+                        let prevTime: string | null = null;
+                        return group.items.map((item) => {
+                          const itemIndex = globalIndex++;
+                          const dimTime = prevTime === item.time;
+                          prevTime = item.time;
+                          return (
+                            <ScheduleFoodItem
+                              key={item.id}
+                              item={item}
+                              index={itemIndex}
+                              dimTime={dimTime}
+                              totalCount={items.length}
+                              onLongPress={() => openActionsDrawer(item)}
+                              onEditTime={onEditTime}
+                              onEditFood={onEditFood}
+                              onEditQuantity={onEditQuantity}
+                              timeHtmlFor={editIds.TIME_INPUT}
+                              foodHtmlFor={editIds.DETAILS_INPUT}
+                              quantityHtmlFor={editIds.QUANTITY_INPUT}
+                            />
+                          );
+                        });
+                      })() as unknown as JSX.Element
+                    }
+                  </TimeGroup>
+                </Fragment>
+              ));
+              return rendered;
+            })()}
+          </ItemsList>
+        )}
       </div>
       {/* Полоса-сводка нутриентов — в конце списка. На пустом дне не показываем. */}
       {!isEmpty && <NutrientsBar totals={totals} onOpen={openNutrients} />}

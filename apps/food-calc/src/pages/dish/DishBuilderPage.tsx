@@ -29,6 +29,7 @@ import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
+import DishHero from './ui/DishHero';
 import styles from './DishBuilderPage.module.scss';
 import {
   FoodEntryCreateModals,
@@ -45,7 +46,9 @@ import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
+import EditIcon from '@/shared/assets/icons/edit.svg?react';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
@@ -70,6 +73,12 @@ const DISH_SCREENS: ScreenEntry[] = [
 ];
 
 const DEFAULT_SLIDE = 0;
+
+// Гравюра-обложка над табами блюда — одна на обе плитки (Блюдо / Порции): экран
+// «Блюдо» несёт один ключ обоев. Стабильна (module-scope) → topSlot'ы SwipeDeck
+// мемоизируются, memo() слайдов не сбрасывается. Долгий тап по обложке открывает
+// поповер выбора обоев (WallpaperHero внутри DishHero).
+const heroForSlide = () => <DishHero />;
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -156,9 +165,36 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   // дата расписания. PUSH на явный URL (popstate-back RR намеренно не анимирует).
   const backTo = (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
 
+  // Semantic suggest: grab the dish name → head A → matched ingredients land in
+  // the FoodWriteBar dock (панель предложки над баром, паттерн Событий) — доскролл
+  // больше не нужен, панель всегда на виду. Вызывается из DishHubDrawer.
+  // Определён ДО guard `if (!dish) return null` (Rules of Hooks) — использует
+  // `dish?.name`, ранний выход если блюдо ещё не загружено.
+  const handleSuggestIngredients = useCallback(async () => {
+    if (!dish) return;
+    // Optional «Уточнения» step: undefined = cancelled/swipe-dismissed (don't
+    // suggest); any string (incl. '') = proceed, the comment rides into head A.
+    const comment = await drawerStore.show(SuggestIngredientsClarifyDrawer, {});
+    if (comment === undefined) return;
+    writeFoodFlow.submitDishName(dish.name, comment);
+  }, [dish, writeFoodFlow]);
+
+  // Кнопка «О!» на баре блюда открывает DishHubDrawer (2 плитки: анализ + предложка).
+  // hasIngredients / suggestDisabled считаются на момент открытия; сам drawer
+  // читает анализ/сеть/запуск свежо (см. DishHubDrawer).
+  const openDishHub = useCallback(() => {
+    void drawerStore.show(DishHubDrawer, {
+      dishId: id,
+      hasIngredients: dishItems.length > 0,
+      suggestDisabled: writeFoodFlow.state === 'loading' || !dish?.name.trim(),
+      onSuggest: () => void handleSuggestIngredients(),
+    });
+  }, [id, dishItems, writeFoodFlow, dish, handleSuggestIngredients]);
+
   // Бар отдаётся в SwipeDeck через render-prop — каркас прокидывает `shellRef`
   // (scroll-hide). На блюде нет даты: пилюля-дата = иконка-календарь, переход к
-  // расписанию остаётся; `noInterruptGuard` глушит date-switch confirm.
+  // расписанию остаётся; `noInterruptGuard` глушит date-switch confirm. Кнопка
+  // «О!» (onHubClick) открывает DishHubDrawer.
   const renderTopBar = useCallback(
     (shellRef: React.Ref<HTMLDivElement>) => (
       <HomeTopBar
@@ -166,10 +202,12 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         backSlot={<BackButton to={backTo} />}
         dateButtonLabel={<CalendarIcon width={22} height={22} />}
         noInterruptGuard
+        onHubClick={openDishHub}
+        hubAriaLabel="Действия с блюдом — анализ и подбор продуктов"
         shellRef={shellRef}
       />
     ),
-    [dateForTopBar, backTo]
+    [dateForTopBar, backTo, openDishHub]
   );
 
   // ── Порции блюда: создание 2-шаговой модалкой + удаление long-press → drawer ──
@@ -217,6 +255,20 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     </Heading>
   );
 
+  // Карандаш-edit в правом верхнем слоте листа (topContentRight). Тот же тригер,
+  // что клик по имени: `<label htmlFor={CHANGE_NAME_INPUT_ID}>` (ghost-режим
+  // IconButton) → фокус на input ChangeNameModal → onFocusCapture раскрывает rename.
+  // Явный affordance «изменить название» рядом с самим названием.
+  const editNameButton = (
+    <IconButton
+      tone="ghost"
+      size={40}
+      htmlFor={CHANGE_NAME_INPUT_ID}
+      aria-label="Изменить название"
+      icon={<EditIcon width={20} height={20} />}
+    />
+  );
+
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
   // продукте» → product page.
   const openActionsDrawer = (item: DishItemWithProduct) => {
@@ -250,19 +302,10 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     }
   };
 
-  // Semantic suggest: grab the dish name → head A → matched ingredients land in
-  // the FoodWriteBar dock (панель предложки над баром, паттерн Событий) — доскролл
-  // больше не нужен, панель всегда на виду.
-  const handleSuggestIngredients = async () => {
-    // Optional «Уточнения» step: undefined = cancelled/swipe-dismissed (don't
-    // suggest); any string (incl. '') = proceed, the comment rides into head A.
-    const comment = await drawerStore.show(SuggestIngredientsClarifyDrawer, {});
-    if (comment === undefined) return;
-    writeFoodFlow.submitDishName(dish.name, comment);
-  };
-
   // Каждый слайд = свой `<Screen>`, получающий topSlot (плитки) в `stickyTop`.
   // Каркас (SwipeDeck) владеет container/стеклом/scroll-hide/свайпом/плитками.
+  // Колода схлопнута до [Блюдо, Порции] 2026-07-04 — слайд «Анализ» уехал в
+  // модалку за кнопкой «О!» (DishHubDrawer → DishAnalysisModal).
   const slides: DeckSlide[] = [
     {
       render: (topSlot) => (
@@ -270,30 +313,9 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           key={1}
           headerOverlap
           topContent={nameHeading}
-          stickyTop={topSlot}
-          topBarHide="all"
-        >
-          <DishAnalysisScreen dishId={id} hasIngredients={items.length > 0} />
-        </Screen>
-      ),
-    },
-    {
-      render: (topSlot) => (
-        <Screen
-          key={2}
-          headerOverlap
-          topContent={nameHeading}
+          topContentRight={editNameButton}
           stickyTop={topSlot}
           topBarHide="settings"
-          headerAction={
-            <SuggestActionButton
-              label="Предложить ингредиенты"
-              // Disable while parsing AND when the dish has no name yet —
-              // submitDishName('') is a silent no-op otherwise.
-              disabled={writeFoodFlow.state === 'loading' || !dish.name.trim()}
-              onClick={() => void handleSuggestIngredients()}
-            />
-          }
           overlay={
             <>
               <FoodEntryCreateModals flow={createFlow} />
@@ -425,6 +447,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         slides={slides}
         defaultSlide={DEFAULT_SLIDE}
         renderTopBar={renderTopBar}
+        heroForSlide={heroForSlide}
       />
     </>
   );

@@ -11,8 +11,9 @@
 // (Вчера/Сегодня/Завтра) is the card «name» (centre), the chevron the trailing
 // affordance (right) — replacing the ⓘ info button.
 //
-// Layout: flex column. A tab row on top switches the body between the anchor
-// block (the quick tab) and the scrollable active-days section (chips by month).
+// Layout: flex column. A tab row on top switches the body (Embla slider) between
+// the anchor block (quick tab) and the active-days tab — a scrollable stack of
+// per-month mini-calendars (7-col grid; active days filled, empty days dimmed).
 
 .shell {
   position: relative;
@@ -32,34 +33,34 @@
 .tabRow {
   position: relative;
   z-index: 1;
-  padding-top: var(--space-3);
+  // Верхний инсет НЕ добавляем: этот ряд едет в header-слот DrawerLayout, а тот
+  // владеет унифицированным chrome-инсетом (--drawer-chrome-pad-block) — общим со
+  // встроенным title+subtitle. Свой padding-top здесь дал бы двойной отступ и
+  // разъезд с остальными хедерами (custom header — инсет-агностик).
 }
 
-// ─── Slider viewport ───────────────────────────────────────────────────────
-// Горизонтальный CSS scroll-snap: две панели по 100% ширины, один свайп =
-// снап на соседнюю. Высоту задаёт JS (дышит под активную панель) с transition;
-// вертикальный скролл живёт ВНУТРИ панели (.activeSection), не на viewport.
+// ─── Slider viewport (Embla) ───────────────────────────────────────────────
+// `.viewport` = Embla root (клипует), `.track` = Embla container (flex-ряд, Embla
+// сам едет transform по горизонтали). `touch-action: pan-y` — горизонтальный драг
+// уходит в Embla, вертикальный скролл/закрытие шита остаются. Высоту viewport
+// задаёт JS (дышит под активную панель); Embla трогает только горизонталь.
 .viewport {
   position: relative;
   z-index: 1;
-  display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow: hidden;
+  touch-action: pan-y;
   transition: height 0.28s var(--easing-default, ease);
+}
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+.track {
+  display: flex;
+  height: 100%;
 }
 
 .panel {
   flex: 0 0 100%;
   min-width: 0;
-  scroll-snap-align: start;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -87,7 +88,6 @@
       transparent 100%);
   mask-image: $mask;
   -webkit-mask-image: $mask;
-  padding-top: 24px;
 
   &[data-fade-top] {
     --fade-top: 36px;
@@ -98,98 +98,114 @@
   }
 }
 
-// Month name — the first inline item of the chip row. Chips have no backing,
-// so it shows through the wrap flow rather than claiming a separate column.
+// Измеряемый узел (activeInnerRef): padding здесь, а НЕ на .activeSection — иначе
+// verтикальный отступ не входит в offsetHeight, и панель на столько же короче
+// контента → ложный скролл + обрезанный низ.
+.activeInner {
+  padding: var(--space-5) var(--space-3) var(--space-6);
+}
+
+// ─── Month mini-calendar (active-days tab) ─────────────────────────────────
+.month {
+  &+& {
+    margin-top: var(--space-5);
+  }
+}
+
+// Тихий указатель месяца (QuietLabel — sans italic, тихий ярус).
 .monthName {
-  position: absolute;
-  align-self: center;
-  display: flex;
-  top: 0;
-  left: var(--space-1);
-  gap: var(--space-1);
-  width: 90%;
+  display: block;
+  padding-left: var(--space-1);
+  margin-bottom: var(--space-6);
   text-transform: capitalize;
   line-height: 1;
-  color: var(--sys-color-text-muted);
 }
 
-// Past chips — flex-wrap of cells, gap-aligned. Compact enough to fit many
-// past days without consuming vertical space.
-.chipRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  position: relative;
-  padding: var(--space-1) var(--space-1) var(--space-8) var(--space-1);
+// Шапка дней недели (пн…вс) — 7 колонок, тихие капшны.
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: var(--space-1);
 }
 
-// Past-day chips — transparent surface, compact. State reads through the shared
-// --sys-card-* tokens (no more honey): today/selected = active ink + faint grey
-// fill, press = dark inversion pill.
-.dayChip {
-  position: relative;
+// Размер — из примитива <Text role="caption">; тут только выравнивание/цвет.
+.weekday {
+  display: block;
+  text-align: center;
+  line-height: 1;
+  color: var(--sys-color-text-tertiary);
+}
+
+// Календарная решётка — 7 колонок.
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+// Ячейка дня. Пустые ведущие ячейки (.blank) держат геометрию колонки.
+.cell,
+.blank {
+  min-height: 40px;
+}
+
+.cell {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 53px;
-  padding: 5px 0 6px;
-  background: transparent;
+  border: none;
   border-radius: var(--sys-radius-control);
+  background: transparent;
+  color: var(--sys-card-text-rest);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+// Пустой день (нет записей) — тихий контекст: бледный, нетапаемый.
+.cellEmpty {
+  color: var(--sys-color-text-faint);
+}
+
+// Активный день (есть записи) — «залит», читается тепловой картой; тапаемый.
+.cellActive {
   cursor: pointer;
+  font-weight: 600;
+  background: var(--sys-color-bg-hover);
+  color: var(--sys-card-text-rest);
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--press-out) var(--easing-default),
     color var(--press-out) var(--easing-default),
     transform var(--press-out) var(--easing-default);
 
-  // Цветной отклик: чип → тёмная инверсия (общий --sys-card-press-bg/fg).
   &:active {
     background: var(--sys-card-press-bg);
     color: var(--sys-card-press-fg);
-    transform: scale(0.94);
+    transform: scale(0.9);
     transition-duration: var(--sys-duration-press-in);
-
-    .dayChipNumber,
-    .dayChipWeekday {
-      color: var(--sys-card-press-fg);
-    }
   }
 }
 
-.dayChipNumber {
-  font-style: italic;
-  color: var(--sys-card-text-rest);
-  line-height: 1;
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
+// Сегодня — кольцо-ориентир поверх любой заливки. Через ::after-бордюр (не
+// box-shadow: тот гейтится под elevation-токен, а кольца-токена нет).
+.cellToday {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: var(--sys-card-active);
+    border-radius: var(--sys-radius-control);
+    pointer-events: none;
+  }
 }
 
-.dayChipWeekday {
-  text-transform: lowercase;
-  color: var(--sys-color-text-tertiary);
-  line-height: 1;
-}
-
-.dayChipToday {
+// Выбранный (открытый) день — сильная заливка, перебивает .cellActive.
+.cellSelected {
   background: var(--sys-card-active);
-
-  .dayChipNumber,
-  .dayChipWeekday {
-    color: var(--sys-card-text-active);
-  }
-}
-
-.dayChipSelected {
-  background: var(--sys-card-active);
-
-  .dayChipNumber {
-    color: var(--sys-card-text-active);
-    font-style: italic;
-  }
-
-  .dayChipWeekday {
-    color: var(--sys-card-text-active);
-  }
+  color: var(--sys-card-text-active);
 }
 
 // ─── Empty state (active tab, no records yet) ──────────────────────────────
@@ -222,11 +238,8 @@
 
 @media (prefers-reduced-motion: reduce) {
 
-  .viewport {
-    transition: none;
-  }
-
-  .dayChip {
+  .viewport,
+  .cellActive {
     transition: none;
   }
 }

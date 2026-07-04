@@ -1,9 +1,10 @@
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import FoodActionCard from './FoodActionCard';
 import { formatNormPercent } from './formatNormPercent';
+import { drawerStore } from '@/shared/ui/drawer-store';
 
 describe('formatNormPercent', () => {
   it('uses 2 decimals below 1%', () => {
@@ -104,5 +105,39 @@ describe('FoodActionCard — richness visuals', () => {
   it('renders no fill when the nutrient value is zero', () => {
     const { container } = renderCard(0);
     expect(container.querySelector('[class*="richValueFill"]')).toBeNull();
+  });
+});
+
+describe('FoodActionCard — dish ⓘ opens DishDrawer with a name', () => {
+  // The dish info button opens the side DishDrawer directly (not via navigate).
+  // Unlike the long-press path (buildInfoActions → { dishId } only), the ⓘ path
+  // forwards item.name as dishName so the drawer header shows the name instantly
+  // while the dish loads from Dexie. Assert that props payload.
+  it('forwards { dishId, dishName } to drawerStore.show', () => {
+    const show = vi
+      .spyOn(drawerStore, 'show')
+      .mockReturnValue(Promise.resolve(undefined) as ReturnType<typeof drawerStore.show>);
+
+    const item = { id: 'd1', name: 'борщ' };
+    const router = createMemoryRouter([
+      {
+        path: '/',
+        element: (
+          <ul>
+            <FoodActionCard variant="dish" item={item} onInfoClick={() => {}} />
+          </ul>
+        ),
+      },
+    ]);
+    const { getByLabelText } = render(<RouterProvider router={router} />);
+
+    fireEvent.click(getByLabelText('Информация о блюде'));
+
+    expect(show).toHaveBeenCalledWith(
+      expect.anything(),
+      { dishId: 'd1', dishName: 'борщ' },
+      expect.objectContaining({ side: 'left' }),
+    );
+    show.mockRestore();
   });
 });

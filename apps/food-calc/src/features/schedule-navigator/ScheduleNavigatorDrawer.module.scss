@@ -15,3 +15,11 @@
   background: transparent;
   color: var(--sys-card-text-rest);
 }
+
+// Хост для портала ряда табов в header-слот DrawerLayout. ScreenIndicator внутри
+// (`.root` = flex-колонка) центрирует свой ряд; хост лишь тянется на всю ширину
+// центр-band'а слота, чтобы `justify-content: center` считал центр от полной
+// ширины band'а.
+.tabHost {
+  width: 100%;
+}

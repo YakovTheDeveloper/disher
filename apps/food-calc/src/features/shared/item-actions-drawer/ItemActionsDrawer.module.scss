@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Destructive delete lives in DrawerLayout's top-right chrome slot (the
 // --sys-size-control hit-area) via the IconButton primitive (tone="danger").
 // Fill the slot so the whole square is tappable; danger colour is the
@@ -10,33 +12,66 @@
 
 // Action stack = canon Button rows (system-secondary, или 'system' для главной).
 // Soft-tonal, icon+label, 48px touch-floor — the primitive owns the look now.
-// Боковой инсет отдан DrawerLayout `contentInset="panel"` (дедуп boilerplate) —
-// здесь только вертикальный ритм.
+// Боковой инсет + верхний зазор отданы DrawerLayout (нижний дровер, default 24/12)
+// — здесь только вертикальный ритм.
 .actions {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding-top: var(--space-5);
   padding-bottom: 12px;
 }
 
-// Ряд правок (Количество · Особенности · Время) — под стеком действий. Три
-// равные колонки-чипа. Боковой инсет — у DrawerLayout (contentInset="panel").
+// Секция правок = фирменная бровка (тающий hairline, канон Divider) отделяет её
+// от инфо-кнопки стека, затем центрованный заголовок «Редактировать» (ярус ниже
+// заголовка дровера) с воздухом, затем ряд чипов. Вертикальный ритм: воздух над
+// заголовком (--space-5, под бровкой) + воздух под заголовком (--space-4).
+.editSection {
+  position: relative;
+  padding-top: var(--space-5);
+}
+
+// Бровка — тающий 1px по канону Divider (mixin hairline + токен дивайдера).
+.editSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  @include hairline(var(--sys-color-divider));
+  pointer-events: none;
+}
+
+// Ряд правок (Кол-во · Уточнения · Время) — три равные квадратные плитки
+// ActionTile (muted-серый вариант). Гравюра втекает в правый край каждой плитки
+// (art-слот примитива). Боковой инсет — у DrawerLayout (нижний дровер, default 24).
 .editRow {
   display: flex;
   gap: var(--space-2);
   padding-bottom: 12px;
 }
 
-// Чип = иконка СВЕРХУ, подпись ПОД ней по центру (колоночная раскладка). В ряд
-// (иконка+метка по горизонтали) карандаш съедал треть ширины и «Количество»/
-// «Особенности» переносились — рвали ряд. Колонка отдаёт подписи всю ширину
-// чипа → одна строка без переноса. Селектор `.editRow .editBtn` (0,2,0) бьёт
-// раскладку Button (.systemSecondary, 0,1,0) независимо от порядка модулей.
-.editRow .editBtn {
+// Каждая плитка — КВАДРАТ: три равные колонки, aspect-ratio 1. Подпись слева по
+// центру высоты (раскладка ActionTile), гравюра — в правый край. min-height:0
+// снимает 76px-пол базовой плитки (размер держит aspect-ratio; иначе в узком
+// дровере пол ломал бы квадрат). Уменьшенный padding — тексту в узкой колонке
+// нужен воздух. Селектор `.editRow .editTile` (0,2,0) бьёт базовую `.tile` (0,1,0).
+.editRow .editTile {
   flex: 1 1 0;
   min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 6px;
-  white-space: nowrap;
+  min-height: 0;
+  aspect-ratio: 1;
+  padding: var(--space-3);
+}
+
+// Гравюра чуть плотнее базовой (0.15) — квадрат маленький, тихий след должен
+// читаться как «тема действия».
+.editRow .editTile img {
+  opacity: 0.2;
+}
+
+// Подпись в верхнем стеке (Информация о продукте/блюде) — центрируется в кнопке.
+.editBtnLabel {
+  margin: auto;
 }

@@ -43,15 +43,14 @@ describe('runSyncTracked', () => {
     expect(mockToastError).not.toHaveBeenCalled();
   });
 
-  it('on an online failure records failed and shows a retry-able error toast', async () => {
+  it('on an online failure records failed WITHOUT a toast (failure toaster removed)', async () => {
     mockSync.mockRejectedValue({ status: 500 });
     const ok = await runSyncTracked();
     expect(ok).toBe(false);
     expect(useSyncStatusStore.getState().state).toBe('failed');
-    expect(mockToastError).toHaveBeenCalledOnce();
-    const [message, opts] = mockToastError.mock.calls[0];
-    expect(message).toBe('Не удалось сохранить в облако');
-    expect(opts?.action?.label).toBe('Повторить');
+    // The loud «не удалось сохранить» toaster was removed — the failure is
+    // surfaced only by the SyncStatusChip (Settings) reading the store.
+    expect(mockToastError).not.toHaveBeenCalled();
   });
 
   it('on a mid-session 401 signs out via the funnel and shows no "не сохранено" toast', async () => {

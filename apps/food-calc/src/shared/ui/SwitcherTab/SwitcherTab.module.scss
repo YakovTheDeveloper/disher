@@ -62,6 +62,13 @@
 }
 
 .tileActive {
+  // Активный таб полностью инертен — ты уже на нём (юзер-канон 2026-07-03).
+  // pointer-events отключает клик/press-scale; cursor убирает «рука» аффорданс.
+  // Клавиатуру глушит сам SwitcherTab: снятый onClick (Enter → no-op) + tabIndex=-1
+  // (из tab-order). aria-selected несёт потребитель (role="tab").
+  cursor: default;
+  pointer-events: none;
+
   // ACTIVE = выпуклая: белая бумага + мягкая 2-слойная тень.
   // Ambient (если задан) накладывается на белый поверх.
   background-color: var(--sys-color-surface-1);

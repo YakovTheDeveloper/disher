@@ -47,7 +47,7 @@
     max-height: 65dvh;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: var(--space-2) var(--sys-inset-page) var(--space-4);
+    padding: var(--space-2) var(--sys-inset-page) 0;
     animation: reviewPanelRise 0.22s var(--easing-default);
 }
 

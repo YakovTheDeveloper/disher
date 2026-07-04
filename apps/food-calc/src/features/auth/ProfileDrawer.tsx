@@ -3,6 +3,7 @@ import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { ThemePicker } from '@/features/theme';
+import { WallpaperPicker } from '@/features/wallpaper';
 import { dump, apply, deleteBackup } from '@/shared/lib/snapshot';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { HoldButton } from './HoldButton';
@@ -13,6 +14,7 @@ import { Switch } from '@/shared/ui/atoms/Switch';
 import { Accordion } from '@/shared/ui/Accordion';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
+import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
 import SyncDisableDrawer from './SyncDisableDrawer';
 
 const downloadJson = (name: string, obj: unknown) => {
@@ -138,13 +140,21 @@ export function ProfileDrawer() {
     // email sits right under it as the chrome subtitle — together they form the
     // identity header, replacing the old centered avatar block. A soft peach→rose
     // ambient glow (`.surface`) sits behind that header, echoing HomeAmbient.
-    <DrawerLayout title="Аккаунт" subtitle={email} className={styles.surface}>
+    <DrawerLayout title="Аккаунт" subtitle={email} className={styles.surface} contentInset="panel">
       <div className={styles.container}>
         <BalanceSection />
 
         <section className={styles.section}>
           <Text as="h2" role="label" className={styles.sectionLabel}>Оформление</Text>
           <ThemePicker />
+        </section>
+
+        {/* Обои — своя гравюра-обложка для каждого экрана (Рацион / События /
+            Разборы), выбор из общего каталога. Пишется в localStorage, сразу
+            читается hero-обложками. */}
+        <section className={styles.section}>
+          <Text as="h2" role="label" className={styles.sectionLabel}>Обои</Text>
+          <WallpaperPicker />
         </section>
 
         {/*
@@ -163,6 +173,13 @@ export function ProfileDrawer() {
               onChange={handleSyncToggle}
               aria-label="Облачная синхронизация"
             />
+          </div>
+          {/* Ambient sync-status — переехал сюда из HomeTopBar. Ничего не рендерит
+              в покое; показывает «Офлайн» / «Синхронизирую…» / «Не сохранено ·
+              Повторить» (tap = retry). Обёртка hug-left, чтобы danger-фон не
+              растягивался на всю ширину секции. */}
+          <div className={styles.syncStatus}>
+            <SyncStatusChip />
           </div>
         </section>
 

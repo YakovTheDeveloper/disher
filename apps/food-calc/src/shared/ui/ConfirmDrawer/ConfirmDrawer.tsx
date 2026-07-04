@@ -26,9 +26,9 @@ const ConfirmDrawer = ({
   tone = 'default',
   onClose,
 }: ConfirmDrawerProps) => (
-  <DrawerLayout a11yLabel={title}>
+  <DrawerLayout title="Подтверждение">
     <div className={s.body}>
-      <Heading role="headline" as="h2" className={s.title}>
+      <Heading role="headline" as="h3" className={s.title}>
         {title}
       </Heading>
       {message && (

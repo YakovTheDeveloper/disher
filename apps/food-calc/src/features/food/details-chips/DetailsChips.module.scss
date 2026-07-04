@@ -62,7 +62,7 @@
   --sys-color-bg-selected: var(--sys-color-surface-action-primary-soft-pressed);
 }
 .root[data-dv-v='butter-press'] {
-  --sys-color-bg-selected: #f6e7b0; // тёплое сливочное золото
+  --sys-color-bg-selected: var(--sys-color-bg-selected-warm); // тёплое сливочное золото (= глобальная база с 2026-07-03)
 }
 .root[data-dv-v='plum-press'] {
   --sys-color-bg-selected: #e6d3df; // мягкий сливовый (пыльная лилово-розовая)

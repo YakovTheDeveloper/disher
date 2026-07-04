@@ -1,6 +1,8 @@
 import { RouterLinks } from '@/app/router';
-import { useCallback, useEffect, type Ref } from 'react';
+import { useCallback, useEffect, useMemo, type Ref } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { parse, isValid, format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
@@ -9,8 +11,10 @@ import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { HomeHero } from './ui/HomeHero';
 import { useRolloverNudge } from './useRolloverNudge';
+import styles from './HomePage.module.scss';
 
 // Два раздела HomePage — поверхности ВВОДА: Рацион (default) + События. Слайд
 // «Открытия»/дневной разбор снят 2026-07-02 (схлопнут в /analyses, окно=1);
@@ -40,6 +44,22 @@ const Page = ({ date }: { date: string }) => {
   // → topSlot'ы в SwipeDeck мемоизируются, memo() слайдов не сбрасывается.
   const heroForSlide = useCallback((i: number) => <HomeHero slide={i} />, []);
 
+  // Заголовок-дата (крупное имя дня недели) в правом-верхнем углу листа. Владелец —
+  // HomePage; один элемент прокидывается в оба экрана дека (Рацион + События) через
+  // `topContent` их `Screen`. Капитализуем ТОЛЬКО первую букву вручную (CSS
+  // `capitalize` заглавил бы лишнее).
+  const dateHeading = useMemo(() => {
+    const parsed = parse(date, 'dd-MM-yyyy', new Date());
+    if (!isValid(parsed)) return null;
+    const weekday = format(parsed, 'EEEE', { locale: ru });
+    const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    return (
+      <Heading role="title" as="h2" className={styles.dateHeading}>
+        {label}
+      </Heading>
+    );
+  }, [date]);
+
   const renderTopBar = useCallback(
     (shellRef: Ref<HTMLDivElement>) => (
       <HomeTopBar date={date} shellRef={shellRef} hubDate={date} />
@@ -54,7 +74,14 @@ const Page = ({ date }: { date: string }) => {
     {
       // Экран 1 (Рацион, default) — уезжают только настройки (нутриенты+дата нужны).
       render: (topSlot) => (
-        <FoodSchedule key={date} date={date} items={items} topSlot={topSlot} topBarHide="settings" />
+        <FoodSchedule
+          key={date}
+          date={date}
+          items={items}
+          topSlot={topSlot}
+          topContent={dateHeading}
+          topBarHide="settings"
+        />
       ),
     },
     {
@@ -65,6 +92,7 @@ const Page = ({ date }: { date: string }) => {
           date={date}
           events={events}
           topSlot={topSlot}
+          topContent={dateHeading}
           topBarHide="settings"
         />
       ),

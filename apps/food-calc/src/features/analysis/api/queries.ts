@@ -147,5 +147,12 @@ export function useAnalysesList(): UseAnalysesListResult {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [refetch]);
 
-  return { data, error, loading, refetch: () => void refetch() };
+  // Stable `() => void` adapter — `refetch` is already a useCallback, so wrapping
+  // the void cast in its own useCallback keeps the returned identity constant
+  // across renders. Consumers (useAnalysesFeed) put it in effect/callback deps;
+  // a fresh arrow each render would re-subscribe the poll effect and rebuild
+  // every downstream callback needlessly.
+  const refetchVoid = useCallback(() => void refetch(), [refetch]);
+
+  return { data, error, loading, refetch: refetchVoid };
 }

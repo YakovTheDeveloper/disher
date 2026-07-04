@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
@@ -49,11 +49,22 @@ const EditHypothesisModal = ({
   // browser Back closes THIS overlay (not the host modal, which would drop the edit).
   useOverlayHistory(isExpanded, onClose);
 
-  // Re-seed состояние, когда открыли модалку или сменили editingId на лету.
-  // Без проверки `hypothesis` пустой prefill съест уже введённые правки на
-  // одном тике, пока useLiveQuery не вернул строку.
+  // Re-seed при открытии или смене editingId — но РОВНО ОДИН раз на пару
+  // (open, hypothesisId). `hypothesis` приходит из useLiveQuery(db.hypotheses.get)
+  // и пере-эмитит новый объект на ЛЮБУЮ запись в таблицу (фоновый merge() со
+  // второго устройства, правка другой гипотезы) — без гарда это затирало бы уже
+  // введённый текст на каждый такой re-emit. seededRef запоминает id, для
+  // которого поля уже засеяны; сбрасывается на закрытии → следующее открытие (или
+  // смена editingId на лету) сеет заново. Без проверки `hypothesis` пустой
+  // prefill съест правки на тике, пока useLiveQuery не вернул строку.
+  const seededRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!isExpanded || !hypothesis) return;
+    if (!isExpanded) {
+      seededRef.current = null;
+      return;
+    }
+    if (!hypothesis || seededRef.current === hypothesis.id) return;
+    seededRef.current = hypothesis.id;
     setTitle(hypothesis.title);
     setBody(hypothesis.body);
     setBusy(false);

@@ -2,23 +2,25 @@
     width: 100%;
 }
 
-// Rows are divided by AIR — a fixed `--space-3` gap (the `--ax-list-gap` contract
-// was dissolved 2026-06-22; both surfaces published the same value). No fading
-// hairline: the rhythm is carried by the gap, not a line. `<ul>` reset: the rows
-// are LongPressRow `<li>`s now (Slice 3 long-press delete).
+// Rows on /analyses (слайд «Инсайты»): больше вертикального воздуха + чёрная
+// нижняя граница-разделитель между карточками (решение юзера 2026-07-04 — было
+// «делит воздух», теперь воздух ШИРЕ + линия). Раньше делил только `--sys-stack-row`
+// gap; теперь `--sys-stack-section` (24) + `.row::after` ниже. `<ul>` reset: ряды —
+// LongPressRow `<li>`s (Slice 3 long-press delete).
 .list {
     display: flex;
     flex-direction: column;
-    gap: var(--sys-stack-row);
+    gap: var(--sys-stack-section);
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
 // Neutralize the LongPressRow tod chassis (lands on the `<li>`): flat paper-mono
-// content surface, no per-row gradient/frame/floor — the ObservationCard inside
-// owns its own padding + voice. Mirrors AnalysisListItem `.row`. Long-press is the
-// delete affordance (gesture-only: no visible control).
+// content surface, no per-row gradient/frame/floor — the InsightCard inside owns
+// its own padding + voice. Mirrors AnalysisListItem `.row`. Long-press is the
+// delete affordance (gesture-only: no visible control). Цвета карточки унифицированы
+// с гипотезами (монохром, 2026-07-04) — indigo-заголовок снят, оверрайд-vars не нужны.
 .row {
     --row-bg: transparent;
     --row-tapped: var(--sys-card-bg-sunk);
@@ -27,4 +29,35 @@
     --sys-row-pad-block: 0;
     --sys-row-min-h-touch: 0;
     border-radius: 0;
+    // position: relative уже стоит на .row из LongPressRow — якорит ::after ниже.
+}
+
+// Чёрная ВЕРХНЯЯ граница-разделитель между инсайтами (страница Анализов). Ряд
+// сидит в контенте headerOverlap-листа (гор. инсет = --sys-inset-page); тянем
+// линию за паддинг листа отрицательным --sys-inset-page слева/справа → она идёт от
+// края до края белого листа («на всю длину Screen»). Не тающий hairline, а сплошная
+// ink-линия (--sys-color-text-system = нейтральный чёрный) — по запросу юзера.
+// Ставится на LongPressRow `<li>` (не на AnalysisCard `.card::after`: там
+// карточка — единственный ребёнок ряда → всегда :last-child, свой seam погашен).
+.row::after {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--sys-inset-page));
+    right: calc(-1 * var(--sys-inset-page));
+    top: 0;
+    height: 1px;
+    background-color: var(--sys-color-text-system);
+    pointer-events: none;
+}
+
+// У первого ряда граница не нужна — список делит воздух выше.
+.row:first-child::after {
+    display: none;
+}
+
+// У рядов С верхней рамкой карточка держит больше верхнего воздуха (от линии) и
+// снимает нижний: padding --space-8 / инсет / 0. Переопределяет --analysis-card-pad
+// у AnalysisCard. Первый ряд (без рамки) — дефолт.
+.row:not(:first-child) {
+    --analysis-card-pad: var(--space-8) var(--sys-inset-card) 0;
 }

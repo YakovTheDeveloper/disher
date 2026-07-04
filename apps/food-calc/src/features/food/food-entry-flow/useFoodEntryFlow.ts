@@ -366,33 +366,46 @@ export function useFoodEntryFlow({
           quantity: draft.quantity,
           details,
         };
-        void safeMutate(() => addScheduleFood(snapshot), 'Не удалось добавить в расписание').then(
-          (res) => {
-            if (!res.ok) return;
-            void persistCustomTagsFromDetails(productIdForCustom, details);
-            toaster.success('Добавлено в расписание');
-            // «Только что добавлен» flash: кладём id ряда в mailbox → LongPressRow
-            // на маунте один раз мигает butter-подсветкой (consume-once). Раньше
-            // модальный путь давал только тихий скролл (юзер не видел, что добавилось).
-            markAdded([res.value]);
-            haptic();
-            scrollToNewRow(res.value);
-          },
-        );
+        // ВАЖНО: помечаем ряд «только что добавлен» ДО записи. addScheduleFood на
+        // коммите тригерит liveQuery, который монтирует новый ряд; если пометить
+        // ПОСЛЕ await (как было), ряд успевает смонтироваться раньше флага → читает
+        // isJustAdded=false → играет быстрый 320ms stagger вместо появления. Поэтому
+        // генерим id заранее, markAdded, и передаём id в запись.
+        const newId = crypto.randomUUID();
+        markAdded([newId]);
+        void safeMutate(
+          () => addScheduleFood({ ...snapshot, id: newId }),
+          'Не удалось добавить в расписание',
+        ).then((res) => {
+          if (!res.ok) return;
+          void persistCustomTagsFromDetails(productIdForCustom, details);
+          // Тост «Добавлено в расписание» убран (по запросу) — создание сущности
+          // расписания больше не уведомляет. Haptic + подскролл остаются.
+          haptic();
+          scrollToNewRow(res.value);
+        });
       } else {
         const dishId = target.dishId;
         const productId = draft.productId;
         if (!productId) return;
+        // Паритет с расписанием: помечаем ДО записи (иначе ряд монтируется на
+        // коммите раньше флага — см. schedule-ветку выше).
+        const newDishItemId = crypto.randomUUID();
+        markAdded([newDishItemId]);
         void safeMutate(
-          () => addDishItem({ dishId, productId, quantity: draft.quantity, details: details ?? '' }),
+          () =>
+            addDishItem({
+              dishId,
+              productId,
+              quantity: draft.quantity,
+              details: details ?? '',
+              id: newDishItemId,
+            }),
           'Не удалось добавить продукт',
         ).then((res) => {
           if (!res.ok) return;
           void persistCustomTagsFromDetails(productId, details ?? '');
           toaster.success('Продукт добавлен');
-          // Flash нового ингредиента блюда (паритет с расписанием — оба ряда в
-          // LongPressRow, flash встроен в примитив).
-          markAdded([res.value]);
           scrollToNewRow(res.value);
         });
       }

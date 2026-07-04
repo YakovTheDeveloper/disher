@@ -37,6 +37,31 @@ export function useDish(dishId: string | undefined): Dish | null {
   }, [dishes, dishId]);
 }
 
+/**
+ * Как `useDish`, но различает «ещё грузится из Dexie» и «блюда нет» (удалено /
+ * осиротевший id). `useDish` (через `useAllDishes`) коалесит первый undefined-тик
+ * liveQuery в `[]`, поэтому там оба случая неотличимы — вечный `null`. Здесь
+ * liveQuery оборачивает результат в объект: пока промис не разрешён — `undefined`
+ * (loading), после — `{ row }` с найденной строкой ИЛИ `null` (missing). Так
+ * DishDrawer отличает ghost-загрузку от «блюдо не найдено».
+ */
+export function useDishWithStatus(
+  dishId: string | undefined,
+): { dish: Dish | null; loading: boolean } {
+  const result = useLiveQuery(
+    async () => {
+      if (!dishId) return { row: null };
+      const row = await db.dishes.get(dishId);
+      return { row: row ?? null };
+    },
+    [dishId],
+  );
+  return useMemo(() => {
+    if (result === undefined) return { dish: null, loading: true };
+    return { dish: result.row ? mapDishRow(result.row) : null, loading: false };
+  }, [result]);
+}
+
 export function useDishItems(dishId: string | undefined): DishItem[] {
   const items = useAllDishItems();
   return useMemo(() => {

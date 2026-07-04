@@ -1,0 +1,52 @@
+// Боковой дровер блюда (read-only превью, зеркало ProductDrawer). Палитра —
+// нейтральная drawer-обвязка. Стрелка «на страницу блюда» живёт в topRight-слоте
+// обвязки и наследует его тон (`--sys-color-icon`), поэтому тут только тело.
+// Все цвета / размеры / радиусы через токены (token-gate, новый файл обязан
+// проходить).
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+    // Боковой инсет отдан DrawerLayout `contentInset="panel"`; тут вертикальный ритм.
+    padding-block: var(--space-3) var(--space-6);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+}
+
+.ingredients {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ingredientRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sys-inset-panel);
+}
+
+// Имя ужимается в ellipsis, число справа не сдавливается.
+.ingredientName {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ingredientQty {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.empty {
+    padding-block: var(--space-2);
+}

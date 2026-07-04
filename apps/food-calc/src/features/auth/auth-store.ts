@@ -63,6 +63,12 @@ type AuthActions = {
   /** Alias for signOut. */
   logout: () => Promise<void>;
   /**
+   * Begin Telegram OIDC sign-in. Redirects the browser away to Telegram on
+   * success (nothing else runs); only a failure to START the redirect comes
+   * back and is surfaced as an error banner.
+   */
+  signInWithTelegram: () => Promise<void>;
+  /**
    * Re-send the verification email for the account stored in
    * `pendingVerificationEmail`. No-op if there is no pending email. Used by
    * the "check your inbox" view's "send again" button.
@@ -181,6 +187,17 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       pendingVerificationEmail: result.email,
     });
     return true;
+  },
+
+  signInWithTelegram: async () => {
+    set({ isLoading: true, error: null, errorKind: null });
+    const res = await authProvider.signInWithOAuth('telegram', '/');
+    // Success → the browser is navigating to Telegram; this line is only
+    // reached if the redirect could not be started. Keep isLoading on in the
+    // success case so the button stays busy until the page unloads.
+    if (res && !res.ok) {
+      authFail(set, res.error, 'auth.signIn');
+    }
   },
 
   signOut: async () => {

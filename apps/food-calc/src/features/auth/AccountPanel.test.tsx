@@ -28,6 +28,7 @@ const makeStore = (override: Partial<AuthStoreShape> = {}): AuthStoreShape => ({
   signUp: vi.fn(),
   signOut: vi.fn(),
   logout: vi.fn(),
+  signInWithTelegram: vi.fn(),
   requestResendVerification: vi.fn(),
   clearPendingVerification: vi.fn(),
   ...override,

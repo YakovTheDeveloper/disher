@@ -1,8 +1,8 @@
-// HomeHero — декоративная обложка над табами. У каждого слайда свой набор
-// картинок; клик по обложке перелистывает их с crossfade'ом (см. HomeHero.tsx).
+// HomeHero — декоративная обложка над табами. Картинку слайда выбирает юзер в
+// настройках («Обои»); при смене — мягкий fade-in (см. HomeHero.tsx).
 // Живёт В `stickyTop` КАЖДОГО слайда, НАД табами — поэтому контент-лист
 // (`.headerOverlap`, z-index:1) при скролле НАЕЗЖАЕТ на неё (самокат-оверлеер),
-// ровно как и на табы. 3 слайда → 3 обложки. HomeHero рендерит ТОЛЬКО HomePage
+// ровно как и на табы. По обложке на слайд (Рацион / События). HomeHero рендерит ТОЛЬКО HomePage
 // (heroForSlide), всегда под nav-anchor → обложка видна безусловно (баком
 // 2026-06-22, gate по `data-dv-v` снят).
 // z-index НЕ задаём — лист (z-index:1) перекрывает по дефолту.
@@ -101,18 +101,6 @@
     mask-composite: intersect;
 }
 
-// Кликабельный слой — заполняет обложку, на нём висит onClick (смена картинки).
-.hit {
-    position: absolute;
-    inset: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    pointer-events: auto;
-    -webkit-tap-highlight-color: transparent;
-}
-
 .heroImg {
     position: absolute;
     inset: 0;
@@ -135,8 +123,7 @@
 
 // Логотип Disher — белый, full-opacity, по центру сверху над картинкой.
 // Тот же приём, что у Screen-watermark: PNG-силуэт как маска, цвет даёт
-// `background-color` (белый). Лежит НАД картинками; pointer-events:none —
-// тап проваливается на `.hit` ниже (клик по обложке всё равно листает).
+// `background-color` (белый). Лежит НАД картинкой; pointer-events:none.
 .logo {
     position: absolute;
     top: calc(var(--top-bar-h, 60px) + var(--space-2));
@@ -152,14 +139,10 @@
     user-select: none;
 }
 
-// Crossfade: новая картинка проявляется до рабочей непрозрачности (0.7),
-// уходящая — гаснет под ней. Composite-only (opacity).
+// Fade-in новой обложки (при смене выбора в настройках). Composite-only (opacity),
+// до рабочей непрозрачности 0.7.
 .fadeIn {
     animation: heroFadeIn 420ms ease both;
-}
-
-.fadeOut {
-    animation: heroFadeOut 420ms ease both;
 }
 
 @keyframes heroFadeIn {
@@ -172,20 +155,9 @@
     }
 }
 
-@keyframes heroFadeOut {
-    from {
-        opacity: 0.7;
-    }
-
-    to {
-        opacity: 0;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
 
-    .fadeIn,
-    .fadeOut {
+    .fadeIn {
         animation-duration: var(--sys-duration-instant);
     }
 }

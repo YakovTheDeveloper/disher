@@ -73,15 +73,30 @@
     flex-wrap: wrap;
     align-items: baseline;
     column-gap: var(--space-3);
-    row-gap: var(--space-2);
+    row-gap: var(--space-1);
     padding-bottom: var(--space-1);
     padding-inline: var(--space-4);
-    margin-top: -5px;
+    margin-top: -15px;
 
 }
 
 :global([data-nav-align='center']) .tilesRow {
     justify-content: center;
+}
+
+// Навигатор-дровер (единственный center-align консумент) сидит в chrome-ряду
+// дровера, а не под hero-гравюрой SwipeDeck'а — поэтому masthead-lift (см.
+// merge-lift выше + `.tilesRow margin-top:-5px`) тут вреден: он вжимал бы
+// «Навигацию» в скруглённую кромку листа, а абсолютный крестик оставался бы в
+// межстрочье. Гасим оба отрицательных подъёма — ряд встаёт ровно в chrome-band.
+:global([data-nav-align='center']) {
+    .root {
+        margin-top: 0;
+    }
+
+    .tilesRow {
+        margin-top: 0;
+    }
 }
 
 // (Легаси-ряд «листаемые разделы» I · II · III снят 2026-06-26 — аффорданс

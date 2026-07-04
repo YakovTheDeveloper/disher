@@ -1,7 +1,7 @@
 // ActionTile — унифицированный примитив «быстрое действие». Облик ПОВЕРХНОСТИ —
 // «мягкая карточка с тенью» (баком 2026-06-22: форк `grad` снят, выбран `shadow`):
 // белая поверхность + soft-shadow (область клика видна), чёрный текст, без бровки,
-// active = серая заливка, press = инверсия в тёмную карту.
+// press = инверсия в тёмную карту.
 // ── Общий каркас ─────────────────────────────────────────────────────────────
 .tile {
   position: relative;
@@ -18,21 +18,20 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   color: var(--sys-color-text-system);
-  background: var(--sys-color-surface-1);
-  box-shadow: var(--sys-elevation-action-rest);
+  background: var(--sys-color-surface-action-secondary);
+  // Рычаг, не контейнер: тень из семантической семьи action-*, не нумерованной.
+  // rest сидит на «raised»-рунге (ref-shadow-2) — плитка кричит «нажми» на белом-
+  // по-белому; press инвертируется и тень схлопывается к нулю (action-pressed).
   transition: transform 0.12s ease, opacity 0.14s ease, background 0.16s ease;
 
   &:active {
+    box-shadow: var(--sys-elevation-action-raised);
     transform: scale(0.985);
   }
 
   &:disabled {
     cursor: not-allowed;
     opacity: 0.5;
-  }
-
-  &.active {
-    background: var(--sys-card-active);
   }
 
   // Press — инверсия в тёмную карту (stripe-fork press tokens).
@@ -42,6 +41,29 @@
     transform: scale(0.985);
     box-shadow: var(--sys-elevation-action-pressed);
   }
+}
+
+// Приглушённый серый вариант — плоская вторичная плитка. Мягкая нейтральная
+// заливка (soft-action surface) + тихая hairline-кромка вместо «парящей» тени
+// белой карты: читается тише основного ActionTile, годится для второстепенных
+// действий (ряд правок ItemActionsDrawer). Селектор `.tile.muted` (0,2,0) бьёт
+// базовую заливку/тень `.tile`. Press-инверсия в тёмную карту сохраняется (база).
+.tile.muted {
+  background: var(--sys-color-surface-action-system-soft); // stylelint-disable-line scale-unlimited/declaration-strict-value -- semantic secondary-action surface
+  box-shadow: var(--sys-elevation-flat);
+  border: 1px solid var(--sys-color-border-subtle);
+}
+
+// Инверсная карта — тёмная система-поверхность (#0a0a0a floating ink) + светлые
+// чернила. Постоянный аналог press-инверсии для нав-плиток, которые должны
+// «весить» как тёмное действие (нав в раздел, а не белая опция-карточка). Селектор
+// `.tile.inverse` (0,2,0) перебивает базовую заливку/тень `.tile`. Тень плоская —
+// тёмная карта не «парит» на белом дровере, её вес несёт сам цвет. `.top`/`.bottom`
+// наследуют `color` → светлеют вместе с картой.
+.tile.inverse {
+  color: var(--sys-color-text-on-floating);
+  background: var(--sys-color-surface-floating);
+  box-shadow: var(--sys-elevation-flat);
 }
 
 // Текст поверх графики.

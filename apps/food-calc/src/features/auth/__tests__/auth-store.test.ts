@@ -20,6 +20,7 @@ const authProviderMock = {
   signIn: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn(async () => undefined),
+  signInWithOAuth: vi.fn(async () => undefined),
   sendVerificationEmail: vi.fn(),
   onAuthChange: vi.fn(() => () => {}),
   getCurrentUser: vi.fn(() => null),

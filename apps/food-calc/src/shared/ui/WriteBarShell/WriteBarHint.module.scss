@@ -1,0 +1,82 @@
+// WriteBarHint — подсказка-пример над write-баром (Еда/События/Гипотезы). Раскрыва-
+// ется на фокусе (reveal height 0→auto + fade), сам бар не двигает. Извлечена из
+// WriteBarShell 2026-07-05, чтобы блок «Например» + пример переиспользовался.
+//
+// In-flow strip (scrim removed 2026-06-23). Reserves a constant line so revealing
+// the hint on focus doesn't shift the bar; the text fades in. Dark text on the
+// light dock plate instead of white-on-dimmed-screen.
+
+@import '@/shared/assets/style/mixin.scss';
+
+// В покое подсказка НЕ резервирует место (height:0 + clip), чтобы док-подложка
+// не была выше нужного; на фокусе ([data-visible]) разворачивается ВВЕРХ над
+// баром (bottomBar прижат к низу), сам бар на месте.
+.hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    height: 0;
+    padding: 0 var(--space-2);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.hint[data-visible] {
+    height: auto;
+    padding-bottom: var(--space-1);
+    opacity: 1;
+    transform: translateY(0);
+}
+
+// Stacked-режим (Еда): метка-заголовок «Например» отдельной строкой ПО ЦЕНТРУ
+// сверху, пример-тело — строкой ниже. Колонка (флекс уже центрирует по обеим осям);
+// зазор между заголовком и телом несёт верхний padding тела (--space-2), см. `.body`.
+.hint[data-stacked] {
+    flex-direction: column;
+}
+
+// Метка «Например» — serif-italic акцент (голос несёт <QuietLabel>); тут только
+// контекстный цвет + полная непрозрачность (акцент, не «тихий»), как `.accent`.
+// Спецификатор `.hint .label` (0,2,0) НАМЕРЕННО бьёт дефолтный `.quietLabel {
+// opacity: 0.35 }` (0,1,0) НЕЗАВИСИМО от порядка загрузки CSS в бандле — иначе
+// одноклассовая «ничья» решалась бы порядком, и «Например» рисковал бы отрисоваться
+// бледным (0.35). То же ниже у `.accent` (акцент inline-режима).
+.hint .label {
+    color: var(--sys-color-text-primary);
+    opacity: 1;
+}
+
+// Пример-тело под заголовком — тот же caption-голос, что и inline-подсказка: центр,
+// вторичный цвет, pre-line для `\n`-переносов, числовой font-feature для граммовок.
+// Верхний padding --space-2 = зазор от заголовка (по запросу 2026-07-05).
+.body {
+    max-width: 100%;
+    padding: var(--space-2) var(--space-3) 0;
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+    white-space: pre-line;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+// Голос (caption-ярус) несёт примитив <Text role="caption">; здесь — раскладка,
+// цвет и числовой font-feature (tnum/lnum для счётчиков в подсказке). Inline-режим
+// (без метки-заголовка): голый текст-подсказка над баром, не пилюля.
+.inner {
+    max-width: 100%;
+    padding: 4px var(--space-3);
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+    white-space: pre-line;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+// Акцентное первое слово inline-подсказки — serif-italic голос несёт <QuietLabel>;
+// здесь только контекстный цвет + возврат полной непрозрачности (акцент, не «тихий»).
+.hint .accent {
+    color: var(--sys-color-text-primary);
+    opacity: 1;
+}

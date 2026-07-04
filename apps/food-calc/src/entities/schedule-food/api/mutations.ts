@@ -14,6 +14,10 @@ export async function addScheduleFood(params: {
   productId?: string | null;
   dishId?: string | null;
   details?: string | null;
+  /** Опциональный id ряда. Позволяет вызвавшему сгенерить id ЗАРАНЕЕ и пометить
+   *  ряд «только что добавлен» (markAdded) ДО записи — иначе liveQuery смонтирует
+   *  ряд на коммите раньше, чем прилетит флаг, и появление проскочит. */
+  id?: string;
 }): Promise<string> {
   const hasProductId = params.productId != null;
   const hasDishId = params.dishId != null;
@@ -24,7 +28,7 @@ export async function addScheduleFood(params: {
     throw new Error('addScheduleFood: must set either productId or dishId');
   }
 
-  const id = crypto.randomUUID();
+  const id = params.id ?? crypto.randomUUID();
   const row: Omit<ScheduleFoodRow, 'updated_at'> = {
     id,
     date: params.date,

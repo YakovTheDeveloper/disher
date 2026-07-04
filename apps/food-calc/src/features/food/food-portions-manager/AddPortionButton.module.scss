@@ -1,22 +1,33 @@
-// Accent-pill CTA «Добавить порцию». Бывшая sky-палитра сведена на indigo-ярус
-// (--sys-color-surface-accent-soft / --sys-color-text-accent; «indigo вместо navy» 2026-06-25).
+// Accent-pill CTA «Добавить порцию» в НИЖНЕМ ДОКЕ «Порции»-слайда.
+//
+// Раньше `.bar` был прозрачным центрирующим флексом — кнопка «висела» одиноким
+// лозенгом над страницей. Теперь `.bar` = та же raised-плашка, что у WriteBarShell
+// на экране Открытий (Гипотезы): surface-2 + парная тень elevation-2 + скруглённая
+// верхняя кромка дока + боковой инсет страницы. Кнопка тянется на всю ширину и
+// заполняет высоту дока (как поле-пилюля write-бара) → слайд читается единым баром.
 
-// Геометрия повторяет нижний док (AppBottomBar), чтобы слайд читался как
-// единый page-level бар.
+@import '@/shared/assets/style/mixin.scss';
+
 .bar {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-3) var(--space-4) var(--space-4);
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-2) var(--sys-inset-page);
+    background: var(--sys-color-surface-2);
+    @include surface-elevation(2);
+    border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
 }
 
 .button {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-1);
+    width: 100%;
+    min-height: 56px;
     padding: var(--space-3) var(--space-4);
-    min-height: 44px;
     border-radius: var(--sys-radius-indicator);
     border: none;
     background: var(--sys-color-surface-accent-soft);
@@ -25,7 +36,7 @@
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.12s ease, filter var(--press-out) var(--easing-default);
 
-    // Цветной отклик: солидная sky-кнопка — затемнение при нажатии
+    // Цветной отклик: солидная кнопка — затемнение при нажатии.
     &:active {
         filter: brightness(0.9);
         transform: scale(0.97);

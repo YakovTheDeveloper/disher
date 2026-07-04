@@ -46,7 +46,7 @@
 /* .nextLabel / .nextButton removed with the dead NextStepButton component. */
 
 // ── Назад / Далее — общий футер модалок ──────────────────────────────────
-// «Далее/Готово» теперь = `Button variant="primary"` (тёмный CTA-канон), сам
+// «Далее/Готово» теперь = `Button variant="system"` (тёмный CTA-канон), сам
 // несёт вид и press. «Назад» (prevArrow) — светлая полоса, осталась как есть.
 .prevArrow {
   display: flex;

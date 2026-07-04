@@ -1,0 +1,6 @@
+.description {
+    display: block;
+    // Чуть шире межстрочный — читается как абзац-пояснение, а не подпись.
+    line-height: 1.5;
+    padding-block: var(--space-2);
+}

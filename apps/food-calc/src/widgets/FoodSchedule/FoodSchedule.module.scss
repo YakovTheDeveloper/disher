@@ -4,11 +4,10 @@
 // `dv-text` mixin + `$dv-text-*` maps now live in design-variant-palettes.scss
 // so ScheduleEvents shares the exact same foreground system.
 
-.emptyState {
-  padding: var(--space-10) var(--space-4) 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sys-stack-row);
+// Пустое состояние листа (нет еды за день) — общий EmptyState владеет внутренней
+// раскладкой контента; тут только вертикальный воздух сверху под шапкой-датой.
+.empty {
+  padding-top: var(--space-10);
 }
 
 // Лист Рациона. Шапка «Еда и нутриенты» (Masthead) сидит первым ребёнком листа,
@@ -25,24 +24,11 @@
 // по-прежнему МЕНЯЕТСЯ по времени суток (4 TOD-шага, узкая дельта). Форк по
 // `data-dv-v` + night-text re-pin несёт общий миксин `card-palette-set`. Троённый
 // класс держит специфичность (0,4,0) против :root --tod- и юзер-темы.
-// Заголовок-дата в правом-верхнем углу листа (на месте снятого watermark-лого):
-// только крупное имя дня недели (<Heading headline>) — число дня и месяц убраны.
-// `position: absolute` → не толкает список вниз, садится в зону «полки» как раньше
-// логотип. Якорь — `.headerOverlap` (position: relative), который владеет боковым
-// инсетом листа. Воздух вокруг даты держит сам блок (top + padding ниже).
-.dateHeading {
-  position: absolute;
-  top: var(--space-3);
-  right: var(--space-5);
-  z-index: 2;
-  opacity: 0.85;
-}
-
-// Воздух между шапкой-датой (абсолютная, в зоне полки) и первой карточкой еды —
-// дата не в потоке, поэтому отступ держит сам список.
+// Заголовок-дата (крупное имя дня недели) переехал во владение HomePage
+// (2026-07-04) — общий на оба экрана дека, прокидывается в `Screen.topContent`.
+// Стиль `.dateHeading` теперь в `pages/home-page/HomePage.module.scss`.
 .foodListAnchor {
   display: block;
-  margin-top: var(--sys-stack-section);
 }
 
 .foodListAnchor.foodListAnchor.foodListAnchor {

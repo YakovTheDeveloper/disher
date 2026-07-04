@@ -1,0 +1,80 @@
+// DishHero — гравюра-обложка конструктора блюда, над плитками-табами. Живёт в
+// `stickyTop` слайда (SwipeDeck.heroSlot) → контент-лист (`.headerOverlap`) при
+// скролле наезжает на неё. Маски = упрощённый HomeHero (зеркалит AnalysesHero):
+// вертикальный фейд низа в фон + скругление нижних углов «туманом» + белый
+// watermark-лого. z-index не задаём — лист (z-index:1) перекрывает по дефолту.
+.root {
+    display: block;
+    position: relative;
+    margin-top: 0;
+    width: 100%;
+    height: var(--deck-hero-h, calc(var(--top-bar-h, 60px) + 190px));
+    overflow: hidden;
+    // Свайпы по обложке ловит Embla ниже — контейнер прозрачен для указателя
+    // (интерактивна только зона жеста `.hit` WallpaperHero, pointer-events:auto).
+    pointer-events: none;
+
+    // Вертикальный easing-фейд низа в фон (mask по альфе; цвет стопов роли не
+    // играет). Кривая smootherstep — пологая на обоих концах, без видимого шва.
+    --hero-fade-start: 74%;
+    --hero-fade-end: 100%;
+    --hero-fade-span: calc(var(--hero-fade-end) - var(--hero-fade-start));
+    --hero-fade-v: linear-gradient(to bottom,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) var(--hero-fade-start),
+            rgba(0, 0, 0, 0.991) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.1),
+            rgba(0, 0, 0, 0.942) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.2),
+            rgba(0, 0, 0, 0.837) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.3),
+            rgba(0, 0, 0, 0.683) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.4),
+            rgba(0, 0, 0, 0.5) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.5),
+            rgba(0, 0, 0, 0.317) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.6),
+            rgba(0, 0, 0, 0.163) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.7),
+            rgba(0, 0, 0, 0.058) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.8),
+            rgba(0, 0, 0, 0.009) calc(var(--hero-fade-start) + var(--hero-fade-span) * 0.9),
+            rgba(0, 0, 0, 0) var(--hero-fade-end));
+
+    // Скругление нижних углов «туманом» (дуга прозрачности в каждом углу).
+    --hero-corner: 80px;
+    --hero-corner-solid: 90%;
+    --hero-corner-bl: radial-gradient(circle var(--hero-corner) at bottom left, transparent 0%, #000 var(--hero-corner-solid));
+    --hero-corner-br: radial-gradient(circle var(--hero-corner) at bottom right, transparent 0%, #000 var(--hero-corner-solid));
+
+    -webkit-mask-image: var(--hero-fade-v), var(--hero-corner-bl), var(--hero-corner-br);
+    -webkit-mask-composite: source-in;
+    mask-image: var(--hero-fade-v), var(--hero-corner-bl), var(--hero-corner-br);
+    mask-composite: intersect;
+}
+
+.heroImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    // Прижата верхом — кадрируем от верхней кромки (низ тает в фон).
+    object-position: center top;
+    // Боковой фейд, чтобы бока растворялись в фон (верх и середина во всю ширину).
+    --hero-fade-h: linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
+    -webkit-mask-image: var(--hero-fade-h);
+    mask-image: var(--hero-fade-h);
+    opacity: 0.7;
+    user-select: none;
+}
+
+// Логотип Disher — белый masked-PNG, full-opacity, по центру сверху над картинкой
+// (тот же приём, что Screen-watermark: силуэт-маска, цвет даёт background-color).
+.logo {
+    position: absolute;
+    top: calc(var(--top-bar-h, 60px) + var(--space-2));
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 32px;
+    z-index: 2;
+    background-color: var(--sys-color-text-on-accent);
+    -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+    // Тап проваливается на `.hit` (WallpaperHero) ниже — long-press ловится и над лого.
+    pointer-events: none;
+    user-select: none;
+}

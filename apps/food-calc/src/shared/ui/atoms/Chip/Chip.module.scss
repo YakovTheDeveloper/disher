@@ -25,7 +25,8 @@
   color: var(--sys-chip-text, var(--sys-card-text-rest));
   cursor: pointer;
   transition: background var(--press-out) ease, color var(--press-out) ease,
-    transform var(--press-out) ease, box-shadow 140ms ease;
+    transform var(--press-out) ease, box-shadow 140ms ease,
+    border-color var(--press-out) ease;
 }
 
 // хост surface-1+ (лист/дровер): чип поднимается до белого (surface-2). Объявлено ДО
@@ -65,4 +66,57 @@
   background: var(--sys-color-bg-selected);
   color: var(--sys-color-text-on-selected);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (amber), color-mix не снапается на --sys-elevation-* */
+}
+
+// ─── Variant: outline (второй селект-скин) ─────────────────────────────────
+// Инверсия fill-схемы: покой = ПРИПОДНЯТ (elevation-action-rest на любом хосте),
+// выбранный = ПЛОСКИЙ + ink-рамка + жирнее текст, тот же фон (butter НЕ участвует —
+// сигнал несут снятие тени + рамка + вес). Геометрия стабильна: рамка резервируется
+// прозрачной в покое (1px в обоих состояниях). Живой консумер — фильтр разборов
+// (/analyses · AnalysesSlide).
+//
+// Фон press/select НАДО restate явно: fill-правила `.chip:active` / `.chip.active`
+// (butter, 0-2-0) иначе бы залили. Заливка «покоя» зависит от surface-тира хоста,
+// а `background` гейтится только на `var(--sys-…)` (локальный var не пройдёт), поэтому
+// surface-1/2 повторяются напрямую. Специфичность: `.chip.outline.active` (0-3-0) >
+// fill-правил (0-2-0); `.chip.outline.onSheet…` (0-4-0) кроет base-тир внутри скина.
+.chip.outline {
+  border: 1px solid transparent;
+  box-shadow: var(--sys-elevation-action-rest);
+}
+
+.chip.outline:hover {
+  box-shadow: var(--sys-elevation-action-hover);
+}
+
+// press + select делят фон «покоя» (тот же тир) + гашение butter-цвета текста.
+.chip.outline:active,
+.chip.outline.active {
+  background: var(--sys-color-surface-1); // хост surface-0 (база)
+  color: var(--sys-chip-text, var(--sys-card-text-rest));
+}
+
+.chip.outline.onSheet:active,
+.chip.outline.onSheet.active {
+  background: var(--sys-color-surface-2); // хост surface-1+ (лист/дровер)
+}
+
+// press: без butter — компрессия тени + scale.
+.chip.outline:active {
+  box-shadow: var(--sys-elevation-action-pressed);
+  transform: scale(0.96);
+  transition-duration: var(--sys-duration-press-in);
+}
+
+// selected: плоский (тень снята) + ink-рамка. Ниже press-правила в исходнике —
+// при равной специфичности (0-3-0) выбранный остаётся плоским даже во время нажатия.
+.chip.outline.active {
+  border-color: var(--sys-color-border-action-system);
+  box-shadow: none;
+}
+
+// Жирнее текст выбранного: перекрываем вес роли `label` (600) на <Text> span.
+// Селектор 0-3-1 кроет `.label` примитива Text (0-1-0). font-weight вне гейтов.
+.chip.outline.active span {
+  font-weight: 700;
 }

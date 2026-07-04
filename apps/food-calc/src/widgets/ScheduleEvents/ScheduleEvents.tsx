@@ -5,6 +5,7 @@ import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
 import clsx from 'clsx';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { Screen, type TopBarHideTarget } from '@/shared/ui/Screen';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { groupItemsByTime } from '@/shared/lib/schedule';
@@ -27,11 +28,16 @@ type Props = {
   date: string;
   events: ScheduleEvent[];
   topSlot?: React.ReactNode;
+  /**
+   * Заголовок-дата в верхнем слоте `Screen`. Владелец — HomePage (общий на оба
+   * экрана дека); ScheduleEvents только прокидывает его в `Screen.topContent`.
+   */
+  topContent?: React.ReactNode;
   /** Прокидывается в `Screen` → направление-зависимое скрытие кнопок бара. */
   topBarHide?: TopBarHideTarget;
 };
 
-const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
+const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
   // DesignBar anchor: ОБЩИЙ ключ палитры карточек — один контрол красит еду, блюдо
@@ -69,6 +75,9 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       stickyTop={topSlot}
       headerOverlap
       topBarHide={topBarHide}
+      // Дата дня — общий элемент, построенный HomePage (2026-07-04); экран только
+      // прокидывает его в верхний слот листа.
+      topContent={topContent}
       overlay={
         editingItem && (
           <ScheduleEventEditModal
@@ -82,6 +91,13 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
       bottomBar={<EventsWriteBar scheduleId={date} />}
     >
       <Heading role="display" masthead as="h2">События дня</Heading>
+      {events.length === 0 ? (
+        <EmptyState
+          className={styles.empty}
+          title="Событий пока нет"
+          description="Отмечайте самочувствие, симптомы, сон — всё, что заметили за день. Потом это ложится в разбор."
+        />
+      ) : (
       <section {...anchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList>
             {(() => {
@@ -121,6 +137,7 @@ const ScheduleEvents = ({ date, events, topSlot, topBarHide }: Props) => {
             })()}
         </ItemsList>
       </section>
+      )}
     </Screen>
   );
 };

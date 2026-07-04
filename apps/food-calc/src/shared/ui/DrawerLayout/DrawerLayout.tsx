@@ -58,6 +58,34 @@ type Props = {
    */
   hideTopChrome?: boolean;
   /**
+   * Chromeless-but-closable mode: drop the drag-handle row (so the body starts
+   * flush at the very top and the consumer can put its OWN construction there —
+   * e.g. ScheduleNavigator's «Навигация / Активные дни» tab row), yet keep the
+   * Close cross floating `position: absolute` in the top-left corner over the
+   * content instead of reserving a flex row for it. Unlike `hideTopChrome` (which
+   * removes the cross entirely), the cross stays — just detached from layout flow.
+   * There's no visible title / topRight / onBack in this mode; pass `a11yLabel`
+   * for the sr-only accessible name. If the consumer's top content is left-
+   * aligned, center it (or inset it) so it doesn't sit under the corner cross.
+   */
+  floatingClose?: boolean;
+  /**
+   * Custom header content for the chrome row's CENTER slot (compound-slot
+   * pattern — shadcn/Radix `DrawerHeader`, Ant `title` node). Use when the
+   * built-in `title`/`subtitle` can't express your header (e.g. a segmented
+   * control / search row). DrawerLayout keeps owning the row geometry: the
+   * leading Close cross (or `onBack`) stays absolute-left, `topRight` stays
+   * absolute-right, and your node sits in a SYMMETRIC center band — equal
+   * `--sys-inset-panel + --sys-size-control` gutters on BOTH sides. That
+   * symmetry is what keeps the content geometrically centered on the row despite
+   * the left-only cross, so it never slides under it. The row grows for taller
+   * content but keeps the min chrome height, so a short header still looks like
+   * the default drawer. Takes precedence over `title`/`subtitle` (ignored); pass
+   * `a11yLabel` for the sr-only accessible name. For content that is NOT
+   * header-shaped and wants the full width edge-to-edge, use `floatingClose`.
+   */
+  header?: React.ReactNode;
+  /**
    * Top/bottom scroll-fade hints on the scroll area (the sticky white→transparent
    * gradients that dissolve content at the edges to signal "more above/below").
    * Defaults to `true`. Pass `false` for short form-style drawers whose own footer
@@ -66,11 +94,18 @@ type Props = {
    */
   scrollHints?: boolean;
   /**
-   * Optional side-padding (`padding-inline`) on the scroll area, deduping the
-   * one boilerplate ~80% of drawers repeat. Canon stays «content owns padding» —
-   * this hangs ONLY the horizontal inset token (`panel` = 12, `sheet` = 24);
-   * vertical padding still belongs to the drawer body. Default `'none'` is the
-   * back-compat no-op (full-bleed drawers untouched).
+   * Side-padding (`padding-inline`) on the scroll area. Deduped into the layout so
+   * consumers stop repeating `padding-inline: var(--sys-inset-sheet)` in every
+   * `.body`. Canon evolved (2026-07-03): «surface owns bg + side inset + the
+   * title→content top gap; content owns only the bottom padding».
+   *
+   * Default (prop omitted) is SIDE-AWARE — bottom drawers inset the body by
+   * `--drawer-inset` (= `sheet` 24, so the body lines up with the leading Close
+   * cross by construction) AND get the unified 12px title→content top gap; side
+   * drawers stay full-bleed (0). Pass `'none'` to opt a bottom drawer OUT of the
+   * side inset (full-bleed, e.g. ScheduleNavigator's edge-to-edge tab panels);
+   * `'panel'` (12) / `'sheet'` (24) to force an explicit inset (side drawers that
+   * want a body inset pass `'panel'`).
    */
   contentInset?: 'panel' | 'sheet' | 'none';
 };
@@ -86,8 +121,10 @@ const DrawerLayout = ({
   className,
   a11yLabel,
   hideTopChrome,
+  floatingClose,
+  header,
   scrollHints = true,
-  contentInset = 'none',
+  contentInset,
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -105,7 +142,9 @@ const DrawerLayout = ({
 
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
   // accessible name + visible heading) when the chrome row is on screen.
-  const showVisibleTitle = title != null && !hideTopChrome;
+  // `header` (custom center node) takes precedence over the built-in title path.
+  const showVisibleTitle =
+    title != null && !hideTopChrome && !floatingClose && header == null;
 
   const style = width
     ? ({ '--side-drawer-width': width } as CSSProperties)
@@ -148,18 +187,45 @@ const DrawerLayout = ({
         />
       )}
       <div className={styles.panel}>
-        {!hideTopChrome && (
+        {/*
+          floatingClose — chromeless layout: no drag-handle row, but the Close
+          cross floats absolutely in the top-left corner over the body. Resolves
+          against `.panel` (side drawers, position: relative) / `.content`
+          (bottom drawers, where `.panel` is display:contents) — both give the
+          top-left of the visible panel. Rendered before Drawer.Content so it
+          sits above the scroll body via z-index.
+        */}
+        {floatingClose && (
+          <Drawer.Close
+            onClick={(e) => e.stopPropagation()}
+            render={
+              <IconButton
+                className={styles.floatingClose}
+                aria-label={t('overlay.drawer.close', 'Закрыть')}
+                icon={<CrossIcon width={16} height={16} />}
+              />
+            }
+          />
+        )}
+        {!hideTopChrome && !floatingClose && (
           <div
             className={clsx(
               styles.dragHandle,
               showVisibleTitle && subtitle != null && styles.dragHandleStacked,
+              header != null && styles.dragHandleHeader,
+              // Side drawers left-align the built-in title (space-saving); bottom
+              // drawers keep it centered. Only the built-in title path — custom
+              // `header` keeps its symmetric centered band.
+              showVisibleTitle && isSide && styles.dragHandleSideTitle,
             )}
           >
             {/*
               Крест/стрелка/урна — ОДИН примитив IconButton (neutral/danger),
-              одна сетка (.chromeSlot, --sys-size-control тап-арея, глиф 24).
-              Раньше крест шёл сырым SVG в Drawer.Close + `_back {opacity:0.2}` —
-              два разных механизма. «Тихость» теперь несёт neutral-тон, не opacity.
+              одна сетка (.chromeSlot, --sys-size-control=44 тап-арея). Видимый
+              глиф намеренно мельче тап-ареи (16) — «тихость» несёт размер+тонкий
+              штрих (form), а не заниженный контраст; хит-арея остаётся 44 (touch
+              floor). Оптическая кромка глифа держится на линии тела за счёт
+              лево-джастификации в коробке (.chromeSlot.topLeft), независимо от 16.
             */}
             {onBack ? (
               <IconButton
@@ -169,7 +235,7 @@ const DrawerLayout = ({
                   onBack();
                 }}
                 aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
-                icon={<ArrowLeftIcon width={20} height={20} />}
+                icon={<ArrowLeftIcon width={16} height={16} />}
               />
             ) : (
               <Drawer.Close
@@ -178,11 +244,18 @@ const DrawerLayout = ({
                   <IconButton
                     className={clsx(styles.chromeSlot, styles.topLeft)}
                     aria-label={t('overlay.drawer.close', 'Закрыть')}
-                    icon={<CrossIcon width={20} height={20} />}
+                    icon={<CrossIcon width={16} height={16} />}
                   />
                 }
               />
             )}
+            {/*
+              Custom header center slot. Symmetric gutters (.headerSlot padding)
+              keep the node truly centered on the row despite the absolute
+              cross (left) / topRight (right). Exactly one Drawer.Title still
+              exists — the sr-only one above (showVisibleTitle is false here).
+            */}
+            {header != null && <div className={styles.headerSlot}>{header}</div>}
             {showVisibleTitle &&
               (subtitle != null ? (
                 <div className={styles.titleStack}>
@@ -212,6 +285,7 @@ const DrawerLayout = ({
           className={clsx(
             styles.scrollableContent,
             !scrollHints && styles.noScrollHints,
+            contentInset === 'none' && styles.contentInsetNone,
             contentInset === 'panel' && styles.contentInsetPanel,
             contentInset === 'sheet' && styles.contentInsetSheet,
           )}

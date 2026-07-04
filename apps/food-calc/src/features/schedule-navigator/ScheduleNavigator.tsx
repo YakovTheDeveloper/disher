@@ -1,9 +1,30 @@
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { addDays, differenceInCalendarDays, format, isSameDay, subDays } from 'date-fns';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type HTMLAttributes,
+} from 'react';
+import { createPortal } from 'react-dom';
+import {
+  addDays,
+  differenceInCalendarDays,
+  format,
+  getDay,
+  getDaysInMonth,
+  isSameDay,
+  startOfMonth,
+  subDays,
+} from 'date-fns';
 import { ru } from 'date-fns/locale';
+import clsx from 'clsx';
+import useEmblaCarousel from 'embla-carousel-react';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { ActionTile, ArrowGlyph } from '@/shared/ui/atoms/ActionTile';
-import { QuietLabel, Numeral, Text } from '@/shared/ui/atoms/Typography';
+import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { deriveFilledDates, useFilledDateKeys, useToday } from './hooks';
 import { DATE_FORMAT, groupByMonth, parseKeys, type ParsedDay } from './lib';
@@ -16,16 +37,25 @@ interface Props {
   /** Выравнивание ряда табов: `left` (дефолт) / `center`. Ставит `data-nav-align`
    *  на `.tabRow` (см. SwitcherTab / ScreenIndicator). */
   align?: 'left' | 'center';
+  /**
+   * Опциональный DOM-хост, в который ряд табов рендерится через `createPortal`
+   * (вместо inline над панелями). Используется дровером: табы переезжают в
+   * `header`-слот DrawerLayout (chrome-ряд), а тело несёт только панели-слайдер.
+   * Портал сохраняет React-дерево — все хендлеры/Embla-состояние табов живут как
+   * прежде, меняется лишь позиция в DOM. Не задан → табы рендерятся inline
+   * (дефолт: HomeTopBar / DishBuilder / UiKit не трогаются).
+   */
+  tabPortal?: HTMLElement | null;
 }
 
 type NavTab = 'quick' | 'active';
 
 // Два режима навигатора как ряд табов HomePage. Index ↔ tab по порядку.
-// «Навигация» — якоря вчера/сегодня/завтра (частый прыжок); «Активные дни» —
-// все дни с записями чипами. Дефолт — всегда 'quick'.
+// «Навигация» — якоря вчера/завтра (частый прыжок); «Активные дни» —
+// мини-календари по месяцам (дни с записями). Дефолт — всегда 'quick'.
 const NAV_TAB_ORDER: NavTab[] = ['quick', 'active'];
 const NAV_SCREENS: ScreenEntry[] = [
-  { label: 'Перейти к', titleStyle: 'display-sans' },
+  { label: 'Навигация', titleStyle: 'display-sans' },
   { label: 'Активные дни', titleStyle: 'display-sans' },
 ];
 
@@ -33,12 +63,18 @@ const NAV_SCREENS: ScreenEntry[] = [
 // начнёт скроллиться внутри (drawer «дышит» под текущую панель до этого потолка).
 const PANEL_MAX_VH = 0.56;
 
-// ─── DayRow (anchors — three ActionTiles) ──────────────────────────────────
-// Вчера/Сегодня/Завтра как общий примитив `ActionTile` (унификация 2026-06-21):
-// относительное слово сверху (heading-голос), дата снизу (короткий день недели ·
-// dd.mm), глиф справа — стрелка ←/→ для вчера/завтра, точка для «сегодня». today
-// несёт active («ты здесь»), выбранный — emphasis, «есть записи» — тихую точку.
-// Облик поверхности (grad / shadow) приходит с контейнера через design-variant.
+// `inert` убирает неактивную панель из tab-order + a11y-дерева (её кнопки уехали
+// за край, но живут в DOM ради замера/свайпа Embla). @types/react@18 ещё не знает
+// `inert` (React-19 runtime его чтит, как и сам DOM) → прокидываем через spread с
+// приведением типа. Пусто → панель интерактивна.
+const inertWhen = (on: boolean) =>
+  (on ? { inert: '' } : {}) as unknown as HTMLAttributes<HTMLElement>;
+
+// ─── DayRow (anchors — two ActionTiles) ────────────────────────────────────
+// Вчера/Завтра как общий примитив `ActionTile` (унификация 2026-06-21; «сегодня»
+// убрано из быстрой навигации 2026-07-03): относительное слово сверху (heading-
+// голос), дата снизу (короткий день недели · dd.mm), глиф справа — стрелка ←/→.
+// Выбранный день несёт emphasis, «есть записи» — тихую точку.
 interface DayRowProps {
   day: ParsedDay;
   today: Date;
@@ -50,106 +86,185 @@ interface DayRowProps {
 const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect }: DayRowProps) {
   const handleClick = useCallback(() => onSelect(day.dateStr), [day.dateStr, onSelect]);
 
-  const isToday = isSameDay(day.date, today);
   const diff = differenceInCalendarDays(day.date, today);
-  // На quick-табе всегда вчера/сегодня/завтра; weekday — безопасный fallback.
+  // На quick-табе всегда вчера/завтра; weekday — безопасный fallback.
   const relativeLabel =
-    diff === 0 ? 'сегодня' : diff === -1 ? 'вчера' : diff === 1 ? 'завтра' : format(day.date, 'EEEE', { locale: ru });
+    diff === -1 ? 'вчера' : diff === 1 ? 'завтра' : format(day.date, 'EEEE', { locale: ru });
 
-  // 'EEEEEE' = short standalone weekday in ru ("пн", "вт", …) — тот же формат,
-  // что у пилюли бара (DayChip тоже). dd.MM — моноширинные цифры даты.
+  // 'EEEEEE' = short standalone weekday in ru ("пн", "вт", …). dd.MM — дата.
   const weekdayShort = format(day.date, 'EEEEEE', { locale: ru });
   const ddmm = format(day.date, 'dd.MM');
 
-  // Глиф направления: вчера ← / сегодня • / завтра → (fallback-дни без глифа).
-  const glyphDir = diff === 0 ? 'dot' : diff === -1 ? 'left' : diff === 1 ? 'right' : undefined;
+  // Глиф направления: вчера ← / завтра → (fallback-дни без глифа).
+  const glyphDir = diff === -1 ? 'left' : diff === 1 ? 'right' : undefined;
 
   return (
     <ActionTile
       data-date={day.dateStr}
       top={relativeLabel}
+      inverse={relativeLabel === 'завтра'}
       bottom={`${weekdayShort} · ${ddmm}`}
       art={glyphDir ? <ArrowGlyph dir={glyphDir} /> : undefined}
-      active={isToday}
-      emphasis={isSelected && !isToday}
+      emphasis={isSelected}
       dot={isFilled}
       onClick={handleClick}
     />
   );
 });
 
-// ─── DayChip (past — compact, flex-wrap) ───────────────────────────────────
-interface DayChipProps {
-  day: ParsedDay;
+// ─── MonthCalendar (active-days — real 7-col mini-grid) ────────────────────
+// Настоящая календарная решётка пн→вс на месяц: активные дни (есть записи) —
+// яркие тапаемые ячейки, пустые — тусклый контекст (нетапаемые). Форма данных
+// («логировал первую половину месяца, потом бросил») читается тепловой картой —
+// то, что теряла лента жирных строк. today — кольцо, выбранный — заливка.
+// Monday-first: локаль ru; смещение первого дня = (getDay+6)%7.
+const WEEKDAY_LABELS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+
+interface MonthCalendarProps {
+  monthDate: Date;
+  name: string;
+  year: string;
+  filledSet: Set<DateStr>;
   today: Date;
-  isSelected: boolean;
+  selectedDate?: DateStr;
   onSelect: (dateStr: DateStr) => void;
 }
 
-const DayChip = memo(function DayChip({ day, today, isSelected, onSelect }: DayChipProps) {
-  const handleClick = useCallback(() => onSelect(day.dateStr), [day.dateStr, onSelect]);
-  const isToday = isSameDay(day.date, today);
-  const dayNumber = format(day.date, 'd');
-  // 'EEEEEE' = short standalone in ru locale ("пн", "вт", ...). Compact and
-  // unambiguous unlike narrow 1-char form.
-  const weekdayShort = format(day.date, 'EEEEEE', { locale: ru });
+const MonthCalendar = memo(function MonthCalendar({
+  monthDate,
+  name,
+  year,
+  filledSet,
+  today,
+  selectedDate,
+  onSelect,
+}: MonthCalendarProps) {
+  const monthStart = startOfMonth(monthDate);
+  const daysInMonth = getDaysInMonth(monthStart);
+  const lead = (getDay(monthStart) + 6) % 7; // сколько пустых ячеек до 1-го числа
 
-  const className = [s.dayChip, isToday && s.dayChipToday, isSelected && s.dayChipSelected]
-    .filter(Boolean)
-    .join(' ');
+  const cells: Array<number | null> = [];
+  for (let i = 0; i < lead; i += 1) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d += 1) cells.push(d);
 
   return (
-    <button type="button" className={className} onClick={handleClick} data-date={day.dateStr}>
-      <Numeral
-        as="span"
-        size="display"
-        weight={isSelected ? 'semibold' : 'regular'}
-        className={s.dayChipNumber}
-      >
-        {dayNumber}
-      </Numeral>
-      <Text as="span" role="caption" className={s.dayChipWeekday}>
-        {weekdayShort}
-      </Text>
-    </button>
+    <div className={s.month}>
+      <QuietLabel className={s.monthName}>
+        {name}
+        {"'"}
+        {year}
+      </QuietLabel>
+      <div className={s.weekdayRow} aria-hidden>
+        {WEEKDAY_LABELS.map((w) => (
+          <Text key={w} as="span" role="caption" className={s.weekday}>
+            {w}
+          </Text>
+        ))}
+      </div>
+      <div className={s.grid}>
+        {cells.map((d, i) => {
+          if (d === null) return <span key={`b${i}`} className={s.blank} aria-hidden />;
+          const date = addDays(monthStart, d - 1);
+          const dateStr = format(date, DATE_FORMAT) as DateStr;
+          const isActive = filledSet.has(dateStr);
+          const isToday = isSameDay(date, today);
+          const isSelected = dateStr === selectedDate;
+
+          // Пустой день = тихий контекст (не кнопка). Только активные тапаемы —
+          // семантика таба «Активные дни»; прыжок на пустой день живёт на quick.
+          if (!isActive) {
+            return (
+              <span
+                key={dateStr}
+                className={clsx(s.cell, s.cellEmpty, isToday && s.cellToday)}
+                aria-hidden
+              >
+                {d}
+              </span>
+            );
+          }
+          return (
+            <button
+              key={dateStr}
+              type="button"
+              data-date={dateStr}
+              aria-current={isToday ? 'date' : undefined}
+              aria-pressed={isSelected}
+              className={clsx(
+                s.cell,
+                s.cellActive,
+                isToday && s.cellToday,
+                isSelected && s.cellSelected
+              )}
+              onClick={() => onSelect(dateStr)}
+            >
+              {d}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 });
 
 // ─── ScheduleNavigator ─────────────────────────────────────────────────────
-export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Props) => {
+export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabPortal }: Props) => {
   const today = useToday();
   const filledKeys = useFilledDateKeys();
 
   // Дефолт — всегда «Быстрая навигация» (якоря). «Активные дни» — явный тап/свайп.
   const [tab, setTab] = useState<NavTab>('quick');
 
-  // Горизонтальный CSS scroll-snap слайдер: viewport со снапом + две панели по
-  // 100% ширины. Таб ↔ панель синхронизированы в обе стороны (клик скроллит,
-  // свайп обновляет таб). Высота viewport «дышит» под активную панель.
-  const viewportRef = useRef<HTMLDivElement>(null);
+  // Слайдер = Embla (тот же движок, что во всём приложении — Swipeable). Клик по
+  // табу → `emblaApi.scrollTo(i)` (надёжно, в отличие от прежнего нативного
+  // `scroll-snap: x mandatory` + `scrollTo({smooth})`, который iOS WebKit
+  // отменял); свайп → событие `select` двигает таб. `.viewport` = Embla-root
+  // (overflow hidden), `.track` = Embla-container (flex-ряд слайдов). Высота
+  // viewport «дышит» под активную панель (Embla трогает только горизонталь).
   const quickInnerRef = useRef<HTMLDivElement>(null);
   const activeInnerRef = useRef<HTMLDivElement>(null);
   const [viewportH, setViewportH] = useState<number>();
 
-  // Клик по табу → плавный снап к его панели. setTab — оптимистично; свайп всё
-  // равно подтвердит через onViewportScroll.
-  const handleTabSelect = useCallback((i: number) => {
-    setTab(NAV_TAB_ORDER[i] ?? 'quick');
-    const vp = viewportRef.current;
-    if (vp) vp.scrollTo({ left: i * vp.clientWidth, behavior: 'smooth' });
-  }, []);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    axis: 'x',
+    loop: false,
+    containScroll: 'trimSnaps',
+    duration: 20,
+    watchResize: true,
+  });
 
-  // Свайп → активный таб по ближайшей панели (functional-guard гасит лишние
-  // ре-рендеры на каждом scroll-тике).
-  const onViewportScroll = useCallback(() => {
-    const vp = viewportRef.current;
-    if (!vp || vp.clientWidth === 0) return;
-    const idx = Math.round(vp.scrollLeft / vp.clientWidth);
-    const next = NAV_TAB_ORDER[idx] ?? 'quick';
-    setTab((prev) => (prev === next ? prev : next));
-  }, []);
+  const tabIndex = tab === 'quick' ? 0 : 1;
 
-  const todayStr = useMemo(() => format(today, DATE_FORMAT), [today]);
+  // Клик по табу → Embla доедет до панели; setTab оптимистично (событие `select`
+  // подтвердит). Свайп сам стрельнёт `select` → setTab.
+  const handleTabSelect = useCallback(
+    (i: number) => {
+      setTab(NAV_TAB_ORDER[i] ?? 'quick');
+      emblaApi?.scrollTo(i);
+    },
+    [emblaApi]
+  );
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => {
+      const next = NAV_TAB_ORDER[emblaApi.selectedScrollSnap()] ?? 'quick';
+      setTab((prev) => (prev === next ? prev : next));
+    };
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi]);
+
+  // Дровер въезжает анимацией — на первом кадре Embla может снять кривую ширину
+  // слайда (см. тот же rAF-reInit в Swipeable). Переснимаем после первого paint'а.
+  useEffect(() => {
+    if (!emblaApi) return;
+    const id = requestAnimationFrame(() => emblaApi.reInit());
+    return () => cancelAnimationFrame(id);
+  }, [emblaApi]);
+
   const yesterdayStr = useMemo(() => format(subDays(today, 1), DATE_FORMAT), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), DATE_FORMAT), [today]);
 
@@ -166,10 +281,9 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
   const anchors: ParsedDay[] = useMemo(
     () => [
       { date: yesterday, dateStr: yesterdayStr },
-      { date: today, dateStr: todayStr },
       { date: addDays(today, 1), dateStr: tomorrowStr },
     ],
-    [yesterday, yesterdayStr, today, todayStr, tomorrowStr]
+    [yesterday, yesterdayStr, today, tomorrowStr]
   );
 
   const handleSelect = useCallback((dateStr: DateStr) => onSelect(dateStr), [onSelect]);
@@ -192,21 +306,27 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
   }, []);
 
   useLayoutEffect(() => {
-    // The active section is mounted only while its tab is open (ref is null on
-    // the quick tab), so this runs when the user switches to «Активные дни».
+    // Runs when «Активные дни» is active. Depends on `viewportH` so it re-centres
+    // AFTER the breathing-height effect resizes the section (else centring is
+    // computed against the stale, shorter quick-tab height). We set scrollTop
+    // DIRECTLY on the known scroller (not `scrollIntoView`) — `scrollIntoView`
+    // walks up through the Embla `translateX` container and can nudge the slider
+    // horizontally.
     const wrap = activeSectionRef.current;
     if (!wrap || tab !== 'active' || !hasActive) return;
     if (selectedInActive) {
       const target = wrap.querySelector<HTMLElement>(`[data-date="${selectedDate}"]`);
       if (target) {
-        target.scrollIntoView({ block: 'center', behavior: 'auto' });
+        const tr = target.getBoundingClientRect();
+        const wr = wrap.getBoundingClientRect();
+        wrap.scrollTop += tr.top - wr.top - (wrap.clientHeight - tr.height) / 2;
         updateFades();
         return;
       }
     }
     wrap.scrollTop = wrap.scrollHeight;
     updateFades();
-  }, [tab, hasActive, filledAsc, selectedDate, selectedInActive, updateFades]);
+  }, [tab, hasActive, filledAsc, selectedDate, selectedInActive, viewportH, updateFades]);
 
   // «Дыхание» высоты: меряем НАТУРАЛЬНУЮ высоту контента активной панели
   // (inner-обёртка без height-ограничений) и ставим её на viewport с transition,
@@ -224,89 +344,93 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left' }: Pr
     return () => window.removeEventListener('resize', measure);
   }, [tab, filledAsc, hasActive]);
 
+  // Ряд табов = тот же ScreenIndicator + вшитый NavSwitcher-облик, что на
+  // HomePage (numerals-left по умолчанию). bandImg={false}: картинок нет. Когда
+  // задан `tabPortal`, ряд едет в header-слот дровера через createPortal
+  // (React-дерево цело → хендлеры/Embla-состояние сохраняются); иначе inline.
+  const tabRow = (
+    <div className={s.tabRow} data-nav-align={align}>
+      <ScreenIndicator
+        screens={NAV_SCREENS}
+        activeIndex={tabIndex}
+        onSelect={handleTabSelect}
+        bandImg={false}
+        // Внутри дровера masthead-регистр (display 46px) кричит над списком из
+        // трёх строк — просим headline (28px): заголовок-переключатель, не постер.
+        titleRole="headline"
+        tablistLabel="Режим навигации"
+      />
+    </div>
+  );
+
   return (
     <div className={s.shell}>
-      {/* Ряд табов = тот же ScreenIndicator + вшитый NavSwitcher-облик, что на
-          HomePage (numerals-left по умолчанию). bandImg={false}: картинок нет. */}
-      <div className={s.tabRow} data-nav-align={align}>
-        <ScreenIndicator
-          screens={NAV_SCREENS}
-          activeIndex={tab === 'quick' ? 0 : 1}
-          onSelect={handleTabSelect}
-          bandImg={false}
-          tablistLabel="Режим навигации"
-        />
-      </div>
+      {tabPortal ? createPortal(tabRow, tabPortal) : tabRow}
 
-      {/* Слайдер: горизонтальный scroll-snap. Высота — от активной панели
-          (дышит). `data-base-ui-swipe-ignore`: горизонтальный драг не должен
-          триггерить вертикальный swipe-to-close bottom-sheet'а. */}
+      {/* Слайдер: Embla (`emblaRef` = root). Высота viewport «дышит» под активную
+          панель. `data-base-ui-swipe-ignore`: горизонтальный драг не должен
+          триггерить вертикальный swipe-to-close bottom-sheet'а. Неактивная панель
+          — `inert`: убрана из tab-order и a11y-дерева (её кнопки уезжают за край,
+          но остаются в DOM ради замера/свайпа). */}
       <div
         className={s.viewport}
-        ref={viewportRef}
-        onScroll={onViewportScroll}
+        ref={emblaRef}
         style={viewportH ? { height: `${viewportH}px` } : undefined}
         data-base-ui-swipe-ignore=""
       >
-        <section className={s.panel} aria-hidden={tab !== 'quick'} aria-label="Перейти к">
-          <div className={s.anchorList} ref={quickInnerRef}>
-            {/* Колонка плиток ActionTile под общим design-variant 'ActionTile'. */}
-            <div className={s.navList}>
-              {anchors.map((d) => (
-                <DayRow
-                  key={d.dateStr}
-                  day={d}
-                  today={today}
-                  isFilled={filledSet.has(d.dateStr)}
-                  isSelected={selectedDate === d.dateStr}
-                  onSelect={handleSelect}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className={s.panel} aria-hidden={tab !== 'active'} aria-label="Активные дни">
-          {hasActive ? (
-            <div
-              className={s.activeSection}
-              ref={activeSectionRef}
-              onScroll={updateFades}
-              data-fade-top={fades.top || undefined}
-              data-fade-bottom={fades.bottom || undefined}
-            >
-              <div ref={activeInnerRef}>
-                {activeGroups.map((g) => (
-                  // Month name is the first inline item of the chip row — chips
-                  // have no backing, so it shows through the wrap flow without
-                  // claiming a column.
-                  <div key={g.key} className={s.chipRow}>
-                    <QuietLabel className={s.monthName}>
-                      <span>
-                        {g.name}
-                        {"'"}
-                      </span>
-                      <span>{g.year}</span>
-                    </QuietLabel>
-                    {g.items.map((d) => (
-                      <DayChip
-                        key={d.dateStr}
-                        day={d}
-                        today={today}
-                        isSelected={selectedDate === d.dateStr}
-                        onSelect={handleSelect}
-                      />
-                    ))}
-                  </div>
+        <div className={s.track}>
+          <section className={s.panel} {...inertWhen(tab !== 'quick')} aria-label="Перейти к">
+            <div className={s.anchorList} ref={quickInnerRef}>
+              {/* Колонка плиток ActionTile под общим design-variant 'ActionTile'. */}
+              <div className={s.navList}>
+                {anchors.map((d) => (
+                  <DayRow
+                    key={d.dateStr}
+                    day={d}
+                    today={today}
+                    isFilled={filledSet.has(d.dateStr)}
+                    isSelected={selectedDate === d.dateStr}
+                    onSelect={handleSelect}
+                  />
                 ))}
               </div>
             </div>
-          ) : (
-            <div className={s.empty} ref={activeInnerRef}>
-              <EmptyState title="Пока нет дней с записями" />
-            </div>
-          )}
-        </section>
+          </section>
+
+          <section className={s.panel} {...inertWhen(tab !== 'active')} aria-label="Активные дни">
+            {hasActive ? (
+              <div
+                className={s.activeSection}
+                ref={activeSectionRef}
+                onScroll={updateFades}
+                data-fade-top={fades.top || undefined}
+                data-fade-bottom={fades.bottom || undefined}
+              >
+                {/* padding живёт на ИЗМЕРЯЕМОМ узле (не на .activeSection), иначе
+                    24px верхнего отступа не входят в offsetHeight → панель на 24px
+                    короче контента → ложный скролл. */}
+                <div className={s.activeInner} ref={activeInnerRef}>
+                  {activeGroups.map((g) => (
+                    <MonthCalendar
+                      key={g.key}
+                      monthDate={g.items[0].date}
+                      name={g.name}
+                      year={g.year}
+                      filledSet={filledSet}
+                      today={today}
+                      selectedDate={selectedDate}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={s.empty} ref={activeInnerRef}>
+                <EmptyState title="Пока нет дней с записями" />
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </div>
   );

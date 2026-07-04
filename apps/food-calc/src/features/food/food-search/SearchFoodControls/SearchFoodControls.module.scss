@@ -263,6 +263,18 @@
 // заливка чернилами + on-accent глиф. Глиф в покое — ХОЛОДНЫЙ (indigo) «инструмент»
 // в контраст к тёплой бумаге списка (канон 2026-06-26, как back-шеврон/нутриенты).
 // `:not([data-pressed])` оставляет press-инверсию (.neutral[data-pressed]) нетронутой.
+// Рельс кнопки-фильтра = ширина info-колонки рядов (.infoBtn 56px в FoodActionCard).
+// Кнопка (48px, зеркалит «назад») стоит по центру рельса → её глиф на 28px от правого
+// края экрана, ровно как ⓘ у list-items (обе колонки flush к правому краю, глифы по
+// центру своих 56px). Бар full-bleed (без h-паддинга) — иначе выравнивание уедет.
+.filterRail {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+}
+
 .filterButton {
     flex-shrink: 0;
     position: relative;

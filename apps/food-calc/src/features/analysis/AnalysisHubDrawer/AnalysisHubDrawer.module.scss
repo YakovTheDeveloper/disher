@@ -1,11 +1,13 @@
 // AnalysisHubDrawer — «Разбор» hub opened from the «О!» button on HomeTopBar.
-// Three stacked option-cards (shared `ActionTile` primitive): day / weeks /
-// discoveries. Mirrors AnalysisKindDrawer's body layout (the two-row chooser it
-// supersedes — the third row is «Мои открытия»).
+// Three stacked `ActionTile`s: две белые опции-создания (день / недели) + тёмная
+// inverse-нав-плитка «Страница открытий» (уводит в /analyses, где живут инсайты +
+// гипотезы). Тёмная плитка визуально отделяет «нав» от «создать».
 
 .body {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 12px var(--sys-inset-sheet) 28px;
+    gap: 6px;
+    // Боковой инсет + верхний зазор (заголовок → контент) — у DrawerLayout
+    // (нижний дровер: 24 боковой, 12 верхний). Тут только нижний padding.
+    padding-block-end: 28px;
 }

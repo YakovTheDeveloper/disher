@@ -49,7 +49,13 @@ vi.mock('@/entities/product', () => ({
   setProductPortions: vi.fn(),
   updateProduct: vi.fn(),
 }));
-vi.mock('@/entities/nutrient/ui/NutrientGroup/constants', () => ({ allNutrientsList: [] }));
+// Keep `allNutrientsList` empty (the test doesn't exercise the nutrient list),
+// but pass the rest of the module through so every real export the graph pulls
+// (e.g. `nutrientGroups`) stays defined.
+vi.mock('@/entities/nutrient/ui/NutrientGroup/constants', async (importActual) => ({
+  ...(await importActual<typeof import('@/entities/nutrient/ui/NutrientGroup/constants')>()),
+  allNutrientsList: [],
+}));
 vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
   NutrientTable: () => <div data-testid="nutrient-table" />,
 }));
@@ -112,11 +118,14 @@ describe('ProductDrawer — chrome + edit menu', () => {
     const { getByLabelText, getByText, queryByText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
     expect(queryByText('Редактировать название')).toBeNull(); // closed by default
     fireEvent.click(getByLabelText('Редактировать продукт'));
-    const rename = getByText('Редактировать название');
     // iOS keyboard contract: rename trigger MUST be a <label htmlFor=input-id>.
-    expect(rename.tagName).toBe('LABEL');
-    expect(rename.getAttribute('for')).toBe('change-name-input');
-    expect(getByText('Редактировать нутриенты').tagName).toBe('BUTTON');
+    // The label text now lives in a nested <Text as="span">, so walk up to the
+    // owning menu-item element.
+    const renameLabel = getByText('Редактировать название').closest('label');
+    expect(renameLabel).not.toBeNull();
+    expect(renameLabel!.getAttribute('for')).toBe('change-name-input');
+    // Nutrients is a plain onClick menu-item — NOT a focus-delegation label.
+    expect(getByText('Редактировать нутриенты').closest('label')).toBeNull();
   });
 
   it('«Редактировать нутриенты» enters inline edit mode (header «Редактирование» + editable table)', () => {

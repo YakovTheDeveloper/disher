@@ -40,8 +40,10 @@
     outline: none;
     // Крупная hero-пилюля выбора времени — намеренно НЕ следует за квадратным
     // дефолтом полей (--sys-field-radius=--radius-sm), держит свой large-pill радиус
-    // (--radius-xl). bg/тень всё ещё тянет из --sys-field-*; отвязан только радиус.
-    border-radius: var(--sys-radius-overlay);
+    // (--radius-xl=24). bg/тень всё ещё тянет из --sys-field-*; отвязан только радиус.
+    // NB: --sys-radius-drawer — заимствование ПО ЗНАЧЕНИЮ (24), не «это дровер»; если
+    // заведём роль под large-pill — переехать сюда.
+    border-radius: var(--sys-radius-drawer);
     background: linear-gradient(90deg,
             var(--sys-field-bg-from, #fffefb) 0%,
             var(--sys-field-bg-mid, #fffaf2) 55%,

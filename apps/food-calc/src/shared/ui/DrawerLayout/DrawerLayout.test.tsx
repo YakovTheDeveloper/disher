@@ -104,4 +104,46 @@ describe('DrawerLayout — hideTopChrome', () => {
     const { container } = render(<DrawerLayout>body</DrawerLayout>);
     expect(container.querySelector('.dl-edgeHandle')).toBeNull();
   });
+
+  // floatingClose — chromeless mode: the drag-handle row is dropped (so the body
+  // starts flush at the top) but the Close cross stays, floating absolutely in
+  // the top-left corner (`.dl-floatingClose`). Distinct from hideTopChrome, which
+  // removes the cross entirely.
+  it('floatingClose keeps a floating Close cross but drops the chrome row', () => {
+    const { queryByTestId, container } = render(
+      <DrawerLayout floatingClose a11yLabel="Активность">
+        body
+      </DrawerLayout>,
+    );
+    expect(queryByTestId('close-button')).not.toBeNull();
+    expect(queryByTestId('cross-icon')).not.toBeNull();
+    expect(container.querySelector('.dl-dragHandle')).toBeNull();
+    expect(container.querySelector('.dl-floatingClose')).not.toBeNull();
+  });
+
+  // header — compound center-slot: keeps the chrome row + Close cross, but the
+  // built-in title is replaced by the custom node in the symmetric center band.
+  it('header renders a custom center slot alongside the Close cross', () => {
+    const { queryByTestId, getByTestId, container } = render(
+      <DrawerLayout header={<div data-testid="custom-header">tabs</div>} a11yLabel="Активность">
+        body
+      </DrawerLayout>,
+    );
+    expect(queryByTestId('close-button')).not.toBeNull();
+    expect(container.querySelector('.dl-dragHandle')).not.toBeNull();
+    expect(container.querySelector('.dl-headerSlot')).not.toBeNull();
+    expect(getByTestId('custom-header')).not.toBeNull();
+  });
+
+  // header takes precedence over the built-in `title` (title path suppressed;
+  // the sr-only Drawer.Title carries a11yLabel so exactly one Title exists).
+  it('header suppresses the built-in visible title', () => {
+    const { container } = render(
+      <DrawerLayout header={<span>hdr</span>} title="Should not render" a11yLabel="A11y">
+        body
+      </DrawerLayout>,
+    );
+    expect(container.querySelector('.dl-titleCenter')).toBeNull();
+    expect(container.querySelector('.dl-headerSlot')).not.toBeNull();
+  });
 });

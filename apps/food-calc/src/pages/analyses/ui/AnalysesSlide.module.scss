@@ -1,7 +1,8 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .container {
     display: flex;
     flex-direction: column;
-    padding: 8px 16px 24px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -10,6 +11,37 @@
     display: flex;
     justify-content: center;
     padding: 60px 0;
+}
+
+// «Новый разбор» лежит на плашке дока (AppBottomBarShell plate, радиус
+// --sys-radius-sheet = 40). Канон концентричности r_внутр = r_внеш − inset:
+// углы кнопки рифмуются с углом плашки через общий page-gutter (--sys-inset-page)
+// → 40 − 12 = 28 (готовая роль --sys-radius-sheet-page-inner). Перебивает
+// дефолтный --sys-radius-cta самого Button. Дубль-класс = специфичность выше
+// .surface/.button (0,1,0) независимо от порядка CSS-модулей в бандле.
+.newAnalysisCta.newAnalysisCta {
+    border-radius: var(--sys-radius-sheet-page-inner);
+}
+
+// ─── Filter chips ─────────────────────────────────────────────────────
+// Фильтр Все / Дневные / Длительные — чипы единственного выбора (атом Chip, как
+// во флоу создания еды / порциях). Вид (приподнятая пилюля + плоский ink-outline
+// «выбрано», скин variant="outline") несёт сам Chip; здесь — только ряд-раскладка.
+// Активный — active-проп в Chip.
+.filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 0 8px;
+}
+
+// Divider под фильтром — фирменная тающая линия (canon Divider, mixin hairline,
+// цвет --sys-color-divider). Небольшой воздух сверху/снизу отделяет её от чипов и
+// списка. Тающие края (18–82%) даёт сам mixin, поэтому линия идёт на всю ширину.
+.filterDivider {
+    height: 1px;
+    margin: 4px 0 12px;
+    @include hairline(var(--sys-color-divider));
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────
@@ -24,25 +56,22 @@
     padding: 24px 4px;
 }
 
-// ─── List frame ───────────────────────────────────────────────────────
-// Flat: список лежит прямо на листе Screen, без card-тени (та же логика, что
-// `.empty` — не плодим подложку-на-подложке). Скругление рядов держит `.listBody`.
+// ─── Card list ────────────────────────────────────────────────────────
+// Разнесённые indigo-карточки (унификация под HomePage, 2026-07-04) — НЕ плоский
+// шов-список. Каждый ряд = самостоятельная indigo-плитка (AnalysisListItem, свой
+// радиус + окаёмка), карточки разделяет вертикальный gap.
 .listWrap {
-    border-radius: var(--sys-radius-container);
+    display: flex;
+    flex-direction: column;
 }
 
 .listBody {
     // <ul> reset — the rows are LongPressRow <li>s (Card.Root); kill the default
-    // list bullets/indent/margin so the group reads as a flat inset card.
+    // list bullets/indent/margin.
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    border-radius: var(--sys-radius-container);
-    overflow: hidden;
+    gap: var(--sys-stack-row); // 12px между карточками
 }
-
-// Palette comes from the app-wide tone (`--sys-card-*`) — the per-section
-// LabAnalysis picker was folded into the ModalShell «law-giver»
-// (tds/modalshell-lawgiver-2026-06-13).

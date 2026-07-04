@@ -19,6 +19,28 @@
     // Маркеры «выбрано» (amber-кромка + галочка-бейдж) убраны по запросу 2026-06-26:
     // единственный фидбэк ряда — тёмная заливка ниже. Mixin держит outline прозрачным.
 
+    // Divider ряда: СПЛОШНОЙ вместо тающего hairline (запрос юзера). В плотном
+    // сканируемом списке глазу нужна твёрдая линия-рельс, а не воздушный fade. Это
+    // НЕ рамка вокруг ряда (анти-паттерн «Laboratory trap») — по-прежнему divider
+    // снизу, просто сплошной. Перебивает `hairline()`-градиент из stripe-fork-row
+    // (равная специфичность, позже по исходнику).
+    //
+    // Левый край divider = НАЧАЛО ИМЕНИ, чтобы взгляд вёл воображаемую дугу от
+    // контента вниз к бордеру (iOS-сепаратор, aligned to text). Адаптивно:
+    //  • без миниатюры (блюда, свои продукты, режим «Мое») имя стартует от
+    //    page-gutter (--space-4) → divider оттуда же;
+    //  • с миниатюрой имя уезжает за кружок → gutter + 36 thumb + 14 gap.
+    // До правого края — flush.
+    &::after {
+        left: var(--space-4);
+        right: 0;
+        background: var(--sys-card-hairline);
+    }
+
+    &[data-has-thumb]::after {
+        left: calc(var(--space-4) + 36px);
+    }
+
     // Подсветка ряда (press/выбор) = ВО ВСЮ СТРОКУ, без скруглённой пилюли
     // (запрос юзера 2026-06-26: «вся строка выделяется, по бокам не выделяется,
     //  бордеры не нужны»). Перебивает inset:3px 6px + border-radius пилюли из
@@ -44,10 +66,7 @@
 .item {
     display: flex;
     align-items: center;
-    // Отступы по 4px-сетке (--space-*). Снизу больше, чем сверху — освобождает
-    // место под абсолютную строку-подпись (.kindLabel «мой продукт · добавка»),
-    // чтобы она не липла к имени.
-    padding: var(--space-2) var(--space-2);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-2);
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
@@ -114,21 +133,34 @@
 
 
 
+    // Имя + тихий вид-подпись под ним + ⓘ на тёмной press-пилюле → светлые
+    // (faint kindLabel иначе исчез бы на dark).
     .name,
+    .kindLabel,
     .infoBtn {
         color: var(--sys-card-press-fg);
     }
 
-    // Подпись-надпись в слоте несёт собственный muted-цвет → на тёмной press-пилюле
-    // была бы нечитаемой. Перекрашиваем её в светлый отдельно (спецификность бьёт
-    // `.infoBtn .infoLabel`).
-    .infoLabel {
-        color: var(--sys-card-press-fg);
+    // Утопленная плашка гаснет на тёмной press-пилюле — светлый 6% прямоугольник
+    // на dark читался бы паразитно.
+    .infoBtn::before {
+        opacity: 0;
     }
 }
 
-.name {
+// Текст-колонка: имя (главная строка) + тихий вид-подпись под ним. Column, чтобы
+// подпись стояла ПОД именем, а не в строку. flex:1 + min-width:0 забирает ширину
+// между миниатюрой и правым ⓘ-слотом → имя/подпись обрезаются ellipsis.
+.nameCol {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     flex: 1;
+    min-width: 0;
+    gap: 1px;
+}
+
+.name {
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
@@ -177,10 +209,25 @@
     pointer-events: none;
 }
 
+// Верхняя строка бейджа: число + единица инлайн, выровнены по общему baseline
+// (единица садится на «пол» цифр, а не по центру, — читается как хвостик числа,
+// а не как отдельная метка). gap маленький, чтобы «86.4 г» читалось единым блоком.
+.richValueTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    max-width: 100%;
+    line-height: 1.1;
+}
+
+// Единица (г/мг) — тихий строчный хвостик справа от числа. Строчная (не uppercase)
+// и приглушённый тон делают её едва заметной, чтобы взгляд цеплялся за цифру.
+// Инлайн, поэтому высоты бейджу не добавляет (в отличие от старой отдельной строки).
 .richUnit {
     color: var(--sys-card-rich-unit);
-    margin-top: 1px;
-    text-transform: uppercase;
+    text-transform: lowercase;
+    line-height: 1;
 }
 
 // Единица (мг/г) — только у ПЕРВОГО item списка (он же самый богатый — список
@@ -195,29 +242,16 @@
     margin-top: 1px;
 }
 
-// Подпись-вид под названием еды («блюдо» / «мой продукт»). Absolute, чтобы не
-// сдвигать вертикально центрированное имя в .item — висит у нижнего края,
-// с лёгким отступом слева (--space-2). Еле заметный серый курсив.
+// Тихий вид-подпись под именем («блюдо» / «мой продукт · добавка»). Второй строкой
+// в .nameCol, под именем. Обрезается ellipsis в узкой колонке (длинное «мой продукт
+// · добавка» не переливается за экран). Еле заметный серый курсив (QuietLabel).
 .kindLabel {
     color: var(--sys-card-text-faint);
     pointer-events: none;
     white-space: nowrap;
-}
-
-// Подпись-вид, переехавшая в правый слот (.infoBtn), где она САМА = надпись
-// инфо-кнопки вместо ⓘ. Размер несёт сам примитив QuietLabel (16px, как и под
-// именем — голос не дублируем литералом, типо-гейт это запрещает). Тут только
-// плотнее по цвету: muted 58% против eле-видного .kindLabel (faint 50%×opacity
-// 0.7 ≈ 35%); opacity:1 снимает тихое затемнение QuietLabel — плотность несёт
-// сам токен. Переносится на 2 строки в узком 70px слоте, по центру. Спецификность
-// (0,2,0) бьёт `.quietLabel` (0,1,0) независимо от порядка модулей.
-.infoBtn .infoLabel {
-    line-height: 1.15;
-    color: var(--sys-card-text-muted);
-    opacity: 1;
-    white-space: normal;
-    text-align: center;
-    text-wrap: balance;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 // Маркер «своё» — нейтральная вертикальная полоска у самого правого края карточки
@@ -240,39 +274,27 @@
     background: var(--sys-card-press-fg);
 }
 
+// Каркас кнопки (размер/flex/border/transition/press-scale) теперь несёт общий
+// примитив IconButton (bare-shell, `size={56}`); здесь остаётся ТОЛЬКО карточный
+// вид: цвет-токен ряда, утопленная плашка ::before и press-инверсия ниже.
 .infoBtn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    width: 70px;
-    height: 56px;
-    padding: 0 var(--space-1);
-    border: none;
-    background: transparent;
     color: var(--sys-card-info-rest);
-    cursor: pointer;
-    flex-shrink: 0;
     position: relative;
-    transition: opacity 0.18s ease, transform 0.12s ease, color 0.18s ease;
-    -webkit-tap-highlight-color: transparent;
-    border-radius: inherit;
+    z-index: 1; // stacking-context: утопленная плашка (::before z-index:-1) садится
+    //           ПОД глиф, но НАД фоном ряда; сам слот остаётся над press-пилюлей.
 
-    // Fading vertical hairline — mirrors stripe-fork row dividers (::after),
-    // rotated 90°. Transparent at top/bottom, plateau in the middle.
+    // Right-rail замена A (запрос юзера): вместо вертикального hairline-рельса (читался
+    // как сплошная колонка «таблицы») — тихая УТОПЛЕННАЯ ПЛАШКА, обнимающая глиф
+    // с полями. Из-за inset + скругления соседние ряды НЕ сливаются в колонку: каждый
+    // слот читается как отдельная кнопка-чип. Affordance через форму (кнопка выглядит
+    // кнопкой), покой-сигнал области клика сохранён.
     &::before {
         content: '';
         position: absolute;
-        left: 0;
-        top: 10px;
-        bottom: 10px;
-        width: 1px;
-        background: linear-gradient(180deg,
-                transparent 0%,
-                var(--sys-card-hairline) 18%,
-                var(--sys-card-hairline) 82%,
-                transparent 100%);
+        inset: 8px;
+        z-index: -1;
+        border-radius: var(--sys-radius-control);
+        background: var(--sys-card-bg-sunk);
         pointer-events: none;
     }
 

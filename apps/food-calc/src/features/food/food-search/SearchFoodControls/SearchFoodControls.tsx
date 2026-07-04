@@ -175,20 +175,25 @@ const SearchFoodControls = ({
       </div>
 
       {showFilterButton && (
-        <PopoverTrigger
-          placement="bottom-end"
-          trigger={
-            <IconButton
-              tone="neutral"
-              size={36}
-              className={clsx(styles.filterButton, filterActive && styles.filterButtonActive)}
-              aria-label="Фильтры поиска"
-              title="Фильтры"
-              icon={<FilterIcon width={20} height={20} />}
-            />
-          }
-          content={filterPanel}
-        />
+        // Рельс шириной с info-колонку рядов (.infoBtn 56px) — кнопка-фильтр
+        // центрируется ТОЧНО над столбцом ⓘ list-items (запрос юзера: фильтр в
+        // один ряд с ⓘ). Сама кнопка 48px под «назад».
+        <div className={styles.filterRail}>
+          <PopoverTrigger
+            placement="bottom-end"
+            trigger={
+              <IconButton
+                tone="neutral"
+                size={48}
+                className={clsx(styles.filterButton, filterActive && styles.filterButtonActive)}
+                aria-label="Фильтры поиска"
+                title="Фильтры"
+                icon={<FilterIcon width={20} height={20} />}
+              />
+            }
+            content={filterPanel}
+          />
+        </div>
       )}
     </div>
   );

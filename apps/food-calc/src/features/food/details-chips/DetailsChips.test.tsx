@@ -96,26 +96,26 @@ beforeEach(() => {
 // ── two-group layout ─────────────────────────────────────────────────────────
 
 describe('DetailsChips — two-group layout', () => {
-  it('рендерит обе группы + сепаратор + подсказку когда есть и built-in, и custom', () => {
+  it('рендерит обе группы + подсказку когда есть и built-in, и custom', () => {
     setMockCustomTags([{ tag: 'с лимоном' }]);
-    const { container } = renderChips();
+    renderChips();
 
     expect(screen.getByRole('group', { name: 'Особенности' })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: 'Ваши теги' })).toBeInTheDocument();
-    // Сепаратор живёт за aria-hidden div.separator (нет роли — ищем по классу).
-    expect(container.querySelector('[class*="separator"]')).not.toBeNull();
+    // The two groups are now divided by the «Ваши теги» QuietLabel heading +
+    // .customGroup layout — the old aria-hidden div.separator was dropped in the
+    // redesign, so the division is proven by the group + label below, not a rule.
     expect(screen.getByText('Зажмите чтобы удалить')).toBeInTheDocument();
     // Лейбл «Ваши теги» (visible heading, не sr-only) — над второй группой.
     expect(screen.getByText('Ваши теги')).toBeInTheDocument();
   });
 
-  it('без custom-тегов сепаратор и подсказка не рендерятся', () => {
+  it('без custom-тегов вторая группа и подсказка не рендерятся', () => {
     setMockCustomTags([]);
-    const { container } = renderChips();
+    renderChips();
 
     expect(screen.getByRole('group', { name: 'Особенности' })).toBeInTheDocument();
     expect(screen.queryByRole('group', { name: 'Ваши теги' })).not.toBeInTheDocument();
-    expect(container.querySelector('[class*="separator"]')).toBeNull();
     expect(screen.queryByText('Зажмите чтобы удалить')).not.toBeInTheDocument();
   });
 });

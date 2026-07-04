@@ -1,59 +1,15 @@
-// Sticky header row inside DrawerLayout's scroll area. DrawerLayout renders
-// no visible title (only an sr-only Drawer.Title) and pins just its 40px
-// drag-handle chrome, so the title + gear/back live here. `sticky` keeps the
-// back button reachable when the edit/create norm form scrolls.
-//
-// Scroll-seam affordance lives ON this header (industry 2026 canon — Material 3,
-// Polaris, Carbon, Ryan Mulligan's "Sticky Page Header Shadow on Scroll", Chrome
-// dev blog on `scroll-state` queries): hairline + soft shadow appear when the
-// header is held by its `top` constraint. Two-tier delivery:
-//   1. Modern path — `@container scroll-state(stuck: top)` on .scrollableContent
-//      (Chrome 133+). Discrete state, no per-frame work.
-//   2. Fallback for Safari ≤18.x / older Chromium — scroll-driven animation on
-//      the existing `--scrollerY` timeline (Chrome 115+, Safari 18+).
-//   3. Browsers without either degrade to a static header (no shadow). Matches
-//      CSS-Tricks consensus that JS scroll-listener polyfills hurt more than
-//      they help.
+// Заголовок «Нутриенты» — обычный (НЕ прилипающий) ряд в начале scroll-области:
+// уезжает вместе с контентом. Прилипание + scroll-seam-тень сняты 2026-07-03 —
+// единственное обоснование sticky («держать back-кнопку доступной, пока
+// скроллится форма нормы») устарело: норма больше здесь не редактируется (уехала
+// в DailyNormDrawer), в шапке остался только тайтл — прилипать нечему.
 .header {
-    position: sticky;
-    top: 0;
-    z-index: 3;
     display: flex;
     align-items: center;
     gap: 8px;
     min-height: 48px;
     padding: 0 var(--sys-inset-panel) 8px;
-    background: var(--sys-color-surface-2);
     flex-shrink: 0;
-    transition: box-shadow 180ms ease;
-}
-
-// 1. Modern scroll-state query (Chrome 133+, Feb 2025).
-@container scroll-state(stuck: top) {
-    .header {
-        box-shadow: var(--sys-elevation-seam);
-    }
-}
-
-// 2. Fallback: scroll-driven animation on --scrollerY (declared by DrawerLayout
-//    on .scrollableContent). Only kicks in when scroll-state is unsupported.
-@supports not (container-type: scroll-state) {
-    .header {
-        animation: header-stuck-shadow linear forwards;
-        animation-timeline: --scrollerY;
-    }
-}
-
-// Pad start to a 2-shadow list so box-shadow interpolates cleanly with the end
-// state (CSS Animations requires matching shadow-list lengths to lerp).
-@keyframes header-stuck-shadow {
-    0% {
-        box-shadow: var(--sys-elevation-seam-rest);
-    }
-
-    3%, 100% {
-        box-shadow: var(--sys-elevation-seam);
-    }
 }
 
 .title {

@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, type Ref } from 'react';
 import { format } from 'date-fns';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
@@ -13,8 +13,11 @@ import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 //
 // `date` — last-visited дата расписания (как на Dish): нужна только чтобы у бара
 // было значение и календарь знал, куда вести. `noInterruptGuard` глушит
-// date-switch confirm (мы не стоим на этой дате).
-const AnalysesTopBar = () => {
+// date-switch confirm (мы не стоим на этой дате). `shellRef` приходит из SwipeDeck
+// для scroll-hide кнопок (как у DiscoveriesTopBar).
+type Props = { shellRef?: Ref<HTMLDivElement> };
+
+const AnalysesTopBar = ({ shellRef }: Props) => {
   const date = useMemo(() => {
     if (typeof window === 'undefined') return format(new Date(), 'dd-MM-yyyy');
     return (
@@ -29,6 +32,7 @@ const AnalysesTopBar = () => {
       backSlot={<BackButton to="/" type="cover-back" ariaLabel="На главную" />}
       dateButtonLabel={<CalendarIcon width={22} height={22} />}
       noInterruptGuard
+      shellRef={shellRef}
     />
   );
 };

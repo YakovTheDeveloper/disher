@@ -1,8 +1,6 @@
 import { useMemo, type PointerEvent as ReactPointerEvent } from 'react';
 import clsx from 'clsx';
-import { useNavigate } from 'react-router';
-import { InfoIcon } from '@/shared/ui/atoms/icons/InfoIcon';
-import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
+import { InfoButton } from '@/shared/ui/atoms/Button';
 import styles from './FoodActionCard.module.scss';
 import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
@@ -11,9 +9,9 @@ import { findCatalogProduct } from '@/shared/data/catalog';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { RouterUrls } from '@/app/router';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
+import { DishDrawer } from '@/features/food/dish-drawer';
 // Конкретные файлы, не barrel — barrel тянет buildInfoActions → ProductDrawer
 // (см. defensive-импорт в ProductDrawer/buildInfoActions).
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
@@ -110,16 +108,7 @@ const FoodActionCard = ({
   htmlFor,
   mineFilter = false,
 }: Props) => {
-  const navigate = useNavigate();
   const { pressed, pressProps } = usePressFeedback();
-  // Только dish-инфо-кнопка навигирует на страницу (продукт открывает
-  // ProductDrawer, см. ниже), поэтому цель всегда /dish/:id. Раскадровка 'push'
-  // (iOS-навигация: новая страница въезжает справа, старая параллаксит влево);
-  // cover (снизу) остаётся за секцией «Анализ по неделям». state.heroName даёт
-  // DishPage показать имя сразу, пока блюдо грузится из Dexie.
-  const goToInfo = useViewTransitionNavigate(RouterUrls.getDish(item.id), 'push', {
-    state: { heroName: item.name },
-  });
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
 
   // Каталожные продукты могут нести миниатюру (build-route поле `image`); резолвим
@@ -150,13 +139,12 @@ const FoodActionCard = ({
 
   // Долгий клик (~450мс, общий useLongPress: move-cancel 10px + click-suppression,
   // безопасен в скроллируемом role="option") → ItemActionsDrawer. «Инфо» через
-  // buildInfoActions (продукт → ProductDrawer, блюдо → /dish/:id) — дубль с ⓘ
+  // buildInfoActions (продукт → ProductDrawer, блюдо → DishDrawer) — дубль с ⓘ
   // осознан. Удаление = удаление ПРОДУКТА/блюда, только для своих (каталог →
   // onDelete не передаём, дровер показывает только «инфо»).
   const openActions = () => {
     const actions = buildInfoActions(
       variant === 'dish' ? { type: 'dish', dishId: item.id } : { type: 'food', productId: item.id },
-      navigate
     );
     void drawerStore.show(ItemActionsDrawer, {
       title: item.name,
@@ -206,17 +194,12 @@ const FoodActionCard = ({
     .filter(Boolean)
     .join(' · ');
 
-  // Подпись-вид («мой продукт» / «блюдо · добавка») переезжает в правый слот
-  // (.infoBtn) и САМА становится надписью инфо-кнопки — для СВОИХ рядов вместо ⓘ.
-  // Каталожные ряды (без subtitle) сохраняют иконку. Если инфо-слота нет
-  // (onInfoClick не передан — напр. free-text edit-модалка), подпись остаётся под
-  // именем: ехать ей некуда, иначе бы исчезла.
-  const infoSlotContent = subtitle ? (
-    <QuietLabel className={styles.infoLabel}>{subtitle}</QuietLabel>
-  ) : (
-    <InfoIcon />
-  );
-  const showSubtitleUnderName = subtitle && !onInfoClick;
+  // Правый слот = ВСЕГДА тихий ⓘ (ровная info-колонка; встаёт под кнопку фильтра
+  // верхнего бара). Вид-подпись («мой продукт» / «блюдо · добавка») живёт тихой
+  // строкой ПОД именем (см. .kindLabel в nameCol). Раньше подпись подменяла ⓘ в
+  // слоте у своих рядов — в режиме «Мое», где ВСЕ ряды свои, это давало колонку
+  // курсива, переливавшуюся за экран (запрос юзера пофиксить).
+  const showSubtitleUnderName = Boolean(subtitle);
 
   const richNutrientValue =
     richNutrientId && item.getTotalNutrients
@@ -245,6 +228,9 @@ const FoodActionCard = ({
       aria-selected={active || undefined}
       aria-haspopup="menu"
       data-pressed={pressed || undefined}
+      // Есть миниатюра → divider стартует под именем (за кружком); без неё
+      // (блюда, свои продукты, режим «Мое») — от page-gutter. См. .module.scss.
+      data-has-thumb={imageSrc ? '' : undefined}
       {...liHandlers}
     >
       {richNutrientValue !== null && (
@@ -259,14 +245,20 @@ const FoodActionCard = ({
               aria-hidden
             />
           )}
-          <Numeral size="sm" weight="semibold">
-            {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
-          </Numeral>
-          {richNutrientValue > 0 && richNutrientUnit && (
-            <Text as="span" role="caption" className={styles.richUnit}>
-              {richNutrientUnit}
-            </Text>
-          )}
+          {/* Число + единица в ОДНОЙ строке (baseline-aligned): единица —
+              тихий строчный хвостик справа от числа. Раньше единица стояла
+              отдельной третьей строкой → три строки не влезали в 44px по высоте
+              и верхнее число подрезалось overflow:hidden при включённой сортировке. */}
+          <span className={styles.richValueTop}>
+            <Numeral size="sm" weight="semibold">
+              {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
+            </Numeral>
+            {richNutrientValue > 0 && richNutrientUnit && (
+              <Text as="span" role="caption" className={styles.richUnit}>
+                {richNutrientUnit}
+              </Text>
+            )}
+          </span>
           {normPercent && (
             <Numeral as="span" size="sm" weight="semibold" className={styles.richPercent}>
               {normPercent}
@@ -283,12 +275,14 @@ const FoodActionCard = ({
           }}
         >
           {thumb}
-          <Text as="span" role="body" className={styles.name}>
-            {item.name}
-          </Text>
-          {showSubtitleUnderName && (
-            <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
-          )}
+          <span className={styles.nameCol}>
+            <Text as="span" role="label" className={styles.name}>
+              {item.name}
+            </Text>
+            {showSubtitleUnderName && (
+              <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
+            )}
+          </span>
         </label>
       ) : (
         <p
@@ -298,12 +292,14 @@ const FoodActionCard = ({
           }}
         >
           {thumb}
-          <Text as="span" role="body" className={styles.name}>
-            {item.name}
-          </Text>
-          {showSubtitleUnderName && (
-            <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
-          )}
+          <span className={styles.nameCol}>
+            <Text as="span" role="label" className={styles.name}>
+              {item.name}
+            </Text>
+            {showSubtitleUnderName && (
+              <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
+            )}
+          </span>
         </p>
       )}
       {onInfoClick &&
@@ -311,9 +307,9 @@ const FoodActionCard = ({
           // Продукт (свой ИЛИ каталожный) → боковой ProductDrawer. Страница
           // /product/:id инактивирована; ProductDrawer сам ветвит каталог/свой
           // по isCreatedByUser, точке входа ветвиться не нужно.
-          <button
-            type="button"
+          <InfoButton
             className={styles.infoBtn}
+            size={56}
             aria-label="Информация о продукте"
             onClick={() => {
               drawerStore.show(
@@ -322,20 +318,24 @@ const FoodActionCard = ({
                 { side: 'left', width: 'min(85vw, 360px)' }
               );
             }}
-          >
-            {infoSlotContent}
-          </button>
+          />
         ) : (
-          // Блюдо → страница /dish/:id (та же раскадровка 'push', что и «Анализ
-          // по неделям»). goToInfo → navigate(viewTransition:true).
-          <button
-            type="button"
+          // Блюдо → боковой DishDrawer (read-only превью: состав + суммарные
+          // нутриенты, стрелка в шапке → страница /dish/:id). Оверлей вместо
+          // навигации сохраняет скролл SearchFood + открытую модалку Home
+          // (симметрия с продуктом).
+          <InfoButton
             className={styles.infoBtn}
-            aria-label="Информация"
-            onClick={goToInfo}
-          >
-            {infoSlotContent}
-          </button>
+            size={56}
+            aria-label="Информация о блюде"
+            onClick={() => {
+              drawerStore.show(
+                DishDrawer,
+                { dishId: item.id, dishName: item.name },
+                { side: 'left', width: 'min(85vw, 360px)' }
+              );
+            }}
+          />
         ))}
       {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки
           (свои продукты + блюда, в обоих фильтрах). Не цветная — это признак

@@ -428,9 +428,10 @@ const SearchFoodHeavy = ({
 
   return (
     <>
-      {/* Бумага списка сидит В ПОТОКЕ скролл-рута (outer `.scroller`), ПОСЛЕ шапки —
-          шапка уезжает вверх вместе с ней. Сентинель в конце наблюдает outer. */}
-      <div className={styles.sheet}>
+      {/* Поток результатов сидит В ПОТОКЕ скролл-рута (outer `.scroller`), ПОСЛЕ
+          шапки — шапка уезжает вверх вместе с ним. Кандидаты текут голыми на ambient
+          (не owned-лист); лист-костюм заслуживается выбором. Сентинель наблюдает outer. */}
+      <div className={styles.results}>
         {showProducts && <ul className={styles.list}>{products.map(renderProductItem)}</ul>}
         {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
       </div>

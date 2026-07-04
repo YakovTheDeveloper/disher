@@ -5,7 +5,9 @@
 .body {
     display: flex;
     flex-direction: column;
-    padding: var(--space-3) var(--sys-inset-panel) var(--space-6);
+    // Боковой инсет отдан DrawerLayout `contentInset="panel"` (единый краевой
+    // инсет — крест и тело выровнены по построению); тут только вертикальный ритм.
+    padding-block: var(--space-3) var(--space-6);
 }
 
 // ─── Карандаш в правом углу обвязки (topRight slot DrawerLayout) ──

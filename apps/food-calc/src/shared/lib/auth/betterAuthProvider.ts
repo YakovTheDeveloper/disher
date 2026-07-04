@@ -291,6 +291,27 @@ export const betterAuthProvider: AuthProvider = {
     cachedUser = null;
   },
 
+  async signInWithOAuth(providerId, callbackURL = '/') {
+    // Redirect-based OIDC (Telegram). On success better-auth returns a provider
+    // authorize URL and the client redirects the browser to it — control leaves
+    // the page, so the bearer is captured on the way back through the standard
+    // onSuccess hook (betterAuthClient.ts), not here. We only get a value back
+    // when the redirect can't be started.
+    try {
+      const { data, error } = await authClient.signIn.oauth2({ providerId, callbackURL });
+      if (error) {
+        return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
+      }
+      // Defensive: if the client didn't navigate itself, do it here.
+      if (data?.url && typeof window !== 'undefined') {
+        window.location.href = data.url;
+      }
+      return undefined;
+    } catch (e) {
+      return { ok: false, error: classifyError(e) };
+    }
+  },
+
   onAuthChange(cb) {
     // better-auth exposes session as a nanostore atom on $store.atoms.session.
     // Subscribe to it; on each tick, diff the user id against the previous

@@ -27,7 +27,9 @@
   // overflow into a scroll rather than squash; min-height is a legacy floor.
   flex: 1 0 auto;
   min-height: 50vh;
-  padding: var(--space-3) var(--sys-inset-panel) var(--space-4);
+  // Боковой инсет отдан DrawerLayout `contentInset="panel"` (единый краевой инсет
+  // — крест и тело выровнены по построению); тут только вертикальный ритм.
+  padding-block: var(--space-3) var(--space-4);
   gap: var(--space-8);
 }
 
@@ -62,6 +64,12 @@
   min-width: 0;
   margin: 0;
   color: var(--sys-color-text-secondary);
+}
+
+// Обёртка чипа статуса синхронизации: hug-left, чтобы данжер-подложка чипа не
+// растягивалась на всю ширину flex-секции (align-items: stretch по умолчанию).
+.syncStatus {
+  align-self: flex-start;
 }
 
 // ─── Accordion (Данные) ─────────────────────────────────────────

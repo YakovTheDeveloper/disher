@@ -1,0 +1,8 @@
+// DishHubDrawer body — стопка плиток-действий (1:1 с AnalysisHubDrawer.body).
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  // Боковой инсет + верхний зазор ведёт DrawerLayout; тут только нижний padding.
+  padding-block-end: 28px;
+}

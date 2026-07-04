@@ -5,8 +5,8 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
-import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
 import { QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
+import { HubButton } from '@/shared/ui/HubButton';
 import styles from './HomeTopBar.module.scss';
 
 type Props = {
@@ -62,6 +62,15 @@ type Props = {
    *  живёт лишь на HomePage, а страницы продукта/блюда (тот же HomeTopBar) его
    *  не показывают. Открывает `AnalysisHubDrawer` через `drawerStore`. */
   hubDate?: string;
+  /** Override-обработчик кнопки «О!». Страница блюда передаёт свой (открыть
+   *  `DishHubDrawer`); когда задан, кнопка рендерится независимо от `hubDate`,
+   *  а `onClick = onHubClick`. Home-путь (`hubDate` → `AnalysisHubDrawer`) не
+   *  трогается: без `onHubClick` работает ровно как раньше. */
+  onHubClick?: () => void;
+  /** a11y-метка кнопки «О!». Home-хаб (по умолчанию) — «Разбор …»; страница
+   *  блюда передаёт свою (открывает `DishHubDrawer`, а не «Разбор»), чтобы
+   *  скринридер не читал неверное описание. */
+  hubAriaLabel?: string;
 };
 
 type DateParts = {
@@ -123,6 +132,8 @@ const HomeTopBar = ({
   centerLabelVisible = true,
   shellRef,
   hubDate,
+  onHubClick,
+  hubAriaLabel = 'Разбор — открытия и анализ',
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
   const dateParts = useMemo(() => formatDateParts(date), [date]);
@@ -130,6 +141,11 @@ const HomeTopBar = ({
     if (!hubDate) return;
     void drawerStore.show(AnalysisHubDrawer, { date: hubDate });
   }, [hubDate]);
+  // Кнопка «О!» показывается на Home (передан `hubDate`) ИЛИ когда caller дал
+  // свой override (`onHubClick`, страница блюда). onClick отдаёт приоритет
+  // override'у, фолбэк — Home-хаб.
+  const showHub = Boolean(onHubClick) || Boolean(hubDate);
+  const handleHubClick = onHubClick ?? openHub;
   const handleDateClick = useCallback(async () => {
     const selectedDate = await drawerStore.show(ScheduleNavigatorDrawer, {
       selectedDate: date,
@@ -152,22 +168,10 @@ const HomeTopBar = ({
         <div className={styles.accountSlot}>
           <AccountPanel />
         </div>
-        {/* Ambient sync status — renders nothing unless offline / syncing /
-            failed, so it doesn't disturb the bar at rest. */}
-        <SyncStatusChip />
-        {/* «О!» — persistent «Разбор»-хаб. Rendered only on HomePage (where
-            `hubDate` is passed); the navigation anchor that replaced the
-            removed analysis slide. */}
-        {hubDate ? (
-          <button
-            type="button"
-            className={styles.hubButton}
-            onClick={openHub}
-            aria-label="Разбор — открытия и анализ"
-          >
-            О!
-          </button>
-        ) : null}
+        {/* «О!» — persistent «Разбор»-хаб. HomePage передаёт `hubDate`
+            (→ AnalysisHubDrawer), страница блюда — `onHubClick` (→ DishHubDrawer).
+            Общий примитив HubButton. */}
+        {showHub ? <HubButton onClick={handleHubClick} ariaLabel={hubAriaLabel} /> : null}
         {leadingSlot}
         {centerLabel != null &&
           (centerLabelHtmlFor ? (

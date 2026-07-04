@@ -23,7 +23,6 @@ vi.mock('@/shared/ui', () => ({
 vi.mock('@/features/schedule-navigator', () => ({ ScheduleNavigatorDrawer: () => null }));
 vi.mock('@/features/analysis/AnalysisHubDrawer', () => ({ AnalysisHubDrawer: () => null }));
 vi.mock('@/features/auth', () => ({ AccountPanel: () => null }));
-vi.mock('@/features/sync-status/SyncStatusChip', () => ({ SyncStatusChip: () => null }));
 vi.mock('@/app/routing/useAppRoutes', () => ({
   useAppRoutes: () => ({ toScheduleBuilder: h.toScheduleBuilder }),
 }));

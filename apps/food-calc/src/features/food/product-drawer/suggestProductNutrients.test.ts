@@ -15,7 +15,8 @@ function okResponse(body: unknown): Response {
   return { ok: true, status: 200, json: async () => body } as Response;
 }
 function errResponse(status: number, body: unknown): Response {
-  return { ok: false, status, json: async () => body } as Response;
+  // Real Responses carry `.headers`; readApiError reads x-request-id off it.
+  return { ok: false, status, headers: new Headers(), json: async () => body } as Response;
 }
 
 beforeEach(() => authedFetchMock.mockReset());

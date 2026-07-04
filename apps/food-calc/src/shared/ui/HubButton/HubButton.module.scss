@@ -1,0 +1,47 @@
+// HubButton — «О!» hub-глиф-кнопка. Перенесена 1:1 из HomeTopBar.module.scss
+// (2026-07-04) в shared-примитив: страница блюда и HomePage рендерят одну
+// кнопку с разными onClick. Облик = светлая soft floating-пилюля (mirrors
+// `.accountSlot` в HomeTopBar), читается как сосед пилюли аккаунта.
+
+// Высота-пол пилюли бара — единый источник (совпадает с $pill-h в
+// HomeTopBar.module.scss / AccountPanel 44px). SCSS-переменная (compile-time,
+// проходит token-gate, не плодит bespoke custom-prop).
+$pill-h: 44px;
+
+.hubButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: $pill-h;
+  min-height: $pill-h;
+  box-sizing: border-box;
+  padding: 0 var(--space-3);
+  appearance: none;
+  background: var(--sys-color-surface-action-system-soft);
+  border: 1px solid var(--sys-color-surface-action-system-soft);
+  box-shadow: var(--sys-elevation-action-rest);
+  border-radius: var(--sys-radius-indicator);
+  color: var(--sys-color-text-system);
+  /* typo-encapsulation-disable -- «О!» = персональный bespoke бренд-глиф (курсивный
+     heading-font 20px/700): одноразовый голос-подпись хаб-кнопки, намеренно вне
+     role-шкалы <Heading> (title 17/600 тише, headline 28/700 крупнее — ни один
+     рунг не даёт задуманный вид). Не тиражируется → живёт локально, а не в примитиве. */
+  font-family: var(--heading-font);
+  font-size: var(--sys-text-size-lg);
+  font-style: italic;
+  font-weight: 700;
+  /* typo-encapsulation-enable */
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--duration-normal) var(--easing-default),
+    opacity var(--duration-normal) var(--easing-default),
+    background var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--sys-color-surface-action-system-soft-pressed);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}

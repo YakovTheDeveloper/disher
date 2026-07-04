@@ -24,7 +24,10 @@ type Props = {
   /** Лейблы разделов для плиток. ОБЯЗАН быть стабильной module-const (иначе memo
    *  topSlot отдаёт устаревший). */
   screens: ScreenEntry[];
-  /** Слайды; `slides.length === screens.length`, ≥2. */
+  /** Слайды; `slides.length === screens.length`. ≥2 → многослайдовый дек с
+   *  плитками-переключателем. ===1 → single-slide режим (ряд табов не рендерится,
+   *  chrome + hero-полка остаются; долгие анализы). При ===1 передавай
+   *  `defaultSlide={0}` (дефолт 1 выйдет за границы). */
   slides: DeckSlide[];
   /** Первый показываемый слайд. */
   defaultSlide?: number;
@@ -89,6 +92,13 @@ export const SwipeDeck = ({
     swipeableRef.current?.goToPage(idx);
   }, []);
 
+  // Single-slide режим: дек из ОДНОГО экрана (долгие анализы). Переключать нечего
+  // → ряд плиток-табов не рендерится (у одинокого таба нет соседа, стрелок нет).
+  // Каркас всё равно нужен ради ЕДИНОГО chrome + консистентного верхнего отступа:
+  // hero-полка резервируется как на всех деках, так что список стартует на той же
+  // высоте, что Открытия/Home, только без ряда табов над ним.
+  const singleSlide = screens.length === 1;
+
   // Per-slide topSlot: hero (опц.) НАД статичным ScreenIndicator своего слайда.
   // `slideIndex={i}` → каждый инстанс статично подсвечивает СВОЙ раздел; title не
   // прыгает при свайпе, активный индекс не нужен в React-state. Мемоизировано со
@@ -99,20 +109,22 @@ export const SwipeDeck = ({
         <Fragment key={i}>
           {/* Hero-слот ВСЕГДА резервирует постоянную высоту (`--deck-hero-h`) —
               на любом деке, с обложкой и без. Так верхний отступ консистентен на
-              всех экранах (Home / Блюдо / Открытия): табы стартуют на одной высоте.
-              Когда `heroForSlide` не передан или вернул пусто — слот пустой, но
-              высоту держит. */}
+              всех экранах (Home / Блюдо / Открытия / долгие анализы): контент
+              стартует на одной высоте. Когда `heroForSlide` не передан или вернул
+              пусто — слот пустой, но высоту держит. */}
           <div className={s.heroSlot}>{heroForSlide?.(i)}</div>
-          <ScreenIndicator
-            screens={screens}
-            slideIndex={i}
-            onSelect={handleSelect}
-            tablistLabel={tablistLabel}
-            arrowHint={arrowHint}
-          />
+          {!singleSlide && (
+            <ScreenIndicator
+              screens={screens}
+              slideIndex={i}
+              onSelect={handleSelect}
+              tablistLabel={tablistLabel}
+              arrowHint={arrowHint}
+            />
+          )}
         </Fragment>
       )),
-    [screens, heroForSlide, handleSelect, tablistLabel, arrowHint]
+    [screens, heroForSlide, handleSelect, tablistLabel, arrowHint, singleSlide]
   );
 
   return (

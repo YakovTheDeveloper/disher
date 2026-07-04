@@ -18,17 +18,27 @@ type Props = {
    * and is pinned to `side` (right/left). Ignored for side='split'.
    */
   width?: string;
+  /**
+   * Paint the shell as a raised plate («плашка») — the same recipe as the
+   * HomePage write bars (`WriteBarShell`): `surface-2` fill + `elevation-2`
+   * shadow + top-rounded `--sys-radius-sheet` corners. Off by default (the shell
+   * stays chrome-only). Opt-in per surface — e.g. the «Новый разбор» CTA on the
+   * Разборы slide, which wants the visible dock plate rather than a floating CTA.
+   */
+  plate?: boolean;
 };
 
 /**
  * Chrome-only counterpart of `AppBottomBar` for slides without the 3-slot food
  * dock (Laboratory, ScheduleEvents). Layout only — the shell paints NO surface
  * (bar background = Screen `.bottomBar` scrim); the buttons inside own their look.
+ * The opt-in `plate` prop turns it into a raised dock plate (HomePage write-bar
+ * recipe) for CTAs that want the плашка look.
  */
-export const AppBottomBarShell = ({ children, side = 'left', width }: Props) => {
+export const AppBottomBarShell = ({ children, side = 'left', width, plate = false }: Props) => {
   return (
     <div
-      className={clsx(s.dock, s.dockV2, s.shellSolo)}
+      className={clsx(s.dock, s.dockV2, s.shellSolo, plate && s.plate)}
       data-shell-side={side}
       data-shell-fit={width ? 'sized' : undefined}
       style={width ? ({ '--solo-cta-width': width } as CSSProperties) : undefined}

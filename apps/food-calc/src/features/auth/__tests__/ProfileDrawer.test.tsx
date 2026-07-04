@@ -71,10 +71,13 @@ describe('ProfileDrawer', () => {
     render(<ProfileDrawer />);
 
     expect(screen.getByTestId('theme-picker')).toBeInTheDocument();
-    expect(screen.queryByTestId('hold-button')).not.toBeInTheDocument();
+    // «Опасная зона» is now the `Accordion` primitive, which ALWAYS mounts its
+    // body (collapse is grid-reveal + `aria-expanded`, not unmount). So the
+    // collapsed contract is the header reporting `aria-expanded="false"`, not
+    // the sign-out/backup controls being absent from the DOM.
     expect(
-      screen.queryByRole('button', { name: 'Сохранить в хранилище' }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: /опасная зона/i }),
+    ).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('reveals the backup + sign-out controls when the danger zone is expanded', () => {
@@ -140,19 +143,18 @@ describe('ProfileDrawer', () => {
     expect(mockAuth.signOut).toHaveBeenCalledOnce();
   });
 
-  it('hides the data import/export actions until the «Данные» accordion is expanded', () => {
+  it('keeps the data import/export actions behind a collapsed «Данные» accordion by default', () => {
     render(<ProfileDrawer />);
 
-    // Collapsed by default — the two file actions are not in the DOM.
-    expect(
-      screen.queryByRole('button', { name: 'Скачать файл' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Загрузить из файла' }),
-    ).not.toBeInTheDocument();
+    // The `Accordion` primitive always mounts its body, so collapse is signalled
+    // by `aria-expanded="false"` on the header (grid-reveal + a11y), not by the
+    // actions being absent from the DOM.
+    const dataHeader = screen.getByRole('button', { name: /данные/i });
+    expect(dataHeader).toHaveAttribute('aria-expanded', 'false');
 
-    fireEvent.click(screen.getByRole('button', { name: /данные/i }));
+    fireEvent.click(dataHeader);
 
+    expect(dataHeader).toHaveAttribute('aria-expanded', 'true');
     expect(
       screen.getByRole('button', { name: 'Скачать файл' }),
     ).toBeInTheDocument();

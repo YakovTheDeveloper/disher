@@ -1,12 +1,13 @@
 // Простой сгруппированный список нутриентов в боковом drawer'е. Surface (белый
-// фон) принадлежит DrawerLayout (Drawer.Popup), padding — этому контенту
-// (drawer-layout canon). Палитра текста — из app-wide тона (body[data-modal-fields]).
+// фон) принадлежит DrawerLayout (Drawer.Popup). Боковой инсет отдан DrawerLayout
+// `contentInset="panel"` (единый краевой инсет — крест и тело выровнены по
+// построению); тут остаётся только вертикальный ритм.
 
 .root {
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-section);
-    padding: var(--space-2) var(--sys-inset-panel) var(--space-8);
+    padding-block: var(--space-2) var(--space-8);
 }
 
 // Инструкция вместо заголовка — сам заголовок «Нутриенты» уехал в хедер

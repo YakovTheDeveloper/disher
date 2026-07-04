@@ -51,6 +51,11 @@ type Props = {
   //    «листай дальше» справа от средней «Рацион»). Через проп, а не глобально:
   //    у 2-плиточных деков середины нет → остались бы без стрелок.
   arrowHint?: 'all' | 'middle-right';
+  // Типо-ярус подписи АКТИВНОГО таба (голос неактивных — всегда тихий QuietLabel).
+  // Дефолт `display` (46px masthead — HomePage/Dish поглощают роль заголовка
+  // страницы). Переключатели ВНУТРИ оверлея просят меньший ярус (`headline` 28px
+  // / `title` 17px), чтобы таб не кричал masthead'ом над коротким списком.
+  titleRole?: 'display' | 'headline' | 'title';
 };
 
 export const ScreenIndicator = ({
@@ -62,6 +67,7 @@ export const ScreenIndicator = ({
   bandImg = true,
   tablistLabel = 'Экран',
   arrowHint = 'all',
+  titleRole = 'display',
 }: Props) => {
   const displayIndex = slideIndex ?? activeIndex ?? 0;
   const activeScreen = screens[displayIndex];
@@ -119,6 +125,7 @@ export const ScreenIndicator = ({
               label={screen.label}
               image={screen.image}
               active={isActive}
+              titleRole={titleRole}
               arrow={arrow}
               style={{ gridColumnStart: i + 1 + colOffset }}
               onClick={() => onSelect(i)}

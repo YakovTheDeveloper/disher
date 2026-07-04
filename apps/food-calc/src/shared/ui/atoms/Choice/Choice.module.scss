@@ -65,10 +65,9 @@
 // Галочка-маркер «выбрано» — круглая плашка ЦЕНТРОМ ТОЧНО В правом-верхнем углу
 // (top/right: -10px = половина диаметра). Фон = непрозрачная всплывающая
 // поверхность surface-2, тик внутри = активный bg (navy), мягкая тень.
-// Светлый кружок с navy-тиком читается на заливке как «наклейка». Тик меньше
-// диаметра — воздух вокруг галочки.
-//
-// Фон = непрозрачная всплывающая поверхность surface-2 (#fff, «лист над листом»).
+// Голая чёрная галочка в углу — без кружка-подложки: жирнее и крупнее, читается
+// как «отмечено» прямо на заливке (по запросу 2026-07-05). Раньше был светлый
+// navy-тик в surface-2 кружке; подложку и тень убрали.
 .marker {
   position: absolute;
   top: -10px;
@@ -78,9 +77,6 @@
   justify-content: center;
   width: 20px;
   height: 20px;
-  border-radius: var(--sys-radius-indicator);
-  background: var(--sys-color-surface-2);
-  box-shadow: var(--sys-elevation-action-rest);
   opacity: 0;
   transform: scale(0.6);
   transition:
@@ -95,13 +91,13 @@
 }
 
 .markerTick {
-  width: 10px;
-  height: 10px;
-  color: var(--sys-color-tick-selected); // холодная искра-галочка (indigo) — контрапункт к тёплому полю «выбрано» (2026-06-26)
+  width: 15px; // крупнее (было 10px)
+  height: 15px;
+  color: var(--sys-color-text-primary); // чёрный ink вместо холодного indigo
 }
 
 .markerTick path {
-  stroke-width: 1.6px;
+  stroke-width: 2.6px; // жирнее (было 1.6px)
 }
 
 // ─── Segmented variant (iOS-сегмент-контрол) ─────────────────────────────────

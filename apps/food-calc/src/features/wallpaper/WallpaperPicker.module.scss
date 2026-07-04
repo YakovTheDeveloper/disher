@@ -1,0 +1,27 @@
+// WallpaperPicker — раздел «Обои» в ProfileDrawer. Раскладка: экран = подпись +
+// лента миниатюр (WallpaperStrip). Сам строй/миниатюры/selection живут в
+// WallpaperStrip.module.scss; тут только вертикальный ритм + edge-bleed ленты.
+
+.screens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-row);
+}
+
+.screenRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.screenLabel {
+  color: var(--sys-color-text-secondary);
+}
+
+// Возвращает ленте краевой инсет панели дровера (contentInset="panel" →
+// `--sys-inset-panel`), чтобы миниатюры прокручивались «от края до края», а не
+// обрывались гуттером. Только в дровере — поповер берёт ленту без bleed.
+.bleed {
+  margin-inline: calc(-1 * var(--sys-inset-panel));
+  padding-inline: var(--sys-inset-panel);
+}

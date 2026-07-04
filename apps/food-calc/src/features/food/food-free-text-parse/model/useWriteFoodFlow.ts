@@ -827,23 +827,29 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       }
 
       let ok = true;
-      const newScheduleIds: string[] = [];
-      const newDishItemIds: string[] = [];
+      // Генерим id рядов ЗАРАНЕЕ и помечаем «только что добавлены» ДО записи.
+      // Транзакция на коммите тригерит liveQuery → монтирует новые ряды; пометь мы
+      // ПОСЛЕ await (как было) — ряды успели бы смонтироваться раньше флага и сыграть
+      // быстрый 320ms stagger вместо появления. Теперь флаг в mailbox до коммита.
+      const newScheduleIds: string[] = committed.map(() => crypto.randomUUID());
+      const newDishItemIds: string[] = committed.map(() => crypto.randomUUID());
+      const newRowIds = target.kind === 'schedule' ? newScheduleIds : newDishItemIds;
+      if (newRowIds.length > 0) markAdded(newRowIds);
       if (target.kind === 'schedule') {
         const date = target.date;
         const result = await safeMutate(
           () =>
             db.transaction('rw', db.schedule_foods, async () => {
-              for (const c of committed) {
-                const id = await addScheduleFood({
+              for (const [i, c] of committed.entries()) {
+                await addScheduleFood({
                   date,
                   time: c.time,
                   type: 'food',
                   quantity: c.quantity,
                   productId: c.productId,
                   details: c.details ?? '',
+                  id: newScheduleIds[i],
                 });
-                newScheduleIds.push(id);
               }
             }),
           'Не удалось добавить продукты',
@@ -854,16 +860,16 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         const result = await safeMutate(
           () =>
             db.transaction('rw', db.dish_items, async () => {
-              for (const c of committed) {
-                const id = await addDishItem({
+              for (const [i, c] of committed.entries()) {
+                await addDishItem({
                   dishId,
                   productId: c.productId,
                   quantity: c.quantity,
                   // head A fills details (борщ→свекла «вареная»); persist it so
                   // it renders as the ingredient subtitle on the dish row.
                   details: c.details ?? '',
+                  id: newDishItemIds[i],
                 });
-                newDishItemIds.push(id);
               }
             }),
           'Не удалось добавить продукты в блюдо',
@@ -884,14 +890,14 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         }
       }
       sendTelemetryIfNotSent('commit');
-      toaster.success(`Добавлено: ${committed.length}`);
+      // Тост-подтверждение оставляем только для добавления в БЛЮДО (создание
+      // ингредиентов). Для расписания уведомление о создании сущности убрано
+      // (по запросу) — согласовано с food-entry-flow.
+      if (target.kind === 'dish') {
+        toaster.success(`Добавлено: ${committed.length}`);
+      }
 
-      // «Только что добавлен» flash: кладём id новых рядов в mailbox → LongPressRow
-      // на маунте один раз мигает butter-подсветкой (isJustAdded, consume-once).
-      // Оба пути: и еда в расписании, и ингредиенты блюда (обе строки живут в
-      // LongPressRow → flash встроен в примитив, паритет).
-      const newRowIds = target.kind === 'schedule' ? newScheduleIds : newDishItemIds;
-      if (newRowIds.length > 0) markAdded(newRowIds);
+      // markAdded уже вызван ДО записи (см. выше) — здесь помечать поздно.
       // Haptic на успешное создание (progressive enhancement — no-op на iOS).
       haptic();
 

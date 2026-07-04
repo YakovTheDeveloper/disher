@@ -37,9 +37,10 @@
 // (email-verification.test.ts) still asserts better-auth's wiring.
 
 import { betterAuth } from "better-auth";
-import { bearer } from "better-auth/plugins";
+import { bearer, genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
+import { telegramGenericOAuthConfig } from "./telegram.js";
 
 const connectionString = process.env.LOCAL_DATABASE_URL;
 if (!connectionString) {
@@ -161,6 +162,18 @@ function dispatchVerificationEmail(args: {
     });
 }
 
+// Telegram OIDC login (better-auth genericOAuth). Lazy, like Resend: only
+// registered when both TELEGRAM_CLIENT_ID and TELEGRAM_CLIENT_SECRET are set,
+// so dev/test/prod without a bot boot exactly as before. When ON, better-auth
+// mounts the callback at ${BETTER_AUTH_URL}/api/auth/oauth2/callback/telegram —
+// register that as the Redirect URI in @BotFather (see tds/telegram-auth.md).
+const telegramOAuthConfig = telegramGenericOAuthConfig();
+console.log(
+  telegramOAuthConfig
+    ? "[auth] Telegram OIDC login: ON"
+    : "[auth] Telegram OIDC login: OFF (set TELEGRAM_CLIENT_ID + TELEGRAM_CLIENT_SECRET)",
+);
+
 export const auth = betterAuth({
   database: new pg.Pool({ connectionString }),
   trustedOrigins: trustedOriginsResolver,
@@ -225,5 +238,10 @@ export const auth = betterAuth({
       dispatchVerificationEmail({ to: user.email, frontendUrl });
     },
   },
-  plugins: [bearer()],
+  plugins: [
+    bearer(),
+    ...(telegramOAuthConfig
+      ? [genericOAuth({ config: [telegramOAuthConfig] })]
+      : []),
+  ],
 });

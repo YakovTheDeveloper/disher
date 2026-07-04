@@ -5,14 +5,13 @@ import { drawerStore } from '@/shared/ui';
 import type { Insight } from '@/entities/insight';
 import InsightListPanel from './InsightListPanel';
 
-// Stub ObservationCard to an inert node: this test is about the PANEL's confirm
-// gate (does it await ConfirmDrawer before calling onDelete?), not the card's
+// Stub InsightCard to an inert node: this test is about the PANEL's confirm gate
+// (does it await ConfirmDrawer before calling onDelete?), not the card's
 // rendering — stubbing also keeps the real card's svg/toast imports out of the
-// unit. Deletion is no longer an in-card chevron (Slice 3, 2026-06-26): it moved
-// to a sustained press on the surrounding LongPressRow, so the gesture is driven
-// on the row, not on the card.
-vi.mock('../ObservationCard', () => ({
-  ObservationCard: ({ title }: { title: string }) => <div>{title}</div>,
+// unit. Deletion is a sustained press on the surrounding LongPressRow (Slice 3,
+// 2026-06-26), so the gesture is driven on the row, not on the card.
+vi.mock('../AnalysisCard', () => ({
+  InsightCard: ({ title }: { title: string }) => <div>{title}</div>,
 }));
 
 const INSIGHT: Insight = {

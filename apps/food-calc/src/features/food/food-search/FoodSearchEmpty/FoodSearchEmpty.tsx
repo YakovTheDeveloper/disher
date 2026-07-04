@@ -28,30 +28,30 @@ export const FoodSearchEmpty = ({ onCreateProduct, onCreateDish, createInputHtml
         {onCreateProduct && (
           <Button
             variant="surface"
-            onSurface={0}
+            onSurface={1}
             fullWidth
             as={asTag}
             htmlFor={createInputHtmlFor}
             onClick={onCreateProduct}
           >
-            Создать Еду
+            Продукт
             <Text as="span" role="caption" className={styles.clickHint}>
-              (в два клика)
+              в два клика
             </Text>
           </Button>
         )}
         {onCreateDish && (
           <Button
             variant="surface"
-            onSurface={0}
+            onSurface={1}
             fullWidth
             as={asTag}
             htmlFor={createInputHtmlFor}
             onClick={onCreateDish}
           >
-            Создать Блюдо
+            Блюдо
             <Text as="span" role="caption" className={styles.clickHint}>
-              (в два клика)
+              в два клика
             </Text>
           </Button>
         )}

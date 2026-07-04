@@ -19,7 +19,7 @@
     // Высота бара унифицирована: кнопка (--bottom-action-h, 72px) + 8px padding
     // сверху/снизу = 88px. Пустой spacer-бар (HypothesesSlide) совпадает с
     // CTA-баром (AnalysesSlide), а write-бар (см. .wrap padding) — с обоими.
-    min-height: calc(var(--bottom-action-h) + var(--space-4));
+    // min-height: calc(var(--bottom-action-h) + var(--space-4));
     box-sizing: border-box;
 }
 
@@ -37,20 +37,7 @@
     position: relative;
 }
 
-// Одиночный CTA (не split) тянется на всю ширину бара с боковыми инсетами —
-// крупная outline-пилюля «во всю строку», как на write-баре экрана 2.
-.dockV2.shellSolo:not([data-shell-side='split']) {
-    // Левый инсет = write-пилюля FoodWriteBar (`--space-8`, см. WriteBarShell
-    // `.wrap`). Канон 2026-06-08: solo-CTA выравнивается по левому краю с
-    // write-баром экрана 2 на всех экранах. Правый — `--space-4` (асимметрия
-    // намеренна: у write-пилюли справа медальон, у solo-CTA его нет).
-    padding-left: var(--space-8);
-    padding-right: var(--space-4);
 
-    >* {
-        flex: 1 1 auto;
-    }
-}
 
 // Sized solo-CTA: кнопка занимает заданную долю ширины (`--solo-cta-width`,
 // прокидывает AppBottomBarShell через style при пропе `width`) и прижата к
@@ -71,4 +58,17 @@
 // Split: две CTAs пушим к краям; layout only (фон — Screen `.bottomBar`).
 .dockV2.shellSolo[data-shell-side='split'] {
     justify-content: space-between;
+}
+
+// ─── Plate — opt-in raised dock плашка (HomePage write-bar recipe) ─────────
+// Тот же рецепт, что несёт WriteBarShell `.wrap` на Home: ЯРКАЯ (белее тёплой
+// бумаги Screen) плашка ЯРУСА 2 (fill surface-2) + ПАРНАЯ overlay-тень
+// elevation-2 + скруглённая ВЕРХНЯЯ кромка дока (--sys-radius-sheet). Высоту
+// несут тень + радиус. Включается пропом `plate` — по умолчанию shell остаётся
+// chrome-only (прозрачный, фон = Screen `.bottomBar`). Потребитель: solo-CTA
+// «Новый разбор» на слайде Разборы.
+.plate {
+    background: var(--sys-color-surface-2);
+    @include surface-elevation(2);
+    border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
 }

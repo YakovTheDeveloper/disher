@@ -83,54 +83,54 @@
     @include field-depth(--sys-color-surface-2);
 }
 
-// ─── Focus-hint: example shown in a strip ABOVE the bar ────────────────────
-// In-flow strip (scrim removed 2026-06-23). Reserves a constant line so revealing
-// the hint on focus doesn't shift the bar; the inner pill + text fade in. Dark
-// text on a light surface pill instead of white-on-dimmed-screen.
+// ─── Focus overlay: dim the page so the accent falls on the bar (opt-in) ─────
+// Затемняющий бэкдроп на фокусе (проп `focusOverlay`, включён у Еды). Fixed
+// inset:0, но живёт ВНУТРИ `.wrap` при z-index:-1 → плашка дока (surface-2) +
+// пилюля + подсказка красятся ПОВЕРХ него (bright), а страница под баром гаснет.
+// Тап по затемнению = blur инпута (dismiss). Плавный фейд по `[data-visible]`
+// (expanded) — без вспышки прежнего глобального Screen-scrim (тот дёргался на
+// `:has(:focus)`, снят 2026-06-23). Цвет — канон-скрим бэкдропов (тёплый уголь).
+.focusOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--sys-color-scrim);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s var(--easing-default);
+}
 
-// В покое подсказка НЕ резервирует место (height:0 + clip), чтобы док-подложка
-// не была выше нужного; на фокусе ([data-visible]) разворачивается ВВЕРХ над
-// баром (bottomBar прижат к низу), сам бар на месте.
-.focusHint {
+.focusOverlay[data-visible] {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+// Focus-hint (подсказка-пример над баром) извлечена в отдельный компонент
+// `WriteBarHint` (+ WriteBarHint.module.scss) 2026-07-05 — переиспользуется всеми
+// write-барами (Еда/События/Гипотезы) через `hint`/`hintLabel` пропы.
+
+// ─── Hint header: ⓘ-toggle в правом верхнем углу дока ──────────────────────
+// ABSOLUTE (не в потоке): на раскрытом баре нет выделенного запаса высоты над
+// пилюлей (док = пилюля + падинги), поэтому строка-хедер резервировала бы пустую
+// полосу. Вместо этого якорим кнопку в правый верхний угол `.wrap` — она НЕ
+// двигает пилюлю. Появляется вместе с фокусом (data-visible = expanded) через
+// opacity. Клик по ⓘ тогглит текст-подсказку (WriteBarHint) — сам текст скрыт,
+// пока пользователь не запросит его кнопкой. `.wrap` = positioned ancestor.
+.hintHeader {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--shell-inset);
+    z-index: 2;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-height: 0;
-    height: 0;
-    padding: 0 var(--space-2);
-    overflow: hidden;
-    pointer-events: none;
     opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
 }
 
-.focusHint[data-visible] {
-    height: auto;
-    padding-bottom: var(--space-1);
+.hintHeader[data-visible] {
     opacity: 1;
-    transform: translateY(0);
-}
-
-// Голос (caption-ярус) несёт примитив <Text role="caption">; здесь — раскладка,
-// поверхность, цвет и числовой font-feature (tnum/lnum для счётчиков в подсказке).
-.focusHintInner {
-    // Без подложки и тени (2026-06-27): голый текст-подсказка над баром, не пилюля.
-    // Раньше тут были background --sys-color-surface-2 + box-shadow + radius-full —
-    // сняты по запросу. Осталась только раскладка/цвет/числовой font-feature.
-    max-width: 100%;
-    padding: 4px var(--space-3);
-    color: var(--sys-color-text-secondary);
-    text-align: center;
-    white-space: pre-line;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-// Акцентное первое слово — serif-italic голос несёт примитив <QuietLabel>; здесь
-// только контекстный цвет + возврат полной непрозрачности (акцент, не «тихий»).
-.focusHintAccent {
-    color: var(--sys-color-text-primary);
-    opacity: 1;
+    pointer-events: auto;
 }
 
 // ─── Bar line: glass pill row ──────────────────────────────────────────────
@@ -188,6 +188,15 @@
     // it does not push the affordance too far in.
     &[data-has-left] {
         padding-left: var(--space-2);
+
+        // Левая кнопка (`.clip`, 40px) сама даёт зазор до текста: глиф (svg 20px)
+        // отцентрован → ~10px воздуха справа + margin. Поэтому левый инсет самого
+        // поля тут лишний (тройной отступ) — обнуляем, плейсхолдер садится вплотную
+        // к кнопке (канон 2026-07-02). Гейт по `[data-has-left]` = «слот есть И не
+        // в фокусе»: в фокусе кнопка демонтируется и поле возвращает нормальный инсет.
+        .writeBarInput {
+            padding-left: 0;
+        }
     }
 
     // press-свотча НЕТ — пилюля = стандартное поле (AutoGrowSearch), отклик несут

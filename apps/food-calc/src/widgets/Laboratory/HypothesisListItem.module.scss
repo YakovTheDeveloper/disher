@@ -14,7 +14,7 @@
     align-items: stretch;
     gap: 4px;
     overflow: hidden;
-    background: var(--sys-card-bg);
+    background: var(--sys-color-surface-1);
 
     // Vertical accent stripe — 3px idle, 5px + saturated when selected.
     &::before {
@@ -24,7 +24,8 @@
         top: 7px;
         bottom: 7px;
         width: 3px;
-        border-radius: var(--sys-radius-tmp); /* was 2px */
+        border-radius: var(--sys-radius-tmp);
+        /* was 2px */
         background: var(--sys-card-text-active-muted);
         transition: width 0.14s ease, background 0.14s ease;
     }
@@ -62,10 +63,10 @@
     // nth-child rhythm — surfaces are not identical (design-DNA rule 4).
     &:nth-child(2n)::after {
         background: linear-gradient(90deg,
-            transparent 0%,
-            var(--sys-card-hairline) 18%,
-            var(--sys-card-hairline) 82%,
-            transparent 100%);
+                transparent 0%,
+                var(--sys-card-hairline) 18%,
+                var(--sys-card-hairline) 82%,
+                transparent 100%);
     }
 
     &:nth-child(2n) {
@@ -108,7 +109,8 @@
     justify-content: center;
     width: 22px;
     height: 22px;
-    border-radius: var(--sys-radius-control); /* was 7px */
+    border-radius: var(--sys-radius-control);
+    /* was 7px */
     border: 1.5px solid var(--sys-card-text-active);
     background: var(--sys-color-surface-1);
     transition: background 0.13s ease, transform 0.1s ease;
@@ -127,7 +129,7 @@
 
 // «Выбрано» = тёплое поле bg-selected + amber-кромка + холодная искра-тик
 // (унифицировано 2026-06-26 с badge-моделью; был чёрный залитый бокс + белый тик).
-.checkbox:checked + .checkboxBox {
+.checkbox:checked+.checkboxBox {
     background: var(--sys-color-bg-selected);
     border-color: var(--sys-color-border-selected);
 
@@ -136,7 +138,7 @@
     }
 }
 
-.checkbox:disabled + .checkboxBox {
+.checkbox:disabled+.checkboxBox {
     opacity: 0.4;
 }
 
@@ -150,7 +152,8 @@
     padding-left: 16px;
 }
 
-// Текст строки — инертный (триггер редактирования вынесен на шеврон справа).
+// Текст строки. По умолчанию инертный; в selection-режиме (`[data-toggle]`) —
+// кликабелен как тоггл (тот же onToggle, что чекбокс). Редактирование — на шевроне.
 .textButton {
     flex: 1;
     min-width: 0;
@@ -159,6 +162,18 @@
     gap: 2px;
     padding: 13px 16px 13px 6px;
     text-align: left;
+}
+
+// Кликабельное тело: «рука» + мягкий press-тинт (как у .checkboxWrap:active).
+.textButton[data-toggle] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background var(--press-out) var(--easing-default);
+
+    &:active {
+        background: var(--sys-color-bg-press);
+        transition-duration: var(--sys-duration-press-in);
+    }
 }
 
 // Заголовок — sans + монохром (унификация с мигрированным HypothesisCard,
@@ -206,10 +221,24 @@
         display: none;
     }
 
-    // Строки делит воздух (--ax-list-gap), бровка погашена.
+    // Чёрная нижняя граница-разделитель между гипотезами (страница Анализов, экран 3)
+    // — 1:1 с инсайтами (экран 1, InsightListPanel): сплошная ink-линия
+    // (--sys-color-text-system), тянется за паддинг листа отрицательным
+    // --sys-inset-page → от края до края белого листа Screen. Заменяет прежний
+    // «воздух» (background: transparent). Решение юзера 2026-07-04: экраны 1 и 3
+    // несут одинаковую нижнюю границу.
     &::after,
     &:nth-child(2n)::after {
-        background: transparent;
+        left: calc(-1 * var(--sys-inset-page));
+        right: calc(-1 * var(--sys-inset-page));
+        background: var(--sys-color-text-system);
+    }
+
+    // У последнего ряда граница не нужна — список делит воздух ниже (базовый
+    // `.row:last-child::after { display:none }` держит это; дублируем для явности
+    // на случай дрейфа source-order).
+    &:last-child::after {
+        display: none;
     }
 
     .textButton {

@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { readApiError, throwApiError, PaymentRequiredError } from '../apiError';
 
-// Minimal Response stand-ins — readApiError/throwApiError only touch `status`
-// and `json()`. Same fake-Response convention as streamDailyAnalysis.test.ts.
+// Minimal Response stand-ins — readApiError/throwApiError touch `status`,
+// `json()`, and `headers.get('x-request-id')` (the request-id fallback). A real
+// Response always carries `.headers`, so the fakes do too.
 function jsonRes(status: number, body: unknown): Response {
   return {
     status,
     ok: status >= 200 && status < 300,
+    headers: new Headers(),
     json: async () => body,
   } as unknown as Response;
 }
@@ -14,6 +16,7 @@ function nonJsonRes(status: number): Response {
   return {
     status,
     ok: status >= 200 && status < 300,
+    headers: new Headers(),
     json: async () => {
       throw new SyntaxError('Unexpected token < in JSON');
     },

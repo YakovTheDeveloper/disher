@@ -1,81 +1,73 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { format } from 'date-fns';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
 import { modalStore } from '@/shared/ui';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
+import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import Button from '@/shared/ui/atoms/Button/Button';
-import FlaskIcon from '@/shared/assets/icons/flask.svg?react';
+import { AiSparkleIcon } from '@/shared/ui/atoms/icons/AiSparkleIcon';
+import { Chip } from '@/shared/ui/atoms/Chip';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import {
-  useAnalysesList,
-  deleteAnalysis,
-  type Analysis,
-} from '@/features/analysis/api';
+import { type Analysis } from '@/features/analysis/api';
 import {
   AnalysisListItem,
   AnalysisDetailModal,
-  CreateLongAnalysisModal,
   formatWindowLabel,
+  windowSpanDays,
 } from '@/features/analysis/long';
-import { safeMutate } from '@/shared/lib/safeMutate';
-import toaster from '@/shared/lib/toaster/toaster';
 import { EmptyState } from '@/shared/ui/EmptyState';
+import { useAnalysesFeedContext } from '../model/AnalysesFeedContext';
 import styles from './AnalysesSlide.module.scss';
 
-// AnalysesPage slide 1 — the long-analyses list. The list is NOT polled;
-// useAnalysesList refetches on mount + tab refocus. A freshly created (or
-// restarted) row is merged in optimistically so it shows as «идёт» without
-// waiting for the refetch to land. Топбар (HomeTopBar) живёт на уровне страницы
-// (AnalysesPage), не здесь — поэтому Screen без `stickyTop`.
-const AnalysesSlide = () => {
-  const { data, error, refetch } = useAnalysesList();
-  const [optimistic, setOptimistic] = useState<Analysis[]>([]);
-  // Optimistically-removed ids — a deleted row vanishes immediately and stays
-  // hidden even before the refetch lands (the server list still carries it for
-  // one tick). Rolled back if the DELETE fails.
-  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
-  const navigate = useNavigate();
-  const location = useLocation();
+// Средний экран /analyses (Разборы) — список разборов (дневные + длительные
+// вперемешку, различает только окно). Данные — из общего feed-контекста (тот же
+// инстанс кормит обложку-лоадер AnalysesHero); свежесозданная/перезапущенная
+// строка вливается оптимистично через `addOptimistic`. `topSlot` (hero-полка
+// каркаса) форвардится в `Screen stickyTop`.
+type Props = { topSlot: ReactNode };
 
-  // Optimistic rows first, then the server list with duplicates dropped, minus
-  // anything we just deleted.
-  const analyses = useMemo(() => {
-    const server = data ?? [];
-    const serverIds = new Set(server.map((a) => a.id));
-    const merged = [...optimistic.filter((a) => !serverIds.has(a.id)), ...server];
-    return removedIds.size > 0
-      ? merged.filter((a) => !removedIds.has(a.id))
-      : merged;
-  }, [data, optimistic, removedIds]);
+type Filter = 'all' | 'daily' | 'long';
 
-  const addOptimistic = useCallback(
-    (a: Analysis) => {
-      setOptimistic((prev) =>
-        prev.some((x) => x.id === a.id) ? prev : [a, ...prev]
-      );
-      refetch();
-    },
-    [refetch]
-  );
+// Дневной разбор = окно в 1 календарный день (windowStart === windowEnd). Один и
+// тот же клиентский предикат делит список — бэк дневной/длительный не различает.
+const isDaily = (a: Analysis): boolean =>
+  windowSpanDays({ start: a.windowStart, end: a.windowEnd }) === 1;
 
-  // A freshly-started daily analysis (from AnalysisClarificationModal, opened via
-  // the «О!» hub-drawer off HomeTopBar) arrives through navigation state. Seed it
-  // optimistically so it shows «идёт» at the top before the refetch lands, then
-  // clear the state so a back/forward or re-render can't re-seed it.
-  useEffect(() => {
-    const started = (location.state as { justStarted?: Analysis } | null)
-      ?.justStarted;
-    if (!started) return;
-    addOptimistic(started);
-    navigate('.', { replace: true, state: null });
-  }, [location.state, addOptimistic, navigate]);
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'Все' },
+  { key: 'daily', label: 'Дневн.' },
+  { key: 'long', label: 'Длительн.' },
+];
 
-  const openCreate = useCallback(async () => {
-    const created = await modalStore.show(CreateLongAnalysisModal, {});
-    if (created) addOptimistic(created);
-  }, [addOptimistic]);
+const EMPTY_COPY: Record<Filter, { title: string; description: string }> = {
+  all: {
+    title: 'Разборов пока нет',
+    description:
+      'Разбор смотрит на твою еду, события и выбранные гипотезы — за день или за 1–5 недель. Запусти первый кнопкой «Новый разбор».',
+  },
+  daily: {
+    title: 'Дневных разборов пока нет',
+    description:
+      'Разбор дня смотрит на одну дату — еду и события за неё. Запусти его кнопкой «Новый разбор».',
+  },
+  long: {
+    title: 'Длительных разборов пока нет',
+    description:
+      'Длительный разбор смотрит на 1–5 недель сразу. Запусти его кнопкой «Новый разбор».',
+  },
+};
+
+const AnalysesSlide = ({ topSlot }: Props) => {
+  const { analyses, addOptimistic, deleteOne, loading, failedToLoad, refetch } =
+    useAnalysesFeedContext();
+  const [filter, setFilter] = useState<Filter>('all');
+
+  const visible = useMemo(() => {
+    if (filter === 'all') return analyses;
+    return analyses.filter((a) => (filter === 'daily' ? isDaily(a) : !isDaily(a)));
+  }, [analyses, filter]);
 
   const openDetail = useCallback(
     async (id: string) => {
@@ -83,33 +75,10 @@ const AnalysesSlide = () => {
       if (!analysis) return;
       // The modal resolves with a fresh analysis when the user restarts a
       // stale/failed run — show it right away.
-      const restarted = await modalStore.show(AnalysisDetailModal, {
-        analysis,
-      });
+      const restarted = await modalStore.show(AnalysisDetailModal, { analysis });
       if (restarted) addOptimistic(restarted);
     },
     [analyses, addOptimistic]
-  );
-
-  // Server route: the analysis lives only in Postgres (no Dexie), so deletion is
-  // a DELETE /api/analyses/:id round-trip. Hide the row at once; on success toast
-  // + refetch, on failure roll the optimistic removal back.
-  const deleteOne = useCallback(
-    async (id: string) => {
-      setRemovedIds((prev) => new Set(prev).add(id));
-      const res = await safeMutate(() => deleteAnalysis(id), 'Не удалось удалить');
-      if (res.ok) {
-        toaster.success('Удалено');
-        refetch();
-      } else {
-        setRemovedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      }
-    },
-    [refetch]
   );
 
   // Long-press → per-row action drawer (canon: delete in the top-right chrome,
@@ -119,41 +88,69 @@ const AnalysesSlide = () => {
       void drawerStore.show(ItemActionsDrawer, {
         title: formatWindowLabel(analysis.windowStart, analysis.windowEnd),
         onDelete: () => deleteOne(analysis.id),
-        actions: [
-          { label: 'Открыть разбор', onClick: () => openDetail(analysis.id) },
-        ],
+        actions: [{ label: 'Открыть разбор', onClick: () => openDetail(analysis.id) }],
       });
     },
     [deleteOne, openDetail]
   );
 
-  // Unified with HomePage: «Открытия» (left → /discoveries: гипотезы + инсайты) +
-  // «Анализ по неделям» (right → CreateLongAnalysisModal, surface-specific —
-  // здесь это длительный разбор, в отличие от HomePage, где правый слот =
-  // дневной/долгий chooser).
+  // Одна кнопка «Новый разбор» → развилка день/период в AnalysisHubDrawer.
+  // `date` = сегодня (для «Разобрать день»); хаб-дровер тот же, что открывает «О!»
+  // на Home (там date = дата расписания).
+  const openCreate = useCallback(() => {
+    void drawerStore.show(AnalysisHubDrawer, { date: format(new Date(), 'dd-MM-yyyy') });
+  }, []);
+
+  // Плашка (raised dock plate) как на HomePage — `plate` красит бар surface-2 +
+  // elevation-2 + скруглённой верхней кромкой; кнопка «Новый разбор» лежит НА ней.
   const bottomBar = (
-    <AppBottomBarShell side="split">
+    <AppBottomBarShell plate>
       <Button
-        variant="primary"
-        onClick={() => navigate('/discoveries')}
-        icon={<FlaskIcon width={16} height={16} />}
+        fullWidth
+        icon={<AiSparkleIcon />}
+        onClick={openCreate}
+        onSurface={2}
+        flat
+        className={styles.newAnalysisCta}
       >
-        Открытия
-      </Button>
-      <Button variant="primary" onClick={openCreate}>
-        Анализ по неделям
+        Новый разбор
       </Button>
     </AppBottomBarShell>
   );
 
-  // Distinguish: never-loaded-yet (spinner) vs failed-with-nothing (error).
-  const nothingYet = data === null && optimistic.length === 0;
-  const loading = nothingYet && error === null;
-  const failedToLoad = nothingYet && error !== null;
+  const empty = EMPTY_COPY[filter];
 
   return (
-    <Screen headerOverlap bottomBar={bottomBar}>
+    <Screen stickyTop={topSlot} headerOverlap topBarHide="settings" bottomBar={bottomBar}>
       <div className={styles.container}>
+        {/* Фильтр Все / Дневные / Длительные — чипы единственного выбора (атом
+            Chip, как во флоу создания еды / порциях). Локальный, лёгкий (чисто
+            клиентский предикат по окну). Лежат на листе Screen (headerOverlap =
+            surface-1) → surface={1}. Селект-скин `outline` (второй скин Chip):
+            покой приподнят (elevation), выбранный — плоский + ink-рамка + жирнее
+            текст, БЕЗ butter-заливки. Прячем во время первичной загрузки/ошибки. */}
+        {!loading && !failedToLoad && (
+          <>
+            <div className={styles.filter} role="group" aria-label="Фильтр разборов">
+              {FILTERS.map((f) => (
+                <Chip
+                  key={f.key}
+                  surface={1}
+                  variant="outline"
+                  active={filter === f.key}
+                  aria-pressed={filter === f.key}
+                  onClick={() => setFilter(f.key)}
+                >
+                  {f.label}
+                </Chip>
+              ))}
+            </div>
+            {/* Фирменная тающая линия под фильтром (canon Divider) с небольшим
+                воздухом сверху/снизу — отделяет чипы от списка разборов. */}
+            <div className={styles.filterDivider} aria-hidden="true" />
+          </>
+        )}
+
         {loading ? (
           <div className={styles.centered}>
             <Spinner />
@@ -169,16 +166,16 @@ const AnalysesSlide = () => {
               </Button>
             }
           />
-        ) : analyses.length === 0 ? (
+        ) : visible.length === 0 ? (
           <EmptyState
             className={styles.empty}
-            title="Разборов пока нет"
-            description="Длительный разбор смотрит на 1–5 недель сразу — еду, события и выбранные гипотезы. Запусти первый кнопкой «+ Анализ»."
+            title={empty.title}
+            description={empty.description}
           />
         ) : (
           <div className={styles.listWrap}>
             <ul className={styles.listBody}>
-              {analyses.map((a) => (
+              {visible.map((a) => (
                 <AnalysisListItem
                   key={a.id}
                   analysis={a}

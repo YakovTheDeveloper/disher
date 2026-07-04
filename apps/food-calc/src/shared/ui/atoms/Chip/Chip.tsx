@@ -6,9 +6,20 @@ import styles from './Chip.module.scss';
 /** Surface-тир ХОСТА, на котором лежит чип (= `--sys-color-surface-N`). */
 export type ChipSurface = 0 | 1 | 2;
 
+/**
+ * Селект-скин — как чип показывает `active`:
+ *   • 'fill' (дефолт) — butter-заливка «выбрано» app-wide (--sys-color-bg-selected);
+ *     покой плоский.
+ *   • 'outline' — инверсия: покой ПРИПОДНЯТ (elevation), выбранный ПЛОСКИЙ + ink-рамка
+ *     + жирнее текст. Заливка butter не применяется. Живой консумер — фильтр разборов.
+ */
+export type ChipVariant = 'fill' | 'outline';
+
 export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   /** Выбран/нажат — тёмная заливка. Вызывающий код сам решает семантику. */
   active?: boolean;
+  /** Селект-скин (см. {@link ChipVariant}). Дефолт 'fill' (butter). */
+  variant?: ChipVariant;
   /**
    * Surface-тир ХОСТА, на котором ЛЕЖИТ чип (0–2, = `--sys-color-surface-N`).
    * Чип «возвышается» на тир ВЫШЕ хоста — имитирует приподнятость цветом (вызывающий
@@ -35,6 +46,7 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Chip({
   active = false,
   surface = 0,
+  variant = 'fill',
   className,
   type = 'button',
   children,
@@ -47,6 +59,7 @@ export function Chip({
         styles.chip,
         surface >= 1 && styles.onSheet,
         surface === 2 && styles.floating,
+        variant === 'outline' && styles.outline,
         active && styles.active,
         className,
       )}

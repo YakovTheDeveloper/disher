@@ -129,7 +129,7 @@ export const AddToListPopover = ({
 
           {matches.length === 1 && (
             <Button
-              variant="primary"
+              variant="system"
               fullWidth
               onClick={() => handleUseExisting(matches[0].id, matches[0].name)}
             >
@@ -138,7 +138,7 @@ export const AddToListPopover = ({
           )}
 
           <Button
-            variant={matches.length === 1 ? 'system-secondary' : 'primary'}
+            variant={matches.length === 1 ? 'system-secondary' : 'system'}
             fullWidth
             onClick={() => void handleCreate()}
             disabled={!trimmed}

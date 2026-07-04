@@ -1,0 +1,32 @@
+// Состояния «ошибка» / «пусто» разбора блюда в модалке — центрированный блок
+// с сообщением и кнопкой действия.
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sys-stack-row);
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+// Сообщение об ошибке — плашка danger-тона (паритет с DishAnalysisScreen.error).
+.error {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--sys-radius-container);
+  background-color: var(--sys-color-status-danger-surface);
+  color: var(--sys-color-status-danger);
+  line-height: 1.45;
+}
+
+// Инлайн-ошибка провалившегося «Перезапустить» — под уже показанным разбором,
+// не подменяет экран (контент выигрывает у error). Прижата влево, над кнопкой.
+.errorInline {
+  align-self: flex-start;
+  margin-top: var(--sys-stack-section);
+}
+
+// «Перезапустить разбор» под результатом — пилюля не на всю ширину.
+.rerun {
+  align-self: flex-start;
+  margin-top: var(--sys-stack-section);
+}

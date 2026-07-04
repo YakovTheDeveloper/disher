@@ -1,10 +1,11 @@
-import { useCallback, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import { InfoButton } from '@/shared/ui/atoms/Button';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
-import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { RotatingPlaceholder } from './RotatingPlaceholder';
+import { WriteBarHint } from './WriteBarHint';
 import s from './WriteBarShell.module.scss';
 
 // Поверхность бара = стандартное поле формы проекта (warm well + внутренняя тень)
@@ -21,19 +22,6 @@ const SendPlaneIcon = () => (
     <path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" />
   </svg>
 );
-
-function renderHint(text: string): ReactNode {
-  const spaceIdx = text.indexOf(' ');
-  if (spaceIdx === -1) return text;
-  return (
-    <>
-      <QuietLabel as="em" className={s.focusHintAccent}>
-        {text.slice(0, spaceIdx)}
-      </QuietLabel>
-      {text.slice(spaceIdx)}
-    </>
-  );
-}
 
 // iOS Safari: native scroll-on-focus for a docked input is unreliable. Listen
 // for the real signal — `visualViewport.resize` (keyboard raised) — instead of
@@ -108,20 +96,16 @@ export interface WriteBarShellProps {
   readOnly?: boolean;
   online: boolean;
   /**
-   * Decide whether the send button shows / is enabled. Default = WriteFoodInput
-   * behaviour (`visible: expanded && hasText`, `enabled: online && hasText`).
-   * Analysis/Events override (message optional, etc.).
+   * Decide whether the send button shows (`visible`) / is enabled (`enabled`).
+   * Visibility is CONTENT-driven (canon 2026-07-02): the send coin appears only
+   * when there is something to send and vanishes on an empty field — no persistent
+   * disabled coin. Default: `{ visible: hasText, enabled: online && hasText }`.
+   * Consumers override (Events: text OR an atom; Hypotheses: title present).
    */
   computeSend?: (ctx: { focused: boolean; hasText: boolean; online: boolean }) => SendState;
   /** Render a spinner in the send slot instead of the button (loading). */
   busy?: boolean;
   sendAriaLabel?: string;
-  /**
-   * Hide the send button at rest — show it only while focused or with text.
-   * Default false (persistent coin, 2026-06-23 messenger canon). Food bar opts
-   * in: its primary entry is the catalog «Список», send is the secondary path.
-   */
-  autoHideSend?: boolean;
   /** Affordance before the field, inside the pill (e.g. paperclip). Never collapses. */
   leftSlot?: ReactNode;
   /**
@@ -141,6 +125,22 @@ export interface WriteBarShellProps {
   /** Replaces the entire input field (e.g. Food ready-state CTA). Forces collapsed. */
   fieldOverride?: ReactNode;
   hint?: string;
+  /**
+   * Optional label rendered as its own centered line ABOVE `hint` (stacked
+   * layout) — e.g. Food's «Например» над примером-строкой. Voiced by
+   * `<QuietLabel>` (serif-italic accent). When omitted, `hint` uses the inline
+   * layout (first word accented in place). Both rendered by `WriteBarHint`.
+   */
+  hintLabel?: string;
+  /**
+   * Dim the page behind the bar on focus (`expanded`) so the accent falls on the
+   * bar + its hint. ON by default for ALL write bars (per request 2026-07-05).
+   * This is the successor to the global Screen focus-scrim removed 2026-06-23 —
+   * that one flashed on Events focus-jerk because it keyed off CSS `:has(:focus)`;
+   * this is per-bar, driven by the shell's own `expanded` state (smooth fade).
+   * Opt out with `focusOverlay={false}`.
+   */
+  focusOverlay?: boolean;
   className?: string;
   /**
    * Blur the input right after submit so the focus-scrim / expanded state drops
@@ -177,13 +177,14 @@ export const WriteBarShell = ({
   computeSend,
   busy = false,
   sendAriaLabel,
-  autoHideSend = false,
   leftSlot,
   rightSlot,
   trailingSlot,
   style,
   fieldOverride,
   hint,
+  hintLabel,
+  focusOverlay = true,
   className,
   blurOnSubmit = false,
   onFieldFocus,
@@ -191,9 +192,19 @@ export const WriteBarShell = ({
   const { pressed: barPressed, pressProps: barPressProps } = usePressFeedback();
 
   const [focused, setFocused] = useState(false);
+  // Подсказка-пример больше НЕ раскрывается сама на фокусе (2026-07-05) — её
+  // прячем за кнопкой ⓘ в правом верхнем углу дока (по запросу). Тоггл: клик по
+  // ⓘ показывает текст (fade), повторный — прячет. Сбрасывается на схлопывании
+  // бара (`expanded` false), чтобы следующий фокус начинался с закрытой подсказки.
+  const [hintOpen, setHintOpen] = useState(false);
 
   const expanded = focused && !fieldOverride;
   const hasText = value.trim().length > 0;
+
+  // Схлопнулся бар → закрываем подсказку, чтобы ⓘ и текст ушли вместе с доком.
+  useEffect(() => {
+    if (!expanded) setHintOpen(false);
+  }, [expanded]);
 
   // Карусель примеров: монтируется, когда переданы примеры И caller-гейт
   // `examplesActive` (список айтемов пуст). Сам цикл крутится только пока инпут
@@ -203,14 +214,14 @@ export const WriteBarShell = ({
 
   const send: SendState = computeSend
     ? computeSend({ focused: expanded, hasText, online })
-    : { visible: expanded && hasText, enabled: online && hasText };
+    : { visible: hasText, enabled: online && hasText };
 
   const showSpinner = busy;
-  // Постоянная иконка «отправить» (предложка 2026-06-23): рендерим всегда, пока
-  // есть поле и нет загрузки. `autoHideSend` возвращает старое поведение — монета
-  // появляется только в фокусе или при тексте (Еда: send вторичен, primary = «Список»).
-  const showSend =
-    !busy && !fieldOverride && (!autoHideSend || expanded || hasText);
+  // Видимость send-монеты — ОДИН источник правды: `send.visible` из computeSend
+  // (content-driven, канон 2026-07-02). Монета появляется, когда есть что отправить,
+  // и исчезает при пустом поле — без «постоянной» серой disabled-монеты. Прежняя
+  // булева каша (`!autoHideSend || expanded || hasText`) + проп `autoHideSend` сняты.
+  const showSend = !busy && !fieldOverride && send.visible;
 
   const handleSubmit = useCallback(() => {
     if (!send.enabled) return;
@@ -240,12 +251,42 @@ export const WriteBarShell = ({
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
       data-write-bar=""
     >
-      {hint ? (
-        <div className={s.focusHint} data-visible={expanded || undefined} aria-hidden="true">
-          <Text as="span" role="caption" className={s.focusHintInner}>
-            {renderHint(hint)}
-          </Text>
-        </div>
+      {/* Opt-in dim-backdrop: fixed inset:0 but INSIDE `.wrap` at z-index:-1, so the
+          dock plate + pill + hint paint OVER it (bright) while the page below dims.
+          Tap the dimmed area → blur the input (dismiss). Fades with `expanded`. */}
+      {focusOverlay ? (
+        <div
+          className={s.focusOverlay}
+          data-visible={expanded || undefined}
+          aria-hidden="true"
+          onPointerDown={() => document.getElementById(inputId)?.blur()}
+        />
+      ) : null}
+      {hint || hintLabel ? (
+        <>
+          {/* Кнопка ⓘ в правом верхнем углу дока: раскрывается вместе с фокусом
+              (expanded), тогглит текст-подсказку. preventDefault на pointerdown
+              ОБЁРТКИ (не самой кнопки — там onPointerDown занят usePressFeedback
+              внутри IconButton) держит фокус на textarea: без него тап по кнопке
+              сбросил бы фокус → onBlur → бар схлопнулся бы, не успев показать текст. */}
+          <div
+            className={s.hintHeader}
+            data-visible={expanded || undefined}
+            aria-hidden={!expanded || undefined}
+            onPointerDown={(e) => e.preventDefault()}
+          >
+            <InfoButton
+              tone="ghost"
+              size={32}
+              glyphSize={20}
+              aria-label={hintOpen ? 'Скрыть подсказку' : 'Показать подсказку'}
+              aria-expanded={hintOpen}
+              tabIndex={expanded ? 0 : -1}
+              onClick={() => setHintOpen((open) => !open)}
+            />
+          </div>
+          <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
+        </>
       ) : null}
       {/* barLine = the glass pill row (left slot + field + send). The medal is no
           longer here — it moved up to `.wrap` (below) so it anchors to the

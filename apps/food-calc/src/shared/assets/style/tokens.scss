@@ -35,7 +35,7 @@
   --sys-inset-card: var(--space-4); // 16 — гор. инсет контента карточки-плитки (еда/анализ)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
-  --sys-stack-row: var(--space-4); // 12 — rows/fields/cards in one list/form
+  --sys-stack-row: var(--space-2); // 12 — rows/fields/cards in one list/form
   --sys-stack-section: var(--space-6); // 24 — large body sections
 
   // ─── Typography scale (modular 1.25) — #typography-scale ─────
@@ -213,12 +213,13 @@
   // Warm-coal undertone rgba(45,38,28) (warm-soft v2). GT: tds/elevation-palette-2026.md
   --ref-shadow-0: none;
   --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // action-rest
-  --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.08), 0 4px 10px rgba(45, 38, 28, 0.08); // action-hover / raised bar
+  --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.12), 0 4px 10px rgba(45, 38, 28, 0.143); // action-hover / raised bar
   --ref-shadow-3: 0 1px 3px rgba(45, 38, 28, 0.08), 0 6px 16px rgba(45, 38, 28, 0.10), 0 12px 28px rgba(45, 38, 28, 0.10); // overlay
   --ref-shadow-4: 0 2px 6px rgba(45, 38, 28, 0.10), 0 10px 24px rgba(45, 38, 28, 0.14), 0 20px 48px rgba(45, 38, 28, 0.14); // drag-lift
 
   --sys-elevation-flat: var(--ref-shadow-0); // content (cards/lists/sections)
   --sys-elevation-action-rest: var(--ref-shadow-1); // lever at rest (CTA/bar/tile)
+  --sys-elevation-action-raised: var(--ref-shadow-2); // lever resting raised to invite a tap (ActionTile)
   --sys-elevation-action-hover: var(--ref-shadow-2); // lever hovered/focused
   --sys-elevation-action-pressed: var(--ref-shadow-0); // pressed: shadow compresses ≤ rest
   --sys-elevation-overlay: var(--ref-shadow-3); // drawer/modal/popover/dropdown/sheet
@@ -332,6 +333,8 @@
   // --ref-color-neutral. Якорь {900}= cool-night #1f2a44, который уже жил ad-hoc в
   // --sys-color-divider (rgba 31,42,68) и --sys-color-text-placeholder (slate). Дом
   // для тинта НЕсемантических глифов: шевроны/иконки/значки (см. --sys-color-icon*).
+  --ref-color-cool-50: #edeff2;
+  --ref-color-cool-100: #eaecf3;
   --ref-color-cool-200: #d2d6df;
   --ref-color-cool-300: #b5bbc8;
   --ref-color-cool-400: #939aab;
@@ -359,6 +362,11 @@
   --ref-color-amber-800: #5f3300;
   --ref-color-amber-900: #4d2500;
   --ref-color-amber-1000: #3b1b00;
+
+  // butter — тёплое сливочное золото (жёлтый полюс, ВНЕ amber-оранж-рампы). Один-офф
+  // ref, минтован из утверждённой DesignBar-пробы чипов 'butter-press' (2026-07-03):
+  // единый цвет «выбрано» app-wide (см. --sys-color-bg-selected ниже).
+  --ref-color-butter: #f6e7b0;
 
   --ref-color-indigo-0: #f6f5ff;
   --ref-color-indigo-50: #efedff;
@@ -423,6 +431,11 @@
   --sys-color-surface-proposal: color-mix(in oklch, var(--ref-color-cool-500) 7%, var(--ref-color-neutral-0));
   --sys-color-surface-proposal-pressed: color-mix(in oklch, var(--ref-color-cool-500) 14%, var(--ref-color-neutral-0));
 
+  // Плоская ХОЛОДНАЯ подложка карточки (палый slate) — палый рунг cool-ramp. Дом:
+  // карточки-порции блюда/продукта (бывший 3-stop indigo-градиент $sky-*). Ровный
+  // холодный wash без градиента; indigo-текст (--sys-color-text-accent) читается на нём.
+  --sys-color-surface-cool-soft: var(--ref-color-cool-50); // #edeff2
+
 
 
   // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
@@ -435,9 +448,9 @@
 
   // color · scrim — бэкдропы modal/drawer/popover. Тёплый-уголь n1000 (НЕ холодный
   // чёрный — warm-soft канон). Снап сырых rgba(0,0,0,α)-бэкдропов к ближайшему рунгу.
-  --sys-color-scrim-soft: rgba(13, 11, 7, 0.4);
-  --sys-color-scrim: rgba(13, 11, 7, 0.55);
-  --sys-color-scrim-strong: rgba(13, 11, 7, 0.72);
+  --sys-color-scrim-soft: rgba(13, 11, 7, 0.7);
+  --sys-color-scrim: rgba(13, 11, 7, 0.7);
+  --sys-color-scrim-strong: rgba(13, 11, 7, 0.93);
 
   --sys-color-text-primary: var(--text-primary); // бренд-primary (станет амброй в будущем) — НЕ для нейтрального чёрного текста
   --sys-color-text-system: var(--ref-color-neutral-900); // нейтральный чёрный/ink текст (текстовый парный к surface-action-system); #221f19
@@ -488,11 +501,19 @@
   --sys-color-status-success-surface: color-mix(in oklch, var(--ref-color-moss-600) 11%, var(--surface-base));
 
   // color · interactive states (cross-element; "selected" = single source)
-  // «выбрано» = warm amber light-tonal (2026-06-25, M4 navy→amber). text-on-selected =
+  // «выбрано» = butter (тёплое сливочное золото, 2026-07-03 — утверждённая проба чипов
+  // 'butter-press' поднята в глобальную базу; была amber light-tonal 14%). text-on-selected =
   // deep amber: works AS text on the pale fill AND as a standalone selected-hue glyph/tick.
-  --sys-color-bg-selected: color-mix(in oklch, var(--ref-color-amber-600) 14%, var(--ref-color-neutral-0));
+  --sys-color-bg-selected: var(--ref-color-butter);
   --sys-color-text-on-selected: var(--ref-color-amber-700);
   --sys-color-border-selected: var(--ref-color-amber-700);
+  // Тёплая butter-заливка «выбрано» как ОТДЕЛЬНЫЙ sys-ярус (параллель --bg-press-warm):
+  // равен глобальной базе --bg-selected, но существует, чтобы design-variant проба
+  // 'butter-press' (features/food/details-chips) ссылалась на sys-токен, а не читала
+  // --ref-color-butter напрямую (запрещено tier-гейтом). Проба сравнивает amber/butter/plum
+  // заливки чипов; butter уже выиграл и поднят в базу — этот токен держит форк явным на
+  // уровне компонента, не плодя raw-hex.
+  --sys-color-bg-selected-warm: var(--ref-color-butter);
   // Галочка-глиф selection-маркера — ХОЛОДНАЯ искра (indigo accent-полюс), контрапункт
   // к тёплому полю «выбрано». Отдельный токен от text-on-selected: поле/кромка/текст-
   // на-заливке остаются amber, холодает ТОЛЬКО глиф. Един для всех тиков app-wide
@@ -538,6 +559,13 @@
   // --sys-color-surface-action-accent-soft (ниже) её АЛИАСИТ ради параллелизма
   // secondary-кнопок — это намеренный single-source, НЕ дубль (не путать с #2-кейсом).
   --sys-color-surface-accent-soft: var(--ref-color-indigo-100);
+  // Разбор-карточка (/analyses список) — мягкая indigo-подложка. ОТДЕЛЬНАЯ
+  // семантическая роль, НЕ алиас accent-soft: список разборов = собственный surface,
+  // чтобы перекраска кнопочного accent-soft не тащила фон разборов (и наоборот).
+  // Тёмный ink (--sys-color-text-primary) читается на бледном indigo; -sunk = press-ступень.
+  // Осветлён на ступень 2026-07-04 (было indigo-100/200) — карточки разборов бледнее (решение юзера).
+  --sys-color-surface-analysis: var(--ref-color-butter); // #efedff бледный indigo
+  --sys-color-surface-analysis-sunk: var(--ref-color-indigo-100); // #e6e4ff press-вдав
   --sys-color-text-accent-muted: color-mix(in oklch, var(--sys-color-text-accent) 55%, transparent);
   --sys-color-text-accent-faint: color-mix(in oklch, var(--sys-color-text-accent) 35%, transparent);
   --sys-color-surface-action-system: var(--ref-color-neutral-900);
@@ -558,6 +586,7 @@
   // «заливка vs бордюр» — DesignBar `ButtonSecondary` (`<html data-btn-secondary>`),
   // дефолт = заливка. Тональный текст здесь = `text-*` роль (НЕ on-*: это не белый
   // контент на сплошной заливке, а тёмно-тональный foreground на светлом soft).
+  --sys-color-surface-action-secondary: var(--ref-color-cool-50); // #f7f3eb — теплеет с ре-якорем n100 (2026-06-26, намеренно: общая бумага нижних поверхностей)
   --sys-color-surface-action-system-soft: var(--ref-color-neutral-100); // #f7f3eb — теплеет с ре-якорем n100 (2026-06-26, намеренно: общая бумага нижних поверхностей)
   --sys-color-surface-action-primary-soft: var(--ref-color-amber-50); // #ffedd9
   --sys-color-surface-action-accent-soft: var(--sys-color-surface-accent-soft); // indigo-100
@@ -599,7 +628,11 @@
   --sys-radius-cta: var(--radius-md); // CTA pills (separate lever from indicator)
   --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
   --sys-radius-small-cell: var(--radius-sm); // 12 — card/panel/surface
-  --sys-radius-overlay: var(--radius-xl); // 24 — drawer/bottom-sheet top corner, headerOverlap
+  // Метафора: ПОСТОЯННОЕ/моё = круглое (sheet 40, лист-контент); ТРАНЗИЕНТНОЕ/не-моё
+  // = квадратнее (drawer 24). Все дроверы — нижние И боковые — «система тебя спрашивает»,
+  // выезжают поверх листа → отделены от него меньшим радиусом. Живёт на DrawerLayout
+  // (.content_bottom/_left/_right) + bottom-sheet-доках (FoodSearchEmpty).
+  --sys-radius-drawer: var(--radius-xl); // 24 — транзиентная панель (drawer/bottom-sheet)
   --sys-radius-sheet: var(--radius-2xl); // 40 — крупная sheet/предложка-карточка (SheetCard)
   // radius · concentric inner — вложенная карточка внутри sheet-контейнера.
   // Канон концентричности: r_внутр = r_внеш − inset (дуги с общим центром →
@@ -607,10 +640,10 @@
   // примитивном ярусе (gate-exempt); компоненты потребляют готовую роль, не calc.
   // Меняешь sheet/inset — внутренний радиус едет следом сам.
   --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-page));
-  // Вложенный радиус для пилюли внутри overlay-плашки (нижний док WriteBar): тот же
-  // канон концентричности r_внутр = r_внеш − inset (24 − 12 = 12). Пилюля рифмуется
-  // с углом плашки, а не торчит стадионом.
-  --sys-radius-overlay-inner: calc(var(--sys-radius-overlay) - var(--sys-inset-page)); // → 12
+  // Вложенный радиус для пилюли внутри drawer-плашки: тот же канон концентричности
+  // r_внутр = r_внеш − inset (24 − 12 = 12). Пилюля рифмуется с углом плашки, а не
+  // торчит стадионом. (Сейчас без потребителей — держим в паре с --sys-radius-drawer.)
+  --sys-radius-drawer-inner: calc(var(--sys-radius-drawer) - var(--sys-inset-page)); // → 12
   // Карточка-на-листке (SheetCard) лежит ПРЯМО на странице-листе (`.headerOverlap`,
   // радиус --sys-radius-sheet) через общий page-gutter (--sys-inset-page). Тот же
   // канон концентричности r_внутр = r_внеш − inset (40 − 12 = 28): углы карточки

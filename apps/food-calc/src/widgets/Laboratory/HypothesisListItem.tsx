@@ -67,6 +67,9 @@ const HypothesisListItem = ({
   presentation = 'flush',
 }: Props) => {
   const meta = showMeta ? relativeTimeRu(hypothesis.createdAt) : '';
+  // Тело кликабельно как тоггл только когда есть чекбокс и он не заблокирован
+  // (лимит выбора). Иначе — инертный текст (CRUD-список / cap reached).
+  const bodyToggles = !hideCheckbox && !checkboxDisabled;
   const content = (
     <>
       <Heading as="span" role="title" className={styles.title}>
@@ -108,8 +111,18 @@ const HypothesisListItem = ({
           </span>
         </label>
       )}
-      {/* Текст инертный — триггер редактирования вынесен на шеврон справа-снизу. */}
-      <div className={styles.textButton}>{content}</div>
+      {/* Клик по телу гипотезы = тот же тоггл, что чекбокс (юзер-канон 2026-07-03):
+          применить/снять гипотезу можно по всей карточке, не целясь в чекбокс.
+          Активно только в selection-режиме (есть чекбокс) и когда он не заблокирован
+          лимитом. В чистом CRUD-списке (`hideCheckbox`) тело остаётся инертным —
+          там выбора нет. Редактирование живёт на шевроне справа-снизу (отд. зона). */}
+      <div
+        className={styles.textButton}
+        data-toggle={bodyToggles || undefined}
+        onClick={bodyToggles ? onToggle : undefined}
+      >
+        {content}
+      </div>
       {onEdit && editInputHtmlFor && (
         <label
           htmlFor={editInputHtmlFor}

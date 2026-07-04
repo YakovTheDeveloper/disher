@@ -1,17 +1,24 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
+import { ActionTile } from '@/shared/ui/atoms/ActionTile';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './ItemActionsDrawer.module.scss';
 
 export type ItemAction = {
   label: string;
   icon?: React.ReactNode;
+  /**
+   * Гравюра (public/art) для art-слота плитки в ряду правок (editActions). Ряд
+   * правок рендерится квадратными `ActionTile` (muted-серый вариант) — гравюра
+   * втекает в правый край плитки, глиф-иконки там больше не используются.
+   */
+  art?: React.ReactNode;
   onClick: () => void;
   /**
    * Тон кнопки в стеке (переиспользует словарь примитива, без отдельного
    * `emphasis`-enum). Дефолт — тихий `system-secondary`; «главное» действие
    * (напр. «Информация о продукте») помечается `'system'` (уголь-filled) и
-   * читается как акцент стека. Амбру (`primary`) сюда не давать — это бизнес-CTA.
+   * читается как акцент стека.
    */
   variant?: ButtonVariant;
 };
@@ -28,11 +35,6 @@ interface Props extends BaseDrawerProps<void> {
   /** Bottom vertical stack. The last entry reads as the "primary" action
    *  (e.g. «Информация о продукте» sits at the bottom). */
   actions: ItemAction[];
-  /** Optional horizontal row of edit-entry buttons rendered BELOW the action
-   *  stack — each is a pencil-icon + label that closes the drawer and opens the
-   *  matching edit step. Schedule-food rows pass [Количество, Особенности,
-   *  Время]; entities without inline-editable fields (dish ingredients, catalog
-   *  foods) omit it → no row. The pencil glyph is owned here (uniform). */
   editActions?: ItemAction[];
 }
 
@@ -54,7 +56,6 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
     <DrawerLayout
       title={title}
       a11yLabel={title ?? 'Действия'}
-      contentInset="panel"
       topRight={
         onDelete ? (
           <IconButton
@@ -77,42 +78,29 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
             icon={action.icon}
             onClick={() => handleAction(action)}
           >
-            {action.label}
+            <span className={s.editBtnLabel}>{action.label}</span>
           </Button>
         ))}
       </div>
       {editActions && editActions.length > 0 && (
-        <div className={s.editRow}>
-          {editActions.map((action, i) => (
-            <Button
-              key={`${action.label}-${i}`}
-              className={s.editBtn}
-              variant="system-secondary"
-              flat
-              icon={<PencilIcon />}
-              onClick={() => handleAction(action)}
-            >
-              {action.label}
-            </Button>
-          ))}
+        <div className={s.editSection}>
+          <div className={s.editRow}>
+            {editActions.map((action, i) => (
+              <ActionTile
+                key={`${action.label}-${i}`}
+                className={s.editTile}
+                emphasis
+                top={action.label}
+                art={action.art}
+                onClick={() => handleAction(action)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </DrawerLayout>
   );
 };
-
-const PencilIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4 20h4L18.5 9.5a2.121 2.121 0 0 0-3-3L5 17v3z"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M13.5 6.5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 const TrashIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

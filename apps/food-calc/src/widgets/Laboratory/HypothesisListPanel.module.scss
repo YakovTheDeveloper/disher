@@ -74,11 +74,12 @@
     box-shadow: none;
 }
 
-// Зазор между гипотезами — фиксированный `--space-3` (воздух, как InsightCard/
-// AnalysisResult). Контракт `--ax-*` распущен 2026-06-22 (нёс одно значение);
-// бровка у HypothesisListItem погашена (строки делит воздух).
+// Зазор между гипотезами (страница Анализов, экран 3) — `--sys-stack-section` (24),
+// 1:1 с инсайтами (экран 1): широкий воздух + чёрная нижняя граница у каждого ряда
+// (см. HypothesisListItem `[data-presentation='analysis']::after`). Решение юзера
+// 2026-07-04 (было `--space-3` 12px, «делит только воздух»).
 .scrollBodyAnalysis {
-    gap: var(--space-3);
+    gap: var(--sys-stack-section);
     overflow: visible;
     border-radius: 0;
 }

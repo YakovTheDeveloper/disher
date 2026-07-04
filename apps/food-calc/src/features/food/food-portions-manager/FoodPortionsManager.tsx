@@ -213,7 +213,7 @@ const FoodPortionsManager: FC<Props> = ({
 
       <ul className={s.list}>
         {implicitPortion && (
-          <li className={s.portion}>
+          <li className={`${s.portion} ${s.portionMuted}`} aria-disabled="true">
             <div className={s.portionInfo}>
               <Text as="span" role="label" className={s.portionLabel}>
                 {implicitPortion.label}

@@ -56,6 +56,17 @@ export interface AuthProvider {
   signOut(): Promise<void>;
 
   /**
+   * Start a redirect-based OAuth2/OIDC sign-in (e.g. Telegram). On success the
+   * browser navigates away to the provider, so the promise typically does not
+   * resolve in-page. A returned `{ ok: false }` means the redirect could not
+   * even be started (misconfigured provider / network) — never throws.
+   */
+  signInWithOAuth(
+    providerId: string,
+    callbackURL?: string,
+  ): Promise<{ ok: false; error: AuthError } | undefined>;
+
+  /**
    * Re-send the email-verification link for an account that signed up but
    * hasn't clicked the link yet. The provider returns `{ ok: true }` even if
    * the address doesn't exist (anti-enumeration); only network/validation

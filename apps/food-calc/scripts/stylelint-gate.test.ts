@@ -1,8 +1,11 @@
 // Regression guard for the design-token stylelint gate (.stylelintrc.cjs).
-// Locks the contract: raw color / font-size / border-radius are rejected, and a
-// variable (CSS custom property or SCSS $var) passes. If someone flips
-// `ignoreFunctions` back to true, drops the rule, or breaks the config, this test
-// fails — the gate can't silently rot. See design-consistency-plan Phase 1.
+// Locks the 2026-06-24 sys-only contract (supersedes the 2026-06-01 "any variable
+// passes" gate): a gated property accepts ONLY a matching `var(--sys-…)` token of
+// its family (+ structural keywords). Raw literals, a bare non-sys `var()`,
+// `--ref-*`/legacy vars, and raw SCSS `$vars` are ALL rejected. If someone flips
+// `ignoreVariables`/`ignoreFunctions` back to true, drops the rule, or loosens the
+// whitelist, this test fails — the gate can't silently rot. See
+// tds/ANALYSIS/property-token-contract-2026-06-24.md + design-consistency-plan.
 import { describe, it, expect } from 'vitest';
 import stylelint from 'stylelint';
 
@@ -33,14 +36,19 @@ describe('stylelint token gate', () => {
     expect(warnings.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('accepts CSS custom properties', async () => {
+  it('accepts a matching --sys-* token per property', async () => {
     const warnings = await lint(
-      '.x { color: var(--c); font-size: var(--text-base); border-radius: var(--radius-sm); }',
+      '.x { color: var(--sys-color-ink); font-size: var(--sys-text-size-base); border-radius: var(--sys-radius-sm); }',
     );
     expect(warnings).toHaveLength(0);
   });
 
-  it('accepts a SCSS $variable', async () => {
-    expect(await lint('.x { color: $sky-ink; }')).toHaveLength(0);
+  it('rejects a bare non-sys var() — ignoreVariables:false makes the whitelist the law', async () => {
+    // A plain var() (or a --ref-*/legacy family var) no longer auto-passes.
+    expect(await lint('.x { color: var(--c); }')).toHaveLength(1);
+  });
+
+  it('rejects a raw SCSS $variable (not a --sys-* token)', async () => {
+    expect(await lint('.x { color: $sky-ink; }')).toHaveLength(1);
   });
 });

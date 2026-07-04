@@ -2,7 +2,7 @@
 // Раскладка: две кнопки бок-о-бок во всю ширину дока, делят строку поровну (был
 // штабель-колонка width:50% справа — флип в строку 2026-06-27). Док — ОДНА плоская тёплая поверхность
 // (`--sys-color-surface-1` #fefcf9 — парящий лист над базой страницы), закруглённая
-// как Drawer/bottom-sheet (`--sys-radius-overlay` 24px). Стекло (backdrop-blur)
+// как Drawer/bottom-sheet (`--sys-radius-drawer` 24px). Стекло (backdrop-blur)
 // выпилено 2026-06-25 — список больше НЕ просвечивает под доком.
 //
 // position: fixed; bottom: 0 — useKeyboardStick translates this element up by the
@@ -22,12 +22,13 @@
     padding: var(--space-3) var(--sys-inset-page) calc(var(--space-3) + env(safe-area-inset-bottom));
     box-sizing: border-box;
 
-    // Плоская тёплая поверхность владеет фоном дока (стекло убрано → root несёт
-    // непрозрачный фон). Низ экрана = surface-0 (база-стол), парная инверсии
-    // SearchFood: верх/низ = уровень 0, список = уровень 1. Скруглённый фон
-    // клипится по border-radius.
-    background: var(--sys-color-surface-0);
-    border-radius: var(--sys-radius-overlay) var(--sys-radius-overlay) 0 0;
+    // Док = инструмент-полка над потоком результатов: приподнятый лист surface-1
+    // (парит над ambient-столом surface-0, на котором текут кандидаты). Регистр
+    // «инструмент получает свою поверхность, кандидат — нет». Радиус + elevation-dock
+    // уже делают его полкой; фон-подъём отрывает его от голого потока. Скруглённый
+    // фон клипится по border-radius.
+    background: var(--sys-color-surface-1);
+    border-radius: var(--sys-radius-drawer) var(--sys-radius-drawer) 0 0;
     box-shadow: var(--sys-elevation-dock);
     transition: transform 0.15s cubic-bezier(0.075, 0.82, 0.165, 1);
 }

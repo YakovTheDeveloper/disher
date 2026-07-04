@@ -1,0 +1,85 @@
+// Общие стили слайдов «Инсайты» / «Гипотезы» страницы /analyses. Перенесены с
+// бывшей страницы «Открытий» (DiscoveriesSlides.module.scss) без изменений —
+// оба слайда мигрировали в /analyses как соседние экраны SwipeDeck.
+.container {
+    // ── «Анализ дня» look напрямую (без data-dv / useDesignVariant): монохромный
+    // ink «эталона» + плотность soft-ink зеркалят Laboratory `.ambientSheet`.
+    // Карточки AnalysisCard читают эти custom props по наследованию. Значения
+    // runtime/semantic → вне токен-гейта. (Кегли тела/меты живут в примитивах
+    // <Text>/<Heading> — font-size в scss мёртв, поэтому --analysis-fs-* убраны.)
+    --sys-card-text-rest: #1d1d1f;   // монохром заголовка (.cardTitle)
+    --sys-card-text-active: #000;    // кольцо «только что создан» (.card[data-new])
+    --analysis-lh-detail: 1.5;       // line-height тела (.detail)
+    --analysis-soft-amt: 72%;        // плотность soft-ink (--sys-card-text-soft → .valenceSign)
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    padding-bottom: 8px;
+
+    // Тач-свайп между разделами. ТОЧЬ В ТОЧЬ как на HomePage: строки списка несут
+    // `touch-action: pan-y` — без него глобальный `* { touch-action: manipulation }`
+    // (index.scss) разрешает браузеру забрать горизонтальный жест себе на
+    // скролл-контейнере под пальцем → Embla отменяет свайп. `pan-y` отдаёт браузеру
+    // только вертикаль (скролл списка), горизонталь — в свайп.
+    touch-action: pan-y;
+}
+
+.topAnchor {
+    height: 0;
+}
+
+// Голос (мелкая мета) — примитив <Text role="caption">.
+.count {
+    margin: 0;
+    color: var(--sys-card-text-faint);
+}
+
+// Позиционирование пустой зоны — отступы от краёв. Раскладку контента несёт
+// примитив <EmptyState>.
+.empty {
+    padding: 24px 8px;
+    text-align: center;
+}
+
+// ── Слайд «Гипотезы»: сохранённые гипотезы = HypothesisCard (added) ───────────
+// 1:1 с инсайтами (InsightListPanel): ряды делит воздух (--sys-stack-section) +
+// чёрная нижняя линия во всю ширину листа. `<ul>` reset. Selection-списки подбора
+// остаются на HypothesisListItem — сюда мигрировал только added-режим (2026-07-04).
+.hList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.hRow {
+    position: relative;
+}
+
+// Чёрная ВЕРХНЯЯ граница между гипотезами — тянем за паддинг листа отрицательным
+// --sys-inset-page (от края до края белого листа Screen). 1:1 с InsightListPanel
+// `.row::after` (сплошная ink-линия --sys-color-text-system, не тающий hairline).
+.hRow::after {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--sys-inset-page));
+    right: calc(-1 * var(--sys-inset-page));
+    top: 0;
+    height: 1px;
+    background-color: var(--sys-color-text-system);
+    pointer-events: none;
+}
+
+.hRow:first-child::after {
+    display: none;
+}
+
+// Ряды С верхней рамкой держат больше верхнего воздуха (от линии), снимают нижний —
+// переопределяют --analysis-card-pad у AnalysisCard. Первый ряд — дефолт.
+.hRow:not(:first-child) {
+    --analysis-card-pad: var(--space-8) var(--sys-inset-card) 0;
+}

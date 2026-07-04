@@ -1,21 +1,21 @@
 import { memo, useEffect, useState } from 'react';
-import { pluralHypotheses } from '@/shared/lib/text/pluralHypotheses';
-import {
-  deriveStatus,
-  STALE_PENDING_MS,
-  type AnalysisRowStatus,
-  type Analysis,
-} from '../api';
+import { deriveStatus, STALE_PENDING_MS, type AnalysisRowStatus, type Analysis } from '../api';
 import { formatWindowLabel } from './range';
-import { Card } from '@/shared/ui/atoms/Card';
-import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { summaryLead } from './summaryPreview';
+import { LongPressRow } from '@/features/shared/long-press-item';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import styles from './AnalysisListItem.module.scss';
 
-const STATUS_LABEL: Record<AnalysisRowStatus, string> = {
-  running: 'идёт',
-  stale: 'возможно, не удалось',
-  failed: 'не удался',
-  done: 'готов',
+type NonDone = Exclude<AnalysisRowStatus, 'done'>;
+
+// Тело-плейсхолдер, пока «лид-абзаца» нет (summary пустой у идущего/протухшего,
+// ⚠️-префикс у упавшего). Для 'done' тело = summaryLead(summary). У stale/failed
+// статус несёт САМО тело + accent-полоска слева (CSS) — отдельной пилюли нет
+// (только running показывает пилюлю «идёт» с пульс-точкой).
+const BODY_PLACEHOLDER: Record<NonDone, string> = {
+  running: 'Разбор идёт…',
+  stale: 'Возможно, не удалось — попробуй перезапустить',
+  failed: 'Разбор не удался',
 };
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -27,11 +27,14 @@ type Props = {
   onLongPress?: (analysis: Analysis) => void;
 };
 
-// One long-analysis row — now the Card compound (Card.Root = LongPressRow surface
-// + 2-row geometry). The tod-palette chassis is neutralized to the flat neutral
-// analyses tone (`--sys-card-*`) via the `.row` className; the accent stripe +
-// status pill carry the derived state. Tap opens the detail modal; a long press
-// opens the action drawer (delete).
+// One analysis card — indigo-плитка (унификация под карточки HomePage). Каркас —
+// LongPressRow (перекрашен в семантический `--sys-color-surface-analysis`), но
+// раскладка ручная (не compound Card): лид-абзац разбора = ВЕДУЩИЙ текст сверху,
+// а дата — доминанта в правом-нижнем углу крупным <Heading role="headline">
+// (редизайн 2026-07-04, решение юзера: «время вниз-вправо, текст крупнее»). Статус:
+// running — пилюля «идёт» в том же нижнем ряду слева; stale/failed — accent-полоска
+// слева (data-status, CSS) + текст-плейсхолдер; done — чисто. Tap открывает модалку;
+// long press — action-дровер (удаление).
 const AnalysisListItem = ({ analysis, onOpen, onLongPress }: Props) => {
   // `deriveStatus` reads the wall clock, so a `running` row that crosses the
   // 15-min staleness line will not re-flip on its own without a re-render.
@@ -39,7 +42,6 @@ const AnalysisListItem = ({ analysis, onOpen, onLongPress }: Props) => {
   // user just sits on the page (no list refetch).
   const [, forceTick] = useState(0);
   const status = deriveStatus(analysis);
-  const hypothesisCount = analysis.appliedHypotheses.length;
 
   useEffect(() => {
     if (status !== 'running') return;
@@ -51,38 +53,38 @@ const AnalysisListItem = ({ analysis, onOpen, onLongPress }: Props) => {
     return () => clearTimeout(t);
   }, [status, analysis.createdAt]);
 
+  const body = status === 'done' ? summaryLead(analysis.summary) : BODY_PLACEHOLDER[status];
+
   return (
-    <Card.Root
+    <LongPressRow
       id={analysis.id}
       className={styles.row}
       data-status={status}
       onClick={() => onOpen(analysis.id)}
       onLongPress={onLongPress ? () => onLongPress(analysis) : undefined}
     >
-      {/* Title = period (serif-italic QuietLabel голос — node-escape, не sans). */}
-      <Card.Title>
-        <QuietLabel className={styles.period}>
-          {formatWindowLabel(analysis.windowStart, analysis.windowEnd)}
-        </QuietLabel>
-      </Card.Title>
-
-      {/* Meta = hypothesis count (Card строит sans-caption, muted). */}
-      <Card.Meta className={styles.meta}>
-        {hypothesisCount > 0
-          ? `${hypothesisCount} ${pluralHypotheses(hypothesisCount)}`
-          : 'без гипотез'}
-      </Card.Meta>
-
-      {/* metaEnd (Card.Time trailing slot) = status pill, node-escape. */}
-      <Card.Time>
-        <Text as="span" role="caption" className={styles.status} data-status={status}>
-          {status === 'running' && (
-            <span className={styles.statusDot} aria-hidden="true" />
-          )}
-          {STATUS_LABEL[status]}
+      <div className={styles.card}>
+        {/* Лид-абзац разбора (или плейсхолдер) — ВЕДУЩИЙ текст, клэмп 2 строки. */}
+        <Text role="body" className={styles.body}>
+          {body}
         </Text>
-      </Card.Time>
-    </Card.Root>
+
+        {/* Нижний ряд: пилюля «идёт» (running) слева + дата-доминанта справа
+            (крупный <Heading role="headline">). stale/failed сигналят accent-
+            полоской (CSS), done — только дата. */}
+        <div className={styles.footer}>
+          {status === 'running' && (
+            <Text as="span" role="caption" className={styles.status}>
+              <span className={styles.statusDot} aria-hidden="true" />
+              идёт
+            </Text>
+          )}
+          <Heading as="span" role="title" className={styles.date}>
+            {formatWindowLabel(analysis.windowStart, analysis.windowEnd)}
+          </Heading>
+        </div>
+      </div>
+    </LongPressRow>
   );
 };
 

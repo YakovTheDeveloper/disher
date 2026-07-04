@@ -3,17 +3,15 @@ import s from './Button.module.css';
 import clsx from 'clsx';
 import { Text } from '@/shared/ui/atoms/Typography/Text';
 
-// Ось ТОНА × ось ГРОМКОСТИ. Тона: system (уголь, строгий монохром) · primary
-// (амбра, бренд) · accent (индиго, холодный). Громкость: filled (сплошная) и
-// `-secondary` (тихий soft-tonal ярус). surface — нейтральная приподнятая плитка
-// (плоскость задаёт `onSurface`), вне тоновой оси. link/ghost — текстовые утилиты
-// (ссылка / тихая «отмена»), вне тоновой оси. Цвета — sys-токены `--sys-color-surface-action-*`.
+// Ось ТОНА × ось ГРОМКОСТИ. Тона: system (уголь, строгий монохром) · accent
+// (индиго, холодный). Громкость: filled (сплошная) и `-secondary` (тихий
+// soft-tonal ярус). surface — нейтральная приподнятая плитка (плоскость задаёт
+// `onSurface`), вне тоновой оси. link/ghost — текстовые утилиты (ссылка / тихая
+// «отмена»), вне тоновой оси. Цвета — sys-токены `--sys-color-surface-action-*`.
 export type ButtonVariant =
   | 'system'
-  | 'primary'
   | 'accent'
   | 'system-secondary'
-  | 'primary-secondary'
   | 'accent-secondary'
   | 'surface'
   | 'link'
@@ -36,7 +34,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
    *   (surface-2 #fff ≈ surface-1 #fefcf9) — отделяем кромкой.
    * · `2` (на surface-2) → fill surface-2 + ТЕНЬ (elevation-2). Цветом выше некуда
    *   — отделяемся подъёмом.
-   * Делает кнопку НЕЙТРАЛЬНОЙ плиткой — тон (system/primary/accent) игнорируется.
+   * Делает кнопку НЕЙТРАЛЬНОЙ плиткой — тон (system/accent) игнорируется.
    */
   onSurface?: 0 | 1 | 2;
   /**
@@ -65,10 +63,8 @@ type ButtonComponent = React.FC<ButtonProps>;
 // 1:1 на CSS-module ключи, поэтому маппинг явный (camelCase в модуле).
 const VARIANT_CLASS: Record<ButtonVariant, string> = {
   system: s.system,
-  primary: s.primary,
   accent: s.accent,
   'system-secondary': s.systemSecondary,
-  'primary-secondary': s.primarySecondary,
   'accent-secondary': s.accentSecondary,
   surface: s.surface,
   link: s.link,

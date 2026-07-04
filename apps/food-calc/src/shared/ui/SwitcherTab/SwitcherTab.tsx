@@ -26,6 +26,9 @@ export type SwitcherTabProps = ButtonHTMLAttributes<HTMLButtonElement> & {
    * либо одна правая стрелка на серединном слайде — `middle-right`).
    */
   arrow?: 'left' | 'right';
+  /** Типо-ярус подписи активного таба (`<Heading role>`). Дефолт `display`
+   *  (46px masthead). Переключатели внутри оверлея просят меньший (`headline`). */
+  titleRole?: 'display' | 'headline' | 'title';
 };
 
 /**
@@ -50,17 +53,27 @@ export const SwitcherTab = ({
   active,
   solidLabel,
   arrow,
+  titleRole = 'display',
   className,
+  onClick,
   ...rest
 }: SwitcherTabProps) => (
   <button
     type="button"
-    className={clsx(s.tile, active && s.tileActive, solidLabel && s.tileSolidLabel, className)}
     {...rest}
+    // Активный таб полностью инертен — ты уже на нём (юзер-канон 2026-07-03). onClick
+    // не шлём (клавиатурный Enter → no-op), клик/press глушит `pointer-events:none`
+    // в `.tileActive`, а tabIndex=-1 убирает его и из tab-order (нельзя сфокусировать
+    // клавиатурой «мёртвый» таб — юзер выбрал так явно). Идут ПОСЛЕ `{...rest}`, чтобы
+    // перекрыть caller-значения. aria-current сюда НЕ навешиваем: selected-состояние
+    // уже несёт `aria-selected` потребителя (ScreenIndicator = role="tab"/"tablist").
+    className={clsx(s.tile, active && s.tileActive, solidLabel && s.tileSolidLabel, className)}
+    onClick={active ? undefined : onClick}
+    tabIndex={active ? -1 : rest.tabIndex}
   >
     {image && <img src={image} className={s.tileImg} alt="" aria-hidden />}
     {active ? (
-      <Heading as="span" role="display" className={s.tileTitle}>
+      <Heading as="span" role={titleRole} className={s.tileTitle}>
         {label}
       </Heading>
     ) : (

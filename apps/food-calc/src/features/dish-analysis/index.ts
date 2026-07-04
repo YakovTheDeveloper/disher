@@ -1,4 +1,7 @@
-export { DishAnalysisScreen } from './ui/DishAnalysisScreen';
+export { DishHubDrawer } from './ui/DishHubDrawer';
+export { DishAnalysisModal } from './ui/DishAnalysisModal';
+export { useDishRun, useDishRunStore } from './model/runStore';
+export type { DishRun } from './model/runStore';
 export {
   runDishAnalysis,
   requestDishAnalysis,

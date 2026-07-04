@@ -129,6 +129,7 @@ const PortionCreateModals = ({ existingLabels, unit, onCreate }: Props) => {
               visitedSteps={visitedSteps}
               onBack={handleBack}
               onStepClick={goToStep}
+              active={step === 'grams'}
             />
 
             <ModalShell.Body>

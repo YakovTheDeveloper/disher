@@ -47,6 +47,7 @@ export default defineConfig([
         files: [
             'src/shared/ui/popover/PopoverTrigger/PopoverTrigger.tsx',
             'src/features/food/food-free-text-parse/ui/AddToListPopover.tsx',
+            'src/features/wallpaper/WallpaperHero.tsx',
             'src/shared/ui/ChangeHighlight/ChangeHighlight.tsx',
         ],
         rules: {

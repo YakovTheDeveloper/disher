@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import type { Hypothesis } from '@/entities/hypothesis';
 import HypothesisListItem from './HypothesisListItem';
@@ -49,5 +49,33 @@ describe('HypothesisListItem edit chevron', () => {
     // Pre-change the whole text was a <label htmlFor> that opened edit; now only
     // the chevron carries it, so the title must sit outside any <label>.
     expect(screen.getByText('Гипотеза A').closest('label')).toBeNull();
+  });
+});
+
+// Клик по телу гипотезы = тот же тоггл, что чекбокс (юзер-канон 2026-07-03), но
+// ТОЛЬКО в selection-режиме: есть чекбокс и он не заблокирован лимитом. В CRUD-
+// списке (hideCheckbox) или при достигнутом лимите (checkboxDisabled) тело инертно.
+describe('HypothesisListItem body toggle', () => {
+  it('toggles on body click when the checkbox is present and enabled', () => {
+    const onToggle = vi.fn();
+    render(<HypothesisListItem hypothesis={HYP} selected={false} onToggle={onToggle} />);
+    fireEvent.click(screen.getByText('Гипотеза A'));
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT toggle on body click in a checkbox-less (CRUD) list', () => {
+    const onToggle = vi.fn();
+    render(<HypothesisListItem hypothesis={HYP} selected={false} onToggle={onToggle} hideCheckbox />);
+    fireEvent.click(screen.getByText('Гипотеза A'));
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('does NOT toggle on body click when the checkbox is disabled (cap reached)', () => {
+    const onToggle = vi.fn();
+    render(
+      <HypothesisListItem hypothesis={HYP} selected={false} onToggle={onToggle} checkboxDisabled />,
+    );
+    fireEvent.click(screen.getByText('Гипотеза A'));
+    expect(onToggle).not.toHaveBeenCalled();
   });
 });

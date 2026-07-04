@@ -38,7 +38,12 @@ export function AuthForm({
   const error = useAuthStore((s) => s.error);
   const signUp = useAuthStore((s) => s.signUp);
   const signIn = useAuthStore((s) => s.signIn);
+  const signInWithTelegram = useAuthStore((s) => s.signInWithTelegram);
   const clearError = useAuthStore((s) => s.clearError);
+
+  // Telegram OIDC login is opt-in per build: turn it on with VITE_TELEGRAM_LOGIN=1
+  // (only once the bot is configured server-side via TELEGRAM_CLIENT_*).
+  const telegramEnabled = import.meta.env.VITE_TELEGRAM_LOGIN === '1';
 
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>('email');
@@ -135,6 +140,7 @@ export function AuthForm({
 
       <div className={styles.formWrap}>
         {step === 'email' ? (
+          <>
           <form onSubmit={handleEmailSubmit} className={styles.form} noValidate>
             <div className={styles.field}>
               <input
@@ -166,6 +172,23 @@ export function AuthForm({
               Продолжить
             </Button>
           </form>
+          {telegramEnabled && (
+            <div className={styles.altAuth}>
+              <Text as="p" role="caption" className={styles.altDivider}>
+                или
+              </Text>
+              <Button
+                variant="system"
+                type="button"
+                className={styles.telegramBtn}
+                onClick={() => signInWithTelegram()}
+                disabled={isLoading}
+              >
+                Войти через Telegram
+              </Button>
+            </div>
+          )}
+          </>
         ) : (
           <form onSubmit={handlePasswordSubmit} className={styles.form} noValidate>
             <div className={styles.field}>

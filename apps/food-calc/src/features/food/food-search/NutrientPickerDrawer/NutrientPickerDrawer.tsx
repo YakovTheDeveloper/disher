@@ -30,7 +30,7 @@ export function NutrientPickerDrawer({ onClose, activeId }: Props) {
     if (nutrient) onClose({ id: nutrient.id, unit: nutrient.unitRu });
   };
   return (
-    <DrawerLayout title="Выбери нутриенты">
+    <DrawerLayout title="Сортировка" contentInset="panel">
       <div className={styles.root}>
         <Text role="caption" className={styles.intro}>
           Еда в поиске покажет, сколько в ней выбранного нутриента

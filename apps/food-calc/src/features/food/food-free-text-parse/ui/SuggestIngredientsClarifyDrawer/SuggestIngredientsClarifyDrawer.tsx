@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
-import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Button } from '@/shared/ui/atoms/Button';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import s from './SuggestIngredientsClarifyDrawer.module.scss';
 
@@ -19,11 +19,14 @@ export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
   const [comment, setComment] = useState('');
 
   return (
-    <DrawerLayout a11yLabel="Уточнения">
+    <DrawerLayout title="Уточнения">
       <div className={s.body}>
-        <Heading role="headline" as="h2" className={s.title}>
-          Уточнения
-        </Heading>
+        {/* Вводная подсказка: что делает функция и что она ДОБАВЛЯет к текущему
+            составу, ничего не удаляя (append-флоу). */}
+        <Text role="caption" className={s.intro}>
+          Подберём ингредиенты по названию блюда и добавим совпадения к текущему
+          составу — ничего не удаляя.
+        </Text>
         <AutoGrowSearch
           value={comment}
           onChange={setComment}

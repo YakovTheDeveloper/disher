@@ -172,11 +172,12 @@ describe('FoodEntryCreateModals (schedule) — commit stamps current time', () =
     expect([before, after]).toContain(arg.time);
   });
 
-  it('помечает добавленную строку just-added (flash) — фидбек «добавлено»', async () => {
-    // Регресс на пропущенный путь: продукт из ПОИСКА/модалки идёт через
-    // useFoodEntryFlow.handleCommit, а не useWriteFoodFlow.commit. Юзер добавил
-    // продукт и НЕ увидел фидбека, потому что этот путь не звал markAdded. Теперь
-    // id новой строки попадает в mailbox → ряд один раз мигает flash-подсветкой.
+  it('помечает добавленную строку just-added ДО записи — фидбек «добавлено»', async () => {
+    // Контракт: id ряда генерится ЗАРАНЕЕ, markAdded зовётся ДО записи и тот же id
+    // передаётся в addScheduleFood. Иначе liveQuery смонтирует ряд на коммите раньше
+    // флага, и появление проскочит (быстрый stagger вместо наплыва). Проверяем, что
+    // ПЕРЕДАННЫЙ в мутацию id помечен в mailbox.
+    const { addScheduleFood } = await import('@/entities/schedule-food');
     render(<Harness target={SCHEDULE} />);
 
     focusInput(SCH_IDS.SEARCH_INPUT);
@@ -184,7 +185,10 @@ describe('FoodEntryCreateModals (schedule) — commit stamps current time', () =
     focusInput(SCH_IDS.QUANTITY_INPUT);
     clickActiveByText('Готово');
 
-    await waitFor(() => expect(isJustAdded('new-id')).toBe(true));
+    await waitFor(() => expect(addScheduleFood).toHaveBeenCalledTimes(1));
+    const id = (vi.mocked(addScheduleFood).mock.calls[0][0] as { id?: string }).id;
+    expect(id).toBeTruthy();
+    expect(isJustAdded(id!)).toBe(true);
   });
 
   it('never mounts a time input in create', () => {
@@ -243,14 +247,34 @@ describe('FoodEntryCreateModals (dish) — select → quantity → commit', () =
     clickActiveByText('Готово');
 
     await waitFor(() =>
-      expect(mockAddDishItem).toHaveBeenCalledWith({
-        dishId: 'dish-123',
-        productId: 'prod-1',
-        quantity: 200,
-        details: '',
-      }),
+      // id теперь генерит вызывающий (markAdded ДО записи) и передаёт в мутацию —
+      // objectContaining терпит доп. поле id.
+      expect(mockAddDishItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dishId: 'dish-123',
+          productId: 'prod-1',
+          quantity: 200,
+          details: '',
+        }),
+      ),
     );
     expect(mockToasterSuccess).toHaveBeenCalledWith('Продукт добавлен');
+  });
+
+  it('помечает добавленный ингредиент just-added ДО записи — паритет с расписанием', async () => {
+    // Паритет с расписанием: id генерится заранее, markAdded ДО записи, тот же id
+    // уходит в addDishItem. Проверяем, что ПЕРЕДАННЫЙ id помечен в mailbox.
+    render(<Harness target={DISH} />);
+    focusInput(DISH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('select-product'));
+    focusInput(DISH_IDS.QUANTITY_INPUT);
+    fireEvent.click(screen.getByTestId('quick-200'));
+    clickActiveByText('Готово');
+
+    await waitFor(() => expect(mockAddDishItem).toHaveBeenCalledTimes(1));
+    const id = (mockAddDishItem.mock.calls[0][0] as { id?: string }).id;
+    expect(id).toBeTruthy();
+    expect(isJustAdded(id!)).toBe(true);
   });
 
   it('uses products-only search mode (no dish-in-dish)', () => {

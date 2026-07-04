@@ -1,24 +1,57 @@
-import { memo } from 'react';
+import { memo, useCallback, type Ref } from 'react';
+import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
+import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import AnalysesSlide from './ui/AnalysesSlide';
+import InsightsSlide from './ui/InsightsSlide';
+import HypothesesSlide from './ui/HypothesesSlide';
+import AnalysesHero from './ui/AnalysesHero';
 import AnalysesTopBar from './ui/AnalysesTopBar';
-import styles from './AnalysesPage.module.scss';
+import { AnalysesFeedContext } from './model/AnalysesFeedContext';
+import { useAnalysesFeed } from './model/useAnalysesFeed';
 
-// /analyses — a single screen: the long-analyses list. Hypotheses are no longer
-// a sibling slide; they live in the shared HypothesesDrawer opened from the
-// bottom-bar «Гипотезы» button (same surface as HomePage). The former two-tab
-// Swipeable + AnalysesTopBar tabs were dropped 2026-06-13.
+// /analyses — «Анализы»: три экрана общего `SwipeDeck` [Инсайты · Разборы ·
+// Гипотезы]. Стартуем на среднем (Разборы, `defaultSlide=1`). Инсайты и Гипотезы
+// мигрировали с бывшей страницы «Открытий» (та удалена). На среднем экране —
+// hero-обложка (AnalysesHero), которая сменяется FabricLoader пока есть идущий
+// разбор. Единый feed-хук (useAnalysesFeed) раздаётся через контекст, чтобы список
+// и обложка-лоадер видели одни pending-строки, а `heroForSlide` оставался
+// стабильным.
+const SCREENS: ScreenEntry[] = [
+  { label: 'Инсайты' },
+  { label: 'Разборы' },
+  { label: 'Гипотезы' },
+];
+
+const slides: DeckSlide[] = [
+  { render: (topSlot) => <InsightsSlide topSlot={topSlot} /> },
+  { render: (topSlot) => <AnalysesSlide topSlot={topSlot} /> },
+  { render: (topSlot) => <HypothesesSlide topSlot={topSlot} /> },
+];
+
+// Стабильный (module-const): арт только на среднем экране; на 1/3 слот пуст, но
+// высоту `--deck-hero-h` каркас всё равно резервирует → верхний отступ совпадает.
+const heroForSlide = (i: number) => (i === 1 ? <AnalysesHero /> : null);
+
 const AnalysesPage = () => {
+  const feed = useAnalysesFeed();
+
+  const renderTopBar = useCallback(
+    (shellRef: Ref<HTMLDivElement>) => <AnalysesTopBar shellRef={shellRef} />,
+    []
+  );
+
   return (
-    <div className={styles.ambient}>
-      {/* HomeTopBar — page-level floating bar (absolute over `.ambient`), как на
-          Dish/Home. В `Screen.stickyTop` его absolute-shell схлопывался и уезжал
-          под `.headerOverlap` (z-index:1). `.swipeArea` резервирует высоту бара
-          паддингом, чтобы лист стартовал под ним. */}
-      <AnalysesTopBar />
-      <div className={styles.swipeArea}>
-        <AnalysesSlide />
-      </div>
-    </div>
+    <AnalysesFeedContext.Provider value={feed}>
+      <SwipeDeck
+        screens={SCREENS}
+        slides={slides}
+        defaultSlide={1}
+        renderTopBar={renderTopBar}
+        heroForSlide={heroForSlide}
+        tablistLabel="Анализы: раздел"
+        arrowHint="all"
+      />
+    </AnalysesFeedContext.Provider>
   );
 };
 

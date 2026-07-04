@@ -24,11 +24,9 @@
 /* ─── FILLED тона ────────────────────────────────────────────────────────────
    Один каркас (flex/56px/pill/press-darken+scale), различие — заливка + on-текст:
    · system — уголь (neutral-900) + белый on-текст. Строгий монохром.
-   · primary — амбра (бледно-жёлтый бренд-градиент) + warm-coal on-текст. Бизнес-CTA.
    · accent — индиго (indigo-600) + белый on-текст. Холодный акцент.
    Press: brightness + scale (canon press-darken для сплошных/светлых CTA). */
 .system,
-.primary,
 .accent {
   display: inline-flex;
   align-items: center;
@@ -76,19 +74,6 @@
   background: var(--sys-color-surface-action-system);
 }
 
-.primary {
-  background: var(--sys-color-surface-action-primary);
-  color: var(--sys-color-on-action-primary);
-  /* warm-coal ink на светлой амбре */
-}
-
-.primary:not(:disabled):active {
-  /* press = ступень ref-лестницы вниз; bg-swap И ЕСТЬ сигнал — без доп.
-     brightness (как .accent), иначе двойное затемнение поверх базового 0.9 */
-  background: var(--sys-color-surface-action-primary-pressed);
-  filter: none;
-}
-
 .accent {
   background: var(--sys-color-surface-action-accent);
   color: var(--sys-color-on-action-accent);
@@ -100,7 +85,6 @@
 }
 
 .system .icon svg,
-.primary .icon svg,
 .accent .icon svg {
   width: 20px;
   height: 20px;
@@ -122,13 +106,6 @@
   --sec-border: var(--sys-color-border-action-system-soft);
 }
 
-.primarySecondary {
-  --sec-soft: var(--sys-color-surface-action-primary-soft);
-  --sec-press: var(--sys-color-surface-action-primary-soft-pressed);
-  --sec-text: var(--sys-color-text-action-primary-soft);
-  --sec-border: var(--sys-color-border-action-primary-soft);
-}
-
 .accentSecondary {
   --sec-soft: var(--sys-color-surface-action-accent-soft);
   --sec-press: var(--sys-color-surface-action-accent-soft-pressed);
@@ -137,7 +114,6 @@
 }
 
 .systemSecondary,
-.primarySecondary,
 .accentSecondary {
   display: inline-flex;
   align-items: center;
@@ -149,7 +125,7 @@
   border: 1px solid transparent;
   border-radius: var(--sys-radius-cta);
   /* --sec-* — publish-consume локали: каждая присвоена из --sys-color-* в блоке
-     тона выше (.systemSecondary/.primarySecondary/.accentSecondary). Sys-only гейт
+     тона выше (.systemSecondary/.accentSecondary). Sys-only гейт
      не следует за индирекцией → 5 потребителей помечены disable вручную (канон
      кодовой базы для неизбежных не-прямых-sys значений). */
   background: var(--sec-soft); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-surface-action-*-soft */
@@ -184,20 +160,17 @@
 
 /* Ось заливка/бордюр — DesignBar `ButtonSecondary` (<html data-btn-secondary>). */
 :root[data-btn-secondary='border'] .systemSecondary,
-:root[data-btn-secondary='border'] .primarySecondary,
 :root[data-btn-secondary='border'] .accentSecondary {
   background: transparent;
   border-color: var(--sec-border); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-border-action-*-soft */
 }
 
 :root[data-btn-secondary='soft-border'] .systemSecondary,
-:root[data-btn-secondary='soft-border'] .primarySecondary,
 :root[data-btn-secondary='soft-border'] .accentSecondary {
   border-color: var(--sec-border); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- publish-consume локаль из --sys-color-border-action-*-soft */
 }
 
 .systemSecondary .icon svg,
-.primarySecondary .icon svg,
 .accentSecondary .icon svg {
   width: 18px;
   height: 18px;
@@ -212,7 +185,7 @@
      белом не отделить (surface-2 #fff ≈ surface-1 #fefcf9) — отделяем hairline-кромкой.
    · onSurface=2 (на surface-2) → fill surface-2 + ТЕНЬ (.surfaceShadow). Цветом выше
      некуда — отделяемся подъёмом (та же логика, что попап Select: лист над листом).
-   Тон (system/primary/accent) игнорируется — плитка нейтральная (warm-coal ink).
+   Тон (system/accent) игнорируется — плитка нейтральная (warm-coal ink).
    Геометрия/press = как у `-secondary`. Press на белом = brightness(0.96) видно. */
 .surface {
   display: inline-flex;
@@ -266,10 +239,13 @@
   background: var(--sys-color-surface-1);
 }
 
-/* lift на surface-2: цветом выше некуда → отделяемся тенью (крайний подъём,
-   парная тень surface-2 ↔ elevation-2). Press — тень оседает (compress ≤ rest). */
+/* lift на surface-2: цветом выше некуда → отделяемся тенью. Тень — action-рунг
+   «приподнят, приглашает нажать» (--sys-elevation-action-raised = ref-shadow-2),
+   а НЕ overlay-грейд (--sys-elevation-2 = ref-shadow-3, рецепт дровера/модалки):
+   тайл-кнопке хватает тихого приподнятия, overlay-тень читалась «слишком громко»
+   (правка 2026-07-03). Press — тень оседает (compress ≤ rest). */
 .surfaceShadow {
-  box-shadow: var(--sys-elevation-2);
+  box-shadow: var(--sys-elevation-action-raised);
 }
 
 .surfaceShadow:not(:disabled):active {
@@ -285,6 +261,15 @@
    бар). Снимает тень; standalone-кнопка остаётся приподнятой. */
 .flat {
   box-shadow: none;
+}
+
+/* onSurface=2 + flat: тень снята (кнопка лежит на surface-2 как часть блока —
+   напр. «Новый разбор» на плашке дока), но цветом surface-2 от surface-2 не
+   отделить → возвращаем разделение лёгкой серой hairline-рамкой (тот же
+   нейтральный бордюр app-wide, что у .surfaceBordered). Компаунд .surfaceShadow
+   (только plane 2) + .flat перебивает `border: none` базового .surface. */
+.surfaceShadow.flat {
+  border: 1px solid var(--sys-color-border-subtle);
 }
 
 /* Единый «выключенный» класс — вешается на props.disabled И isLoading (clsx).
@@ -382,10 +367,8 @@
 @media (prefers-reduced-motion: reduce) {
 
   .system,
-  .primary,
   .accent,
   .systemSecondary,
-  .primarySecondary,
   .accentSecondary,
   .surface,
   .link,
@@ -394,10 +377,8 @@
   }
 
   .system:active,
-  .primary:active,
   .accent:active,
   .systemSecondary:active,
-  .primarySecondary:active,
   .accentSecondary:active,
   .surface:active,
   .link:active {

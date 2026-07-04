@@ -6,9 +6,6 @@ import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { TopBarScrollHideContext, type TopBarHideTarget } from './topBarScrollHide';
 import { QuietLabel } from '@/shared/ui/atoms/Typography';
 
-// Фолбэк высоты absolute-бара, если `--top-bar-h` не резолвится.
-const TOP_BAR_FALLBACK_PX = 80;
-
 // Направление-зависимое скрытие бара (см. `topBarScrollHide`).
 // Порог движения — гасит дрожание на микро-скроллах/«резинке».
 const HIDE_DIR_THRESHOLD_PX = 8;
@@ -31,15 +28,25 @@ type Props = {
   bottomBar?: React.ReactNode;
   header?: React.ReactNode;
   /**
-   * Семантический заголовок контента — имя блюда/продукта (Dish/Product) или
-   * «Гипотезы». Рендерится первым ВНУТРИ листа (`headerOverlap`), по центру,
-   * как `<Heading role="headline">`. Верхний отступ листа (полка + воздух) единый
-   * для всех экранов — его держит `.headerOverlap` padding-top, заголовок отвечает
-   * только за себя.
+   * Верхний слот листа — рендерится первым ВНУТРИ листа (`headerOverlap`), сразу
+   * после полки/`headerAction`, до `children`. Боковой gutter несёт САМ лист
+   * (`.headerOverlap`, `--sys-inset-page`) — ряд своего инсета НЕ добавляет,
+   * поэтому `topContent` выровнен по левому краю с контентом ниже (списком,
+   * NutrientsBar), а не сдвинут вглубь. Вертикаль и выравнивание (лево/центр/право,
+   * in-flow vs `position:absolute`) задаёт САМ переданный элемент. Заменил прежний
+   * центрированный `contentHeader` (2026-07-03).
+   *
+   * Когда задан `topContentRight`, `topContent` ужимается слева (flex: 1) и
+   * освобождает справа квадратное место под правый слот + `gap` между ними.
    */
-  contentHeader?: React.ReactNode;
-  /** Доп. класс на обёртку `contentHeader` (page-specific тюнинг). */
-  contentHeaderClassName?: string;
+  topContent?: React.ReactNode;
+  /**
+   * Правый слот верхней строки листа — рядом с `topContent`, прижат вправо
+   * (`flex-shrink: 0`). Обычно сюда едут квадратные кнопки-действия. Между ним
+   * и `topContent` — `gap`; `topContent` ужимается ровно на ширину этого слота.
+   * Без него `topContent` занимает всю ширину как раньше.
+   */
+  topContentRight?: React.ReactNode;
   /**
    * Лёгкое page-level действие в левом-верхнем углу листа. `position: absolute`
    * (см. `.headerAction`) — НЕ толкает центрированный hero вниз, плавает поверх
@@ -101,14 +108,6 @@ type Props = {
    */
   afterContent?: React.ReactNode;
   /**
-   * Эмитит видимость элемента `contentHeader` относительно своего скролл-рута
-   * (IntersectionObserver, тот же идиом, что `useScrollBottomIndicator`).
-   * Деталь-страницы используют, чтобы вернуть имя в `HomeTopBar.centerLabel`
-   * РОВНО когда заголовок уехал под бар. Колбэк должен быть СТАБИЛЬНЫМ
-   * (`useCallback`) — иначе пере-подписка наблюдателя каждый рендер.
-   */
-  onContentHeaderVisibilityChange?: (visible: boolean) => void;
-  /**
    * Включает направление-зависимое скрытие кнопок `HomeTopBar` при скролле
    * ВНУТРИ этого экрана. `settings` — уезжает только пилюля аккаунта; `all` —
    * аккаунт + нутриенты + дата (кнопка «Назад» не трогается). Работает только
@@ -125,8 +124,8 @@ const Screen = ({
   bottomRight,
   bottomLeft,
   bottomBar,
-  contentHeader,
-  contentHeaderClassName,
+  topContent,
+  topContentRight,
   headerAction,
   actions,
   backgroundColor,
@@ -139,7 +138,6 @@ const Screen = ({
   bottomBarOverlay = true,
   stickyTop,
   afterContent,
-  onContentHeaderVisibilityChange,
   topBarHide,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -204,30 +202,18 @@ const Screen = ({
   // нижнего бара зря получил бы маску + нижний padding скроллера.
   const overlayActive = bottomBarOverlay && Boolean(bottomBar);
 
-  // Наблюдаем реальный элемент заголовка (`contentHeader`) против собственного
-  // скролл-рута. Эмитим булеву видимость наружу — страница флипает
-  // `HomeTopBar.centerLabel` ровно на пересечении, без per-frame setState.
-  const contentHeaderRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const root = scrollContainerRef.current;
-    const el = contentHeaderRef.current;
-    if (!root || !el || !onContentHeaderVisibilityChange) return;
-    // Высота бара = `--top-bar-h` (= calc(env(safe-area-inset-top) + 80px)).
-    // env()/calc нельзя положить строкой в rootMargin, поэтому резолвим в px
-    // через временный probe — иначе на notched-устройствах (safe-area > 0) имя
-    // в хедере «проваливалось» бы на полосе высотой safe-area.
-    const probe = document.createElement('div');
-    probe.style.cssText = 'position:absolute;visibility:hidden;height:var(--top-bar-h,80px);';
-    root.appendChild(probe);
-    const barH = probe.offsetHeight || TOP_BAR_FALLBACK_PX;
-    root.removeChild(probe);
-    const io = new IntersectionObserver(
-      ([entry]) => onContentHeaderVisibilityChange(entry.isIntersecting),
-      { root, threshold: 0, rootMargin: `-${barH}px 0px 0px 0px` }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [onContentHeaderVisibilityChange]);
+  // Верхняя строка листа: `topContent` (flex: 1, ужимается) + опциональный
+  // квадратный `topContentRight` справа с `gap`. Рендерится один раз, вставляется
+  // в обе ветки (headerOverlap / non-overlap).
+  const topRow =
+    topContent != null || topContentRight != null ? (
+      <div className={styles.topRow}>
+        {topContent != null && <div className={styles.topContent}>{topContent}</div>}
+        {topContentRight != null && (
+          <div className={styles.topContentRight}>{topContentRight}</div>
+        )}
+      </div>
+    ) : null;
 
   return (
     <div
@@ -263,27 +249,13 @@ const Screen = ({
                 <span className={styles.sheetGrabber} />
               </div>
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
-              {contentHeader != null && (
-                <div
-                  ref={contentHeaderRef}
-                  className={clsx(styles.contentHeader, contentHeaderClassName)}
-                >
-                  {contentHeader}
-                </div>
-              )}
+              {topRow}
               {children}
             </div>
           ) : (
             <>
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
-              {contentHeader != null && (
-                <div
-                  ref={contentHeaderRef}
-                  className={clsx(styles.contentHeader, contentHeaderClassName)}
-                >
-                  {contentHeader}
-                </div>
-              )}
+              {topRow}
               {children}
             </>
           )}

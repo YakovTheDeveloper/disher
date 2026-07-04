@@ -4,21 +4,20 @@ import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { modalStore, type BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { ActionTile, ArrowGlyph } from '@/shared/ui/atoms/ActionTile';
+import { ActionTile } from '@/shared/ui/atoms/ActionTile';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { AnalysisClarificationModal } from '../AnalysisClarificationModal';
+import { CreateLongAnalysisModal } from '../long';
 import styles from './AnalysisHubDrawer.module.scss';
 
 // Route literals — kept inline so this feature does not import from the `app`
 // layer (FSD upward-import boundary).
 const ANALYSES_ROUTE = '/analyses';
-const DISCOVERIES_ROUTE = '/discoveries';
 
 // Ghost art (public/art). Bicycle = a single day's quick spin; horse-carriage =
-// the longer multi-week journey. «Мои открытия» carries a plain nav arrow — it
-// is a route hop, not an analysis kind.
+// the longer multi-week journey.
 const DAY_IMG = '/art/day-analysis.png';
 const LONG_IMG = '/art/long-analysis.png';
 
@@ -32,11 +31,13 @@ function formatDay(date: string): string {
   return format(d, 'd MMMM, EEEE', { locale: ru });
 }
 
-// «Разбор» hub — the persistent navigation anchor that replaced Home's removed
-// analysis slide. Opened from the «О!» button on HomeTopBar (drawerStore).
-// Three options: «Разобрать день» (window=1 daily flow → clarification modal),
-// «Разобрать недели» (long analysis list), «Мои открытия» (hypotheses +
-// insights). The daily row is gated (offline / empty day) exactly as the former
+// «Разбор» hub — the create fork for /analyses. Opened from the «О!» button on
+// HomeTopBar (date = the schedule date) and from the «Создать анализ» button on
+// the /analyses list (date = today). Two options: «Разобрать день» (window=1
+// daily flow → clarification modal) and «Разобрать недели» (long analysis create
+// modal). Both hand the fresh pending row to /analyses via navigation
+// `state.justStarted`, so the feed hook seeds it optimistically the same way. The
+// daily row is gated (offline / empty day) exactly as the former
 // AnalysisKindDrawer «Текущий день».
 const AnalysisHubDrawer = ({ date, onClose }: Props) => {
   const navigate = useNavigate();
@@ -63,14 +64,21 @@ const AnalysisHubDrawer = ({ date, onClose }: Props) => {
     void modalStore.show(AnalysisClarificationModal, { date });
   }
 
-  function goWeeks() {
+  async function startLong() {
+    // Close the hub, open the long-analysis create modal, then hand the fresh
+    // pending row to /analyses via `state.justStarted` — the feed hook seeds it
+    // optimistically (same path as the daily flow). Dismissed → stay put.
     onClose();
-    navigate(ANALYSES_ROUTE);
+    const created = await modalStore.show(CreateLongAnalysisModal, {});
+    if (created) navigate(ANALYSES_ROUTE, { state: { justStarted: created } });
   }
 
-  function goDiscoveries() {
+  // Нав-плитка в раздел «Открытия» (инсайты + гипотезы — они переехали в /analyses).
+  // Не создаёт разбор, а уводит на страницу → тёмная inverse-плитка отделяет «нав»
+  // от белых опций-создания выше.
+  function openDiscoveries() {
     onClose();
-    navigate(DISCOVERIES_ROUTE);
+    navigate(ANALYSES_ROUTE);
   }
 
   return (
@@ -89,13 +97,13 @@ const AnalysisHubDrawer = ({ date, onClose }: Props) => {
           top="Разобрать недели"
           bottom="Длительный разбор за 7–35 дней"
           art={<img src={LONG_IMG} alt="" />}
-          onClick={goWeeks}
+          onClick={startLong}
         />
         <ActionTile
-          top="Мои открытия"
-          bottom="Гипотезы и инсайты"
-          art={<ArrowGlyph dir="right" />}
-          onClick={goDiscoveries}
+          inverse
+          top="Страница открытий"
+          bottom="Инсайты и гипотезы с твоих разборов"
+          onClick={openDiscoveries}
         />
       </div>
     </DrawerLayout>

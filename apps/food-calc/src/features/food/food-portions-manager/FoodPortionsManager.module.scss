@@ -1,11 +1,8 @@
-// Sky-pill: каждая строка-порция = самостоятельная капсула с 3-stop голубым
-// градиентом и focus-halo. Идиома из AutoGrowSearch (warm-pill) пересажена в
-// sky-палитру. Капсулы разделены только gap'ом — `::after`-хайрлайн внутри
-// pill'а смотрелся бы инородно (см. AutoGrowSearch — там один pill = одно поле).
-$sky-bg-from: #f6f5ff; // light indigo (бывш sky)
-$sky-bg-mid: #efedff;
-$sky-bg-to: #e6e4ff;
-$sky-stripe: #c7dbf3;
+// Cool-pill: каждая строка-порция = самостоятельная капсула с ПЛОСКОЙ холодной
+// подложкой (--sys-color-surface-cool-soft, палый slate) и focus-halo. Раньше был
+// 3-stop indigo-градиент ($sky-*) — снят 2026-07-05: ровный холодный wash без
+// градиента. Капсулы разделены только gap'ом — `::after`-хайрлайн внутри pill'а
+// смотрелся бы инородно (см. AutoGrowSearch — там один pill = одно поле).
 
 .container {
     display: flex;
@@ -38,18 +35,22 @@ $sky-stripe: #c7dbf3;
     padding: var(--space-2) var(--space-3);
     border-radius: var(--sys-radius-container);
     /* was 14px */
-    background: linear-gradient(90deg,
-            $sky-bg-from 0%,
-            $sky-bg-mid 55%,
-            $sky-bg-to 100%);
+    background: var(--sys-color-surface-cool-soft);
     box-shadow: var(--sys-elevation-action-rest);
     transition: box-shadow 120ms ease;
+}
+
+// Имплицитная строка «Всё блюдо» — производная, не редактируемая: показываем её
+// приглушённой (disabled-вид), чтобы читалась как справочная сумма, а не как
+// интерактивная порция (по запросу 2026-07-05).
+.portionMuted {
+    opacity: 0.45;
 }
 
 // Edit-ряд унифицирован на LongPressRow (2026-07-04): примитив несёт жест,
 // entrance-каскад и одноразовый flash «только что добавлен». Мы нейтрализуем его
 // tod-шасси (рамка/пол/паддинг-инсет → var-контракт, без войны специфичности) и
-// ПЕРЕКРАШИВАЕМ сам ряд sky-градиентом. bg держит именно ряд (`<li>`), а не
+// ПЕРЕКРАШИВАЕМ сам ряд холодной подложкой (cool-soft). bg держит именно ряд (`<li>`), а не
 // внутренний div — иначе flash-оверлей (`::before`, z-index:-1 на `<li>`) оказался
 // бы ПОД sky-пилюлей и был бы невидим. «Один владелец bg» сохранён: владелец —
 // LongPressRow. Раскладку label/grams держит локальный 2-cell flex (.portionEditRow).
@@ -62,10 +63,7 @@ $sky-stripe: #c7dbf3;
     // Удвоенный класс (0,2,0) перебивает LongPressRow `.row` (0,1,0):
     // background-color(tod) + rim-box-shadow — без опоры на порядок стилей.
     &#{&} {
-        background: linear-gradient(90deg,
-                $sky-bg-from 0%,
-                $sky-bg-mid 55%,
-                $sky-bg-to 100%);
+        background: var(--sys-color-surface-cool-soft);
         box-shadow: var(--sys-elevation-action-rest);
         transition: box-shadow 120ms ease;
 

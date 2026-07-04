@@ -9,12 +9,17 @@
 // "sign out" (handled by betterAuthProvider).
 
 import { createAuthClient } from 'better-auth/react';
+import { genericOAuthClient } from 'better-auth/client/plugins';
 import { API_BASE } from '@/shared/lib/api/base';
 
 export const BEARER_KEY = 'disher.bearer';
 
 export const authClient = createAuthClient({
   baseURL: `${API_BASE}/api/auth`,
+  // genericOAuthClient adds `authClient.signIn.oauth2(...)`, used for Telegram
+  // OIDC login (see shared/lib/auth/betterAuthProvider.signInWithOAuth). The
+  // server only mounts the provider when TELEGRAM_CLIENT_* are set.
+  plugins: [genericOAuthClient()],
   fetchOptions: {
     auth: {
       type: 'Bearer',

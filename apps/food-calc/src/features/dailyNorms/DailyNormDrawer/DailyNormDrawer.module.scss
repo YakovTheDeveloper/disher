@@ -4,19 +4,18 @@
     background: var(--sys-color-surface-2);
 }
 
-// Боковой «воздух» = `--sys-inset-sheet` (24px) — роль full-width-поверхности
-// (нижний лист), единая по доктрине «ширина → обрамление»; вертикаль — space-6
-// (та же ступень, но не inset-роль). Высота — по контенту (как ProductDrawer
-// `.body`): НЕ ставим `flex: 1 1 auto`. Этот `.body` — единственный реальный
-// ребёнок скролл-области DrawerLayout (`.scrollableContent`), зажатый между
-// sticky fade-псевдоэлементами `::before`/`::after`. Если дать ему
+// Боковой инсет (24) + верхний зазор (заголовок → контент, 12) — у DrawerLayout
+// (нижний дровер). Тут только нижний padding = space-6. Высота — по контенту (как
+// ProductDrawer `.body`): НЕ ставим `flex: 1 1 auto`. Этот `.body` — единственный
+// реальный ребёнок скролл-области DrawerLayout (`.scrollableContent`), зажатый
+// между sticky fade-псевдоэлементами `::before`/`::after`. Если дать ему
 // flex-grow/shrink, flexbox ужимает `.body` до высоты вьюпорта, а контент
 // выпускает «видимым overflow» — и нижний sticky-fade перестаёт ехать за
 // реальной длиной контента, застывая на одном месте при скролле.
 .body {
     display: flex;
     flex-direction: column;
-    padding: var(--space-6) var(--sys-inset-sheet);
+    padding-block-end: var(--space-6);
 }
 
 .loading {

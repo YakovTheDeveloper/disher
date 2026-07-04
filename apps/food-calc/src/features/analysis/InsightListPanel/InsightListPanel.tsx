@@ -3,25 +3,34 @@ import { drawerStore } from '@/shared/ui';
 import { ConfirmDrawer } from '@/shared/ui/ConfirmDrawer';
 import { LongPressRow } from '@/features/shared/long-press-item';
 import type { Insight } from '@/entities/insight';
-import { ObservationCard } from '../ObservationCard';
+import { InsightCard } from '../AnalysisCard';
 import styles from './InsightListPanel.module.scss';
+
+type EditProps =
+  | {
+      /** Записать parent editingId; focus → step перевернёт onFocusCapture. */
+      onEdit: (id: string) => void;
+      /** Общий input id единственного EditInsightModal в parent. */
+      editInputHtmlFor: string;
+    }
+  | { onEdit?: undefined; editInputHtmlFor?: undefined };
 
 type Props = {
   /** Saved insights, newest-first (the page sorts by time). */
   insights: Insight[];
   onDelete: (id: string) => void;
-};
+} & EditProps;
 
 // The saved-insights list on the Гипотезы/Инсайты page. Each row is an
-// ObservationCard wrapped in a LongPressRow; insights are never authored by hand,
-// so there is no write-bar here. Empty state is owned by the page.
+// InsightCard (variant='added') wrapped in a LongPressRow; insights are never
+// authored by hand, so there is no write-bar here. Empty state is owned by the page.
 //
 // Deletion (Slice 3, 2026-06-26): the in-card delete chevron was removed — a
 // saved insight is destroyed via a sustained press (or Shift+F10 / context-menu
 // key) on the row, gated behind a ConfirmDrawer. Easy to stamp out by an
 // accidental tap, no undo → the confirm is the guard. Swipe/cancel resolve
 // non-`true` → no-op.
-const InsightListPanel = ({ insights, onDelete }: Props) => {
+const InsightListPanel = ({ insights, onDelete, onEdit, editInputHtmlFor }: Props) => {
   const confirmDelete = async (id: string) => {
     const ok = await drawerStore.show(ConfirmDrawer, {
       title: 'Удалить инсайт?',
@@ -44,12 +53,15 @@ const InsightListPanel = ({ insights, onDelete }: Props) => {
             className={styles.row}
             onLongPress={() => confirmDelete(insight.id)}
           >
-            <ObservationCard
+            <InsightCard
+              variant="added"
               title={insight.title}
               detail={insight.detail}
               valence={insight.valence}
               strength={insight.strength}
               evidence={insight.evidence}
+              onEdit={onEdit && editInputHtmlFor ? () => onEdit(insight.id) : undefined}
+              editInputHtmlFor={editInputHtmlFor}
             />
           </LongPressRow>
         ))}

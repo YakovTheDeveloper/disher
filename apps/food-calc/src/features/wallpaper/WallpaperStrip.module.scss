@@ -1,0 +1,118 @@
+// WallpaperStrip — лента миниатюр одного экрана. Токены — только sys-ярус
+// (зеркалит ThemePicker / Choice marker). Selection = чёрная ink-рамка
+// (`--sys-color-border-action-system`) + угловой тик. Edge-bleed НЕ здесь — его
+// добавляет консумент через `className` (в дровере), поповер берёт строй как есть.
+
+.strip {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-block: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.thumb {
+  position: relative;
+  flex: 0 0 auto;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 96px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform var(--press-out) var(--easing-default);
+}
+
+// Одиночный выбор: press = только лёгкий scale (маркер несёт рамка + тик).
+.thumb:active {
+  transform: scale(0.97);
+  transition-duration: var(--sys-duration-press-in);
+}
+
+// Рамка-обойма миниатюры. В покое — тонкая нейтральная кромка; «выбрано» —
+// чёрная ink-рамка (`--sys-color-border-action-system` = neutral-900, warm-coal):
+// butter-заливка на фото-миниатюре читалась вяло, чёрная кромка держит контраст
+// на любой картинке.
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--sys-radius-container);
+  overflow: hidden;
+  border: 2px solid var(--sys-color-border-subtle);
+  box-shadow: var(--sys-field-shadow);
+  transition: border-color var(--press-out) var(--easing-default);
+}
+
+.thumb.active .frame {
+  border-color: var(--sys-color-border-action-system);
+}
+
+.thumb:focus-visible .frame {
+  outline: 2px solid var(--sys-color-border-focus);
+  outline-offset: 2px;
+}
+
+.thumbImg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  user-select: none;
+}
+
+// Тик «выбрано» — светлая круглая плашка-«наклейка» в правом-верхнем углу кадра,
+// холодный indigo-глиф внутри (модель Choice.marker / ThemePicker.tick).
+.tick {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-2);
+  box-shadow: var(--sys-elevation-action-rest);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+  pointer-events: none;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    color: var(--sys-color-tick-selected);
+  }
+}
+
+.thumb.active .tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.thumbLabel {
+  color: var(--sys-color-text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.thumb.active .thumbLabel {
+  color: var(--sys-color-text-primary);
+}

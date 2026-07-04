@@ -11,6 +11,7 @@ import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api';
 import { restartArgs } from './restart';
+import { windowSpanDays } from './range';
 import styles from './AnalysisDetailModal.module.scss';
 import { Heading, Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -41,6 +42,14 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
 
   const status = deriveStatus(analysis);
   const { appliedHypotheses } = analysis;
+
+  // Window-aware title: a window=1 run is a single day's review, everything
+  // wider is the multi-week one. Same client-side predicate as the /analyses
+  // filter — the backend does not distinguish the two.
+  const title =
+    windowSpanDays({ start: analysis.windowStart, end: analysis.windowEnd }) === 1
+      ? 'Разбор дня'
+      : 'Разбор по неделям';
 
   // Toast once when a running analysis terminally fails (server marked it
   // failed). The in-modal banner shows it while open; the toaster persists the
@@ -74,7 +83,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
     <ModalLayout className={styles.layout} a11yLabel="Детали разбора">
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <Heading role="title" className={styles.title}>Разбор по неделям</Heading>
+          <Heading role="title" className={styles.title}>{title}</Heading>
           <Text as="p" role="caption" className={styles.range}>
             {formatRange(analysis.windowStart, analysis.windowEnd)}
           </Text>

@@ -32,6 +32,16 @@
 //   TYPO_BASELINE_REGEN=1 node scripts/check-typo-encapsulation.mjs
 //   (или `npm run check:typo:baseline`)
 //
+// Инлайн-escape hatch (зеркало `stylelint-disable`, точечно — НЕ пофайлово): одну
+// декларацию/строку можно амнистировать директивой-комментарием С ПРИЧИНОЙ. Это
+// для намеренного bespoke-голоса, который легитимно не переносится в role-примитив
+// (одноразовый бренд-глиф вроде «О!» на HomeTopBar), — причина PR-видима:
+//   /* typo-encapsulation-disable-line -- <причина> */       (эта же строка)
+//   /* typo-encapsulation-disable-next-line -- <причина> */  (следующая строка)
+//   /* typo-encapsulation-disable -- <причина> */ … /* typo-encapsulation-enable */  (блок)
+// В отличие от baseline (тающий долг легаси) это ПОСТОЯННОЕ осознанное окно на
+// конкретный элемент — весь остальной файл продолжает гейтиться.
+//
 // Usage:
 //   node scripts/check-typo-encapsulation.mjs            # скан всех src/**/*.{scss,css}
 //   node scripts/check-typo-encapsulation.mjs a.scss …   # только эти (hook/lint-staged)
@@ -91,6 +101,25 @@ const RAW_DECL_RE = /^\s*(font-size|font-weight|font-family|letter-spacing)\s*:\
 // слово/SCSS-переменная/интерполяция. Иначе литерал (px/rem/em/число/строка).
 const VALUE_OK_RE = /^(var\(|inherit|initial|unset|revert|\$|#\{)/;
 
+// Строки, амнистированные инлайн-директивой (см. шапку). Собираем ДО stripComments
+// (комментарии-директивы иначе стёрлись бы). `disable-next-line`/`disable-line`
+// проверяются ПЕРЕД bare `disable` — их подстрока тоже содержит `disable\b`.
+function collectSuppressedLines(text) {
+  const suppressed = new Set();
+  const lines = text.split('\n');
+  let block = false;
+  for (let i = 0; i < lines.length; i++) {
+    const ln = i + 1;
+    const l = lines[i];
+    if (/typo-encapsulation-enable\b/.test(l)) block = false;
+    if (/typo-encapsulation-disable-next-line\b/.test(l)) suppressed.add(ln + 1);
+    else if (/typo-encapsulation-disable-line\b/.test(l)) suppressed.add(ln);
+    else if (/typo-encapsulation-disable\b/.test(l)) block = true;
+    if (block) suppressed.add(ln); // строки внутри disable…enable блока (comment-строка безвредна)
+  }
+  return suppressed;
+}
+
 function stripComments(text) {
   return text
     .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
@@ -130,6 +159,7 @@ function loadBaseline() {
 // `#{…}` проходит как литерал (её фигурные скобки НЕ структурные).
 function violationsIn(relPath, text) {
   const out = [];
+  const suppressed = collectSuppressedLines(text); // инлайн-директивы (ДО strip)
   const stripped = stripComments(text);
   const selectorStack = [];
   const exemptNow = () => selectorStack.some((s) => EXEMPT_SELECTOR_RE.test(s));
@@ -192,7 +222,7 @@ function violationsIn(relPath, text) {
     if (!/\S/.test(buf) && /\S/.test(ch)) bufLine = line; // первый непустой символ сегмента
     buf += ch;
   }
-  return out;
+  return out.filter((v) => !suppressed.has(v.line)); // снять инлайн-амнистированные
 }
 
 const allFiles = [];

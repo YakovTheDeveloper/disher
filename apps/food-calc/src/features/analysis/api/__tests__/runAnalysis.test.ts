@@ -278,6 +278,7 @@ function jsonRes(status: number, body: unknown): Response {
   return {
     status,
     ok: status >= 200 && status < 300,
+    headers: new Headers(),
     json: async () => body,
   } as unknown as Response;
 }

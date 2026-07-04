@@ -40,7 +40,12 @@ afterEach(() => {
   setPath('/');
 });
 
-describe('AuthGate — bootstrap', () => {
+// ⚠️ TEMP: AuthGate is currently disabled in source — it returns `<>{children}</>`
+// unconditionally (auth off for phone testing without login; see AuthGate.tsx).
+// While that hold is in place the gate never renders `null` or AuthScreen, so the
+// three acceptance gates that assert blocked/in-flight behavior are SUSPENDED, not
+// deleted. Re-enable auth (uncomment AuthGate's body) → drop these `.skip`s.
+describe.skip('AuthGate — bootstrap', () => {
   it('renders nothing while session check is in flight (no FOUC)', () => {
     mockState.isReady = false;
     mockState.isLoggedIn = false;
@@ -55,7 +60,7 @@ describe('AuthGate — bootstrap', () => {
   });
 });
 
-describe('AuthGate — signed-out gate (acceptance 1)', () => {
+describe.skip('AuthGate — signed-out gate (acceptance 1)', () => {
   it('mounts AuthScreen instead of children when bootstrap done + no session', () => {
     mockState.isReady = true;
     mockState.isLoggedIn = false;
@@ -83,7 +88,7 @@ describe('AuthGate — signed-in passthrough', () => {
   });
 });
 
-describe('AuthGate — /auth/* bypass (acceptance 6)', () => {
+describe.skip('AuthGate — /auth/* bypass (acceptance 6)', () => {
   it('renders children at /auth/verify-email even when signed-out + not ready', () => {
     setPath('/auth/verify-email');
     mockState.isReady = false;

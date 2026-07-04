@@ -72,3 +72,18 @@ describe('HypothesisWriteBar — submit', () => {
     expect(saveHypothesis).not.toHaveBeenCalled();
   });
 });
+
+// Ядро унификации 2026-07-02: send-монета content-driven (`send.visible = hasText`)
+// — прячется при пустом title, появляется как только он есть. Раньше «постоянная
+// монета» висела серой всегда; регресс к ней тип-чек не поймает.
+describe('HypothesisWriteBar — send content-driven', () => {
+  it('пустой title → send-монеты нет; после ввода — появляется', () => {
+    render(<HypothesisWriteBar onCreated={() => {}} />);
+    expect(screen.queryByRole('button', { name: 'Добавить гипотезу' })).toBeNull();
+
+    fireEvent.change(screen.getByPlaceholderText(TITLE_PLACEHOLDER), {
+      target: { value: 'Сон и кофе' },
+    });
+    expect(screen.getByRole('button', { name: 'Добавить гипотезу' })).toBeInTheDocument();
+  });
+});

@@ -108,8 +108,9 @@ const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Pr
         online
         // After send: drop focus so the scrim drops, bar collapses, keyboard hides.
         blurOnSubmit
-        // Send shows on focus; enabled with a non-empty title (body alone ≠ hypothesis).
-        computeSend={({ focused, hasText }) => ({ visible: focused, enabled: hasText })}
+        // Send appears with a non-empty title (body alone ≠ hypothesis) and vanishes
+        // on an empty field (content-driven canon 2026-07-02).
+        computeSend={({ hasText }) => ({ visible: hasText, enabled: hasText })}
         sendAriaLabel="Добавить гипотезу"
         leftSlot={
           <WriteBarClip

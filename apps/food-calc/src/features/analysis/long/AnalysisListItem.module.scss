@@ -1,74 +1,95 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Analysis row — now a Card.Root (LongPressRow chassis). This className lands on
-// the LongPressRow `<li>`; it neutralizes the tod-palette chassis down to the
-// flat neutral analyses tone (`--sys-card-*`, the app-wide ModalShell variant —
-// see tds/modalshell-lawgiver-2026-06-13) so the list reads as a flat inset-
-// grouped surface, NOT a stack of floating tod cards. The accent stripe carries
-// status; the fading hairline is the only inter-row seam.
-
+// Analysis card — бледно-indigo-плитка (унификация под карточки HomePage,
+// 2026-07-04). Каркас — LongPressRow (className лендится на `<li>`), раскладка
+// РУЧНАЯ (не compound Card): внутренний `.card` = колонка [лид-абзац / нижний ряд].
+// Фон — семантический `--sys-color-surface-analysis` (бледный indigo, тёмный ink
+// читается). Лид-абзац разбора = ВЕДУЩИЙ текст сверху (клэмп 2 строки); дата —
+// доминанта в правом-нижнем углу крупным <Heading role="headline"> (редизайн
+// 2026-07-04: «время вниз-вправо, текст крупнее»). Статус: running — пилюля «идёт»
+// в нижнем ряду слева; failed/stale — accent-полоска слева (data-carrying stripe,
+// канон); done — чисто. Карточки разделяет indigo-заливка + светлая окаёмка
+// (--card-rim, box-shadow LongPressRow) + gap списка → tod-outline (зелёный) и
+// hairline-шов сняты.
 .row {
-    // Neutralize the tod chassis: flat neutral surface, no per-row frame/radius
-    // (the group corners are rounded by `.listBody { overflow: hidden }`).
-    --row-bg: var(--sys-card-bg);
-    --row-tapped: var(--sys-card-bg-sunk);
+    --row-bg: var(--sys-color-surface-analysis);
+    --row-tapped: var(--sys-color-surface-analysis-sunk);
     --row-rest-outline-w: 0;
-    border-radius: 0;
+    // Инсет владеет внутренний `.card` (как в compound Card): гасим строковый
+    // паддинг LongPressRow, чтоб не задвоился.
+    --row-pad-inline: 0;
+    --sys-row-pad-block: 0;
     cursor: pointer;
+    // border-radius (--sys-radius-container) наследуется от LongPressRow — плитки скруглены.
 
-    // Vertical accent stripe — colour carries status. Lives in the 16px content
-    // gutter that Card's inner `.card` owns; sits at the row's left edge.
-    &::before {
+    // Вертикальная accent-полоска — цвет несёт статус (data-carrying stripe, канон).
+    // ТОЛЬКО у сломанных (failed/stale): done/running полоски не несут (чистый indigo).
+    // Инсет от скруглённых углов (top/bottom 7px), живёт у левого края карточки.
+    &[data-status='failed']::before,
+    &[data-status='stale']::before {
         content: '';
         position: absolute;
         left: 0;
         top: 7px;
         bottom: 7px;
         width: 3px;
-        border-radius: var(--sys-radius-tmp); /* was 2px */
-        background: var(--sys-card-text-active-muted);
+        border-radius: var(--sys-radius-tmp);
+        /* was 2px */
         z-index: 1;
     }
 
-    // Fading hairline divider — never a full border.
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        @include hairline(var(--sys-card-hairline));
-        pointer-events: none;
-    }
-
-    &:last-child::after {
-        display: none;
-    }
-
-    // Status overrides the accent stripe colour.
-    &[data-status='done']::before {
-        background: var(--sys-card-text-active);
-    }
     &[data-status='failed']::before {
         background: var(--sys-color-status-danger);
     }
+
     &[data-status='stale']::before {
         background: var(--sys-color-status-warning);
     }
 }
 
-.period {
-    // serif-italic голос периода живёт в <QuietLabel>; здесь — раскладка + цвет.
-    line-height: 1.2;
-    color: var(--sys-card-text-rest);
+// Внутренний контейнер: инсет карточки (гор. = --sys-inset-card, общий с
+// карточками еды; верт. = --space-3) + колонка [лид-абзац / нижний ряд].
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-width: 0;
+    padding: var(--space-3) var(--sys-inset-card) var(--space-3);
 }
 
-.meta {
-    color: var(--sys-card-text-muted);
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
+// Лид-абзац разбора — ВЕДУЩИЙ текст карточки (было вторичным телом). Тёмный ink
+// на бледном indigo; клэмп 2 строки (превью, без обрезки мысли — summaryLead).
+.body {
+    color: var(--sys-color-text-primary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
+// Нижний ряд: пилюля «идёт» (слева, running-only) + дата-доминанта (справа).
+// flex-end — пилюля садится на нижнюю кромку крупной даты.
+.footer {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-3);
+}
+
+// Дата-доминанта — крупный <Heading role="headline"> в правом-нижнем углу
+// (редизайн 2026-07-04). `margin-left: auto` прижимает вправо (когда пилюли нет —
+// всё равно у правого края). Цвет primary (Heading base ставит его, дублируем для
+// устойчивости порядка модулей); защита от переноса длинного окна на 2 строки.
+.date {
+    margin-left: auto;
+    min-width: 0;
+    color: var(--sys-color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// Пилюля «идёт» (running-only) — нейтрально-кремовая, не сливается с indigo-фоном.
 .status {
     display: inline-flex;
     align-items: center;
@@ -77,23 +98,8 @@
     padding: 4px 9px;
     border-radius: var(--sys-radius-indicator);
     white-space: nowrap;
-
-    &[data-status='running'] {
-        background: var(--sys-card-bg-sunk);
-        color: var(--sys-color-text-secondary);
-    }
-    &[data-status='done'] {
-        background: var(--sys-color-status-success-surface);
-        color: var(--sys-color-status-success);
-    }
-    &[data-status='failed'] {
-        background: var(--sys-color-status-danger-surface);
-        color: var(--sys-color-status-danger);
-    }
-    &[data-status='stale'] {
-        background: var(--sys-color-status-warning-surface);
-        color: var(--sys-color-status-warning);
-    }
+    background: var(--sys-color-surface-action-system-soft);
+    color: var(--sys-color-text-secondary);
 }
 
 .statusDot {
@@ -105,10 +111,20 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .statusDot { animation: none; opacity: 0.7; }
+    .statusDot {
+        animation: none;
+        opacity: 0.7;
+    }
 }

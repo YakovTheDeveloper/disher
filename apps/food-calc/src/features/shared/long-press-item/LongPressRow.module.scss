@@ -94,33 +94,27 @@
         z-index: 2;
     }
 
-    // Flash появления: только что добавленный ряд ОДИН раз подсвечивается цветом
-    // «выбрано» (butter, --sys-color-bg-selected) и плавно гаснет к прозрачному,
-    // открывая свой tod-фон. Класс `.row_recent` навешивается РАЗ на маунте (см.
-    // LongPressRow.tsx: isJustAdded в useState-инициализаторе) — тоггла нет, ряд
-    // не переигрывает анимацию.
+    // Появление только что добавленного ряда: плавный наплыв через opacity + лёгкий
+    // сдвиг снизу, ~2.5s. Никакой вспышки/подсветки — просто «проявился». Класс
+    // `.row_recent` навешивается РАЗ на маунте (см. LongPressRow.tsx: isJustAdded в
+    // useState-инициализаторе) — тоггла нет, ряд не переигрывает анимацию.
     //
-    // Flash живёт на отдельном псевдо-слое `::before`, а НЕ на `animation` самого
-    // ряда: ряд уже несёт entrance-каскад (useEntranceStagger) в шоткате
-    // `animation` — но именно поэтому recent-ряд НЕ играет entrance (showEntrance
-    // = !isNew), так что здесь конфликта `animation` больше нет. Оверлей на
-    // отдельном слое оставляем как надёжную развязку (своя анимация, свой слой).
+    // Анимация живёт на самом ряду (не на псевдо-слое): recent-ряд НЕ играет
+    // entrance-каскад (showEntrance = !isNew в LongPressRow.tsx), поэтому шоткат
+    // `animation` здесь свободен — конфликта с useEntranceStagger нет.
     //
-    // z-index:-1 (ряд = stacking context: position:relative + z-index:1) кладёт
-    // butter-оверлей НАД фоном ряда, но ПОД контентом карточки (.card непозиционирован),
-    // так что текст остаётся чётким. Композит-безопасно: анимируем только opacity.
-    // Базовый opacity:0 → под prefers-reduced-motion (animation:none) статичный
-    // подсвет задаётся ниже. Новых токенов не заводим — красим --sys-color-bg-selected.
-    &_recent::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        border-radius: var(--sys-radius-container);
-        background-color: var(--sys-color-bg-selected);
-        opacity: 0;
-        pointer-events: none;
-        animation: rowRecentFlash 1600ms ease-in forwards;
+    // fill: backwards (как у useEntranceStagger) — держит `from`-кадр до старта, но
+    // ОТПУСКАЕТ transform/opacity к базе по завершении: иначе застывший
+    // `translateY(0)` с приоритетом анимации заблокировал бы press `transform:
+    // scale()` на этом же узле. Композит-безопасно: только transform + opacity.
+    // linear (не ease-out): ease-out спрессовывает проявление в первые ~0.5s и
+    // 2.5s ощущаются как вспышка. Линейная кривая размазывает opacity/сдвиг РОВНО
+    // на всё время → появление читается медленным на всей длине.
+    // Задержка 0.5s: fill:backwards держит `from`-кадр (opacity 0) всю задержку →
+    // ряд 0.5s невидим, затем за 2s проявляется. Порядок в шоткате: длительность,
+    // кривая, delay, fill.
+    &_recent {
+        animation: rowRecentAppear 500ms linear 400ms backwards;
     }
 }
 
@@ -160,32 +154,38 @@
     --tod-tapped: var(--tod-night-tapped);
 }
 
-// Flash появления нового ряда: butter-оверлей держит ПИК первые ~45% времени
-// (солидная заметная вспышка), затем мягко гаснет к 0 (ease-in на всей анимации →
-// butter ещё и медленно стартует угасание, дольше «стоит» ярким). Ряд-`recent` не
-// играет entrance (см. LongPressRow.tsx), поэтому оверлей светит на НЕПРОЗРАЧНОМ
-// фоне и вспышка видна целиком.
-@keyframes rowRecentFlash {
-    0% {
-        opacity: 1;
-    }
-
-    45% {
-        opacity: 1;
-    }
-
-    100% {
+// Появление нового ряда: медленный наплыв снизу (~2.5s). Сдвиг небольшой (8px),
+// чтобы движение читалось, но не бросалось. Только transform/opacity → GPU-композит,
+// без layout.
+@keyframes rowRecentAppear {
+    from {
         opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
+// Под reduce-motion НЕ глушим в ноль (иначе ряд появляется мгновенно — юзер не
+// видит появления вовсе). Оставляем чистый opacity-фейд без сдвига: crossfade —
+// не вестибулярное движение, под reduce-motion допустим. Переопределяем только
+// имя кадров → длительность/delay/кривая/fill наследуются из шотката выше.
 @media (prefers-reduced-motion: reduce) {
-    // Без вспышки: тихий статический подсвет, пока ряд смонтирован (юзер-выбор
-    // 2026-07-04 — НЕ глушить в ноль). Одноразового take это не касается: id всё
-    // равно съедается на маунте, класс держится React'ом до размонтирования.
-    .row_recent::before {
-        animation: none;
-        opacity: 0.5;
+    .row_recent {
+        animation-name: rowRecentFade;
+    }
+}
+
+@keyframes rowRecentFade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
 

@@ -7,7 +7,7 @@ import s from './ActionTile.module.scss';
 // ── ActionTile — унифицированный примитив «быстрое действие / выбор из небольшого
 // числа вариантов». ОДНА раскладка: слот графики справа (ghost-гравюра ИЛИ
 // маленький глиф-стрелка), главное слово сверху, доп.инфо снизу, опц. caveat-строка
-// (hint) и точка-маркер (dot), тиры emphasis/active, press-инверсия чернил.
+// (hint) и точка-маркер (dot), тир emphasis, press-инверсия чернил.
 // Поглощает три живых места: дровер анализа, нижнюю панель поиска, нав-якоря дат.
 //
 // Облик ПОВЕРХНОСТИ — «мягкая карточка с тенью» (баком 2026-06-22, см.
@@ -25,8 +25,9 @@ type Props = {
   art?: ReactNode;
   /** Лёгкий акцент (основное действие / выбранный день). */
   emphasis?: boolean;
-  /** Активное состояние «ты здесь» (today / selected). */
-  active?: boolean;
+  /** Инверсная карта: тёмная система-поверхность + светлые чернила (напр. нав-плитка
+   *  «Страница открытий» в дровере разбора). Постоянный аналог press-инверсии. */
+  inverse?: boolean;
   /** Тихая точка «есть записи». */
   dot?: boolean;
   disabled?: boolean;
@@ -46,7 +47,8 @@ export function ActionTile({
   hint,
   art,
   emphasis,
-  active,
+  inverse,
+  muted,
   dot,
   disabled,
   onClick,
@@ -55,7 +57,7 @@ export function ActionTile({
   'data-date': dataDate,
 }: Props) {
   const press = usePressFeedback();
-  const cls = clsx(s.tile, emphasis && s.emphasis, active && s.active, className);
+  const cls = clsx(s.tile, emphasis && s.emphasis, inverse && s.inverse, muted && s.muted, className);
   const pressed = (!disabled && press.pressed) || undefined;
 
   const body = (

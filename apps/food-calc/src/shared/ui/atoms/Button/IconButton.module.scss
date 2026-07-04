@@ -15,6 +15,9 @@
     transition:
         background var(--press-out) var(--easing-default),
         color var(--press-out) var(--easing-default),
+        // `opacity` — для ghost-тона (press = приглушение прозрачностью): без него
+        // dim щёлкал бы мгновенно, пока `transform: scale` едет плавно (асимметрия).
+        opacity var(--press-out) var(--easing-default),
         transform var(--press-out) var(--easing-default);
 }
 
@@ -33,7 +36,7 @@
 
 // Деструктивный глиф (урна) → на press danger-подложка. Зеркалит бывший .deleteBtn.
 .danger {
-    color: var(--sys-color-status-danger);
+    color: var(--sys-color-icon);
 
     &[data-pressed] {
         background: var(--sys-color-status-danger-surface);
@@ -41,8 +44,22 @@
     }
 }
 
+// Холодный глиф БЕЗ подложки (иконка-канон `--sys-color-icon`). На press — только
+// scale + приглушение прозрачностью, никакой заливки-плашки («ghost без подложки»).
+.ghost {
+    color: var(--sys-color-icon);
+
+    &[data-pressed] {
+        opacity: 0.6;
+        transform: scale(0.9);
+        transition-duration: var(--sys-duration-press-in);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .neutral[data-pressed] {
+
+    .neutral[data-pressed],
+    .ghost[data-pressed] {
         transform: none;
     }
 }

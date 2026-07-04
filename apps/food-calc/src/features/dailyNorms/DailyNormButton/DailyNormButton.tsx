@@ -28,17 +28,20 @@ export const DailyNormButton = ({ className }: Props) => {
     void drawerStore.show(DailyNormDrawer, {});
   }, []);
 
-  const label =
-    items === undefined
-      ? 'Дневная норма'
-      : items != null && Object.keys(items).length > 0
-        ? 'Дневная норма'
-        : 'Задать дневную норму';
+  const hasNorm = items != null && Object.keys(items).length > 0;
+  const label = hasNorm || items === undefined ? 'Норма' : 'Установить дневную норму';
+
+  // Вид по состоянию: норма ЗАДАНА → тихая плитка с рамкой (onSurface=1, без тени).
+  // Норма НЕ задана → «кричим» тенью-приглашением (onSurface=2). «Кричим» только
+  // когда ТОЧНО знаем, что нормы нет — во время загрузки (items === undefined)
+  // держим тихий вид, иначе у юзера с нормой мелькнула бы тень (та же логика «не
+  // мелькать», что и у лейбла выше).
+  const shout = items != null && !hasNorm;
 
   return (
     <Button
       className={className}
-      onSurface={2}
+      onSurface={shout ? 2 : 1}
       icon={<FlagIcon width={25} height={25} />}
       trailingIcon={<ChevronGlyph />}
       onClick={open}

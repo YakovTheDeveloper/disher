@@ -276,6 +276,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
               visitedSteps={visitedSteps}
               onBack={handleBack}
               onStepClick={goToStep}
+              active={step === 'quantity'}
             />
 
             <ModalShell.Body>
@@ -327,6 +328,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
             visitedSteps={visitedSteps}
             onBack={handleBack}
             onStepClick={goToStep}
+            active={step === 'details'}
           />
         }
       >

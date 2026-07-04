@@ -1,11 +1,9 @@
-import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from '@/app/App.tsx';
 import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
-import { DiscoveriesPage } from '@/pages/discoveries';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
 import RouteError from '@/shared/ui/error/RouteError.tsx';
 
@@ -13,10 +11,6 @@ import RouteError from '@/shared/ui/error/RouteError.tsx';
 // AuthGate. Автодискавери эфемерных папок s_*/ через glob; на чистом чекауте
 // пусто. См. app/development-features/.
 import { devRoute } from '@/app/development-features/devRoutes';
-
-// Dev-only component gallery — lazy so its (app-wide) widget/drawer imports stay
-// out of the main bundle. The only lazy route, so it carries its own Suspense.
-const UiKitPage = lazy(() => import('@/pages/ui-kit/UiKitPage.tsx'));
 
 export enum RouterLinks {
   Root = '/',
@@ -26,8 +20,6 @@ export enum RouterLinks {
   Dish = '/dish/:id',
   ScheduleBuilder = '/schedule',
   Analyses = '/analyses',
-  Discoveries = '/discoveries',
-  UiKit = '/ui-kit',
   VerifyEmail = '/auth/verify-email',
 }
 
@@ -65,18 +57,6 @@ export const router = createBrowserRouter([
           {
             path: RouterLinks.Analyses,
             element: <AnalysesPage />,
-          },
-          {
-            path: RouterLinks.Discoveries,
-            element: <DiscoveriesPage />,
-          },
-          {
-            path: RouterLinks.UiKit,
-            element: (
-              <Suspense fallback={null}>
-                <UiKitPage />
-              </Suspense>
-            ),
           },
           {
             path: RouterLinks.VerifyEmail,

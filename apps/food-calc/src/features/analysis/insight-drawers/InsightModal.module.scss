@@ -1,0 +1,33 @@
+.fields {
+    display: flex;
+    flex-direction: column;
+    // Ритм между группами полей формы = row (по доке --sys-stack-row «между
+    // полями в форме»). 1:1 с EditHypothesisModal.
+    gap: var(--sys-stack-row);
+}
+
+// Один блок поля: лейбл над инпутом.
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+}
+
+// Подпись поля — общий примитив FieldLabel. Локально только инсет: выровнять
+// текст подписи над текстом значения в пилюле AutoGrowSearch (её внутренний
+// горизонтальный инсет = --space-4). `.field >` поднимает специфичность над
+// дефолтным --space-1 у FieldLabel.
+.field > .labelInset {
+    padding-left: var(--space-4);
+}
+
+.counter {
+    align-self: flex-end;
+    font-size: var(--sys-numeral-sm);
+    color: var(--sys-color-text-tertiary);
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+
+.counterOver {
+    color: var(--sys-color-status-danger);
+}

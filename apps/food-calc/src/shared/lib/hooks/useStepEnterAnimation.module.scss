@@ -1,0 +1,45 @@
+// Мягкое появление заголовка шага wizard-флоу — «так же как карточка» нового ряда
+// на HomePage (LongPressRow `.row_recent` → rowRecentAppear): opacity 0→1 + лёгкий
+// наплыв сверху. Только transform/opacity → GPU-композит, без layout (animation
+// budget канон). Переигрывается сменой React-`key` обёртки (useStepEnterAnimation.ts):
+// remount → анимация стартует заново на каждый вход в шаг.
+//
+// Отличие от карточки: у ряда 400ms delay синхронит появление с mount'ом liveQuery;
+// у заголовка такой причины нет — задержка читалась бы как «шапка пропала». Поэтому
+// то же движение (translateY(-20px), 500ms linear), но без delay.
+.stepEnter {
+  // fill: backwards — держит `from`-кадр до старта, отпускает transform/opacity к
+  // базе по завершении (как у useEntranceStagger / .row_recent).
+  animation: step-enter-appear 500ms linear backwards;
+}
+
+@keyframes step-enter-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Под reduce-motion не глушим в ноль (иначе появление не читается вовсе): чистый
+// opacity-фейд без вестибулярного сдвига — как у карточки (rowRecentFade).
+// Переопределяем только имя кадров → длительность/кривая/fill наследуются из шотката.
+@media (prefers-reduced-motion: reduce) {
+  .stepEnter {
+    animation-name: step-enter-fade;
+  }
+}
+
+@keyframes step-enter-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

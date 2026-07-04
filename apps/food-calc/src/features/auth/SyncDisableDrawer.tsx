@@ -37,9 +37,9 @@ function SyncDisableDrawer({ onClose }: SyncDisableDrawerProps) {
   };
 
   return (
-    <DrawerLayout a11yLabel="Выключить синхронизацию">
+    <DrawerLayout title="Подтверждение">
       <div className={s.body}>
-        <Heading role="headline" as="h2" className={s.title}>
+        <Heading role="headline" as="h3" className={s.title}>
           Выключить синхронизацию?
         </Heading>
         <Text role="caption" className={s.message}>
