@@ -1,67 +1,59 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { useRecentlyAddedStore } from './recentlyAddedStore';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { markAdded, isJustAdded, takeJustAdded } from './recentlyAddedStore';
 
-// Авто-истечение recent-точек (юзер-запрос 2026-07-03): id, добавленный в store,
-// сам исчезает через ~5s, поверх существующей чистки на свайп/уход (clear). Гоняем
-// на fake timers, чтобы не ждать реальные секунды.
-const TTL_MS = 5000;
+// Consume-once mailbox (2026-07-04): пишущий путь кладёт id (markAdded), ряд на
+// маунте читает (isJustAdded) и потребляет (takeJustAdded). Нет реактивности, нет
+// TTL, нет внешней чистки — одноразовый flash сам гасит себя CSS, а take() бьёт
+// id при первом маунте ряда. Тесты гоняем на реальном времени (таймеров нет).
 
-describe('recentlyAddedStore — авто-истечение по таймеру', () => {
+// Ящик — module-level Set: между кейсами вычищаем всё через take по известным id.
+function drain(ids: string[]): void {
+  for (const id of ids) takeJustAdded(id);
+}
+
+describe('recentlyAddedStore — consume-once mailbox', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    useRecentlyAddedStore.getState().clear();
+    // Подчищаем возможные хвосты от предыдущих кейсов (id локальны, но CAP-тест
+    // сыпет много) — берём с запасом.
+    drain(Array.from({ length: 120 }, (_, i) => `x${i}`));
+    drain(['a', 'b', 'c']);
   });
 
-  afterEach(() => {
-    useRecentlyAddedStore.getState().clear();
-    vi.useRealTimers();
+  it('markAdded помечает id → isJustAdded видит его', () => {
+    expect(isJustAdded('a')).toBe(false);
+    markAdded(['a']);
+    expect(isJustAdded('a')).toBe(true);
   });
 
-  it('addMany помечает id, и он сам гаснет по истечении TTL', () => {
-    const store = useRecentlyAddedStore.getState();
-    store.addMany(['a']);
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(true);
-
-    // Чуть раньше срока — ещё держится.
-    vi.advanceTimersByTime(TTL_MS - 1);
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(true);
-
-    // По истечении — исчез сам.
-    vi.advanceTimersByTime(1);
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(false);
+  it('takeJustAdded потребляет id → повторное чтение уже false (one-shot)', () => {
+    markAdded(['a']);
+    expect(isJustAdded('a')).toBe(true);
+    takeJustAdded('a');
+    expect(isJustAdded('a')).toBe(false);
   });
 
-  it('повторный addMany того же id перезапускает его личный таймер', () => {
-    const store = useRecentlyAddedStore.getState();
-    store.addMany(['a']);
-    vi.advanceTimersByTime(TTL_MS - 500); // почти истёк
-    store.addMany(['a']); // рестарт TTL
-    vi.advanceTimersByTime(600); // прошёл бы старый дедлайн, но таймер сброшен
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(true);
-    vi.advanceTimersByTime(TTL_MS); // добиваем новый срок
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(false);
+  it('markAdded пачкой помечает все id', () => {
+    markAdded(['a', 'b']);
+    expect(isJustAdded('a')).toBe(true);
+    expect(isJustAdded('b')).toBe(true);
   });
 
-  it('clear() гасит всё сразу и отменяет висячие таймеры (нет отложенного remove)', () => {
-    const store = useRecentlyAddedStore.getState();
-    store.addMany(['a', 'b']);
-    store.clear();
-    expect(useRecentlyAddedStore.getState().ids.size).toBe(0);
-    // Если бы таймер не был отменён — тут бы отработал remove на уже пустом сете
-    // (безвредно), но проверяем, что дальнейший addMany не «схлопывается» чужим
-    // отложенным колбэком.
-    store.addMany(['c']);
-    vi.advanceTimersByTime(TTL_MS - 1);
-    expect(useRecentlyAddedStore.getState().ids.has('c')).toBe(true);
+  it('пустой markAdded — no-op', () => {
+    markAdded([]);
+    expect(isJustAdded('a')).toBe(false);
   });
 
-  it('remove() убирает id и отменяет его таймер', () => {
-    const store = useRecentlyAddedStore.getState();
-    store.addMany(['a']);
-    store.remove('a');
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(false);
-    // Никакого повторного эффекта по истечении старого срока.
-    vi.advanceTimersByTime(TTL_MS);
-    expect(useRecentlyAddedStore.getState().ids.has('a')).toBe(false);
+  it('takeJustAdded по неизвестному id безвреден', () => {
+    expect(() => takeJustAdded('never')).not.toThrow();
+  });
+
+  it('CAP отсекает старейшие сверх лимита (потерянный flash безвреден)', () => {
+    // Кладём заведомо больше CAP=50; старейшие должны отвалиться, свежие — жить.
+    const ids = Array.from({ length: 70 }, (_, i) => `x${i}`);
+    markAdded(ids);
+    // Последний добавленный точно в ящике.
+    expect(isJustAdded('x69')).toBe(true);
+    // Самый первый (старейший) вытеснен FIFO-отсечкой.
+    expect(isJustAdded('x0')).toBe(false);
   });
 });

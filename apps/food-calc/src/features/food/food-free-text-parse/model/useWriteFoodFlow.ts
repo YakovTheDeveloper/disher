@@ -25,7 +25,7 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { markAdded } from '@/shared/model/recentlyAddedStore';
 import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
 import {
@@ -886,14 +886,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       sendTelemetryIfNotSent('commit');
       toaster.success(`Добавлено: ${committed.length}`);
 
-      // «Недавно добавлен» dot у еды был снят 2026-06-20 — возвращаем его как у
-      // событий (паритет еда↔события, образец EventsWriteBar). Помечаем новые
-      // строки расписания recent'ом → ряд рисует синий кружок + один раз мигает
-      // фоном (flash по `recent`, LongPressRow). Только для расписания —
-      // ингредиенты блюда этот store не потребляют.
-      if (target.kind === 'schedule' && newScheduleIds.length > 0) {
-        useRecentlyAddedStore.getState().addMany(newScheduleIds);
-      }
+      // «Только что добавлен» flash: кладём id новых рядов в mailbox → LongPressRow
+      // на маунте один раз мигает butter-подсветкой (isJustAdded, consume-once).
+      // Оба пути: и еда в расписании, и ингредиенты блюда (обе строки живут в
+      // LongPressRow → flash встроен в примитив, паритет).
+      const newRowIds = target.kind === 'schedule' ? newScheduleIds : newDishItemIds;
+      if (newRowIds.length > 0) markAdded(newRowIds);
       // Haptic на успешное создание (progressive enhancement — no-op на iOS).
       haptic();
 

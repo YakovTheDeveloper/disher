@@ -28,6 +28,7 @@ import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { markAdded } from '@/shared/model/recentlyAddedStore';
 import styles from './DishBuilderPage.module.scss';
 import {
   FoodEntryCreateModals,
@@ -39,14 +40,13 @@ import {
   PortionCreateModals,
   AddPortionButton,
 } from '@/features/food/food-portions-manager';
-import { DishAnalysisScreen } from '@/features/dish-analysis';
+import { DishHubDrawer } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
 import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
 import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
-import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
@@ -62,14 +62,14 @@ type DishItemWithProduct = {
   product: { name: string | null } | null;
 };
 
-// Разделы блюда. Плитки текстовые — tile-art снят (выпилен из проекта).
+// Разделы блюда. Плитки текстовые — tile-art снят (выпилен из проекта). Слайд
+// «Анализ» схлопнут 2026-07-04 — разбор уехал в модалку за кнопкой «О!».
 const DISH_SCREENS: ScreenEntry[] = [
-  { label: 'Анализ', titleStyle: 'display-sans' },
-  { label: 'Ингредиенты', titleStyle: 'display-sans' },
+  { label: 'Блюдо', titleStyle: 'display-sans' },
   { label: 'Порции', titleStyle: 'display-sans' },
 ];
 
-const DEFAULT_SLIDE = 1;
+const DEFAULT_SLIDE = 0;
 
 const DishBuilderPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -107,7 +107,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     void drawerStore.show(
       NutrientsDrawer,
       { totals: dishTotals },
-      { side: 'left', width: 'min(85vw, 360px)' },
+      { side: 'left', width: 'min(85vw, 360px)' }
     );
   }, [dishTotals]);
   // Сумма нутриентов блюда — 1:1 с HomePage: полоса-сводка (NutrientsBar) в
@@ -117,10 +117,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'dish', dishId: id } });
   const editIds = editFlow.inputIds;
 
-  const writeFoodTarget = useMemo(
-    () => ({ kind: 'dish' as const, dishId: id }),
-    [id],
-  );
+  const writeFoodTarget = useMemo(() => ({ kind: 'dish' as const, dishId: id }), [id]);
   const writeFoodFlow = useWriteFoodFlow(writeFoodTarget);
   const writeFoodInputId = getWriteFoodInputId(writeFoodTarget);
 
@@ -157,8 +154,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
 
   // Back ведёт на реальный origin (state.from), фолбэк — последняя посещённая
   // дата расписания. PUSH на явный URL (popstate-back RR намеренно не анимирует).
-  const backTo =
-    (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
+  const backTo = (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
 
   // Бар отдаётся в SwipeDeck через render-prop — каркас прокидывает `shellRef`
   // (scroll-hide). На блюде нет даты: пилюля-дата = иконка-календарь, переход к
@@ -173,24 +169,25 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         shellRef={shellRef}
       />
     ),
-    [dateForTopBar, backTo],
+    [dateForTopBar, backTo]
   );
 
   // ── Порции блюда: создание 2-шаговой модалкой + удаление long-press → drawer ──
   // Адаптер прячет хранение: блюдо = таблица dish_portions по id (label→id-мап).
   // PortionCreateModals (с внутренним usePortionFlow) — общий с ProductPage.
   const portionLabels = useMemo(() => portionsRaw.map((p) => p.label), [portionsRaw]);
-  const createPortion = (portion: { label: string; grams: number }) =>
-    void safeMutate(() => addDishPortion(id, portion), 'Не удалось добавить порцию');
+  const createPortion = (portion: { label: string; grams: number }) => {
+    void safeMutate(() => addDishPortion(id, portion), 'Не удалось добавить порцию').then((res) => {
+      // Flash нового ряда-порции: ключ ряда в FoodPortionsManager — label (у
+      // dish_portions есть uuid, но виджет ключует по label), им и помечаем.
+      if (res.ok) markAdded([portion.label]);
+    });
+  };
   const deletePortion = (label: string) => {
     const portion = portionsRaw.find((p) => p.label === label);
-    if (portion)
-      void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
+    if (portion) void safeMutate(() => removeDishPortion(portion.id), 'Не удалось удалить порцию');
   };
-  const updatePortion = (
-    label: string,
-    updates: Partial<{ label: string; grams: number }>,
-  ) => {
+  const updatePortion = (label: string, updates: Partial<{ label: string; grams: number }>) => {
     const portion = portionsRaw.find((p) => p.label === label);
     if (portion)
       void safeMutate(() => updateDishPortion(portion.id, updates), 'Не удалось обновить порцию');
@@ -207,13 +204,13 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
 
   const items = dishItems;
 
-  // Имя блюда в `contentHeader` каждого Screen. `<label>` лежит ВНУТРИ heading-а
+  // Имя блюда в `topContent` каждого Screen. `<label>` лежит ВНУТРИ heading-а
   // и оборачивает span — валидный HTML (label принимает phrasing content),
   // и при этом heading рендерится как `<h2>` чтобы у страницы остался один
-  // `<h1>`. Дублирование contentHeader в 3 Screen-ах не плодит h1 в DOM.
+  // `<h1>`. Дублирование topContent в 3 Screen-ах не плодит h1 в DOM.
   // Клик по label → focus на input ChangeNameModal.
   const nameHeading = (
-    <Heading role="headline" as="h2">
+    <Heading role="headline" as="h2" className={styles.nameHeading}>
       <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
         <span>{dish.name}</span>
       </label>
@@ -230,7 +227,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         if (res.ok) toaster.success('Удалено');
       },
       // Dish ingredients are always products → reuse the shared guard.
-      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }, navigate),
+      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }),
     });
   };
 
@@ -272,7 +269,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         <Screen
           key={1}
           headerOverlap
-          contentHeader={nameHeading}
+          topContent={nameHeading}
           stickyTop={topSlot}
           topBarHide="all"
         >
@@ -285,7 +282,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         <Screen
           key={2}
           headerOverlap
-          contentHeader={nameHeading}
+          topContent={nameHeading}
           stickyTop={topSlot}
           topBarHide="settings"
           headerAction={
@@ -368,7 +365,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         <Screen
           key={3}
           headerOverlap
-          contentHeader={nameHeading}
+          topContent={nameHeading}
           stickyTop={topSlot}
           topBarHide="settings"
           bottomBar={<AddPortionButton />}
@@ -376,9 +373,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             <PortionCreateModals
               // «Всё блюдо» — производная строка implicitPortion; добавляем в
               // reserved-список, чтобы юзер не создал порцию-двойник.
-              existingLabels={
-                items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels
-              }
+              existingLabels={items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels}
               unit="г"
               onCreate={createPortion}
             />

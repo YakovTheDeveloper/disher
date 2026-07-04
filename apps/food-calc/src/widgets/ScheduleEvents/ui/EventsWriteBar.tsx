@@ -9,7 +9,7 @@ import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { addScheduleEvent } from '@/entities/schedule-event';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { markAdded } from '@/shared/model/recentlyAddedStore';
 import { EventScalePanel } from './EventScalePanel';
 import panelStyles from './EventScalePanel.module.scss';
 
@@ -124,7 +124,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
       // returning false keeps the bar focused (WriteBarShell.blurOnSubmit) so the
       // user can retry without re-tapping.
       if (!result.ok) return false;
-      useRecentlyAddedStore.getState().addMany([result.value]);
+      markAdded([result.value]);
       setDescription('');
       clearAtoms();
       return true;
@@ -154,9 +154,10 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         // Swap-back: focusing the field while the panel is open closes it (and
         // brings the keyboard back), Telegram-style.
         onFieldFocus={atomsOpen ? closeAtoms : undefined}
-        // Local write (offline-ok). Send shows on focus; enabled with a description
-        // OR at least one atom (atoms-only / description-only events are both valid).
-        computeSend={({ focused }) => ({ visible: focused, enabled: hasContent })}
+        // Local write (offline-ok). Send appears when there's content — a description
+        // OR at least one atom (atoms-only / description-only events are both valid) —
+        // and vanishes on an empty field (content-driven canon 2026-07-02).
+        computeSend={() => ({ visible: hasContent, enabled: hasContent })}
         sendAriaLabel="Добавить событие"
         leftSlot={
           <WriteBarClip

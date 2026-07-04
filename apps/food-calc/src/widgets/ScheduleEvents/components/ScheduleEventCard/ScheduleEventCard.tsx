@@ -6,7 +6,6 @@ import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { TapTarget } from '@/shared/ui/atoms/TapTarget';
@@ -78,8 +77,6 @@ export function ScheduleEventCard({
   const hasAtoms = atoms.length > 0;
   // Global toggle (set from the TimeGroup time header): hide the per-row time.
   const hideTime = useItemTimesStore((s) => s.hidden);
-  // «Недавно добавлено» — синий кружок справа (чистится на свайп/уход, см. store).
-  const isRecent = useRecentlyAddedStore((s) => s.ids.has(item.id));
 
   // Маппинг на compound Card (см. card-chassis-simplify план): Title = текст
   // (у события нет qty); Meta = теги-чипы (ТОЛЬКО при атомах — трейлинг-время
@@ -91,7 +88,6 @@ export function ScheduleEventCard({
       id={item.id}
       index={index}
       tod={getTimeOfDay(item.time)}
-      recent={isRecent}
       onLongPress={onLongPress}
     >
       {/* Title = текст события (Card строит body + label htmlFor). Дом affordance

@@ -19,7 +19,7 @@ import styles from './FoodEntryCard.module.scss';
  * остаются тонкими и мапят строку данных + мутации/сторы в пропсы ниже.
  *
  * Подложку (`Card.Root` = `LongPressRow`) конфигурируют пробрасываемые `...rowProps`
- * (id/index/tod/recent/onLongPress/className/innerClassName/style/data-*), поэтому
+ * (id/index/tod/onLongPress/className/innerClassName/style/data-*), поэтому
  * каждый консумер сохраняет свой row-класс (`.group` / `.dishFoodListItem`) с leaf-
  * floor-обвязкой и tod-палитрой.
  */

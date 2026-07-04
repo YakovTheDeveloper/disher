@@ -2,7 +2,7 @@
 // градиентом и focus-halo. Идиома из AutoGrowSearch (warm-pill) пересажена в
 // sky-палитру. Капсулы разделены только gap'ом — `::after`-хайрлайн внутри
 // pill'а смотрелся бы инородно (см. AutoGrowSearch — там один pill = одно поле).
-$sky-bg-from: #f6f5ff;  // light indigo (бывш sky)
+$sky-bg-from: #f6f5ff; // light indigo (бывш sky)
 $sky-bg-mid: #efedff;
 $sky-bg-to: #e6e4ff;
 $sky-stripe: #c7dbf3;
@@ -11,7 +11,6 @@ $sky-stripe: #c7dbf3;
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-row);
-    padding: var(--space-2) var(--space-3);
 }
 
 .hint {
@@ -20,10 +19,15 @@ $sky-stripe: #c7dbf3;
     color: var(--sys-color-text-accent-muted);
 }
 
+// `<ul>` reset: строки-порции — это `<li>` (view-only/implicit) и LongPressRow
+// `<li>` (editable). Ритм несёт gap, не хайрлайн (см. шапку файла).
 .list {
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-row);
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 // View-only pill (and implicit pinned row).
@@ -32,7 +36,8 @@ $sky-stripe: #c7dbf3;
     align-items: center;
     justify-content: space-between;
     padding: var(--space-2) var(--space-3);
-    border-radius: var(--sys-radius-container); /* was 14px */
+    border-radius: var(--sys-radius-container);
+    /* was 14px */
     background: linear-gradient(90deg,
             $sky-bg-from 0%,
             $sky-bg-mid 55%,
@@ -41,26 +46,33 @@ $sky-stripe: #c7dbf3;
     transition: box-shadow 120ms ease;
 }
 
-// Edit pill — inputs live inside. Long-press по самому pill'у открывает drawer
-// удаления (useLongPress навешен на этот div в PortionEditRow), поэтому гасим
-// iOS-callout/контекст-меню и double-tap-zoom; текст в инпутах остаётся выделяемым.
-// Раскладку label/grams держит локальный 2-cell flex (.portionEditRow) — каркас
-// CardLayout снят (rule-of-one, card-chassis-simplify 2026-06-25).
-.portionEdit {
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--sys-radius-container); /* was 14px */
-    background: linear-gradient(90deg,
-            $sky-bg-from 0%,
-            $sky-bg-mid 55%,
-            $sky-bg-to 100%);
-    box-shadow: var(--sys-elevation-action-rest);
-    transition: box-shadow 120ms ease;
-    touch-action: manipulation;
-    -webkit-touch-callout: none;
+// Edit-ряд унифицирован на LongPressRow (2026-07-04): примитив несёт жест,
+// entrance-каскад и одноразовый flash «только что добавлен». Мы нейтрализуем его
+// tod-шасси (рамка/пол/паддинг-инсет → var-контракт, без войны специфичности) и
+// ПЕРЕКРАШИВАЕМ сам ряд sky-градиентом. bg держит именно ряд (`<li>`), а не
+// внутренний div — иначе flash-оверлей (`::before`, z-index:-1 на `<li>`) оказался
+// бы ПОД sky-пилюлей и был бы невидим. «Один владелец bg» сохранён: владелец —
+// LongPressRow. Раскладку label/grams держит локальный 2-cell flex (.portionEditRow).
+.portionRow {
+    --row-rest-outline-w: 0; // без tod-рамки
+    --sys-row-min-h-touch: 0; // компактная пилюля (пол несут ячейки .cell*)
+    --sys-row-pad-block: var(--space-2);
+    --row-pad-inline: var(--space-3);
 
-    &:hover,
-    &:focus-within {
-        box-shadow: var(--sys-elevation-action-hover);
+    // Удвоенный класс (0,2,0) перебивает LongPressRow `.row` (0,1,0):
+    // background-color(tod) + rim-box-shadow — без опоры на порядок стилей.
+    &#{&} {
+        background: linear-gradient(90deg,
+                $sky-bg-from 0%,
+                $sky-bg-mid 55%,
+                $sky-bg-to 100%);
+        box-shadow: var(--sys-elevation-action-rest);
+        transition: box-shadow 120ms ease;
+
+        &:hover,
+        &:focus-within {
+            box-shadow: var(--sys-elevation-action-hover);
+        }
     }
 }
 
@@ -79,7 +91,7 @@ $sky-stripe: #c7dbf3;
     min-width: 0;
     display: flex;
 
-    > * {
+    >* {
         flex: 1;
         min-width: 0;
     }

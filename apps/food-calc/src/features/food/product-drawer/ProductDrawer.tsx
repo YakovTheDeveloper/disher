@@ -31,6 +31,7 @@ import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { isCreatedByUser } from '@/shared/lib';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { markAdded } from '@/shared/model/recentlyAddedStore';
 import type { BaseDrawerProps } from '@/shared/ui';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
 import { buildQuantityOptions } from './buildQuantityOptions';
@@ -192,7 +193,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       ? productName.charAt(0).toUpperCase() + productName.slice(1)
       : undefined;
     return (
-      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'}>
+      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'} contentInset="panel">
         <div className={s.body} />
       </DrawerLayout>
     );
@@ -250,14 +251,15 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   };
 
   const addPortion = () => {
-    const updated = [
-      ...portionsRaw,
-      { label: nextPortionLabel(portionsRaw), grams: DEFAULT_PORTION_GRAMS },
-    ];
+    const label = nextPortionLabel(portionsRaw);
+    const updated = [...portionsRaw, { label, grams: DEFAULT_PORTION_GRAMS }];
     void safeMutate(
       () => setProductPortions(food.id, JSON.stringify(updated)),
       'Не удалось добавить порцию',
-    );
+    ).then((res) => {
+      // Flash нового ряда-порции (ключ ряда в FoodPortionsManager — label).
+      if (res.ok) markAdded([label]);
+    });
     setPortionsOpen(true);
   };
 
@@ -335,6 +337,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       title={displayName}
       subtitle={isUserCreated ? 'мой продукт' : undefined}
       a11yLabel={food.name}
+      contentInset="panel"
       // Карандаш в правом углу обвязки → drop-down «Название / Нутриенты».
       // Только свои продукты. DropdownMenu (Base UI Menu) сам владеет открытием,
       // позиционированием, click-outside и порталом. `.editIconBtn svg` (0,1,1)

@@ -10,7 +10,7 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
 import { foodEntryInputIds, type FoodEntryKind } from './inputIds';
 import { scrollToNewRow } from './scrollToNewRow';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { markAdded } from '@/shared/model/recentlyAddedStore';
 import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 
 // ── Цель флоу ────────────────────────────────────────────────────────────────
@@ -371,10 +371,10 @@ export function useFoodEntryFlow({
             if (!res.ok) return;
             void persistCustomTagsFromDetails(productIdForCustom, details);
             toaster.success('Добавлено в расписание');
-            // «Недавно добавлен»: помечаем строку recent'ом (синий кружок + разовый
-            // flash), как события/free-text — этот модальный путь добавления продукта
-            // раньше давал только тихий скролл (юзер не видел, что добавилось).
-            useRecentlyAddedStore.getState().addMany([res.value]);
+            // «Только что добавлен» flash: кладём id ряда в mailbox → LongPressRow
+            // на маунте один раз мигает butter-подсветкой (consume-once). Раньше
+            // модальный путь давал только тихий скролл (юзер не видел, что добавилось).
+            markAdded([res.value]);
             haptic();
             scrollToNewRow(res.value);
           },
@@ -390,6 +390,9 @@ export function useFoodEntryFlow({
           if (!res.ok) return;
           void persistCustomTagsFromDetails(productId, details ?? '');
           toaster.success('Продукт добавлен');
+          // Flash нового ингредиента блюда (паритет с расписанием — оба ряда в
+          // LongPressRow, flash встроен в примитив).
+          markAdded([res.value]);
           scrollToNewRow(res.value);
         });
       }

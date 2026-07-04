@@ -6,7 +6,7 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import cardStyles from '@/shared/ui/atoms/Card/Card.module.scss';
 import cardTimeStyles from '@/shared/ui/atoms/CardTime/CardTime.module.scss';
 import rowStyles from '@/features/shared/long-press-item/LongPressRow.module.scss';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
+import { markAdded, takeJustAdded } from '@/shared/model/recentlyAddedStore';
 
 // Регресс-детектор show-stopper'а «время правят не в том файле»: время карточки
 // ЕДЫ рендерится через node-escape <CardTime> (его `.display`-класс), НЕ через
@@ -39,26 +39,27 @@ describe('ScheduleFoodItemInline — раскладка времени', () => {
   });
 });
 
-// Паритет еда↔события (части 1+2): только что добавленная ЕДА получает recent-
-// маркер через тот же recentlyAddedStore, что и события — синий кружок + разовый
-// flash фона несёт класс `.row_recent` на подложке (LongPressRow). Триггер — id
-// в store (по образцу события), НЕ index → мигает ТОЛЬКО добавленный ряд, список
-// не переигрывается. Тест гоняет реальную цепочку store → ScheduleFoodItemInline
-// → FoodEntryCard → Card.Root → LongPressRow.
-describe('ScheduleFoodItemInline — recent-маркер (паритет с событиями)', () => {
+// Just-added flash (consume-once mailbox, 2026-07-04): только что добавленная ЕДА
+// получает класс `.row_recent` на подложке (LongPressRow), когда её id лежит в
+// mailbox (markAdded). Читается РАЗ на маунте (isJustAdded в useState-инициализаторе)
+// → мигает ТОЛЬКО добавленный ряд, список не переигрывается. Тест гоняет реальную
+// цепочку mailbox → ScheduleFoodItemInline → FoodEntryCard → Card.Root → LongPressRow.
+describe('ScheduleFoodItemInline — just-added flash (mailbox)', () => {
   afterEach(() => {
-    useRecentlyAddedStore.getState().clear();
+    // Ящик — module-level Set: вычищаем возможные хвосты между кейсами.
+    takeJustAdded(item.id);
+    takeJustAdded('some-other-id');
   });
 
-  it('несёт .row_recent (recent-dot + flash), когда id ряда в recentlyAddedStore', () => {
-    useRecentlyAddedStore.getState().addMany([item.id]);
+  it('несёт .row_recent (flash), когда id ряда в mailbox', () => {
+    markAdded([item.id]);
     const { container } = render(<ScheduleFoodItemInline item={item} />);
     const row = container.querySelector('li') as HTMLLIElement;
     expect(row).toHaveClass(rowStyles.row_recent);
   });
 
-  it('НЕ помечает ряд, которого нет в store — flash только у добавленного, не у всего списка', () => {
-    useRecentlyAddedStore.getState().addMany(['some-other-id']);
+  it('НЕ помечает ряд, которого нет в mailbox — flash только у добавленного, не у всего списка', () => {
+    markAdded(['some-other-id']);
     const { container } = render(<ScheduleFoodItemInline item={item} />);
     const row = container.querySelector('li') as HTMLLIElement;
     expect(row).not.toHaveClass(rowStyles.row_recent);

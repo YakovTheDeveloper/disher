@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useLongPress } from '@/shared/lib/hooks/useLongPress';
+import { LongPressRow } from '@/features/shared/long-press-item';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import s from './FoodPortionsManager.module.scss';
 
@@ -51,6 +51,8 @@ function defaultHint(unit: string): string {
 
 type EditRowProps = {
   portion: Portion;
+  /** Position in the list — drives the LongPressRow entrance stagger. */
+  index: number;
   unit: string;
   isGramUnit: boolean;
   onLabelCommit: (e: React.FocusEvent<HTMLInputElement>) => void;
@@ -60,20 +62,19 @@ type EditRowProps = {
 
 // Канон HomePage (ScheduleFoodItemInline): в ПОКОЕ ячейки — тап-таргеты (span),
 // сырой <input> появляется ТОЛЬКО в режиме правки (тап → input autoFocus → blur
-// коммитит). Поэтому в покое инпутов нет, и long-press по pill'у не конфликтует
-// с удержанием каретки. useLongPress навешен прямо на sky-pill (без обёртки
-// LongPressRow, которая красила бы свой tod-фон поверх sky-градиента —
-// «один владелец bg», см. drawer-layout-canon).
+// коммитит). Поэтому в покое инпутов нет, и long-press по ряду не конфликтует
+// с удержанием каретки. Ряд — общий LongPressRow (жест/entrance/flash встроены
+// в примитив, 2026-07-04); sky-градиент перекрашивает сам ряд (`.portionRow`),
+// поэтому «один владелец bg» сохранён — владелец теперь LongPressRow.
 const PortionEditRow = ({
   portion,
+  index,
   unit,
   isGramUnit,
   onLabelCommit,
   onGramsCommit,
   onLongPress,
 }: EditRowProps) => {
-  const longPress = useLongPress(onLongPress ?? (() => {}));
-  const pressHandlers = onLongPress ? longPress : {};
   const [editing, setEditing] = useState<null | 'label' | 'grams'>(null);
 
   const finishLabel = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -88,9 +89,8 @@ const PortionEditRow = ({
   // Локальный 2-cell flex (rule-of-one: единственный консумер «label + grams»,
   // каркасу его нести незачем — это снимает типизированный titleEnd целиком).
   // label тянется, grams прибит вправо по базовой линии. Обе ячейки stateful
-  // (тап → input autoFocus → blur коммитит). Контейнер sky-pill (.portionEdit)
-  // владеет фоном + long-press (useLongPress навешен на него — НЕ оборачиваем в
-  // LongPressRow, иначе её tod-фон закрасил бы sky-градиент; «один владелец bg»).
+  // (тап → input autoFocus → blur коммитит). Фон/жест/entrance/flash несёт
+  // обёртка LongPressRow ниже (sky-градиент перекрашен на `.portionRow`).
   const labelNode =
     editing === 'label' ? (
       <input
@@ -135,12 +135,12 @@ const PortionEditRow = ({
   );
 
   return (
-    <div className={s.portionEdit} {...pressHandlers}>
+    <LongPressRow id={portion.label} index={index} className={s.portionRow} onLongPress={onLongPress}>
       <div className={s.portionEditRow}>
         <div className={s.portionEditLabel}>{labelNode}</div>
         {gramsNode}
       </div>
-    </div>
+    </LongPressRow>
   );
 };
 
@@ -211,9 +211,9 @@ const FoodPortionsManager: FC<Props> = ({
         </Text>
       )}
 
-      <div className={s.list}>
+      <ul className={s.list}>
         {implicitPortion && (
-          <div className={s.portion}>
+          <li className={s.portion}>
             <div className={s.portionInfo}>
               <Text as="span" role="label" className={s.portionLabel}>
                 {implicitPortion.label}
@@ -222,14 +222,15 @@ const FoodPortionsManager: FC<Props> = ({
                 {implicitPortion.grams} {unit}
               </Numeral>
             </div>
-          </div>
+          </li>
         )}
 
-        {portions.map((p) =>
+        {portions.map((p, i) =>
           editable ? (
             <PortionEditRow
               key={p.label}
               portion={p}
+              index={i}
               unit={unit}
               isGramUnit={isGramUnit}
               onLabelCommit={handleLabelBlur(p.label)}
@@ -237,7 +238,7 @@ const FoodPortionsManager: FC<Props> = ({
               onLongPress={onLongPressRow ? () => onLongPressRow(p.label) : undefined}
             />
           ) : (
-            <div key={p.label} className={s.portion}>
+            <li key={p.label} className={s.portion}>
               <div className={s.portionInfo}>
                 <Text as="span" role="label" className={s.portionLabel}>
                   {p.label}
@@ -246,10 +247,10 @@ const FoodPortionsManager: FC<Props> = ({
                   {p.grams} {unit}
                 </Numeral>
               </div>
-            </div>
+            </li>
           ),
         )}
-      </div>
+      </ul>
     </div>
   );
 };

@@ -10,7 +10,6 @@ import type { ScheduleEvent } from '@/entities/schedule-event';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { HomeHero } from './ui/HomeHero';
-import { useRecentlyAddedStore } from '@/shared/model/recentlyAddedStore';
 import { useRolloverNudge } from './useRolloverNudge';
 
 // Два раздела HomePage — поверхности ВВОДА: Рацион (default) + События. Слайд
@@ -36,16 +35,6 @@ const Page = ({ date }: { date: string }) => {
   // НЕ делать `[...scheduleEvents]` — spread даёт новую ссылку на каждом рендере
   // и убивает memo на ScheduleEvents.
   const events = scheduleEvents as ScheduleEvent[];
-
-  // «Недавно добавлен»-кружки живут до первого свайпа слайда или ухода со
-  // страницы. Чистка идёт через zustand-стор → ре-рендерятся только сами
-  // «свежие» строки, Page не подписан. Стабилен → SwipeDeck не переподписывает
-  // листенеры Embla.
-  const clearRecent = useCallback(() => {
-    useRecentlyAddedStore.getState().clear();
-  }, []);
-  // Уход со страницы / смена даты — сбросить пометки.
-  useEffect(() => clearRecent, [date, clearRecent]);
 
   // Hero-обложка над табами — живая, ТОЛЬКО на HomePage. Стабильна (useCallback)
   // → topSlot'ы в SwipeDeck мемоизируются, memo() слайдов не сбрасывается.
@@ -88,7 +77,6 @@ const Page = ({ date }: { date: string }) => {
       slides={slides}
       defaultSlide={DEFAULT_SLIDE}
       renderTopBar={renderTopBar}
-      onIndexChange={clearRecent}
       heroForSlide={heroForSlide}
       // Дек стал 2-слайдовым (Рацион ↔ События) — «middle-right» больше не имеет
       // среднего слайда, так что дефолт 'all': у неактивного соседа стрелка в его

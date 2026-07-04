@@ -1,8 +1,8 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // Single-node card chassis (collapse 2026-06-25): the <li> owns the surface,
-// the long-press gesture, the staggered entrance, the recent-dot (`::after`) and
-// the time-of-day palette (`data-tod` lives on the <li> itself now). The former
+// the long-press gesture, the staggered entrance, the just-added flash (`::before`)
+// and the time-of-day palette (`data-tod` lives on the <li> itself now). The former
 // wrapper <div> + `display:contents` click-capture <div> were removed.
 .row {
     @include row-touch;
@@ -94,24 +94,23 @@
         z-index: 2;
     }
 
-    // Flash появления: только что созданный ряд ОДИН раз подсвечивается цветом
+    // Flash появления: только что добавленный ряд ОДИН раз подсвечивается цветом
     // «выбрано» (butter, --sys-color-bg-selected) и плавно гаснет к прозрачному,
-    // открывая свой tod-фон. Триггерится вместе с `recent` (НЕ с index) —
-    // добавление ОДНОЙ сущности не переигрывает entrance-каскад всего списка.
+    // открывая свой tod-фон. Класс `.row_recent` навешивается РАЗ на маунте (см.
+    // LongPressRow.tsx: isJustAdded в useState-инициализаторе) — тоггла нет, ряд
+    // не переигрывает анимацию.
     //
-    // ВАЖНО (баг 2026-07-03): flash живёт на отдельном псевдо-слое `::before`, а НЕ
-    // на `animation` самого ряда. Ряд уже несёт entrance-каскад (useEntranceStagger)
-    // в шоткате `animation`; новый ряд монтируется с ОБОИМИ классами (.entrance +
-    // .row_recent), а `animation` — единичный шоткат: вторая декларация молча
-    // перебивала первую, и flash не проигрывался (entrance выигрывал; точку `::after`
-    // было видно, т.к. у неё своя `animation`). Оверлей на псевдо-слое запускает
-    // СВОЮ анимацию независимо от `animation` ряда — оба идут параллельно.
+    // Flash живёт на отдельном псевдо-слое `::before`, а НЕ на `animation` самого
+    // ряда: ряд уже несёт entrance-каскад (useEntranceStagger) в шоткате
+    // `animation` — но именно поэтому recent-ряд НЕ играет entrance (showEntrance
+    // = !isNew), так что здесь конфликта `animation` больше нет. Оверлей на
+    // отдельном слое оставляем как надёжную развязку (своя анимация, свой слой).
     //
     // z-index:-1 (ряд = stacking context: position:relative + z-index:1) кладёт
     // butter-оверлей НАД фоном ряда, но ПОД контентом карточки (.card непозиционирован),
     // так что текст остаётся чётким. Композит-безопасно: анимируем только opacity.
-    // Базовый opacity:0 → под prefers-reduced-motion (animation:none) flash не мигает.
-    // Новых токенов не заводим — красим существующим --sys-color-bg-selected.
+    // Базовый opacity:0 → под prefers-reduced-motion (animation:none) статичный
+    // подсвет задаётся ниже. Новых токенов не заводим — красим --sys-color-bg-selected.
     &_recent::before {
         content: '';
         position: absolute;
@@ -122,29 +121,6 @@
         opacity: 0;
         pointer-events: none;
         animation: rowRecentFlash 1600ms ease-in forwards;
-    }
-
-    // «Недавно добавлен» marker (recent-dot canon) — синий кружок СПРАВА, ВНЕ
-    // подложки карточки, в правом отступе листа (`.headerOverlap` padding-inline:
-    // 16px). Раньше открывали жёлоб через padding-right (карточка дёргалась);
-    // теперь место уже есть благодаря паддингу контейнера — кружок просто
-    // absolute-сдвинут наружу (negative right) в этот gutter через `::after`. В
-    // пределах `.main { overflow-x: hidden }` не обрезается и не даёт гор. скролл.
-    // Чистится глобально (свайп слайда / уход со страницы) — см. recentlyAddedStore.
-    &_recent::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        // Наружу за правый край карточки, ближе к карточке (не по центру жёлоба).
-        right: -7px;
-        width: 5px;
-        height: 5px;
-        transform: translateY(-50%);
-        border-radius: var(--sys-radius-indicator);
-        background: var(--sys-color-surface-action-system);
-        pointer-events: none;
-        z-index: 2;
-        animation: recentDotIn 240ms cubic-bezier(0, 0, 0.2, 1) both;
     }
 }
 
@@ -184,18 +160,6 @@
     --tod-tapped: var(--tod-night-tapped);
 }
 
-@keyframes recentDotIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50%) scale(0.4);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(-50%) scale(1);
-    }
-}
-
 // Flash появления нового ряда: butter-оверлей держит ПИК первые ~45% времени
 // (солидная заметная вспышка), затем мягко гаснет к 0 (ease-in на всей анимации →
 // butter ещё и медленно стартует угасание, дольше «стоит» ярким). Ряд-`recent` не
@@ -216,9 +180,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .row_recent::before,
-    .row_recent::after {
+    // Без вспышки: тихий статический подсвет, пока ряд смонтирован (юзер-выбор
+    // 2026-07-04 — НЕ глушить в ноль). Одноразового take это не касается: id всё
+    // равно съедается на маунте, класс держится React'ом до размонтирования.
+    .row_recent::before {
         animation: none;
+        opacity: 0.5;
     }
 }
 

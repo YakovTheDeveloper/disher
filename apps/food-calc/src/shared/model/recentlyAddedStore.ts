@@ -1,83 +1,44 @@
-import { create } from 'zustand';
-
-// Эфемерный набор id «только что добавленных» строк расписания (еда + события).
-// Помечает item «недавним» — потребители (ScheduleFoodItemInline,
-// ScheduleEventCard) рисуют синий кружок справа.
+// Эфемерный «почтовый ящик» id только что добавленных рядов (еда, события,
+// ингредиенты блюда, порции). Пишущий путь кладёт id (markAdded); ряд на маунте
+// читает (isJustAdded) и потребляет (takeJustAdded) — один раз за свою жизнь.
 //
-// Чистка ДВУХСТОРОННЯЯ (что раньше — то и гасит):
-//  1. Авто-истечение по таймеру: каждый id живёт RECENT_TTL_MS, затем гаснет сам
-//     (юзер-запрос 2026-07-03 — вернули таймер; ранее, 2026-06-03, его снимали в
-//     пользу clear-on-swipe, но юзер захотел, чтобы точки уходили сами через
-//     несколько секунд). Персональный таймер на id перезапускается, если тот же id
-//     добавили снова.
-//  2. Явная чистка на смену слайда Swipeable / уход со страницы (HomePage owns the
-//     clear) — `clear()` гасит всё сразу И отменяет висячие таймеры.
-//
-// Таймеры живут в module-level реестре (вне zustand-стейта): их нельзя
-// сериализовать, и `clear()` должен уметь их отменить, чтобы отложенный `remove`
-// не сработал уже после ухода со страницы.
+// Событие, а не состояние: НЕТ реактивной подписки (zustand не нужен), НЕТ TTL-
+// таймеров, НЕТ swipe-clear. Одноразовый flash сам гасит себя CSS-анимацией
+// (forwards), а takeJustAdded() бьёт id при первом маунте ряда, чтобы повторный
+// маунт (ре-рендер списка, StrictMode) не переиграл его. Раньше это был живой
+// toggling-флаг с TTL и внешней чисткой — из него выводили mount-анимацию, и она
+// сталкивалась со вторым mount-каскадом (entrance). Серия багов лечится здесь
+// конструкцией: разовый ящик вместо живого флага.
 //
 // Живёт в shared/model (а не в food-free-text-parse), потому что им пользуются
-// оба виджета расписания — ровно как соседний itemTimesStore.
+// оба виджета расписания + блюдо + порции — ровно как соседний itemTimesStore.
+const justAdded = new Set<string>();
 
-// Сколько секунд «недавняя» точка/flash-подсветка держится до авто-угасания.
-const RECENT_TTL_MS = 5000;
+// Backstop: id рядов, добавленных в даты/сущности, которые юзер потом не
+// открывает (ряд не смонтировался → take не вызвался), не копятся вечно. Грубая
+// FIFO-отсечка старейших сверх лимита — потерянный flash безвреден.
+const CAP = 50;
 
-const expiryTimers = new Map<string, ReturnType<typeof setTimeout>>();
-
-function cancelTimer(id: string): void {
-  const timer = expiryTimers.get(id);
-  if (timer !== undefined) {
-    clearTimeout(timer);
-    expiryTimers.delete(id);
+/** Пометить id как «только что добавленные» (пишущий путь после успешной записи). */
+export function markAdded(ids: string[]): void {
+  if (ids.length === 0) return;
+  for (const id of ids) justAdded.add(id);
+  if (justAdded.size > CAP) {
+    const extra = justAdded.size - CAP;
+    let i = 0;
+    for (const id of justAdded) {
+      if (i++ >= extra) break;
+      justAdded.delete(id);
+    }
   }
 }
 
-function cancelAllTimers(): void {
-  for (const timer of expiryTimers.values()) clearTimeout(timer);
-  expiryTimers.clear();
+/** Чистое чтение (для useState-инициализатора ряда на первом рендере). */
+export function isJustAdded(id: string): boolean {
+  return justAdded.has(id);
 }
 
-type State = {
-  ids: Set<string>;
-  addMany: (ids: string[]) => void;
-  remove: (id: string) => void;
-  clear: () => void;
-};
-
-export const useRecentlyAddedStore = create<State>((set, get) => ({
-  ids: new Set(),
-  addMany: (newIds) => {
-    if (newIds.length === 0) return;
-    set((s) => {
-      const next = new Set(s.ids);
-      for (const id of newIds) next.add(id);
-      return { ids: next };
-    });
-    // Персональный TTL на каждый id (перезапуск, если id пришёл повторно). Side
-    // effect держим ВНЕ set-апдейтера — апдейтер чистый.
-    for (const id of newIds) {
-      cancelTimer(id);
-      expiryTimers.set(
-        id,
-        setTimeout(() => {
-          expiryTimers.delete(id);
-          get().remove(id);
-        }, RECENT_TTL_MS)
-      );
-    }
-  },
-  remove: (id) => {
-    cancelTimer(id);
-    set((s) => {
-      if (!s.ids.has(id)) return s;
-      const next = new Set(s.ids);
-      next.delete(id);
-      return { ids: next };
-    });
-  },
-  clear: () => {
-    cancelAllTimers();
-    set((s) => (s.ids.size === 0 ? s : { ids: new Set() }));
-  },
-}));
+/** Потребление (сайд-эффект — только в useEffect, НЕ в рендере). */
+export function takeJustAdded(id: string): void {
+  justAdded.delete(id);
+}
