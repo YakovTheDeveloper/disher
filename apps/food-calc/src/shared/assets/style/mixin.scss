@@ -563,10 +563,8 @@
     // нутриентов). Здесь bespoke-литерал снят, замкнуто на ref (sys→ref начисто).
     --cards-page-bg: var(--ref-color-neutral-100); // = #f7f3eb (бывший bespoke)
 
-    // Поверхность ряда — прозрачная (видно белую группу), ритм/градиент выключены.
+    // Поверхность ряда — прозрачная (видно белую группу).
     --sys-card-bg: transparent;
-    --sys-card-wash-2n: linear-gradient(transparent, transparent);
-    --sys-card-wash-3n: linear-gradient(transparent, transparent);
     // Hairline-разделитель карточек = ХОЛОДНЫЙ divider (navy --sys-color-divider).
     // Осознанный контраст (запрос юзера 2026-06-26): тёплая бумага группы + холодные
     // «инструменты» (divider рядов + вертикальный divider ⓘ, back-шеврон, иконка
@@ -657,15 +655,6 @@
         display: none;
     }
 
-    // nth-child ритм — еле заметные washes поверх базы.
-    &:nth-child(2n) {
-        background: var(--sys-card-wash-2n), var(--sys-card-bg);
-    }
-
-    &:nth-child(3n) {
-        background: var(--sys-card-wash-3n), var(--sys-card-bg);
-    }
-
     &:hover {
         background: var(--sys-card-hover);
     }
@@ -689,5 +678,72 @@
             z-index: 0;
             pointer-events: none;
         }
+    }
+}
+
+// ─── calendar-grid() — СТРУКТУРА мини-календаря (месяц-решётка 7×N) ─────────────
+// Единый источник геометрии/типографики календарной решётки, изначально
+// извлечён из ScheduleNavigator (мини-календари «Активные дни»). Потребляют оба:
+// ScheduleNavigator (навигация по дням с записями) и RangeCalendar (окно разбора).
+// Публикует ТОЛЬКО структурные классы (month-заголовок, шапка дней недели, grid,
+// база ячейки) — они порядко-независимы и визуально идентичны на обоих экранах.
+// Состояния (сегодня-кольцо, заливка выбора, in-range, active/empty) остаются
+// ЛОКАЛЬНЫМИ в каждом модуле: их семантика различается, а порядок каскада важен
+// (выбор должен перебивать active). Общий контракт цвета — токены `--sys-card-*`
+// (:root) + `--sys-radius-control`, поэтому состояния всё равно совпадают по тону.
+// Классы эмитятся на уровне модуля → scoped → доступны как `s.month/.cell/...`.
+@mixin calendar-grid() {
+    .month {
+        &+& {
+            margin-top: var(--space-5);
+        }
+    }
+
+    // Тихий указатель месяца (в ScheduleNavigator — QuietLabel).
+    .monthName {
+        display: block;
+        padding-left: var(--space-1);
+        margin-bottom: var(--space-6);
+        text-transform: capitalize;
+        line-height: 1;
+    }
+
+    // Шапка дней недели (пн…вс) — 7 колонок, тихие капшны.
+    .weekdayRow {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        margin-bottom: var(--space-1);
+    }
+
+    // Размер — из примитива <Text role="caption">; тут выравнивание/цвет.
+    .weekday {
+        display: block;
+        text-align: center;
+        line-height: 1;
+        color: var(--sys-color-text-tertiary);
+    }
+
+    // Календарная решётка — 7 колонок.
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: var(--space-1);
+    }
+
+    // Ячейка дня. Пустые ведущие ячейки (.blank) держат геометрию колонки.
+    .cell,
+    .blank {
+        min-height: 40px;
+    }
+
+    .cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: var(--sys-radius-control);
+        background: transparent;
+        color: var(--sys-card-text-rest);
+        font-feature-settings: 'tnum' 1, 'lnum' 1;
     }
 }
