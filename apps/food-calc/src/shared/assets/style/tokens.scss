@@ -35,8 +35,9 @@
   --sys-inset-card: var(--space-4); // 16 — гор. инсет контента карточки-плитки (еда/анализ)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
-  --sys-stack-row: var(--space-2); // 12 — rows/fields/cards in one list/form
-  --sys-stack-section: var(--space-6); // 24 — large body sections
+  --sys-stack-row: var(--space-2); // 8 — tight pair: rows/fields/cards in one list; label → its control
+  --sys-stack-field: var(--space-3); // 12 — between sibling fields inside one form group
+  --sys-stack-section: var(--space-6); // 24 — large body sections / between form groups
 
   // ─── Typography scale (modular 1.25) — #typography-scale ─────
   --text-xs: 0.64rem; // 10.2px
@@ -70,7 +71,6 @@
   // family voices (ref for roles)
   --sys-text-family-sans: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // quiet tier
-  --sys-text-family-mono: "Ubuntu Mono", "SF Mono", monospace;
 
   // Display — poster / active swipe tab
   --sys-text-display-size: 46px;
@@ -192,7 +192,6 @@
   --sys-numeral-dial-family: var(--font-big-numeric);
   --sys-numeral-dial-size: 4.5rem; // ≈72 — TimeChoose dial + big quantity (calmed from 6rem 2026-06-27)
   --sys-numeral-dial-weight: 800;
-  --sys-text-mono-tab-size: 13px; // Ubuntu Mono tabular (nutrients)
 
   // ─── Border radius — #radius ─────────────────────────────────
   --radius-xs: 4px;
@@ -215,7 +214,6 @@
   --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // action-rest
   --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.12), 0 4px 10px rgba(45, 38, 28, 0.143); // action-hover / raised bar
   --ref-shadow-3: 0 1px 3px rgba(45, 38, 28, 0.08), 0 6px 16px rgba(45, 38, 28, 0.10), 0 12px 28px rgba(45, 38, 28, 0.10); // overlay
-  --ref-shadow-4: 0 2px 6px rgba(45, 38, 28, 0.10), 0 10px 24px rgba(45, 38, 28, 0.14), 0 20px 48px rgba(45, 38, 28, 0.14); // drag-lift
 
   --sys-elevation-flat: var(--ref-shadow-0); // content (cards/lists/sections)
   --sys-elevation-action-rest: var(--ref-shadow-1); // lever at rest (CTA/bar/tile)
@@ -223,26 +221,11 @@
   --sys-elevation-action-hover: var(--ref-shadow-2); // lever hovered/focused
   --sys-elevation-action-pressed: var(--ref-shadow-0); // pressed: shadow compresses ≤ rest
   --sys-elevation-overlay: var(--ref-shadow-3); // drawer/modal/popover/dropdown/sheet
-  --sys-elevation-dragging: var(--ref-shadow-4); // long-press lift
-
-  // Scroll-seam — тень-шов под sticky-заголовком при scroll-state(stuck). Двух-
-  // стоповый список (hairline + soft drop): -seam-rest = прозрачный близнец той же
-  // длины, чтобы keyframe/scroll-timeline лерпил box-shadow чисто (CSS требует
-  // совпадения длины списка теней). NutrientsDrawer header-stuck.
-  --sys-elevation-seam-rest: 0 0 0 transparent, 0 0 0 transparent;
-  --sys-elevation-seam: 0 1px 0 var(--sys-card-hairline),
-    0 6px 12px -6px color-mix(in oklch, var(--sys-card-text-rest) 8%, transparent);
 
   // Dock — нижний прикреплённый лист (position:fixed bottom:0) приподнимается НАД
   // контентом: тень светит ВВЕРХ (отрицательный y), чего нет у drop-рунгов.
   // FoodSearchEmpty bottom-dock.
   --sys-elevation-dock: 0 -1px 6px rgba(45, 38, 28, 0.1);
-
-  // Sheet — full-bleed in-flow лист (Screen `.headerOverlap`). Обычный drop тут НЕ
-  // читается: дно уезжает за экран, бока на кромке вьюпорта, верх клипает скроллер.
-  // Поэтому INSET по верхней кромке — единственная тень, которую скроллер не режет:
-  // мягкая тёплая лунка под верхним лбом листа. Парный к surface-1. DesignBar `lip`.
-  --sys-elevation-sheet: inset 0 4px 8px -5px rgba(45, 38, 28, 0.12);
 
   // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
   // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
@@ -263,17 +246,13 @@
   --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1); // bouncy/spring
   --easing-ios: cubic-bezier(0.32, 0.72, 0, 1); // iOS nav/sheet decel
 
-  // sys · motion — 1:1 aliases of primitives above — #motion-sys
-  --sys-duration-fast: var(--duration-fast);
-  --sys-duration-normal: var(--duration-normal);
-  --sys-duration-slow: var(--duration-slow);
-  --sys-duration-ios: var(--duration-ios);
+  // sys · motion — only the semantic values with live consumers. The plain 1:1
+  // aliases of the primitives (fast/normal/slow/ios · easing default/spring) were
+  // never adopted — components read the --duration-*/--easing-* primitives directly
+  // — and were removed 2026-07-05.
   --sys-duration-drawer: 400ms; // статический backdrop/sheet close (бывш. calc(swipe-strength*400ms) — упрощено 2026-06-25)
   --sys-duration-instant: 1ms; // reduced-motion «мгновенно, но animationend срабатывает» (не 0ms)
   --sys-duration-press-in: var(--press-in); // 0ms
-  --sys-duration-press-out: var(--press-out); // 260ms
-  --sys-easing-default: var(--easing-default);
-  --sys-easing-spring: var(--easing-spring);
   --sys-easing-ios: var(--easing-ios);
 
   // ─── Row geometry (list-item cells) — #row-geometry ──────────
@@ -305,7 +284,6 @@
 
   // ─── Brand CTA (single primary-button color) — #brand-cta ────
   --cta-brand-fill: linear-gradient(270deg, #fffae0 0%, #fff4bd 100%);
-  --cta-brand-fill-press: linear-gradient(270deg, #f7f0cf 0%, #f3e8a6 100%);
   --cta-brand-ink: rgba(34, 31, 25, 0.92); // warm-coal ink
 
   // ─── ref · NEUTRAL (warm-soft v2, 2026-06-24) — #ref-neutral ──
@@ -343,6 +321,7 @@
   --ref-color-cool-700: #3a4259;
   --ref-color-cool-800: #2c364c; // промежуточная ступень 700↔900 — тёмный холодный текст на цветной карточке (--sys-color-text-on-hue-card)
   --ref-color-cool-900: #1f2a44; // = cool-night anchor (divider / placeholder slate)
+  --ref-color-cool-1000: #0c1320; // = cool-night anchor (divider / placeholder slate)
 
   // ref · navy RETIRED 2026-06-25 (M4): «выбрано» → warm amber, brand-action → indigo.
   // navy-600/700 had 0 consumers after the split; removed. See #ref-accent-ramps below.
@@ -367,6 +346,11 @@
   // ref, минтован из утверждённой DesignBar-пробы чипов 'butter-press' (2026-07-03):
   // единый цвет «выбрано» app-wide (см. --sys-color-bg-selected ниже).
   --ref-color-butter: #f6e7b0;
+
+  // plum — мягкий сливовый (пыльная лилово-розовая, ВНЕ amber/indigo рамп). Один-офф
+  // ref, минтован из утверждённой DesignBar-пробы чипов 'plum-press' (2026-07-05):
+  // заливка «выбрано» чипов «Особенности» (см. --sys-color-bg-selected-plum ниже).
+  --ref-color-plum: #e6d3df;
 
   --ref-color-indigo-0: #f6f5ff;
   --ref-color-indigo-50: #efedff;
@@ -400,8 +384,6 @@
   --sys-color-surface-page: var(--surface-base);
   --sys-color-surface-bright: var(--ref-color-neutral-0); // floating surface above Screen
   --sys-color-surface-raised: var(--surface-raised);
-  --sys-color-surface-sunken: var(--surface-base); // no separate sunken primitive
-  --sys-color-surface-grouped: var(--cards-page-bg); // n100 — фон страницы под inset-grouped списком (SearchFood)
 
   // ─── sys · DEPTH AXIS (0/1/2) — #sys-surface-depth ───────────
   // Лестница глубины (Material-combined, но lightness-only, БЕЗ hue-tint —
@@ -412,14 +394,10 @@
   --sys-color-surface-0: var(--ref-color-neutral-100); // стол/основа · #f7f3eb · тень none
   --sys-color-surface-1: var(--ref-color-neutral-0); // парящий лист (card/sheet) · #fefcf9
   --sys-color-surface-2: var(--ref-color-white); // лист над листом (modal/drawer/popover) · #ffffff
-  --sys-elevation-0: none;
-  --sys-elevation-1: var(--ref-shadow-1);
+  --sys-elevation-1: var(--ref-shadow-1); // depth-axis rungs — consumed via elevation(1|2) mixin
   --sys-elevation-2: var(--ref-shadow-3);
-  // Тёмная инверсия — ОТДЕЛЬНАЯ ось полярности (плавающий тёмный бар), НЕ вершина
-  // высоты. Не «уровень 3» лестницы.
-  --sys-color-surface-inverted: var(--ref-color-neutral-800);
 
-  --sys-color-surface-floating: var(--ref-color-neutral-1000);
+  --sys-color-surface-floating: var(--ref-color-cool-1000);
   --sys-color-surface-floating-pressed: var(--text-on-accent); // #fff flash
   --sys-color-text-on-floating: var(--text-on-accent);
 
@@ -436,19 +414,31 @@
   // холодный wash без градиента; indigo-текст (--sys-color-text-accent) читается на нём.
   --sys-color-surface-cool-soft: var(--ref-color-cool-50); // #edeff2
 
+  // Frosted-glass overlay (translucent surface over content — NutrientTable edit
+  // overlay). Near-white veil in light; flips to a translucent dark veil so the
+  // frost doesn't glow white on dark.
+  --sys-color-surface-frost: rgba(255, 255, 255, 0.65);
+  // Scroll-edge fade — the vertical gradient that dissolves list content into the
+  // page at a scroll boundary (ScrollIndicator light variant). Fades toward the
+  // page surface; recomputed for the dark base.
+  --sys-color-scroll-fade: rgba(245, 245, 247, 0.92);
+  // Neutral shading agent for the in-card field "well" (mixed into the row-bg to
+  // sink the slot on a coloured card — Card.module.scss). Deliberately hue-free
+  // grey (NOT the warm --sys-field-well-shade); brightens on dark so wells still
+  // read inset.
+  --sys-color-field-well-shade-neutral: #9e9e9e;
+
 
 
   // color · on-floating — контент НА тёмном floating-баре (white-alpha рунги; снап
   // сырых rgba(255,255,255,α) сюда). strong=осн. текст, muted=вторич., faint=
   // ghost/disabled, divider=хайрлайн.
   --sys-color-on-floating-strong: rgba(255, 255, 255, 0.92);
-  --sys-color-on-floating-muted: rgba(255, 255, 255, 0.6);
   --sys-color-on-floating-faint: rgba(255, 255, 255, 0.28);
   --sys-color-on-floating-divider: rgba(255, 255, 255, 0.12);
 
   // color · scrim — бэкдропы modal/drawer/popover. Тёплый-уголь n1000 (НЕ холодный
   // чёрный — warm-soft канон). Снап сырых rgba(0,0,0,α)-бэкдропов к ближайшему рунгу.
-  --sys-color-scrim-soft: rgba(13, 11, 7, 0.7);
   --sys-color-scrim: rgba(13, 11, 7, 0.7);
   --sys-color-scrim-strong: rgba(13, 11, 7, 0.93);
 
@@ -477,6 +467,10 @@
 
   // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
+  // Strong opaque-ish outline (warm-coal, NOT cold black) — the one heavy border
+  // that reads as a deliberate frame (ModalFooter back-button). Replaced a raw
+  // rgba(0,0,0,0.8). Flips to light-alpha in dark.
+  --sys-color-border-strong: rgba(34, 31, 25, 0.8);
 
   // color · divider — ЕДИНЫЙ источник правды для всех тающих бровок-разделителей
   // (канон Divider, design-DNA). Микро-акцент: ХОЛОДНЫЙ графит-синий (семья cool-
@@ -487,8 +481,7 @@
   --sys-color-divider-card: rgb(255, 255, 255);
 
   // color · intents (action / status)
-  // (foreground текста/иконки НА залитой кнопке — семейство --sys-color-on-action-*
-  //  ниже; бывший --sys-color-text-on-action слит в --sys-color-on-action-primary 2026-06-26.)
+  // (foreground текста/иконки НА залитой кнопке — семейство --sys-color-on-action-* ниже.)
   --sys-color-status-danger: var(--ref-color-terracotta-600);
   --sys-color-status-warning: var(--ref-color-amber-earth-600);
   --sys-color-status-stale: var(--ref-color-sepia-500);
@@ -498,22 +491,30 @@
   --sys-color-status-danger-surface: color-mix(in oklch, var(--ref-color-terracotta-600) 9%, var(--surface-base));
   --sys-color-status-warning-surface: color-mix(in oklch, var(--ref-color-amber-earth-600) 11%, var(--surface-base));
   --sys-color-status-warning-border: color-mix(in oklch, var(--ref-color-amber-earth-600) 35%, transparent); // soft amber hairline (replaced a raw warning-border rgba)
-  --sys-color-status-success-surface: color-mix(in oklch, var(--ref-color-moss-600) 11%, var(--surface-base));
+  --sys-color-status-danger-border: color-mix(in oklch, var(--ref-color-terracotta-600) 40%, transparent); // soft terracotta hairline (HoldButton confirm; parallels warning-border)
 
   // color · interactive states (cross-element; "selected" = single source)
-  // «выбрано» = butter (тёплое сливочное золото, 2026-07-03 — утверждённая проба чипов
-  // 'butter-press' поднята в глобальную базу; была amber light-tonal 14%). text-on-selected =
-  // deep amber: works AS text on the pale fill AND as a standalone selected-hue glyph/tick.
-  --sys-color-bg-selected: var(--ref-color-butter);
-  --sys-color-text-on-selected: var(--ref-color-amber-700);
-  --sys-color-border-selected: var(--ref-color-amber-700);
-  // Тёплая butter-заливка «выбрано» как ОТДЕЛЬНЫЙ sys-ярус (параллель --bg-press-warm):
-  // равен глобальной базе --bg-selected, но существует, чтобы design-variant проба
-  // 'butter-press' (features/food/details-chips) ссылалась на sys-токен, а не читала
-  // --ref-color-butter напрямую (запрещено tier-гейтом). Проба сравнивает amber/butter/plum
-  // заливки чипов; butter уже выиграл и поднят в базу — этот токен держит форк явным на
-  // уровне компонента, не плодя raw-hex.
+  // «выбрано» = cool (indigo-холодный) — глобальная база для НЕ-чиповых consumers
+  // (HypothesisListItem selected-поле, FoodName selected-hue). text-on-selected =
+  // deep indigo: works AS text on the pale fill AND as a standalone selected-hue glyph.
+  --sys-color-bg-selected: var(--ref-color-cool-100);
+  --sys-color-text-on-selected: var(--ref-color-indigo-900);
+  --sys-color-border-selected: var(--ref-color-amber-900);
+  // Два ТЁПЛЫХ полюса «выбрано» как отдельные sys-ярусы — чтобы селекторы Chip/Choice
+  // ссылались на sys, а не читали --ref-* напрямую (запрещено tier-гейтом), не плодя
+  // raw-hex. Оба переопределяют --sys-color-bg-selected в scope:
+  //   • plum — ДЕФОЛТ выбранного чипа/choice app-wide (DesignBar-проба 'plum-press'
+  //     выиграла 2026-07-05; scope на .chip/.choice в атомах).
+  //   • warm (butter) — фильтр разборов /analyses (жёлтая идентичность экрана,
+  //     параллель --sys-color-surface-analysis).
+  --sys-color-bg-selected-plum: var(--ref-color-plum);
   --sys-color-bg-selected-warm: var(--ref-color-butter);
+  // Текст-на-заливке для plum-полюса = ink (warm-coal). Парный к -bg-selected-plum:
+  // plum-consumers (Chip/Choice/FoodActionCard) читают САМООПИСАННУЮ пару полюса
+  // напрямую, а НЕ переопределяют семантический --sys-color-*-selected в своём scope.
+  // (Раньше переопределяли — и descendant-читатели ловили plum по наследованию, spooky-
+  // action, напр. DetailsChips.) Референс на --sys-color-text-system → авто-флип в dark.
+  --sys-color-text-on-selected-plum: var(--sys-color-text-system);
   // Галочка-глиф selection-маркера — ХОЛОДНАЯ искра (indigo accent-полюс), контрапункт
   // к тёплому полю «выбрано». Отдельный токен от text-on-selected: поле/кромка/текст-
   // на-заливке остаются amber, холодает ТОЛЬКО глиф. Един для всех тиков app-wide
@@ -529,7 +530,6 @@
   // Тёплый амбер-press-флэш на строках расписания/еды (:active food/schedule rows).
   // НЕ нейтральный bg-press (warm-coal) и НЕ status — отдельный honey press-feedback.
   --sys-color-bg-press-warm: rgba(216, 140, 40, 0.16);
-  --sys-color-bg-press-warm-faint: rgba(216, 140, 40, 0.08);
   // Chip-тинт событий: color-mix на --text-primary живёт в exempt, резолвится в
   // контексте dv-palette [data-dv=ScheduleEvents] → ПОЛИМОРФИЗМ сохранён (lemon/graphite/twilight).
   --sys-color-chip-tint: color-mix(in oklch, var(--text-primary) 10%, transparent);
@@ -540,19 +540,16 @@
   --sys-color-row-bg: color-mix(in oklch, var(--_bg-from) calc((1 - var(--t, 0)) * 100%), var(--_bg-to));
   --sys-color-row-bg-focus: color-mix(in oklch, var(--sys-color-border-focus) 18%, var(--_bg-from));
 
-  // color · surface-action — заливки кнопок, 3 яруса × ось состояния. CTI: ярус
-  // по СМЫСЛУ действия, не по виду/CSS-классу. primary = тёплая амбра (бренд),
-  // accent = indigo (холодный акцент), system = уголь (нейтральная сплошная).
-  // pressed = следующая ступень ref-лестницы вниз (все 3 яруса — сплошной ref-рунг).
-  // disabled — единая нейтральная «погасшая» заливка: выключенная кнопка теряет
-  // цветовую идентичность (один источник на все 3 яруса; per-tier имена — для API).
+  // color · surface-action — заливки кнопок, 2 яруса × ось состояния. CTI: ярус
+  // по СМЫСЛУ действия, не по виду/CSS-классу. accent = indigo (холодный акцент),
+  // system = уголь (нейтральная сплошная). (Тёплый амбер-ярус «primary» снят
+  // 2026-07-05 — 0 консументов после button-tone-рефакторинга; тона = system+accent.)
+  // pressed = следующая ступень ref-лестницы вниз (сплошной ref-рунг).
+  // disabled — единая нейтральная «погасшая» заливка (один плоский токен на оба
+  // яруса; per-tier disabled-алиасы сняты 2026-07-05 — консументы читают базу).
   --sys-color-surface-action-disabled: rgba(0, 0, 0, 0.08);
-  --sys-color-surface-action-primary: var(--ref-color-amber-500); // #9f6c22 — медовый brand-fill (ref-рунг, не cta)
-  --sys-color-surface-action-primary-pressed: var(--ref-color-amber-600); // #8a5700 — ступень ref-лестницы вниз
-  --sys-color-surface-action-primary-disabled: var(--sys-color-surface-action-disabled);
   --sys-color-surface-action-accent: var(--ref-color-indigo-600);
   --sys-color-surface-action-accent-pressed: var(--ref-color-indigo-700);
-  --sys-color-surface-action-accent-disabled: var(--sys-color-surface-action-disabled);
   // Soft (светлая) indigo-подложка + accent-text рампа — consolidation бывшей sky-палитры
   // ($sky-bg/$sky-ink) на indigo-ярус (решение юзера «indigo вместо navy» 2026-06-25).
   // NB: это БАЗА для НЕ-кнопочных accent-поверхностей (AddPortionButton/FoodWriteBar bg).
@@ -564,41 +561,34 @@
   // чтобы перекраска кнопочного accent-soft не тащила фон разборов (и наоборот).
   // Тёмный ink (--sys-color-text-primary) читается на бледном indigo; -sunk = press-ступень.
   // Осветлён на ступень 2026-07-04 (было indigo-100/200) — карточки разборов бледнее (решение юзера).
-  --sys-color-surface-analysis: var(--ref-color-butter); // #efedff бледный indigo
+  --sys-color-surface-analysis: #ffe7cb; // #efedff бледный indigo
   --sys-color-surface-analysis-sunk: var(--ref-color-indigo-100); // #e6e4ff press-вдав
   --sys-color-text-accent-muted: color-mix(in oklch, var(--sys-color-text-accent) 55%, transparent);
   --sys-color-text-accent-faint: color-mix(in oklch, var(--sys-color-text-accent) 35%, transparent);
   --sys-color-surface-action-system: var(--ref-color-neutral-900);
   --sys-color-surface-action-system-pressed: var(--ref-color-neutral-1000);
-  --sys-color-surface-action-system-disabled: var(--sys-color-surface-action-disabled);
 
   // color · ON-action — контент (текст/иконка) ПОВЕРХ залитой кнопки. Имя зеркалит
   // заливку: surface-action-<tone> ↔ on-action-<tone> (видно пару с одного взгляда).
   // (Отдельно от текстовых ролей `text-*`, которые красят свободный текст на
   // странице — их перекраска не должна тащить за собой кнопки, и наоборот.)
   --sys-color-on-action-system: var(--text-on-accent); // #fff на угле
-  --sys-color-on-action-primary: var(--cta-brand-ink); // warm-coal на амбре (бывш. text-on-action)
   --sys-color-on-action-accent: var(--text-on-accent); // #fff на индиго
 
-  // color · surface-action SECONDARY (тихий ярус кнопки) — те же 3 тона, но soft:
-  // светлая тональная подложка + тональный текст + опц. тональный бордюр. Press =
-  // тональная подложка на ступень темнее (видимый «вдав», текст не меняется). Ось
-  // «заливка vs бордюр» — DesignBar `ButtonSecondary` (`<html data-btn-secondary>`),
-  // дефолт = заливка. Тональный текст здесь = `text-*` роль (НЕ on-*: это не белый
-  // контент на сплошной заливке, а тёмно-тональный foreground на светлом soft).
+  // color · surface-action SECONDARY (тихий ярус кнопки) — 2 тона (system/accent), soft:
+  // светлая тональная подложка + тональный текст. Press = тональная подложка на ступень
+  // темнее (видимый «вдав», текст не меняется). Облик = soft-заливка БЕЗ рамки (канон,
+  // выбран из DesignBar-проб soft/border/soft-border 2026-07-05 — ось `data-btn-secondary`
+  // снята). Тональный текст здесь = `text-*` роль (НЕ on-*: это не белый контент на
+  // сплошной заливке, а тёмно-тональный foreground на светлом soft). (Амбер-«primary»-soft
+  // трио и все `border-*-soft` сняты 2026-07-05 — 0 консументов после button-tone-рефактора.)
   --sys-color-surface-action-secondary: var(--ref-color-cool-50); // #f7f3eb — теплеет с ре-якорем n100 (2026-06-26, намеренно: общая бумага нижних поверхностей)
   --sys-color-surface-action-system-soft: var(--ref-color-neutral-100); // #f7f3eb — теплеет с ре-якорем n100 (2026-06-26, намеренно: общая бумага нижних поверхностей)
-  --sys-color-surface-action-primary-soft: var(--ref-color-amber-50); // #ffedd9
   --sys-color-surface-action-accent-soft: var(--sys-color-surface-accent-soft); // indigo-100
   --sys-color-surface-action-system-soft-pressed: var(--ref-color-neutral-300); // #e2dfda
-  --sys-color-surface-action-primary-soft-pressed: var(--ref-color-amber-200); // #f2cfa8
   --sys-color-surface-action-accent-soft-pressed: var(--ref-color-indigo-300); // #bcb6ef
   --sys-color-text-action-system-soft: var(--sys-color-text-system); // warm-coal ink
-  --sys-color-text-action-primary-soft: var(--ref-color-amber-700); // deep amber #6d4500
   --sys-color-text-action-accent-soft: var(--sys-color-text-accent); // indigo-600
-  --sys-color-border-action-system-soft: var(--ref-color-neutral-500); // #e2dfda
-  --sys-color-border-action-primary-soft: var(--ref-color-amber-300); // #e0b581
-  --sys-color-border-action-accent-soft: var(--ref-color-indigo-300); // #bcb6ef
 
 
   --sys-color-surface-track: var(--ref-color-neutral-200); // #ebe9e5 · светлый фон-трек прогресса (FoodActionCard.richValue, NutrientCard.progressBar)
@@ -640,10 +630,6 @@
   // примитивном ярусе (gate-exempt); компоненты потребляют готовую роль, не calc.
   // Меняешь sheet/inset — внутренний радиус едет следом сам.
   --sys-radius-sheet-inner: calc(var(--sys-radius-sheet) - var(--sys-inset-page));
-  // Вложенный радиус для пилюли внутри drawer-плашки: тот же канон концентричности
-  // r_внутр = r_внеш − inset (24 − 12 = 12). Пилюля рифмуется с углом плашки, а не
-  // торчит стадионом. (Сейчас без потребителей — держим в паре с --sys-radius-drawer.)
-  --sys-radius-drawer-inner: calc(var(--sys-radius-drawer) - var(--sys-inset-page)); // → 12
   // Карточка-на-листке (SheetCard) лежит ПРЯМО на странице-листе (`.headerOverlap`,
   // радиус --sys-radius-sheet) через общий page-gutter (--sys-inset-page). Тот же
   // канон концентричности r_внутр = r_внеш − inset (40 − 12 = 28): углы карточки
@@ -655,8 +641,6 @@
   // ─── Nutrient family — #nutrient ─────────────────────────────
   --nutrient-accent: var(--ref-color-indigo-600); // cold indigo accent (trio main/minerals/vitamins collapsed 2026-06-27)
   --nutrient-progress-height: 3px;
-  --nutrient-card-radius: var(--radius-sm);
-  --nutrient-card-surface: rgba(255, 255, 255, 0.55); // faint card backing on ::before (z-index -2)
   --nutrient-card-padding: var(--space-2) var(--space-3);
 
   // ─── Event / Atom family (sage trio) — #event ────────────────
@@ -710,8 +694,9 @@
   @include field-chip-palette(#36363a, #2c2c30, #877f9c,
     (#fdfcfe, #f6f5f8, #eeedf1), (#1f1f1f, #2a2a2a, #353535), #ffffff);
   // Row-cards canon paper-mono (flat hue-free; lavender gradient removed 2026-06-22).
-  // app-wide --sys-card-bg = WHITE so standalone rows don't dissolve; gradient
-  // surfaces locally re-include paper-mono-cards (transparent) over a white group.
+  // app-wide --sys-card-bg = WHITE so standalone rows don't dissolve. The one place
+  // with transparent rows (SearchFood, inset-group over a white group) sets
+  // `--sys-card-bg: transparent` locally — it does NOT re-publish the palette.
   @include paper-mono-cards;
   --sys-card-bg: #ffffff;
 }

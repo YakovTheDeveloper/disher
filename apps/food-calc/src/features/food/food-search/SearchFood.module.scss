@@ -6,8 +6,8 @@
 // ambient-столе surface-0 (кандидаты голыми рядами, не owned-лист); нижний док
 // действий (FoodSearchEmpty) — приподнятая инструмент-полка surface-1 (стилит
 // себя сам). Лист-костюм заслуживается выбором ряда (`.wrapper:has(.item_active)`).
-// Палитру карточек/группы/состояний несёт общий `paper-mono-cards` (mixin.scss),
-// единый с навигатором дат. Сегмент `Еда|Мое` + нутриент-icon-btn читают app-wide
+// Палитра карточек/группы/состояний наследуется с :root (--sys-card-*); локально
+// лишь ряды флипаем в transparent (см. .content). Сегмент `Еда|Мое` + нутриент-icon-btn читают app-wide
 // `--sys-color-control-*` / `--sys-color-surface-action-system` напрямую (бывшие
 // экранные `--seg-*` / `--icon-btn-*` бандлы распущены).
 // ══════════════════════════════════════════════════════════════════════════
@@ -17,12 +17,24 @@
     flex-grow: 1;
     position: relative;
     min-height: 0;
-    width: 100%;
+
+    // Full-bleed из рамы ModalShell. SearchFood сидит в общей раме (surface + backdrop
+    // + хедер как соседи), но ВЕСЬ поток — список, нижний fade `ScrollIndicator`, док,
+    // FAB'ы — обязан течь во всю ширину экрана. Гасим боковой инсет обёртки целиком
+    // (ModalShell.wrapper · padding-inline --sys-inset-modal-fullscreen): ширина +2
+    // инсета, margin −инсет. Тот же токен, что у обёртки → не рассинхронится. Инсет 12
+    // возвращают себе ТОЛЬКО два «инструмента»: поле (.header · padding-left) и полоса
+    // ModalHeader (.headerRail ниже). Оба консумента SearchFood (FoodEntryCreateModals,
+    // FreeTextFoodReviewEditModals) обёрнуты в ModalShell → безусловный bleed всегда
+    // гасит ровно один инсет обёртки.
+    width: calc(100% + 2 * var(--sys-inset-modal-fullscreen));
+    margin-inline: calc(-1 * var(--sys-inset-modal-fullscreen));
     height: 100%;
 
-    // Card palette (surface + group + states + rich/info + --cards-page-bg) —
-    // единый источник правды в mixin.scss. Поле/чипы наследуют :root mono.
-    @include paper-mono-cards;
+    // Ряды прозрачные — сквозь них видно белую inset-группу. Это ЕДИНСТВЕННОЕ место
+    // с transparent-рядами (личный прикол поиска). Остальную палитру --sys-card-* и
+    // --cards-page-bg наследуем с :root — публиковать её локально не нужно.
+    --sys-card-bg: transparent;
 
     // Тёплый-soft фон (n100) = единый ambient-стол surface-0: шапка-инструмент,
     // поток результатов и нижний док лежат на одном уровне 0. Результаты НЕ парят
@@ -34,20 +46,44 @@
     // лунка узнаётся бровкой + inset-тенью, не растворяется в ровной тёплой бумаге.
     @include field-depth(--sys-color-surface-0);
 
-    // Кнопка «назад» в поиске — scope-override роли floating-обвязки: вместо тёмной
-    // пилюли подложка = серый фон страницы (сливается вверху на скриме, проступает
-    // серым кружком над белыми карточками при скролле), ink-шеврон. Border тянется
-    // за surface (1px того же серого) → визуально без рамки. Санкционированный
+    // ─── Общая рельса списка (--rail-*) ──────────────────────────────────────
+    // ЕДИНЫЙ источник геометрии, по которой на ОДНУ вертикаль встают ТРИ текста: имя
+    // в карточке (FoodActionCard `.item`), плейсхолдер поля (SearchFoodControls
+    // text-rail/pill-flush) и заголовок ModalHeader (titleAlign="rail"). Значения
+    // зеркалят раскладку ряда `.item`: gutter = его padding-left, thumb = миниатюра,
+    // gap = зазор миниатюра→имя. Текст-рельса --rail-text = левый край имени =
+    // gutter + thumb + gap. Всё считается ОТСЮДА через var(), а не магическими числами
+    // по месту → увеличение лупы (×1.5) и любой сдвиг ряда не рассинхронят выравнивание.
+    // FoodActionCard (.item/.thumb) ЧИТАЕТ эти же переменные (fallback = прежние литералы).
+    --rail-gutter: var(--space-2); // 8  — padding-left ряда (.item)
+    --rail-thumb: 36px; // 36 — диаметр круглой миниатюры (.thumb)
+    --rail-gap: 14px; // 14 — зазор миниатюра→имя (.item gap)
+    --rail-text: calc(var(--rail-gutter) + var(--rail-thumb) + var(--rail-gap)); // 58 — рельса имён
+    --rail-icon: 18px; // базовый кегль лупы поиска (.searchIcon svg)
+    --rail-icon-lg: calc(var(--rail-icon) * 1.5); // 27 — лупа ×1.5 (rail / pill-flush)
+
+    // FAB «наверх» (кнопка «назад» уехала в ModalHeader 2026-07-09) — scope-override
+    // роли floating-обвязки: вместо тёмной пилюли подложка = серый фон страницы
+    // (проступает серым кружком над белыми карточками при скролле). Санкционированный
     // single-token scope-override (не per-surface бандл).
     --sys-color-surface-floating: var(--cards-page-bg);
-    // On-color floating-роли: ХОЛОДНЫЙ (indigo) шеврон BackButton на светлой серой
-    // подложке. Осознанный контраст с тёплой бумагой списка (запрос юзера 2026-06-26):
-    // back-шеврон / иконка нутриентов / divider — холодные «инструменты». Был тёмный
-    // ink (--color-ink-strong).
+    // On-color floating-роль: ХОЛОДНЫЙ (indigo) глиф FAB на светлой серой подложке.
+    // Осознанный контраст с тёплой бумагой списка (запрос юзера 2026-06-26): холодные
+    // «инструменты». Был тёмный ink (--color-ink-strong).
     --sys-color-text-on-floating: var(--sys-color-text-accent);
 
     // (Нижний док FoodSearchEmpty больше НЕ темится отсюда — bespoke per-surface
     //  бандл распущен; док стилит себя сам на sys-токенах. Не заводить тут заново.)
+}
+
+// Полоса ModalHeader в full-bleed `.content`: возвращаем ей боковой инсет обратно
+// (контент растянут во всю ширину → без этого back-кнопка/трейлинг легли бы на край).
+// padding-inline НЕ двигает absolute rail-заголовок (`left: --rail-text` считается от
+// padding-box), только in-flow back-кнопку и трейлинг → встают на 12, как у соседних
+// модалок; заголовок/имена/поле — на рельсе 58. Скоуп `.content` (0,2,0) перебивает
+// `padding: … 0 …` из ModalHeader.module.scss (0,1,0) вне зависимости от порядка бандла.
+.content .headerRail {
+    padding-inline: var(--sys-inset-page);
 }
 
 // Скролл-рут: шапка `.header` (в потоке) + список уезжают вместе. Живёт в outer,
@@ -69,6 +105,12 @@
     // 60px = .actions min-height в FoodSearchEmpty; +8px воздуха — контент не прячется
     // под нижний док.
     padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
+}
+
+// В create-флоу внизу-справа парит круглая монета «Новая еда» (.createFab, ~64px
+// + тень). Резервируем воздух снизу, чтобы последний ряд не ушёл под монету.
+.scrollerWithDock {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
 
 // Wrapper around SearchFoodHeavy: fades in one frame after isActive flips. Pure
@@ -112,10 +154,8 @@
     flex-shrink: 0;
     border: none;
     background: var(--sys-color-surface-0);
-    // Воздух над баром — поле не липнет к верхнему краю экрана (запрос юзера).
-    // На .header (в потоке) → уезжает со скроллом. На notched-устройстве при нужде
-    // добавить env(safe-area-inset-top) сюда же.
-    padding-top: var(--space-3);
+    padding-left: var(--sys-inset-page);
+    // padding-bottom: var(--sys-inset-page);
 }
 
 .bottomLeft {
@@ -174,6 +214,28 @@
         animation: none;
     }
 }
+
+// ─── Плавающая монета создания («Новая еда») ─────────────────────────────────
+// Круглая монета WriteBarMedal внизу-справа `.content` (position:relative): дуга
+// «Новая еда» + плюс-глиф. `--medal-size` наследуется в медаль (WriteBarMedal его
+// только ЧИТАЕТ через var(), не переопределяет) → задаёт диаметр 64px. Кегль дуги
+// не трогаем: медаль жёстко объявляет `--wb-arc-size:17px` на себе (перебил бы
+// любой inherited), а «Новая еда» короче боевого «Список еды» → влезает. z-index
+// ниже FAB «наверх» (20). useKeyboardStick (mode:'transform') на клавиатуре поднимает
+// узел translateY, сохраняя absolute-якорь right:12px, чтобы монета липла над клавой
+// и НЕ уезжала влево (mode:'fixed' растягивал бы left:0/right:0 → сдвиг к левому краю).
+.createFab {
+    position: absolute;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    z-index: 15;
+    display: flex;
+    --medal-size: 64px;
+}
+
+// Монета «Новая еда» несёт paper-облик (look="paper" → лист-над-листом + тонкий
+// бордер, плоская) — тот же, что Food-бар на HomePage. Отдельная float-тень не
+// нужна: облик задаёт box-shadow-кольцо сам (WriteBarMedal `[data-look='paper']`).
 
 // ─── Inline results (кандидаты на ambient) ───────────────────────────────────
 // Результаты поиска = ПОТОК кандидатов под инструментом (полем), НЕ owned-лист.
