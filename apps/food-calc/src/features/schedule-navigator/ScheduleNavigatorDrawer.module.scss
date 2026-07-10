@@ -1,10 +1,10 @@
 @import '@/shared/assets/style/mixin.scss';
 
 .shell {
-  // Paper-mono palette in scope ТОЛЬКО ради --sys-card-* токенов (состояния чипов
-  // на табе «Активные дни»). Сам дровер — стандартный белый: фон отдаёт
-  // DrawerLayout `.content` (white), серую inset-grouped подложку сняли (2026-06-20).
-  @include paper-mono-cards;
+  // Читает общие --sys-card-* токены (состояния чипов на табе «Активные дни») —
+  // они app-wide с :root, публиковать палитру локально не нужно. Сам дровер —
+  // стандартный белый: фон отдаёт DrawerLayout `.content` (white), серую
+  // inset-grouped подложку сняли (2026-06-20).
   position: relative;
   display: flex;
   flex-direction: column;
