@@ -4,6 +4,7 @@ import {
     Nutrient,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useUserNormItems } from '@/entities/daily-norm';
+import { formatPercent } from '@/shared/lib/formatNumber';
 
 export interface UseNutrientCardProps {
     content: Nutrient;
@@ -27,16 +28,6 @@ export interface UseNutrientCardReturn {
     hasNorm: boolean;
 }
 
-const getRoundedPercent = (percentage: number) => {
-    if (percentage < 1 && percentage > 0) {
-        return percentage.toFixed(2);
-    } else if (percentage < 10) {
-        return percentage.toFixed(1);
-    } else {
-        return Math.round(percentage).toString();
-    }
-};
-
 const getStatusClass = (p: number) => {
     if (p < 30) return 'low';
     if (p < 60) return 'medium';
@@ -57,7 +48,7 @@ export const useNutrientCard = ({
 
     const percent = norm > 0 ? (value / norm) * 100 : 0;
     const progressPercent = Math.min(100, percent);
-    const percentText = getRoundedPercent(percent);
+    const percentText = formatPercent(percent);
     const statusClass = getStatusClass(percent);
 
     return {

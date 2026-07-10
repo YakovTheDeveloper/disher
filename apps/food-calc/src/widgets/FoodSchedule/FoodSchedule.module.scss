@@ -18,12 +18,12 @@
 // карточки (12px) — вторичный уровень «текст внутри карточки».
 
 
-// Anchor wrapper around the food list. Палитра карточек теперь через ОБЩИЙ
-// контрол DesignBar (ключ CardPalette, useDesignVariant в FoodSchedule.tsx): один
-// выбор красит еду, блюдо и события. Дефолт — lemon (единый жёлтый голос). Жёлтый
-// по-прежнему МЕНЯЕТСЯ по времени суток (4 TOD-шага, узкая дельта). Форк по
-// `data-dv-v` + night-text re-pin несёт общий миксин `card-palette-set`. Троённый
-// класс держит специфичность (0,4,0) против :root --tod- и юзер-темы.
+// Anchor wrapper around the food list. Палитра карточек — пер-поверхностный выбор
+// из настроек (useCardPalette('scheduleFood') в FoodSchedule.tsx спредит data-dv-v).
+// Дефолт — amber. Цвет по-прежнему МЕНЯЕТСЯ по времени суток (4 TOD-шага, узкая
+// дельта). Форк по `data-dv-v` + night-text re-pin несёт общий миксин
+// `card-palette-set`. Троённый класс держит специфичность (0,4,0) против :root
+// --tod- и юзер-темы.
 // Заголовок-дата (крупное имя дня недели) переехал во владение HomePage
 // (2026-07-04) — общий на оба экрана дека, прокидывается в `Screen.topContent`.
 // Стиль `.dateHeading` теперь в `pages/home-page/HomePage.module.scss`.

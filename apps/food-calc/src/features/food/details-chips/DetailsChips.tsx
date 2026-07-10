@@ -5,25 +5,14 @@ import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import styles from './DetailsChips.module.scss';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
-import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 
-// Пробы редизайна чипов «Особенности». 'deep-tonal-press' (amber-soft-pressed
-// заливка + inset-тень «вдавленного» тумблера) утверждён юзером как ОПОРА. Форки
-// ниже держат ТО ЖЕ press-обращение и крутят только ЗАЛИВКУ — бледно-жёлтые
-// семейства, гармонирующие с тёплой бумагой (#fefcf9), плюс мягкий сливовый.
-// Жёлтых/сливового нет ни в sys, ни в ref-лестнице (там только amber-оранж и
-// indigo-холод) → это ПРОБНЫЕ raw-hex, строго временные: победитель минтуется в
-// --ref-* + --sys-* и форк переедет на токен. Крутятся в DesignBar (anchor
-// 'DetailsChips'), SCSS-заливки + общая press-тень — ниже. 'current' = дефолт.
-const DETAILS_CHIP_VARIANTS = [
-  'current', // baseline — глобальные дефолты, точка отсчёта
-  'deep-tonal-press', // утверждённая опора: amber-soft-pressed + inset «вдавленность»
-  'butter-press', // проба: тёплое сливочное золото
-  'plum-press', // проба: мягкий сливовый (пыльная лилово-розовая) + ink-текст
-] as const;
+// Заливка «выбрано» чипов «Особенности» = сливовый (plum) + ink-текст + inset-тень
+// «вдавленного тумблера». DesignBar-проба 'plum-press' выиграла 2026-07-05 и стала
+// базой; цвет минтован в --ref-color-plum → --sys-color-bg-selected-plum. Стили —
+// в DetailsChips.module.scss (.root).
 
 type Props = {
   value: string;
@@ -67,7 +56,6 @@ export function DetailsChips({
 }: Props) {
   const product = useProduct(productId ?? undefined);
   const customTagRows = useCustomTagsByProduct(productId);
-  const { anchor } = useDesignVariant('DetailsChips', DETAILS_CHIP_VARIANTS);
 
   const { suggestionChips, customChips } = useMemo(() => {
     const categories = readCategories(product);
@@ -102,7 +90,7 @@ export function DetailsChips({
   };
 
   return (
-    <div className={styles.root} {...anchor}>
+    <div className={styles.root}>
       <div className={styles.inputArea}>
         <AutoGrowSearch
           id={textareaId}
@@ -135,9 +123,9 @@ export function DetailsChips({
 
       {customChips.length > 0 && (
         <div className={styles.customGroup}>
-          <QuietLabel as="div" className={styles.customLabel}>
+          <Text as="div" role="caption" className={styles.customLabel}>
             Ваши теги
-          </QuietLabel>
+          </Text>
           <div className={styles.chips} role="group" aria-label="Ваши теги">
             {customChips.map(({ tag }) => (
               <CustomChip

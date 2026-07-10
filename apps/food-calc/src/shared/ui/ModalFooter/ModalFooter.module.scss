@@ -11,7 +11,7 @@
   padding: 0.75rem;
   border-radius: var(--sys-radius-cta); /* was 0.5rem */
   background: transparent;
-  border: 1.5px solid rgba(0, 0, 0, 0.8);
+  border: 1.5px solid var(--sys-color-border-strong);
   color: var(--sys-color-text-system);
   cursor: pointer;
   transition:

@@ -1,33 +1,7 @@
-// Заголовок «Нутриенты» — обычный (НЕ прилипающий) ряд в начале scroll-области:
-// уезжает вместе с контентом. Прилипание + scroll-seam-тень сняты 2026-07-03 —
-// единственное обоснование sticky («держать back-кнопку доступной, пока
-// скроллится форма нормы») устарело: норма больше здесь не редактируется (уехала
-// в DailyNormDrawer), в шапке остался только тайтл — прилипать нечему.
-.header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 48px;
-    padding: 0 var(--sys-inset-panel) 8px;
-    flex-shrink: 0;
-}
-
-.title {
-    flex: 1 1 auto;
-    min-width: 0;
-
-    // Food names arrive lowercase ("абрикос") — sentence-case the first letter.
-    &::first-letter {
-        text-transform: uppercase;
-    }
-}
-
-.headerAction {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-}
-
+// Заголовок «Нутриенты» переехал в chrome-ряд DrawerLayout (проп `title`,
+// боковой left-align путь) — тут остаётся только тело. Крест закрытия несёт
+// сам DrawerLayout; a11y-имя дровера = видимый title.
+//
 // Mirrors the legacy SideDrawer `.body` padding so the nutrient grid and norm
 // form keep their inset against the drawer edge. `overflow-x: hidden` clips
 // the decorative nutrient-group bleed (NutrientDesignVariants `.deco`) at the

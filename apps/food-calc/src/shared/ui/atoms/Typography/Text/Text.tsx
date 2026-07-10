@@ -12,6 +12,13 @@ import styles from './Text.module.scss';
  *  caption (вес 450, шире трекинг) + холодно-нейтральный цвет (несёт цвет сам). */
 type TextRole = 'body' | 'label' | 'caption' | 'card-caption';
 
+/** Ось ВЕСА (опц.) — перекрывает вес роли для «выбранного» акцента (концы диапазона
+ *  календаря, активный день навигатора, выбранный чип). Зеркалит шкалу <Numeral>.
+ *  Возвращена в Text 2026-07-10 (решение владельца): раньше ось variant/weight была
+ *  выпилена. Ортогональна `role` (как у <Numeral>): роль даёт размер/семантику, weight —
+ *  начертание поверх неё. */
+type TextWeight = 'thin' | 'regular' | 'medium' | 'semibold' | 'bold';
+
 type CommonProps = {
   children: ReactNode;
   /**
@@ -26,7 +33,9 @@ type CommonProps = {
   className?: string;
 } & HTMLAttributes<HTMLElement>;
 
-type Props = CommonProps & { role: TextRole };
+// Роль ОБЯЗАТЕЛЬНА (как раньше — Text role-only). `weight` — опц. ортогональный
+// модификатор начертания поверх роли (не заменяет её).
+type Props = CommonProps & { role: TextRole; weight?: TextWeight };
 
 /**
  * Text — body-tier typography primitive, sibling of `Heading`. `Heading`
@@ -40,9 +49,15 @@ type Props = CommonProps & { role: TextRole };
  */
 const Text = ({ children, as, className, ...rest }: Props) => {
   const Tag = as ?? 'p';
-  const { role, ...domProps } = rest as { role: TextRole } & HTMLAttributes<HTMLElement>;
+  const { role, weight, ...domProps } = rest as {
+    role: TextRole;
+    weight?: TextWeight;
+  } & HTMLAttributes<HTMLElement>;
   return (
-    <Tag className={clsx(styles.text, styles[role], className)} {...domProps}>
+    <Tag
+      className={clsx(styles.text, styles[role], weight && styles[weight], className)}
+      {...domProps}
+    >
       {children}
     </Tag>
   );

@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
+  CRITIC_SYSTEM_PROMPT,
   SYSTEM_PROMPT_BASE,
+  applyCriticVerdicts,
   asNutrientLines,
   nutrientLineToken,
+  parseCriticVerdicts,
   safeStringifyArray,
+  serializeDraftForCritic,
   stripNullBytes,
   tryParseOutput,
+  type AnalysisOutput,
 } from "./analysis-output.js";
 
 // Contract test: every realistic shape the LLM has emitted, plus injection /
@@ -487,6 +492,158 @@ describe("safeStringifyArray", () => {
     const r = safeStringifyArray(arr, 1000);
     // BigInt entry stringified as null — surrounding items survive.
     expect(JSON.parse(r.json)).toEqual([{ a: 1 }, null, { c: 3 }]);
+  });
+});
+
+describe("ANALYSIS_OUTPUT_PROMPT_SPEC — Russian-only output rule", () => {
+  // Tripwire for the "always Russian" requirement — English variants leaked
+  // before. The hard rule lives at the END of the spec (highest instruction
+  // weight); if someone removes it, this fails.
+  it("carries the strict Russian-language rule", () => {
+    expect(ANALYSIS_OUTPUT_PROMPT_SPEC).toContain("СТРОГО на русском");
+  });
+});
+
+describe("critic — serializeDraftForCritic", () => {
+  const DRAFT: AnalysisOutput = {
+    summary: "s",
+    observations: [
+      {
+        title: "Поздние ужины",
+        detail: "после 21:00",
+        strength: "moderate",
+        evidence: { days: ["09-06-2026"], events: ["усталость"] },
+      },
+    ],
+    insights: [
+      {
+        title: "Железо + витамин C",
+        detail: "усвоение",
+        valence: "positive",
+        strength: "clear",
+        evidence: { days: [], foods: ["говядина", "перец"] },
+      },
+    ],
+    hypotheses: [{ title: "h", body: "b" }],
+  };
+
+  it("tags observations o0… and insights i0… with strength + evidence", () => {
+    const text = serializeDraftForCritic(DRAFT);
+    expect(text).toContain("o0 [наблюдение, moderate] Поздние ужины");
+    expect(text).toContain("i0 [инсайт positive, clear] Железо + витамин C");
+    expect(text).toContain("еда: говядина, перец");
+  });
+});
+
+describe("critic — parseCriticVerdicts", () => {
+  it("parses a { verdicts: [...] } envelope", () => {
+    expect(
+      parseCriticVerdicts(
+        JSON.stringify({
+          verdicts: [
+            { id: "i0", action: "keep" },
+            { id: "o1", action: "downgrade", strength: "weak", reason: "1 день" },
+            { id: "i2", action: "drop" },
+          ],
+        }),
+      ),
+    ).toEqual([
+      { id: "i0", action: "keep" },
+      { id: "o1", action: "downgrade", strength: "weak", reason: "1 день" },
+      { id: "i2", action: "drop" },
+    ]);
+  });
+
+  it("accepts a bare array and strips a ```json fence", () => {
+    expect(
+      parseCriticVerdicts('```json\n[{"id":"o0","action":"drop"}]\n```'),
+    ).toEqual([{ id: "o0", action: "drop" }]);
+  });
+
+  it("drops malformed verdicts (bad action, missing id, non-object)", () => {
+    expect(
+      parseCriticVerdicts(
+        JSON.stringify({
+          verdicts: [
+            { id: "o0", action: "nuke" },
+            { action: "drop" },
+            null,
+            "x",
+            { id: "i0", action: "keep" },
+          ],
+        }),
+      ),
+    ).toEqual([{ id: "i0", action: "keep" }]);
+  });
+
+  it("returns [] on unusable input (fail-open)", () => {
+    expect(parseCriticVerdicts("not json")).toEqual([]);
+    expect(parseCriticVerdicts(JSON.stringify({ nope: 1 }))).toEqual([]);
+  });
+});
+
+describe("critic — applyCriticVerdicts", () => {
+  const base = (): AnalysisOutput => ({
+    summary: "s",
+    observations: [
+      { title: "o-a", detail: "d", strength: "clear", evidence: { days: ["x"] } },
+      { title: "o-b", detail: "d", strength: "weak", evidence: { days: ["y"] } },
+    ],
+    insights: [
+      {
+        title: "i-a",
+        detail: "d",
+        valence: "positive",
+        strength: "clear",
+        evidence: { days: [], foods: ["f"] },
+      },
+    ],
+    hypotheses: [{ title: "h", body: "b" }],
+  });
+
+  it("drops, downgrades to target, and keeps summary + hypotheses", () => {
+    const out = applyCriticVerdicts(base(), [
+      { id: "o0", action: "downgrade", strength: "weak" },
+      { id: "i0", action: "drop" },
+    ]);
+    expect(out.observations.map((o) => [o.title, o.strength])).toEqual([
+      ["o-a", "weak"],
+      ["o-b", "weak"],
+    ]);
+    expect(out.insights).toEqual([]);
+    expect(out.summary).toBe("s");
+    expect(out.hypotheses).toEqual([{ title: "h", body: "b" }]);
+  });
+
+  it("never raises strength (target ≥ current is ignored)", () => {
+    const out = applyCriticVerdicts(base(), [
+      { id: "o1", action: "downgrade", strength: "clear" }, // weak → clear rejected
+    ]);
+    expect(out.observations[1]?.strength).toBe("weak");
+  });
+
+  it("steps down one level when downgrade has no valid target", () => {
+    const out = applyCriticVerdicts(base(), [{ id: "o0", action: "downgrade" }]);
+    expect(out.observations[0]?.strength).toBe("moderate"); // clear → moderate
+  });
+
+  it("keep / missing verdict leaves the finding untouched", () => {
+    const out = applyCriticVerdicts(base(), [{ id: "o0", action: "keep" }]);
+    expect(out.observations).toHaveLength(2);
+    expect(out.insights).toHaveLength(1);
+  });
+
+  it("no verdicts ⇒ draft returned unchanged", () => {
+    const src = base();
+    expect(applyCriticVerdicts(src, [])).toEqual(src);
+  });
+});
+
+describe("CRITIC_SYSTEM_PROMPT", () => {
+  it("is a verdicts-only, no-new-findings skeptic contract", () => {
+    expect(CRITIC_SYSTEM_PROMPT).toContain("НЕ добавляешь новые находки");
+    expect(CRITIC_SYSTEM_PROMPT).toContain("verdicts");
+    expect(CRITIC_SYSTEM_PROMPT).toContain("downgrade");
   });
 });
 

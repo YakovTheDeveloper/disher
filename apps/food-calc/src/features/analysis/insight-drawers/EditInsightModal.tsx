@@ -155,17 +155,6 @@ const EditInsightModal = ({ insightId, isExpanded, onClose, overlayContainer }: 
                   maxRows={10}
                   collapseOnBlur={false}
                 />
-                {detail.length > 0 && (
-                  <span
-                    className={
-                      detail.length > 5000
-                        ? `${styles.counter} ${styles.counterOver}`
-                        : styles.counter
-                    }
-                  >
-                    {detail.length}
-                  </span>
-                )}
               </div>
             </div>
             {isExpanded && (

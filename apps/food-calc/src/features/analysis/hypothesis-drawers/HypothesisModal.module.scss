@@ -20,14 +20,3 @@
 .field > .labelInset {
     padding-left: var(--space-4);
 }
-
-.counter {
-    align-self: flex-end;
-    font-size: var(--sys-numeral-sm); /* was --text-xs — числовой счётчик */
-    color: var(--sys-color-text-tertiary);
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-.counterOver {
-    color: var(--sys-color-status-danger);
-}

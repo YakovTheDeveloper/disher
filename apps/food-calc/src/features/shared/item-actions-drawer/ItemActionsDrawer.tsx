@@ -1,18 +1,25 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
-import { ActionTile } from '@/shared/ui/atoms/ActionTile';
 import type { BaseDrawerProps } from '@/shared/ui';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import s from './ItemActionsDrawer.module.scss';
+
+// Сливовая (plum) расцветка ряда правок — 6 форков, играем осями заливка/рамка/
+// текст+иконка. Форк-SCSS в ItemActionsDrawer.module.scss бьёт по [data-dv-v],
+// перекрывая опубликованные Button'ом --sec-* локали. Дефолт (index 0) =
+// plum-soft: тональная сливовая заливка без рамки.
+const PLUM_EDIT_VARIANTS = [
+  'plum-soft', // тональная лиловая заливка, без рамки
+  'plum-outline', // прозрачный фон + сливовая рамка (воздушный)
+  'plum-soft-border', // заливка + рамка (и то, и другое)
+  'plum-deep', // плотнее хрома заливки, глубже ink
+  'plum-frame', // бледный фон + сильная 1.5px рамка (frame-forward)
+  'plum-bold', // сплошной глубокий plum + светлый текст (инверсия)
+] as const;
 
 export type ItemAction = {
   label: string;
   icon?: React.ReactNode;
-  /**
-   * Гравюра (public/art) для art-слота плитки в ряду правок (editActions). Ряд
-   * правок рендерится квадратными `ActionTile` (muted-серый вариант) — гравюра
-   * втекает в правый край плитки, глиф-иконки там больше не используются.
-   */
-  art?: React.ReactNode;
   onClick: () => void;
   /**
    * Тон кнопки в стеке (переиспользует словарь примитива, без отдельного
@@ -21,6 +28,19 @@ export type ItemAction = {
    * читается как акцент стека.
    */
   variant?: ButtonVariant;
+  /**
+   * Если задан, кнопка рендерится как `<label htmlFor={htmlFor}>` (делегация
+   * фокуса ModalByLabel) вместо обычной `<button>`: тап фокусирует целевой input
+   * → хостовый `onFocusCapture` флипает нужный шаг edit-флоу, и iOS Safari
+   * поднимает клавиатуру (императивный `.focus()` из клика по кнопке этого не
+   * даёт). В этом режиме `onClick` ТОЛЬКО праймит состояние (напр. `primeEdit(
+   * item)`) — он НЕ закрывает дровер и НЕ сетит шаг: иначе label размонтируется
+   * до делегирования фокуса, а шаг погонится с focus-событием (см. CLAUDE.md
+   * «Label focus delegation»). Дровер закрывается сам по уходу фокуса наружу.
+   * Опускай для действий, которые навигируют/открывают (они закрываются-и-
+   * выполняются через обычную кнопку).
+   */
+  htmlFor?: string;
 };
 
 interface Props extends BaseDrawerProps<void> {
@@ -42,6 +62,8 @@ interface Props extends BaseDrawerProps<void> {
 // an info-action that navigates must not leave the drawer mounted over the new
 // page (see spec Edge cases).
 export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActions }: Props) => {
+  const editVariant = useDesignVariant('ItemActionsEdit', PLUM_EDIT_VARIANTS);
+
   const handleDelete = () => {
     onClose();
     onDelete?.();
@@ -72,7 +94,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
         {actions.map((action, i) => (
           <Button
             key={`${action.label}-${i}`}
-            variant={action.variant ?? 'system-secondary'}
+            variant={'system-secondary'}
             flat
             fullWidth
             icon={action.icon}
@@ -84,16 +106,25 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
       </div>
       {editActions && editActions.length > 0 && (
         <div className={s.editSection}>
-          <div className={s.editRow}>
+          <div className={s.editRow} {...editVariant.anchor}>
             {editActions.map((action, i) => (
-              <ActionTile
+              <Button
                 key={`${action.label}-${i}`}
-                className={s.editTile}
-                emphasis
-                top={action.label}
-                art={action.art}
-                onClick={() => handleAction(action)}
-              />
+                className={s.editBtn}
+                variant="system-secondary"
+                trailingIcon={action.icon}
+                // htmlFor → label-режим: тап фокусирует целевой input, хостовый
+                // onFocusCapture флипает шаг (iOS поднимает клавиатуру). onClick
+                // только праймит (primeEdit) — НЕ closes/setStep, иначе label
+                // размонтируется до делегирования фокуса (CLAUDE.md «Label focus
+                // delegation»); дровер закроется сам по уходу фокуса. Без htmlFor
+                // — обычная кнопка: закрыть-и-выполнить (навигация).
+                {...(action.htmlFor
+                  ? { as: 'label' as const, htmlFor: action.htmlFor, onClick: action.onClick }
+                  : { onClick: () => handleAction(action) })}
+              >
+                {action.label}
+              </Button>
             ))}
           </div>
         </div>

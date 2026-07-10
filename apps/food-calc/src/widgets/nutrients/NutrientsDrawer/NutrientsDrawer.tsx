@@ -1,5 +1,4 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
@@ -35,12 +34,7 @@ export function NutrientsDrawer({
   const title = viewTitle ?? 'Нутриенты';
 
   return (
-    <DrawerLayout a11yLabel={title} hideTopChrome>
-      <div className={styles.header}>
-        <Heading role="headline" as="h2" className={styles.title}>
-          {title}
-        </Heading>
-      </div>
+    <DrawerLayout title={title}>
       <div className={styles.body}>
         <FeatureErrorBoundary label={title}>
           <FoodsNutrients

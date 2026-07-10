@@ -101,6 +101,7 @@ module.exports = {
         '**/shared/assets/style/palette.scss',
         '**/shared/assets/style/surfaces.scss',
         '**/shared/assets/style/themes.scss',
+        '**/shared/assets/style/theme-dark.scss',
         '**/shared/assets/style/design-variant-palettes.scss',
         '**/shared/assets/style/heading-font-variants.scss',
         '**/shared/assets/style/mixin.scss',

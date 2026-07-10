@@ -466,6 +466,9 @@ export function useFoodEntryFlow({
 
   return {
     kind,
+    // Дата дня расписания (dd-MM-yyyy) — для заголовка «Добавить еду в dd.mm».
+    // У блюда даты нет (undefined).
+    date: target.kind === 'schedule' ? target.date : undefined,
     mode,
     step,
     setStep,

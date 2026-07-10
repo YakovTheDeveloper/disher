@@ -16,6 +16,18 @@
   color: var(--sys-color-text-secondary);
 }
 
+// Сегмент «Продукт | Блюдо» на всю ширину модалки: трек тянется по инпуту имени,
+// оба сегмента равной доли. Базовый .segmentedGroup — inline-flex; здесь делаем
+// его полноширинным flex, дети (.segment) делят ширину поровну.
+.variantSegment {
+  display: flex;
+  width: 100%;
+
+  >* {
+    flex: 1;
+  }
+}
+
 // Чекбокс «Таблетка / лекарство / БАД» — warm-pill блок шириной с инпут.
 // Горизонтальный отступ задаёт createBody (padding: 0 16px); сам LabeledCheckbox
 // растягивается на 100% ширины, поэтому его рамка садится ровно под рамку
@@ -81,7 +93,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--sys-radius-container); /* was 14px */
+  border-radius: var(--sys-radius-container);
+  /* was 14px */
   overflow: hidden;
 
   // Surface + hairline follow the app-wide tone (--sys-card-*); folded into the
@@ -104,13 +117,11 @@
     right: 14px;
     bottom: 0;
     height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--group-hairline) 18%,
-      var(--group-hairline) 82%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--group-hairline) 18%,
+        var(--group-hairline) 82%,
+        transparent 100%);
     pointer-events: none;
   }
 }
@@ -141,7 +152,7 @@
   // Голос лейбла нутриента инкапсулирован в <Text role="caption"> внутри
   // NutrientCardEditor — размер/tracking сюда НЕ выносим. Здесь оставляем
   // только не-типографические оверрайды (transform/color) под warm-stripe.
-  > span {
+  >span {
     text-transform: none !important;
     color: var(--sys-color-text-system) !important;
   }
@@ -170,3 +181,7 @@
     transition-duration: var(--sys-duration-press-in);
   }
 }
+
+// (.searchTitleSep / .searchTitleMeta удалены 2026-07-10: заголовок «Выбор еды»
+//  и дата теперь раскидываются самим ModalHeader через titleMeta — middot и
+//  правый край живут там, не в этом заголовке-склейке.)

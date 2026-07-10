@@ -1,4 +1,4 @@
-import { format, isBefore, parse, subDays } from 'date-fns';
+import { format, isBefore, isValid, parse, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { DateStr } from './model';
 
@@ -23,11 +23,18 @@ export interface MonthGroup {
  * Dexie's `orderBy('date')` is lexicographic on strings, which is wrong for
  * day-first format ("31-01-2026" > "01-12-2025" lexically but earlier in
  * time), so we re-sort here on real Date values.
+ *
+ * Keys that don't parse to a valid date are dropped, not kept as `Invalid
+ * Date`: the navigator reads arbitrary historical keys straight from Dexie,
+ * and a single malformed one (empty string, a stray ISO `yyyy-MM-dd`, …) would
+ * otherwise reach `format()` in `groupByMonth`/the calendar and throw
+ * `RangeError: Invalid time value`, crashing the whole drawer.
  */
 export function parseKeys(keys: DateStr[] | undefined): ParsedDay[] {
   if (!keys || keys.length === 0) return [];
   return keys
     .map((dateStr) => ({ date: parse(dateStr, DATE_FORMAT, new Date()), dateStr }))
+    .filter((d) => isValid(d.date))
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 

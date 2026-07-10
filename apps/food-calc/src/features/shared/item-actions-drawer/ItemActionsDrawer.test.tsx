@@ -62,6 +62,50 @@ describe('ItemActionsDrawer', () => {
     expect(order).toEqual(['close', 'delete']); // onClose before navigate/delete — see spec Edge cases
   });
 
+  it('editAction with htmlFor renders a <label for=…>, primes via onClick, does NOT close', () => {
+    // Label-делегация фокуса: onClick только праймит; дровер закрывается по уходу
+    // фокуса наружу, а НЕ из клика (иначе label размонтируется до делегирования).
+    const onClose = vi.fn();
+    const prime = vi.fn();
+
+    render(
+      <ItemActionsDrawer
+        onClose={onClose}
+        title="X"
+        onDelete={vi.fn()}
+        actions={[]}
+        editActions={[{ label: 'Кол-во', htmlFor: 'qty-input', onClick: prime }]}
+      />,
+    );
+
+    const label = screen.getByText('Кол-во').closest('label');
+    expect(label).not.toBeNull();
+    expect(label).toHaveAttribute('for', 'qty-input');
+
+    fireEvent.click(label!);
+    expect(prime).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('editAction without htmlFor stays a <button> that closes-then-runs', () => {
+    const order: string[] = [];
+    const onClose = vi.fn(() => order.push('close'));
+    const run = vi.fn(() => order.push('run'));
+
+    render(
+      <ItemActionsDrawer
+        onClose={onClose}
+        title="X"
+        onDelete={vi.fn()}
+        actions={[]}
+        editActions={[{ label: 'Время', onClick: run }]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Время' }));
+    expect(order).toEqual(['close', 'run']);
+  });
+
   it('action: closes the drawer FIRST, then runs the action onClick', () => {
     const order: string[] = [];
     const onClose = vi.fn(() => order.push('close'));

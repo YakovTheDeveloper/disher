@@ -39,5 +39,5 @@ export const MATCHER_VERSION = `${PKG_VERSION}+${GIT_SHA}`;
 // no longer in OpenRouter's model list and v4-pro lacks structured_outputs, so
 // either would 500 a require_parameters request.
 export function getLLMModel(): string {
-  return process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-v4-flash";
+  return process.env.SUGGESTION_MODEL ?? "google/gemini-2.5-flash-lite";
 }

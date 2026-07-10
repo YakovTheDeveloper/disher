@@ -17,10 +17,15 @@ import {
 import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
-import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
+import {
+  ItemActionsDrawer,
+  buildInfoActions,
+  QuantityIcon,
+  NoteIcon,
+  ClockIcon,
+} from '@/features/shared/item-actions-drawer';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
+import { useCardPalette } from '@/shared/lib/cardPalette';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
@@ -102,9 +107,10 @@ const FoodSchedule = ({
 
   const groups = useMemo(() => groupItemsByTime(items), [items]);
 
-  // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
-  // красит еду, блюдо и события. Раньше еда была жёстко `dv-palette-lemon`.
-  const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
+  // Палитра карточек «еды расписания» — постоянный выбор из настроек (ProfileDrawer
+  // → «Цвет карточек»), пер-поверхностный. Дефолт amber. Раньше был общий контрол
+  // в dev-DesignBar; ещё раньше еда была жёстко `dv-palette-lemon`.
+  const palette = useCardPalette('scheduleFood');
   // Бар плавает над контентом всегда (канон 2026-06-08: Screen.bottomBarOverlay
   // дефолт true, без гейта на пустоте). Полоса-сводка скрыта на пустом списке.
   const isEmpty = items.length === 0;
@@ -136,20 +142,37 @@ const FoodSchedule = ({
           if (res.ok) toaster.success('Удалено');
         },
         actions: buildInfoActions(item),
-        // Ряд правок под «Информация…»: каждая плитка закрывает дровер и открывает
-        // соответствующий шаг edit-флоу (startEdit ставит editingItem + step →
-        // FoodEntryEditModals разворачивает нужную модалку). Гравюра тематическая
-        // по смыслу действия (тарелка-порция · бирка-заметка · дисковый циферблат),
-        // втекает в правый край квадратной плитки. Ряд только у расписания — у
+        // Ряд правок под «Информация…»: каждая кнопка = `<label htmlFor>` на
+        // соответствующий edit-input (как имя ряда — паттерн HomePage). Тап
+        // фокусирует input → onFocusCapture FoodEntryEditModals флипает шаг и iOS
+        // поднимает клавиатуру (императивный startEdit её не поднимал). onClick
+        // только праймит (primeEdit ставит editingItem + draft, БЕЗ setStep —
+        // шаг ставит focus-событие); дровер закрывается сам по уходу фокуса.
+        // Иконка тематическая (гиря/выноска/часы). Ряд только у расписания — у
         // ингредиента блюда «Время» нет.
         editActions: [
-          { label: 'Кол-во', art: <img src="/art/plate.png" alt="" />, onClick: () => onEditQuantity(item) },
-          { label: 'Уточнения', art: <img src="/art/tag-2.png" alt="" />, onClick: () => onEditFood(item) },
-          { label: 'Время', art: <img src="/art/scale-2.png" alt="" />, onClick: () => onEditTime(item) },
+          {
+            label: 'Кол-во',
+            icon: <QuantityIcon />,
+            htmlFor: editIds.QUANTITY_INPUT,
+            onClick: () => primeEdit(item),
+          },
+          {
+            label: 'Уточнения',
+            icon: <NoteIcon />,
+            htmlFor: editIds.DETAILS_INPUT,
+            onClick: () => primeEdit(item),
+          },
+          {
+            label: 'Время',
+            icon: <ClockIcon />,
+            htmlFor: editIds.TIME_INPUT,
+            onClick: () => primeEdit(item),
+          },
         ],
       });
     },
-    [onEditQuantity, onEditFood, onEditTime]
+    [primeEdit, editIds]
   );
 
   return (
@@ -188,12 +211,12 @@ const FoodSchedule = ({
         />
       }
     >
-      <div {...anchor} className={styles.foodListAnchor}>
+      <div data-dv-v={palette} className={styles.foodListAnchor}>
         {isEmpty ? (
           <EmptyState
             className={styles.empty}
-            title="Рацион пуст"
-            description="Здесь появится ваша еда за день. Найти её можно в каталоге по кнопке «Список» — потом это ложится в разбор."
+            title="Начните заполнять"
+            description="Напишите в поле ниже, что вы ели. Или просто выберете из списка еды по кнопке."
           />
         ) : (
           <ItemsList>

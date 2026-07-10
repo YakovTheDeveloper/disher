@@ -1,0 +1,138 @@
+@import '@/shared/assets/style/design-variant-palettes.scss';
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-section);
+  margin-top: 4px;
+}
+
+// Одна поверхность = подпись + сетка свотчей.
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.groupLabel {
+  color: var(--sys-color-text-secondary);
+}
+
+// Embla-раскладка: viewport = root (clip overflow), track = flex-ряд колонок,
+// каждая колонка = столбик из 2 свотчей. Строй скроллится горизонтально.
+.viewport {
+  overflow: hidden;
+  // Съедаем боковые gutter'ы дровера так, чтобы строй уходил под край (edge-bleed
+  // как в WallpaperStrip), но первый/последний свотч выравнивались по контенту.
+  margin-inline: calc(-1 * var(--sys-inset-panel));
+  padding-inline: var(--sys-inset-panel);
+  padding-block: 4px;
+}
+
+.track {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.column {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 84px;
+}
+
+.swatch {
+  position: relative;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px;
+  border-radius: var(--sys-radius-container);
+  border: 1.5px solid var(--sys-color-divider);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+}
+
+.swatch:hover,
+.swatch:focus-visible {
+  border-color: var(--sys-color-border-subtle);
+  outline: none;
+}
+
+// Одиночный выбор (choice): press = только лёгкий scale, БЕЗ цветной заливки —
+// выбор «1 из N» несёт маркер (галочка), не заливка-отклик (как в ThemePicker).
+.swatch:active {
+  transform: scale(0.96);
+  transition-duration: var(--sys-duration-press-in);
+}
+
+// Каждый свотч публикует свои --tod-* через форк палитры, превью читает их со
+// своего скоупа — DRY с боевыми правилами card-palette-set. Строки data-dv-v
+// обязаны совпадать с CARD_PALETTES.
+.swatch[data-dv-v='amber']   { @include dv-palette-amber; }
+.swatch[data-dv-v='honey']   { @include dv-palette-honey; }
+.swatch[data-dv-v='lemon']   { @include dv-palette-lemon; }
+.swatch[data-dv-v='sand']    { @include dv-palette-sand; }
+.swatch[data-dv-v='clay']    { @include dv-palette-clay; }
+.swatch[data-dv-v='rust']    { @include dv-palette-rust; }
+.swatch[data-dv-v='rose']    { @include dv-palette-rose; }
+.swatch[data-dv-v='mauve']   { @include dv-palette-mauve; }
+.swatch[data-dv-v='sage']    { @include dv-palette-sage; }
+.swatch[data-dv-v='neutral'] { @include dv-palette-neutral; }
+
+.preview {
+  display: block;
+  height: 34px;
+  border-radius: var(--sys-radius-indicator);
+  // Узкая morning→night дельта у card-палитр → почти плоский цвет; outline несёт
+  // идентичность варианта.
+  background: linear-gradient(135deg,
+    var(--tod-morning-bg-from) 0%,
+    var(--tod-night-bg-from) 100%);
+  border: 1px solid var(--tod-morning-outline-from);
+}
+
+// Маркер «выбрано» = галочка в светлом бейдже, правый-верхний угол превью.
+.tick {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-2);
+  box-shadow: var(--sys-elevation-action-rest);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+  pointer-events: none;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    color: var(--sys-color-tick-selected);
+  }
+}
+
+.swatch.active .tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.label {
+  color: var(--sys-color-text-secondary);
+  text-align: center;
+}

@@ -60,6 +60,16 @@ describe('parseKeys', () => {
     expect(parseKeys([])).toEqual([]);
   });
 
+  it('drops keys that do not parse to a valid date (guards format() downstream)', () => {
+    // A single malformed key (empty string, stray ISO date, garbage) must not
+    // survive as an Invalid Date — otherwise groupByMonth()/the calendar call
+    // format() on it and throw "Invalid time value", crashing the drawer.
+    const result = parseKeys(['01-05-2026', '', '2026-01-01', 'not-a-date', '03-05-2026']);
+    expect(result.map((d) => d.dateStr)).toEqual(['01-05-2026', '03-05-2026']);
+    // The survivors are safe to format (no throw).
+    expect(() => groupByMonth(result)).not.toThrow();
+  });
+
   it('parses dd-MM-yyyy and sorts ASC by real Date (not lexical)', () => {
     // Lexical order would put '31-01-2026' BEFORE '01-12-2025' ('31' < '01'
     // is false, but '01' < '31' would be true the other way) — wrong. Ours

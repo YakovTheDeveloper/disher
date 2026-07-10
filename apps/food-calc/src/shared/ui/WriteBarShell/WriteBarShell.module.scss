@@ -109,28 +109,33 @@
 // `WriteBarHint` (+ WriteBarHint.module.scss) 2026-07-05 — переиспользуется всеми
 // write-барами (Еда/События/Гипотезы) через `hint`/`hintLabel` пропы.
 
-// ─── Hint header: ⓘ-toggle в правом верхнем углу дока ──────────────────────
-// ABSOLUTE (не в потоке): на раскрытом баре нет выделенного запаса высоты над
-// пилюлей (док = пилюля + падинги), поэтому строка-хедер резервировала бы пустую
-// полосу. Вместо этого якорим кнопку в правый верхний угол `.wrap` — она НЕ
-// двигает пилюлю. Появляется вместе с фокусом (data-visible = expanded) через
-// opacity. Клик по ⓘ тогглит текст-подсказку (WriteBarHint) — сам текст скрыт,
-// пока пользователь не запросит его кнопкой. `.wrap` = positioned ancestor.
-.hintHeader {
-    position: absolute;
-    top: var(--space-2);
-    right: var(--shell-inset);
-    z-index: 2;
-    display: flex;
+// ─── Hint dock: колонка · центр · колонка (в правой — ⓘ-toggle) ─────────────
+// Трёхколоночный грид В ПОТОКЕ: пустая 1fr слева, контент (текст подсказки) в
+// центральной auto-колонке, кнопка ⓘ в правой 1fr-колонке. Боковые 1fr РАВНЫ →
+// центральный контент строго по центру независимо от ширины кнопки. Монтируется
+// ТОЛЬКО на фокусе (см. WriteBarShell.tsx: `expanded`-гейт) — в покое места не
+// занимает. На раскрытии текста (WriteBarHint) строка растёт ВВЕРХ над пилюлей,
+// bottomBar прижат к низу.
+.hintDock {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
 }
 
-.hintHeader[data-visible] {
-    opacity: 1;
-    pointer-events: auto;
+// Центральная колонка — сам текст подсказки (первый потомок дока). Кладём в track 2;
+// равные боковые 1fr держат его по центру.
+.hintDock > :first-child {
+    grid-column: 2;
+    min-width: 0;
+}
+
+// Правая колонка — кнопка ⓘ, прижата к внешней кромке контент-бокса дока.
+.hintBtn {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 // ─── Bar line: glass pill row ──────────────────────────────────────────────

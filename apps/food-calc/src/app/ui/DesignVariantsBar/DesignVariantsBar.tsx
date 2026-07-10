@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useDesignVariantsStore, selectActiveKey } from '@/shared/model/designVariantsStore';
 import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { openBugReport } from '@/features/dev/bug-report';
+import toaster from '@/shared/lib/toaster/toaster';
+import { seedTestDays } from './seedTestDays';
 import s from './DesignVariantsBar.module.scss';
 
 const FLASH_DURATION_MS = 320;
@@ -49,6 +51,25 @@ export const DesignVariantsBar = () => {
   const [open, setOpen] = useState<boolean>(readInitialOpen);
   const [pos, setPos] = useState<Pos | null>(readInitialPos);
   const [dragging, setDragging] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+
+  // Dev-сидер: заполняет 1–10 июня 2026 реалистичной едой + симптомами (с
+  // запечённым молочно→головная-боль/вздутие сигналом) для проверки «длительного
+  // анализа» на живых данных. См. seedTestDays.ts.
+  const handleSeed = async () => {
+    if (seeding) return;
+    setSeeding(true);
+    try {
+      const r = await seedTestDays();
+      const miss = r.missing.length ? ` · не найдено в каталоге: ${r.missing.join(', ')}` : '';
+      toaster.success(`Засеяно 1–10 июня: ${r.foods} блюд, ${r.events} симптомов${miss}`);
+    } catch (e) {
+      console.error('[seedTestDays] failed', e);
+      toaster.error('Не удалось засеять тестовые дни (см. консоль)');
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const shellRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
@@ -311,6 +332,17 @@ export const DesignVariantsBar = () => {
           )}
         </div>
       )}
+
+      <div className={s.seedSection}>
+        <button
+          type="button"
+          className={s.seedBtn}
+          onClick={handleSeed}
+          disabled={seeding}
+        >
+          {seeding ? 'Засеиваю…' : '🌱 Засеять 1–10 июня (еда + симптомы)'}
+        </button>
+      </div>
     </div>
   );
 };

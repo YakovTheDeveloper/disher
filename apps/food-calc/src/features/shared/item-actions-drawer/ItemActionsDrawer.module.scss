@@ -1,3 +1,4 @@
+@import '@/shared/assets/style/design-variant-palettes.scss';
 @import '@/shared/assets/style/mixin.scss';
 
 // Destructive delete lives in DrawerLayout's top-right chrome slot (the
@@ -18,7 +19,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding-top: var(--space-5);
   padding-bottom: 12px;
 }
 
@@ -28,47 +28,62 @@
 // заголовком (--space-5, под бровкой) + воздух под заголовком (--space-4).
 .editSection {
   position: relative;
-  padding-top: var(--space-5);
 }
 
-// Бровка — тающий 1px по канону Divider (mixin hairline + токен дивайдера).
-.editSection::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  @include hairline(var(--sys-color-divider));
-  pointer-events: none;
-}
 
-// Ряд правок (Кол-во · Уточнения · Время) — три равные квадратные плитки
-// ActionTile (muted-серый вариант). Гравюра втекает в правый край каждой плитки
-// (art-слот примитива). Боковой инсет — у DrawerLayout (нижний дровер, default 24).
+
+// Ряд правок (Кол-во · Уточнения · Время) — три равные квадратные кнопки-чипа
+// (Button variant="system-secondary"). Боковой инсет — у DrawerLayout (нижний
+// дровер, default 24).
 .editRow {
   display: flex;
   gap: var(--space-2);
   padding-bottom: 12px;
+
+  // Сливовая (plum) расцветка чипов — 6 форков через DesignBar
+  // (`useDesignVariant('ItemActionsEdit', PLUM_EDIT_VARIANTS)`, анкор на этом
+  // ряду). Значения + gated `border-color`/`color` живут в exempt-палитре
+  // (design-variant-palettes.scss `@mixin plum-edit-chips`); здесь только @include,
+  // поэтому sys-only gate тронутого файла не задет. Форки бьют по `&[data-dv-v]`.
+  @include plum-edit-chips;
 }
 
-// Каждая плитка — КВАДРАТ: три равные колонки, aspect-ratio 1. Подпись слева по
-// центру высоты (раскладка ActionTile), гравюра — в правый край. min-height:0
-// снимает 76px-пол базовой плитки (размер держит aspect-ratio; иначе в узком
-// дровере пол ломал бы квадрат). Уменьшенный padding — тексту в узкой колонке
-// нужен воздух. Селектор `.editRow .editTile` (0,2,0) бьёт базовую `.tile` (0,1,0).
-.editRow .editTile {
+// Чип = КВАДРАТ: подпись отцентрована в теле, иконка прижата в правый верхний
+// угол (абсолютом, вне потока — не толкает текст). Три равные колонки, каждая
+// сама себе квадрат (aspect-ratio). Тон — secondary; рамку (когда её несёт форк)
+// красит `plum-edit-chips` через `border-color` поверх прозрачного каркас-бордюра
+// `.systemSecondary` (`border: 1px solid transparent`). Селектор `.editRow .editBtn`
+// (0,2,0) бьёт раскладку Button (.systemSecondary, 0,1,0) независимо от порядка
+// модулей.
+.editRow .editBtn {
+  position: relative;
   flex: 1 1 0;
   min-width: 0;
-  min-height: 0;
   aspect-ratio: 1;
-  padding: var(--space-3);
+  padding: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
-// Гравюра чуть плотнее базовой (0.15) — квадрат маленький, тихий след должен
-// читаться как «тема действия».
-.editRow .editTile img {
-  opacity: 0.2;
+// Ведомая иконка (тематический глиф) — в правый верхний угол, холодный серый,
+// приглушённая. aria-hidden — единственный маркер icon-span'а Button'а (метка =
+// <Text as="span"> без него).
+.editRow .editBtn>span[aria-hidden='true'] {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--sys-color-icon);
+  opacity: 0.7;
+}
+
+// Размер глифа задаём здесь — Button-примитив зажимает свой `.icon svg` в 18px
+// (.systemSecondary), а чипу нужен крупный акцент. Селектор бьёт по специфичности
+// (0,3,1 > 0,2,1 примитива).
+.editRow .editBtn>span[aria-hidden='true']>svg {
+  width: 30px;
+  height: 30px;
 }
 
 // Подпись в верхнем стеке (Информация о продукте/блюде) — центрируется в кнопке.

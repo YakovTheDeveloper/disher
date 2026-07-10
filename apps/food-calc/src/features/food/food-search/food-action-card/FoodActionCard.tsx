@@ -18,6 +18,7 @@ import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemAct
 import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
 import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
 import { formatNormPercent } from './formatNormPercent';
+import { formatAmount } from '@/shared/lib/formatNumber';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -110,6 +111,14 @@ const FoodActionCard = ({
 }: Props) => {
   const { pressed, pressProps } = usePressFeedback();
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
+
+  // Тап по ⓘ — самостоятельное действие (боковой ProductDrawer/DishDrawer), НЕ
+  // выбор ряда. Гасим bubbling pointer-событий до `<li>`: без этого press-визуал
+  // (usePressFeedback) и long-press (useLongPress), висящие на обёртке, ловят
+  // pointerdown кнопки и весь ряд чернеет под пальцем при нажатии на ⓘ (фикс
+  // 2026-07-10). Оборачивающий span = display:contents — не ломает flex-раскладку
+  // ряда, но остаётся в DOM-пути события, поэтому stopPropagation работает.
+  const stopRowPress = (e: ReactPointerEvent) => e.stopPropagation();
 
   // Каталожные продукты могут нести миниатюру (build-route поле `image`); резолвим
   // прямо по id, чтобы не протягивать картинку через весь SearchFood.
@@ -251,7 +260,7 @@ const FoodActionCard = ({
               и верхнее число подрезалось overflow:hidden при включённой сортировке. */}
           <span className={styles.richValueTop}>
             <Numeral size="sm" weight="semibold">
-              {richNutrientValue > 0 ? richNutrientValue.toFixed(1) : '—'}
+              {richNutrientValue > 0 ? formatAmount(richNutrientValue) : '—'}
             </Numeral>
             {richNutrientValue > 0 && richNutrientUnit && (
               <Text as="span" role="caption" className={styles.richUnit}>
@@ -302,41 +311,51 @@ const FoodActionCard = ({
           </span>
         </p>
       )}
-      {onInfoClick &&
-        (variant === 'product' ? (
-          // Продукт (свой ИЛИ каталожный) → боковой ProductDrawer. Страница
-          // /product/:id инактивирована; ProductDrawer сам ветвит каталог/свой
-          // по isCreatedByUser, точке входа ветвиться не нужно.
-          <InfoButton
-            className={styles.infoBtn}
-            size={56}
-            aria-label="Информация о продукте"
-            onClick={() => {
-              drawerStore.show(
-                ProductDrawer,
-                { productId: item.id, productName: item.name },
-                { side: 'left', width: 'min(85vw, 360px)' }
-              );
-            }}
-          />
-        ) : (
-          // Блюдо → боковой DishDrawer (read-only превью: состав + суммарные
-          // нутриенты, стрелка в шапке → страница /dish/:id). Оверлей вместо
-          // навигации сохраняет скролл SearchFood + открытую модалку Home
-          // (симметрия с продуктом).
-          <InfoButton
-            className={styles.infoBtn}
-            size={56}
-            aria-label="Информация о блюде"
-            onClick={() => {
-              drawerStore.show(
-                DishDrawer,
-                { dishId: item.id, dishName: item.name },
-                { side: 'left', width: 'min(85vw, 360px)' }
-              );
-            }}
-          />
-        ))}
+      {onInfoClick && (
+        <span
+          className={styles.infoSlot}
+          onPointerDown={stopRowPress}
+          onPointerUp={stopRowPress}
+          onPointerCancel={stopRowPress}
+        >
+          {variant === 'product' ? (
+            // Продукт (свой ИЛИ каталожный) → боковой ProductDrawer. Страница
+            // /product/:id инактивирована; ProductDrawer сам ветвит каталог/свой
+            // по isCreatedByUser, точке входа ветвиться не нужно.
+            <InfoButton
+              className={styles.infoBtn}
+              emphasis="quiet"
+              size={56}
+              aria-label="Информация о продукте"
+              onClick={() => {
+                drawerStore.show(
+                  ProductDrawer,
+                  { productId: item.id, productName: item.name },
+                  { side: 'left', width: 'min(85vw, 360px)' }
+                );
+              }}
+            />
+          ) : (
+            // Блюдо → боковой DishDrawer (read-only превью: состав + суммарные
+            // нутриенты, стрелка в шапке → страница /dish/:id). Оверлей вместо
+            // навигации сохраняет скролл SearchFood + открытую модалку Home
+            // (симметрия с продуктом).
+            <InfoButton
+              className={styles.infoBtn}
+              emphasis="quiet"
+              size={56}
+              aria-label="Информация о блюде"
+              onClick={() => {
+                drawerStore.show(
+                  DishDrawer,
+                  { dishId: item.id, dishName: item.name },
+                  { side: 'left', width: 'min(85vw, 360px)' }
+                );
+              }}
+            />
+          )}
+        </span>
+      )}
       {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки
           (свои продукты + блюда, в обоих фильтрах). Не цветная — это признак
           владения, а не данные (цвет несёт левый квадрат-гейдж richValue). */}

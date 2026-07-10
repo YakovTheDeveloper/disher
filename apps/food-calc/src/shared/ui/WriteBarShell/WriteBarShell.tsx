@@ -141,6 +141,14 @@ export interface WriteBarShellProps {
    * Opt out with `focusOverlay={false}`.
    */
   focusOverlay?: boolean;
+  /**
+   * Force the dim-backdrop ON even when the bar itself isn't focused/expanded —
+   * e.g. Food keeps it lit while the предложка panel is mounted below the bar
+   * (`fieldOverride` collapses `expanded`, so focus alone can't hold the dim).
+   * OR'd with the internal `expanded` state; needs `focusOverlay` (default true)
+   * to render at all. Tapping the dim still blurs the input (harmless no-op here).
+   */
+  overlayVisible?: boolean;
   className?: string;
   /**
    * Blur the input right after submit so the focus-scrim / expanded state drops
@@ -185,6 +193,7 @@ export const WriteBarShell = ({
   hint,
   hintLabel,
   focusOverlay = true,
+  overlayVisible = false,
   className,
   blurOnSubmit = false,
   onFieldFocus,
@@ -257,24 +266,23 @@ export const WriteBarShell = ({
       {focusOverlay ? (
         <div
           className={s.focusOverlay}
-          data-visible={expanded || undefined}
+          data-visible={expanded || overlayVisible || undefined}
           aria-hidden="true"
           onPointerDown={() => document.getElementById(inputId)?.blur()}
         />
       ) : null}
-      {hint || hintLabel ? (
-        <>
-          {/* Кнопка ⓘ в правом верхнем углу дока: раскрывается вместе с фокусом
-              (expanded), тогглит текст-подсказку. preventDefault на pointerdown
-              ОБЁРТКИ (не самой кнопки — там onPointerDown занят usePressFeedback
-              внутри IconButton) держит фокус на textarea: без него тап по кнопке
-              сбросил бы фокус → onBlur → бар схлопнулся бы, не успев показать текст. */}
-          <div
-            className={s.hintHeader}
-            data-visible={expanded || undefined}
-            aria-hidden={!expanded || undefined}
-            onPointerDown={(e) => e.preventDefault()}
-          >
+      {(hint || hintLabel) && expanded ? (
+        // Док подсказки: грид «колонка · центр · колонка». Текст (WriteBarHint)
+        // в центральной колонке строго по ЦЕНТРУ (равные боковые 1fr), кнопка ⓘ —
+        // в правой колонке. Всё в потоке. Монтируется ТОЛЬКО на фокусе (expanded),
+        // иначе в покое кнопка-колонка резервировала бы высоту над пилюлей.
+        <div className={s.hintDock}>
+          <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
+          {/* preventDefault на pointerdown ОБЁРТКИ (не самой кнопки — там
+              onPointerDown занят usePressFeedback внутри IconButton) держит фокус
+              на textarea: без него тап по ⓘ сбросил бы фокус → onBlur → бар
+              схлопнулся бы, не успев показать текст. */}
+          <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
             <InfoButton
               tone="ghost"
               size={32}
@@ -285,8 +293,7 @@ export const WriteBarShell = ({
               onClick={() => setHintOpen((open) => !open)}
             />
           </div>
-          <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
-        </>
+        </div>
       ) : null}
       {/* barLine = the glass pill row (left slot + field + send). The medal is no
           longer here — it moved up to `.wrap` (below) so it anchors to the

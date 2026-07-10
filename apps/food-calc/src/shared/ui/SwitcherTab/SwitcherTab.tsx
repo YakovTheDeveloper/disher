@@ -78,9 +78,9 @@ export const SwitcherTab = ({
       </Heading>
     ) : (
       <QuietLabel as="span" underline className={s.tileTitle}>
-        {/* Левая стрелка СВЕШИВАЕТСЯ в поле (hanging punctuation, absolute) — слово
-            остаётся выровнено с активным заголовком. Правая идёт в потоке после
-            слова. Носители пустые — форму стрелки рисует CSS (.tileArrow*). */}
+        {/* Левая стрелка идёт В ПОТОКЕ перед словом — её левый край встаёт на рельсу
+            (ровно под активным заголовком), слово сдвигается вправо. Правая — в потоке
+            после слова. Носители пустые — форму стрелки рисует CSS (.tileArrow*). */}
         {arrow === 'left' && <span className={s.tileArrowLead} aria-hidden="true" />}
         {label}
         {arrow === 'right' && <span className={s.tileArrowTrail} aria-hidden="true" />}

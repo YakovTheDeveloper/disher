@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
-import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
@@ -17,10 +16,7 @@ type Props = {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   className?: string;
-  onBack?: () => void;
   inputId?: string;
-  /** Когда задан и `filterOptions` пуст — слева встаёт статический заголовок (serif italic). */
-  title?: string;
   /** Когда задан — слева встаёт бинарный pill-toggle, кликабельные опции. */
   filterOptions?: readonly SearchFilter[];
   selectedFilter?: SearchFilter;
@@ -37,9 +33,7 @@ const SearchFoodControls = ({
   searchQuery,
   onSearchChange,
   className,
-  onBack,
   inputId,
-  title,
   filterOptions,
   selectedFilter,
   onSelectFilter,
@@ -66,8 +60,22 @@ const SearchFoodControls = ({
   // Выбор нутриента по-прежнему уводит в боковой NutrientPickerDrawer (длинный
   // сгруппированный список не лезет в popover) — здесь только триггер + текущее
   // состояние с крестиком отмены.
-  const filterPanel = (
+  const filterPanel = (close: () => void) => (
     <div className={styles.filterPanel}>
+      {/* ✕ встаёт ТОЧНО на место кнопки-фильтра (panel overlaps trigger, 40px) —
+          закрывает popover, зеркаля глиф-кнопку под собой. */}
+      <div className={styles.filterPanelHeader}>
+        <IconButton
+          tone="soft"
+          size={40}
+          className={styles.filterCloseButton}
+          aria-label="Закрыть фильтры"
+          title="Закрыть"
+          icon={<CrossIcon width={16} height={16} />}
+          onClick={close}
+        />
+      </div>
+
       {hasFilter && filterOptions && (
         <div className={styles.filterSection}>
           <Text as="span" role="label" className={styles.filterSectionLabel}>
@@ -134,19 +142,11 @@ const SearchFoodControls = ({
   );
 
   return (
-    // One common bar = the component root. The back button sits OUTSIDE to the left,
-    // the search field rides inside a single pill, and filtering/sorting hide behind a
-    // sliders button (popover) on the right. In dishes-only mode there's no filter, so
-    // a static serif title stands beside the pill and the filter button is absent.
+    // One common bar = the component root. Back button + title now live in the
+    // persistent ModalHeader above (SearchFood); this bar carries ONLY the search
+    // field (in a single pill) + the filtering/sorting sliders button (popover) on
+    // the right. Bar scrolls away with the list; the ModalHeader stays put.
     <div className={clsx(styles.bar, className)}>
-      {onBack && <BackButton onClick={onBack} />}
-
-      {!hasFilter && title && (
-        <Heading role="headline" as="h2" className={styles.title}>
-          {title}
-        </Heading>
-      )}
-
       <div className={styles.pill}>
         <div className={styles.searchIcon}>
           <SearchIcon />
@@ -177,14 +177,16 @@ const SearchFoodControls = ({
       {showFilterButton && (
         // Рельс шириной с info-колонку рядов (.infoBtn 56px) — кнопка-фильтр
         // центрируется ТОЧНО над столбцом ⓘ list-items (запрос юзера: фильтр в
-        // один ряд с ⓘ). Сама кнопка 48px под «назад».
+        // один ряд с ⓘ). Сама кнопка 40px — совпадает с back-кнопкой шапки и
+        // видимым кружком ⓘ (56px-слот, inset 8px → ~40px). Была 48px — «пухла».
         <div className={styles.filterRail}>
           <PopoverTrigger
             placement="bottom-end"
+            overlapTrigger
             trigger={
               <IconButton
-                tone="neutral"
-                size={48}
+                tone="soft"
+                size={40}
                 className={clsx(styles.filterButton, filterActive && styles.filterButtonActive)}
                 aria-label="Фильтры поиска"
                 title="Фильтры"

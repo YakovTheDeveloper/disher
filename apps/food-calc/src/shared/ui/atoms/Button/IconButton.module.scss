@@ -56,10 +56,48 @@
     }
 }
 
+// Покойная «плитка-кнопка»: тихая ink-подложка (--sys-color-surface-icon-tile, 3%
+// state-layer, авто-флип в dark) + ХОЛОДНЫЙ глиф (--sys-color-icon, канон cold-icon).
+// На press — well темнеет (bg-press) + глиф → чернила + scale. Зеркалит бывший
+// bespoke .backButton шапки модалок, теперь один дом для back/фильтр/ⓘ.
+.soft {
+    background: var(--sys-color-surface-icon-tile);
+    color: var(--sys-color-icon);
+
+    &[data-pressed] {
+        background: var(--sys-color-bg-press);
+        color: var(--sys-color-text-system);
+        transform: scale(0.94);
+        transition-duration: var(--sys-duration-press-in);
+    }
+}
+
+// Ось emphasis (ортогональна tone): `quiet` = глиф на ступень тусклее
+// (--sys-color-icon-muted, авто-флип в dark). Второстепенные кнопки (назад/ⓘ)
+// отступают за primary-действием. НАМЕРЕННО одноклассовая (0,1,0), объявлена ПОСЛЕ
+// всех тонов → перебивает их idle-цвет по source-order (.soft/.ghost = 0,1,0), а
+// press тона (`.soft[data-pressed]` = 0,1,1) сам перебивает quiet → на нажатии глиф
+// в полный цвет. Низкая специфичность НАМЕРЕННА: компонентные active/press-оверрайды
+// консюмера (напр. FoodActionCard `.item_active .infoBtn` = 0,2,0, `.infoBtn:active`
+// = 0,1,1) остаются главнее quiet и держат своё состояние. Была `.iconButton.quiet:
+// not([data-pressed])` (0,3,0) — раздавливала эти оверрайды, из-за чего класс нельзя
+// было вешать на ⓘ; опущено до 0,1,0.
+.quiet {
+    // Тушим И глиф, И плитку. Плитку — через ЛОКАЛЬНОЕ переопределение её токена: и
+    // `.soft { background: var(--sys-color-surface-icon-tile) }` на самом элементе, и
+    // бэспоук-плитка консюмера `.infoBtn::before { background: тот же токен }` читают
+    // его → притухают ОБА разом (кастом-проперти наследуется в псевдоэлемент), без
+    // единой правки в FoodActionCard. Press-фон (`.soft[data-pressed]` = bg-press) —
+    // другой токен, не тронут → на нажатии отклик остаётся полным.
+    --sys-color-surface-icon-tile: var(--sys-color-surface-icon-tile-quiet);
+    color: var(--sys-color-icon-muted);
+}
+
 @media (prefers-reduced-motion: reduce) {
 
     .neutral[data-pressed],
-    .ghost[data-pressed] {
+    .ghost[data-pressed],
+    .soft[data-pressed] {
         transform: none;
     }
 }

@@ -1,8 +1,8 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // schedule-navigator — unified onto the SearchFood card canon (2026-06-19).
-// The quick-nav anchor rows reuse the stripe-fork-row surface + inset-group
-// container + paper-mono palette (mixin.scss), the SAME look as the food cards
+// The quick-nav anchor rows mirror the FoodActionCard row surface + the
+// paper-mono palette (mixin.scss), the SAME look as the food cards
 // in SearchFood. Honey/mint accents and the mint→sky ambient were retired —
 // state now reads through the shared --sys-card-* tokens (selected = faint grey
 // fill, today = active ink). Date typography (Source Serif day numeral + 9px
@@ -106,69 +106,38 @@
 }
 
 // ─── Month mini-calendar (active-days tab) ─────────────────────────────────
-.month {
-  &+& {
-    margin-top: var(--space-5);
-  }
-}
+// Структура решётки (month-заголовок, шапка дней недели, grid, база ячейки) —
+// общий миксин `calendar-grid()` (mixin.scss), ЕДИНЫЙ источник с RangeCalendar
+// окна разбора (features/analysis/long). Состояния ниже — ЛОКАЛЬНЫЕ: семантика
+// «активные дни» (heatmap: только записанные дни тапаемы) ≠ семантика диапазона,
+// и порядок каскада важен (`.cellSelected` перебивает `.cellActive`).
+@include calendar-grid;
 
-// Тихий указатель месяца (QuietLabel — sans italic, тихий ярус).
-.monthName {
-  display: block;
-  padding-left: var(--space-1);
-  margin-bottom: var(--space-6);
-  text-transform: capitalize;
-  line-height: 1;
-}
-
-// Шапка дней недели (пн…вс) — 7 колонок, тихие капшны.
-.weekdayRow {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  margin-bottom: var(--space-1);
-}
-
-// Размер — из примитива <Text role="caption">; тут только выравнивание/цвет.
-.weekday {
-  display: block;
-  text-align: center;
-  line-height: 1;
-  color: var(--sys-color-text-tertiary);
-}
-
-// Календарная решётка — 7 колонок.
-.grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--space-1);
-}
-
-// Ячейка дня. Пустые ведущие ячейки (.blank) держат геометрию колонки.
-.cell,
-.blank {
-  min-height: 40px;
-}
-
-.cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--sys-radius-control);
-  background: transparent;
-  color: var(--sys-card-text-rest);
-  font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-// Пустой день (нет записей) — тихий контекст: бледный, нетапаемый.
+// Пустой день (нет записей) — тихий бледный контекст, но ТАПАЕМ (можно перейти
+// в день без активности). Заливки нет — только press-feedback, чтобы не спорить
+// с тепловой картой активных дней.
 .cellEmpty {
+  cursor: pointer;
   color: var(--sys-color-text-faint);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--sys-card-press-bg);
+    color: var(--sys-card-press-fg);
+    transform: scale(0.9);
+    transition-duration: var(--sys-duration-press-in);
+  }
 }
 
 // Активный день (есть записи) — «залит», читается тепловой картой; тапаемый.
 .cellActive {
   cursor: pointer;
-  font-weight: 600;
+  // Вес активного дня несёт примитив <Text weight="bold"> в ScheduleNavigator.tsx
+  // (унификация «выбранного» = 700, единая с календарём/чипом; типо-голос в примитиве).
   background: var(--sys-color-bg-hover);
   color: var(--sys-card-text-rest);
   -webkit-tap-highlight-color: transparent;
@@ -239,7 +208,8 @@
 @media (prefers-reduced-motion: reduce) {
 
   .viewport,
-  .cellActive {
+  .cellActive,
+  .cellEmpty {
     transition: none;
   }
 }

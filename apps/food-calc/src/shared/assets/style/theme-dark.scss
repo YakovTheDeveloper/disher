@@ -1,0 +1,264 @@
+// ═══ Dark theme (warm-coal) ═══════════════════════════════════════
+// Manual light/dark MODE axis (orthogonal to the `data-theme` colour palettes).
+// Activated by `<html data-theme-mode="dark">` (see shared/lib/color-mode). This
+// layer OVERRIDES the semantic tier only — the ref primitives (ramps) stay put;
+// each token is redefined by INTENT (industry-standard 2026 dark practice), NOT
+// a mechanical invert. Imported AFTER themes.scss in index.scss, so at equal
+// specificity it wins (incl. the TOD `--tod-*` palettes).
+//
+// Design laws applied here (2026 dark canon):
+//   • NOT pure black — warm espresso base (#16130e), keeps the hue-85 «paper»
+//     identity in the dark.
+//   • Elevation = LIGHTER surface (Material-3): base < card < modal. Shadows are
+//     near-invisible on dark, so depth is carried by the lightness step.
+//   • Text is warm off-white, never #fff — tiered by emphasis (APCA-minded).
+//   • Accents LIGHTEN for contrast (indigo-600 #3a2d6b is invisible on dark →
+//     indigo-300 for text/icons; fills lift a rung).
+//   • Borders/dividers flip to light-alpha (rgba(255,255,255,α)).
+//   • The neutral «ink» solid button INVERTS to a light fill with dark text.
+//   • `color-scheme: dark` so native controls, form UI and scrollbars follow.
+//
+// This file is EXEMPT from the token-gate (primitive/theme layer — raw literals ok).
+// ══════════════════════════════════════════════════════════════════
+
+:root[data-theme-mode='dark'] {
+  color-scheme: dark;
+
+  // ─── palette.scss semantic aliases ─────────────────────────────
+  --surface-base: #16130e; // стол/основа (deep warm espresso)
+  --surface-bright: #2a251d; // «float above screen» → elevated dark, not white
+  --surface-raised: rgba(40, 36, 28, 0.7);
+
+  --text-primary: #f3efe7; // warm off-white (high emphasis)
+  --text-secondary: #aca69b;
+  --text-tertiary: #857f75;
+  --text-muted: rgba(255, 255, 255, 0.16);
+  // --text-on-accent stays #fff (content on coloured fills) — not overridden.
+
+  --color-ink: #f3efe7; // «ink» = the high-contrast tone → light in the dark
+  --color-ink-strong: #ffffff;
+
+  --border-hairline: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.11);
+  --border-default: #3a352d;
+
+  // ─── sys · surfaces + depth axis ───────────────────────────────
+  --sys-color-surface-0: #16130e; // стол/основа
+  --sys-color-surface-1: #201c15; // парящий лист (card/sheet)
+  --sys-color-surface-2: #2a251d; // лист над листом (modal/drawer/popover)
+  --sys-color-surface-bright: #2a251d;
+
+  // Floating bar was already dark (#0c1320) — in dark it must LIFT to separate
+  // from the near-black base. Its white content (--sys-color-on-floating-*) stays.
+  --sys-color-surface-floating: #232a3a;
+
+  --sys-color-surface-proposal: color-mix(in oklch, var(--ref-color-cool-500) 14%, #201c15);
+  --sys-color-surface-proposal-pressed: color-mix(in oklch, var(--ref-color-cool-500) 22%, #201c15);
+  --sys-color-surface-cool-soft: #232a38;
+
+  --sys-color-surface-track: #33302a; // progress track (raised from base)
+  --sys-color-surface-fill: #8a8ea0; // fill over track — lighter cool for contrast
+
+  // ─── sys · text + icon ─────────────────────────────────────────
+  --sys-color-text-quiet: #aca69b;
+  --sys-color-text-system: #f3efe7; // neutral ink text → light
+  --sys-color-text-accent: var(--ref-color-indigo-300); // #bcb6ef — indigo lifted for dark
+  --sys-color-text-sepia: #c9a670; // FabricLoader caption — lighter sepia
+  --sys-color-text-on-hue-card: #e6e9f2; // TOD cards go dark → their text lightens
+  --sys-color-text-cold-strong: var(--ref-color-cool-100); // #eaecf3 — cold near-white на тёмной медали (light near-black был бы невидим)
+  --sys-color-text-placeholder: rgba(200, 205, 220, 0.5);
+  --sys-color-text-card-caption: #b0aaa0;
+  --sys-color-text-faint: #6b6862;
+
+  --sys-color-icon: var(--ref-color-cool-400); // #939aab — cool glyph, lifted
+  --sys-color-icon-muted: var(--ref-color-cool-500);
+
+  --nutrient-accent: var(--ref-color-indigo-300); // follows accent
+
+  // ─── sys · dividers / borders ──────────────────────────────────
+  --sys-color-divider: rgba(255, 255, 255, 0.1); // single source — all hairlines
+  --sys-color-divider-card: rgba(255, 255, 255, 0.08); // bright-white seam → subtle
+  --sys-color-border-default: rgba(255, 255, 255, 0.22); // middle rung, dark counterpart of 0.28 light
+  --sys-color-border-strong: rgba(255, 255, 255, 0.7);
+  // --sys-color-border-focus (#4f46e5 bright indigo) reads on both — not overridden.
+
+  // ─── sys · scrim (deeper on dark) ──────────────────────────────
+  --sys-color-scrim: rgba(0, 0, 0, 0.72);
+  --sys-color-scrim-strong: rgba(0, 0, 0, 0.94);
+
+  // ─── sys · status (lifted for dark-bg contrast) ────────────────
+  --sys-color-status-danger: #e0876a;
+  --sys-color-status-warning: #d9a95f;
+  --sys-color-status-stale: #b3a488;
+  --sys-color-status-success: #8fb083;
+  // faint tints: mix the (lifted) status into the dark base, bumped for visibility.
+  --sys-color-status-danger-surface: color-mix(in oklch, #e0876a 16%, var(--surface-base));
+  --sys-color-status-warning-surface: color-mix(in oklch, #d9a95f 16%, var(--surface-base));
+  --sys-color-status-warning-border: color-mix(in oklch, #d9a95f 42%, transparent);
+  --sys-color-status-danger-border: color-mix(in oklch, #e0876a 42%, transparent);
+
+  // ─── sys · selected / butter / plum ────────────────────────────
+  --sys-color-bg-selected: #2b3350; // deep cool
+  --sys-color-text-on-selected: var(--ref-color-indigo-200); // #d4d0fd
+  --sys-color-border-selected: var(--ref-color-amber-300); // #e0b581
+  --sys-color-bg-selected-plum: #40323b; // deep dusty plum
+  --sys-color-bg-selected-warm: #4a3f1e; // deep butter
+  // --sys-color-tick-selected follows --sys-color-text-accent (auto).
+
+  // ─── sys · interactive bg / press ──────────────────────────────
+  --sys-color-bg-hover: rgba(255, 255, 255, 0.05);
+  --sys-color-bg-sunk: rgba(255, 255, 255, 0.06);
+  --press-tint-bg: rgba(255, 255, 255, 0.06);
+  --sys-color-bg-press: var(--press-tint-bg);
+  --sys-color-bg-press-warm: rgba(216, 140, 40, 0.22);
+  --sys-color-row-bg-focus: color-mix(in oklch, var(--sys-color-border-focus) 26%, var(--_bg-from));
+
+  // ─── sys · surface-action (buttons) ────────────────────────────
+  --sys-color-surface-action-disabled: rgba(255, 255, 255, 0.08);
+  // accent (indigo) fill lifts a rung so it separates from the dark surface.
+  --sys-color-surface-action-accent: var(--ref-color-indigo-400); // #5d5490
+  --sys-color-surface-action-accent-pressed: var(--ref-color-indigo-500); // #4c4080
+  --sys-color-surface-accent-soft: #2a2547; // deep indigo soft
+  --sys-color-surface-action-accent-soft-pressed: #3a3466;
+  // system (neutral solid «ink» button) INVERTS to a light fill + dark text.
+  --sys-color-surface-action-system: #eae5db;
+  --sys-color-surface-action-system-pressed: #d8d2c6;
+  --sys-color-on-action-system: #1a1712; // dark text on the light system fill
+  --sys-color-border-action-system: #eae5db;
+  // secondary soft tiers → dark tonal fills.
+  --sys-color-surface-action-secondary: #262a33;
+  --sys-color-surface-action-system-soft: #2c271f;
+  --sys-color-surface-action-system-soft-pressed: #38322a;
+  // --sys-color-surface-action-accent-soft aliases --sys-color-surface-accent-soft (auto)
+  // --sys-color-text-action-system-soft = --sys-color-text-system (auto, now light)
+  // --sys-color-text-action-accent-soft = --sys-color-text-accent (auto, now light)
+
+  --sys-color-surface-analysis: #423916; // deep butter (/analyses cards)
+  --sys-color-surface-analysis-sunk: #2f2810;
+
+  // ─── sys · control (segmented) ─────────────────────────────────
+  --sys-color-control-track: #2c271f;
+  --sys-color-control-segment-text: #857f75;
+  --sys-color-control-segment-active-bg: #3a3128; // raised warm thumb
+  --sys-color-control-segment-active-text: #f3efe7;
+
+  // ─── sys · NEW-token dark values ───────────────────────────────
+  --sys-color-surface-frost: rgba(20, 18, 15, 0.62); // dark translucent veil
+  --sys-color-scroll-fade: rgba(22, 19, 14, 0.92); // fade toward the dark page
+  --sys-color-field-well-shade-neutral: rgba(255, 255, 255, 0.1); // wells brighten on dark
+
+  // ─── field tokens (dark well) ──────────────────────────────────
+  // The field family is published raw-light by field-chip-palette on :root; the
+  // surface-aware @include field-depth($surface) recomputes wells from the (now
+  // dark) surface tokens automatically. These base overrides cover the fixed field
+  // rung + the alpha ladder (warm-brown → black-alpha on dark).
+  --sys-field-bg-from: #2b2620;
+  --sys-field-bg-mid: #2b2620;
+  --sys-field-bg-to: #2b2620;
+  --sys-field-text: rgba(255, 255, 255, 0.92);
+  --sys-field-placeholder: rgba(255, 255, 255, 0.4);
+  --sys-field-adornment: rgba(255, 255, 255, 0.55);
+  --sys-field-hairline: transparent;
+  --sys-field-hairline-focus: rgba(255, 255, 255, 0.28);
+  --sys-field-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  --sys-field-shadow-focus: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+  --sys-field-digit-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sys-field-caret: var(--ref-color-indigo-300);
+
+  // ─── chip tokens (dark) ────────────────────────────────────────
+  --sys-chip-bg: linear-gradient(135deg, #2c2720 0%, #262019 60%, #201b14 100%);
+  --sys-chip-text: #e8e4dc;
+  --sys-chip-border: rgba(188, 182, 239, 0.4);
+  --sys-chip-hover-border: rgba(255, 255, 255, 0.18);
+  // --sys-chip-text-muted / -separator are relative (color-mix / divider) — auto.
+
+  // ─── card tokens (paper-mono dark) ─────────────────────────────
+  // The color-mix-derived rungs (text-faint/muted/strong/soft, bg-sunk,
+  // active-muted) reference --sys-card-text-rest / -active and auto-recompute once
+  // those flip — only the concrete anchors need overriding here.
+  --cards-page-bg: #16130e;
+  --sys-card-group-bg: #201c15;
+  --sys-card-group-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+  --sys-card-text-rest: #e8e4dc;
+  --sys-card-text-active: #ffffff;
+  // press INVERTS the other way on dark: light pill + dark glyph.
+  --sys-card-press-bg: linear-gradient(90deg, #e8e4dc 0%, #dcd6cb 55%, #d0cabf 100%);
+  --sys-card-press-fg: #1a1712;
+  --sys-card-hover: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 45%, transparent 100%), var(--sys-card-bg);
+  --sys-card-active: linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06));
+  --sys-card-rich-text: #d8d3c9;
+  --sys-card-rich-unit: rgba(216, 211, 201, 0.6);
+  --sys-card-rich-percent: rgba(216, 211, 201, 0.4);
+  --sys-card-info-rest: rgba(255, 255, 255, 0.28);
+  --sys-card-bg: #201c15; // app-wide standalone-row fill (light truth = #ffffff)
+
+  // ─── framed-plate (dark) ───────────────────────────────────────
+  --plate-fill: #2a2620;
+  --plate-frame: #3a352d; // subtle ring instead of white
+  --plate-shadow:
+    0 0 0 var(--plate-frame-w) var(--plate-frame),
+    0 3px 10px rgba(0, 0, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.4);
+
+  // ─── elevation / shadows (cooler + stronger on dark) ───────────
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --ref-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --ref-shadow-2: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 10px rgba(0, 0, 0, 0.5);
+  --ref-shadow-3: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.5), 0 12px 28px rgba(0, 0, 0, 0.55);
+  --sys-elevation-dock: 0 -1px 6px rgba(0, 0, 0, 0.5);
+  // Drawer edge-glint (dark): warm-coal кант исчезает на near-black → слабый СВЕТЛЫЙ
+  // rim + мягкая тёмная ambient-тень, чтобы краевой дровер сохранил стеклянную кромку.
+  --sys-elevation-drawer-glint-bottom: 0 -1px 0 rgba(255, 255, 255, 0.06), 0 -3px 8px rgba(0, 0, 0, 0.45);
+  --sys-elevation-drawer-glint-left: 1px 0 0 rgba(255, 255, 255, 0.05), 8px 0 24px rgba(0, 0, 0, 0.5);
+  --sys-elevation-drawer-glint-right: -1px 0 0 rgba(255, 255, 255, 0.05), -8px 0 24px rgba(0, 0, 0, 0.5);
+
+  // ─── event trio (sage — lifted a touch for dark) ───────────────
+  --event-scale-accent: #6f9a66;
+  --event-tag-accent: #4f9a89;
+  --event-relation-accent: #46939b;
+
+  // ─── Time-of-day palettes (deep-tinted; light truth = pastels) ─
+  // Morning (green)
+  --tod-morning-bg-from: #16211a;
+  --tod-morning-bg-to: #131e17;
+  --tod-morning-outline-from: #2f6146;
+  --tod-morning-outline-to: #2c5a40;
+  --tod-morning-tapped: #1b2c21;
+  // Day (amber)
+  --tod-day-bg-from: #221b10;
+  --tod-day-bg-to: #1f180e;
+  --tod-day-outline-from: #705a28;
+  --tod-day-outline-to: #665226;
+  --tod-day-tapped: #2a2114;
+  // Evening (lavender)
+  --tod-evening-bg-from: #1d1826;
+  --tod-evening-bg-to: #191523;
+  --tod-evening-outline-from: #4b3d68;
+  --tod-evening-outline-to: #443a5f;
+  --tod-evening-tapped: #251d34;
+  // Night (blue/slate)
+  --tod-night-bg-from: #161d2c;
+  --tod-night-bg-to: #131926;
+  --tod-night-outline-from: #304468;
+  --tod-night-outline-to: #2c3e5f;
+  --tod-night-tapped: #1a2439;
+}
+
+// ─── Native scrollbars (index.scss hard-codes light greys) ───────────
+// color-scheme: dark already re-tints the thin (Firefox) scrollbar; these cover
+// the -webkit- thumb/track that index.scss paints with fixed light literals.
+:root[data-theme-mode='dark'] {
+  ::-webkit-scrollbar-thumb {
+    background-color: #4a4740;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #5c584f;
+    border-color: transparent;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: #1a1712;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
+  }
+}

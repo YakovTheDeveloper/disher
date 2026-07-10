@@ -16,6 +16,7 @@ import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { StoragePressureBanner } from '@/features/storage-warning/StoragePressureBanner';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
+import { useApplyColorMode } from '@/shared/lib/color-mode';
 
 // Single app-wide tone. Every interactive surface (--sys-field-* inputs/chips,
 // --sys-card-*/--list-* rows) derives its colour from ONE palette: the fixed `mono`
@@ -31,6 +32,7 @@ export default function App() {
   useUserAgentDetection();
   useGlobalScrollBlur();
   useApplyUserTheme();
+  useApplyColorMode();
   setupGlobalLog();
 
   return (

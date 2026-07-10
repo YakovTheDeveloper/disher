@@ -75,6 +75,7 @@ export type AnalysisOutput = {
 // tryParseOutput so a prompt change that breaks the parser fails CI.
 export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИЧЕГО кроме JSON:
 {
+  "reasoning": "Черновик рассуждений — в ответ юзеру НЕ показывается. Здесь думай широко: перебери кандидатов-связок по ВСЕМ осям (еда, состав/нутриенты, время и ритм приёмов, события, сочетания двух факторов), прикинь на скольких днях окна каждая держится и держится ли в контр-днях (дни без этой еды / без этого симптома), отметь возможный лаг (симптом мог отстать от еды на часы-сутки). Что отсеял как единичное совпадение — тоже отметь. В блоки ниже клади только то, у чего есть опора в данных.",
   "summary": "1–2 фразы: общая картина окна простым языком. Без диагнозов.",
   "observations": [
     {
@@ -112,13 +113,17 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
 
 Как выбрать между наблюдением и инсайтом: спроси себя «это просто факт/закономерность для справки — или это полезно/вредно для юзера и стоит запомнить?». Факт без оценки → observation. Польза или вред → insight (с valence).
 
+Ищи как можно больше связей — но каждую с опорой. Прочеши ВСЕ оси, не останавливайся на первых двух-трёх находках: одиночные продукты, состав/нутриенты, время и ритм приёмов, события, и особенно СОЧЕТАНИЯ двух факторов (еда+еда, еда+время, еда+контекст события). Слабую, но реальную связку (на одном-двух днях) НЕ выкидывай молча — выдай её как находку со strength "weak". Отбрасывай только то, под чем нет вообще никакой опоры в данных. Лучше выдать 5 честно размеченных находок (часть "weak"), чем 2.
+
 Правила:
+- reasoning — сначала заполни его (внутренний черновик, юзеру не показывается): перебери кандидатов по всем осям и отсей необоснованные. Потом на его основе заполни блоки ниже. reasoning в блоки не дублируется.
 - summary — всегда непустой. Если данных мало для выводов — так и напиши в summary, а observations/insights/hypotheses оставь пустыми.
-- observations — 0–4. У КАЖДОГО поле evidence обязательно с опорой в данных: evidence.days (реальные дни окна) ИЛИ evidence.foods (продукты). foods/events — ключевые еда/события. Нет опоры — не выдумывай наблюдение.
-- insights — 0–4. У КАЖДОГО valence ("positive"/"negative") И evidence (days или foods) ОБЯЗАТЕЛЬНЫ. Нет опоры — не выдумывай связку.
-- strength: уверенность в находке. "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка), единичное совпадение — "weak", промежуточное — "moderate". valence (хорошо/плохо) и strength (уверенность) — разные оси.
-- hypotheses — 0–3 независимые, каждая как мини-эксперимент: что проверить и как. suggestedDays — опциональное рекомендованное окно проверки в днях.
-- Без медицинских советов и диагнозов нигде. Без комментариев и markdown-заборов вокруг JSON.`;
+- observations — 0–6. У КАЖДОГО поле evidence обязательно с опорой в данных: evidence.days (реальные дни окна) ИЛИ evidence.foods (продукты). foods/events — ключевые еда/события. Нет опоры — не выдумывай наблюдение.
+- insights — 0–6. У КАЖДОГО valence ("positive"/"negative") И evidence (days или foods) ОБЯЗАТЕЛЬНЫ. Нет опоры — не выдумывай связку.
+- strength: уверенность в находке. "clear" только при явном повторе (примерно ≥40% дней окна или сильная связка, устойчивая и в контр-днях), единичное совпадение — "weak", промежуточное — "moderate". valence (хорошо/плохо) и strength (уверенность) — разные оси. Низкая уверенность — это НЕ повод молчать, это повод поставить "weak".
+- hypotheses — 0–5 независимых, каждая как мини-эксперимент: что проверить и как. Хорошая гипотеза рождается из слабой (weak) связки, которую стоит подтвердить. suggestedDays — опциональное рекомендованное окно проверки в днях.
+- Без медицинских советов и диагнозов нигде. Без комментариев и markdown-заборов вокруг JSON.
+- ЯЗЫК: весь текст в значениях полей (summary, title, detail, body) — СТРОГО на русском языке. Никакого английского в тексте для юзера, даже если в данных встречаются английские слова. Ключи JSON и enum-значения (weak/moderate/clear, positive/negative) — как в спецификации, их не переводи.`;
 
 // Insights don't have to come from food↔event correlations — they can come from
 // the FOOD ITSELF: nutrient synergies and antagonisms in what was eaten (iron +
@@ -128,7 +133,15 @@ export const ANALYSIS_OUTPUT_PROMPT_SPEC = `Верни строго JSON и НИ
 // may be empty — the relaxed grounding gate in tryParseOutput lets a foods-only
 // insight through. Append this to a system prompt that wants compositional
 // insights (daily / period / dish).
-export const ISOLATED_FOOD_INSIGHT_INSTRUCTION = `Ищи инсайты не только в связке «еда↔событие», но и в САМОМ составе еды: синергии и антагонизмы нутриентов (напр. железо + витамин C — лучше усвоение → positive; кальций мешает усвоению железа → negative; жирорастворимые витамины лучше с жирами; и т. п.). Это именно ИНСАЙТЫ (полезно/вредно), а не нейтральные наблюдения: у каждого valence ОБЯЗАТЕЛЬНО ("positive" — удачная связка, "negative" — мешающая) и evidence.foods ОБЯЗАТЕЛЬНО (продукты, о которых речь), а evidence.days может быть пустым — связка по составу не привязана к конкретному дню.`;
+export const ISOLATED_FOOD_INSIGHT_INSTRUCTION = `Ищи инсайты не только в связке «еда↔событие», но и в САМОМ составе еды: синергии и антагонизмы нутриентов. Пройдись по этому чек-листу известных взаимодействий и проверь, встречались ли пары в одном приёме/дне:
+— витамин C усиливает усвоение НЕгемового железа (растит. железо + перец/цитрус/зелень) → positive;
+— кальций (молочка) в одном приёме с железом мешает его усвоению → negative;
+— фитаты (цельные злаки, бобовые, орехи), оксалаты (шпинат, свёкла, щавель) и танины (чай, кофе) связывают железо/цинк/кальций/магний → negative;
+— жирорастворимые витамины (A, D, E, K) и каротиноиды усваиваются заметно лучше с жирами в том же приёме → positive; те же продукты без жира → упущенная польза;
+— цинк и медь конкурируют: систематический перекос в сторону цинка мешает меди → negative;
+— медь нужна для транспорта железа; цинк нужен для переноса витамина A → синергии;
+— фолат и B12 работают в паре; белок (гистидин) улучшает усвоение кальция и цинка → positive.
+Это ориентиры, а не полный список — замеченную не из чек-листа связку тоже выдавай. Это именно ИНСАЙТЫ (полезно/вредно), а не нейтральные наблюдения: у каждого valence ОБЯЗАТЕЛЬНО ("positive" — удачная связка, "negative" — мешающая) и evidence.foods ОБЯЗАТЕЛЬНО (продукты, о которых речь), а evidence.days может быть пустым — связка по составу не привязана к конкретному дню.`;
 
 // Each schedule_food carries a `details` string — comma-separated free-text
 // tags the user attached to the meal (способ готовки, выдержка, источник,
@@ -145,6 +158,22 @@ const DETAILS_COHORT_INSTRUCTION = `Каждый приём пищи может 
 // not facts. This is the events-side mirror of DETAILS_COHORT_INSTRUCTION; it
 // exists because events used to be dumped as raw JSON with no reading guidance.
 const EVENTS_MINING_INSTRUCTION = `События юзера приходят с полем text (свободное описание самочувствия/состояния) и иногда с атомами-оценками (шкала 1–10 с ярлыком явления, напр. «Боль» 7/10). Прочти text всех событий окна. Кластеризуй повторяющиеся явления, даже если в разные дни они названы по-разному («болит голова» ≈ «мигрень» ≈ «тяжёлая голова») — для корреляции это один ряд. В тексте юзер часто сам называет предполагаемую причину («болела голова из-за недосыпа», «бодрость после кофе») — это ГИПОТЕЗА юзера, а не факт: взвешивай её против реальной еды окна, не принимай на веру и не повторяй как готовый вывод. Шкальные оценки — это сила явления: учитывай величину (7/10 vs 3/10), а не только факт, что событие было. Минимум для паттерна — повтор примерно в ≥20% дней окна; единичное явление не паттерн.`;
+
+// Food→symptom effects are frequently DELAYED (research on food/symptom diaries
+// puts the lag anywhere from a couple hours to ~2 days). A weekly analyzer that
+// only pairs same-day food with same-day symptoms misses most real links. This
+// instruction tells the model to look across the day boundary and at cumulative
+// load over consecutive days — the single biggest yield lever for a multi-day
+// window. Weekly-only (a 1-day window has no cross-day carryover).
+const TEMPORAL_LAG_INSTRUCTION = `Учитывай ЗАДЕРЖКУ: реакция на еду часто отстаёт — от нескольких часов до 1–2 суток. Не ограничивайся связками «еда и симптом в один день»: смотри и на переход через ночь (поздний ужин → самочувствие утром), и на накопление за несколько дней подряд (напр. несколько дней подряд с одним продуктом → симптом к концу серии). Где связка правдоподобна с лагом — так и опиши в detail («симптом на следующий день после…»), а дни-опоры в evidence.days указывай реальные (и день еды, и день симптома, если оба в окне).`;
+
+// The contrast (counterfactual) method: a co-occurrence is only a real signal if
+// the symptom is rarer WITHOUT the food (and/or the food usually brings the
+// symptom). Making the model check the opposite days both filters coincidences
+// AND surfaces more genuine links it would otherwise overlook — it's a
+// yield-and-quality lever, not just a guard. Weekly-only (needs multiple days to
+// contrast).
+const CONTRAST_METHOD_INSTRUCTION = `Каждую подозреваемую связку «еда↔событие» проверяй контрастом: сравни дни С этим продуктом и дни БЕЗ него. Связка правдоподобна, если в дни без продукта симптом заметно реже (или его нет), и/или почти каждый день с продуктом идёт с симптомом. Если симптом одинаково часто и с продуктом, и без — это, скорее всего, совпадение: понижай strength или переводи в гипотезу. Контраст помогает не только отсеивать ложное, но и находить неочевидное — прогоняй через него разных кандидатов, а не только первого.`;
 
 // ─── Nutrient anchor ───
 // The client computes approximate per-day nutrient sums (from the catalog) and
@@ -202,6 +231,10 @@ export const SYSTEM_PROMPT_BASE = `Ты помогаешь юзеру в его 
 ${DETAILS_COHORT_INSTRUCTION}
 
 ${EVENTS_MINING_INSTRUCTION}
+
+${TEMPORAL_LAG_INSTRUCTION}
+
+${CONTRAST_METHOD_INSTRUCTION}
 
 ${DISH_DETAILS_INSTRUCTION}
 
@@ -478,6 +511,162 @@ export function safeStringifyArray(
 
   const json = '[' + taken.map((i) => encoded[i]).join(',') + ']';
   return { json, kept: taken.length, dropped: arr.length - taken.length };
+}
+
+// ─── Critic stage (experimental, gated by ANALYSIS_CRITIC) ───
+// A second, CHEAP pass by a DIFFERENT model that audits the generator's draft
+// for over-claimed / spurious correlations — the one failure mode this feature
+// actually has (the generator is told to cast wide, so it over-produces, not
+// under-produces). The critic returns ONLY verdicts (keep / drop / downgrade)
+// keyed by a stable draft id; the PATCH is applied in code (applyCriticVerdicts),
+// so the critic can never hallucinate a new finding — it can only prune or
+// soften. Research 2026 note: multi-agent *debate* risks "factual attrition" for
+// grounded tasks like this; a single skeptic-filter in a fresh context (no
+// confirmation bias) is the cheap, safe lever. Observations get ids o0…, insights
+// i0…; hypotheses and summary are out of scope (speculative / narrative).
+
+export type CriticAction = "keep" | "drop" | "downgrade";
+
+export type CriticVerdict = {
+  id: string; // "o<idx>" | "i<idx>", matching serializeDraftForCritic
+  action: CriticAction;
+  strength?: AnalysisStrength; // target strength for a downgrade (never raises)
+  reason?: string; // internal, not shown to the user
+};
+
+// Confidence ordering — a downgrade may only LOWER strength, never raise it.
+const STRENGTH_RANK: Record<AnalysisStrength, number> = {
+  weak: 0,
+  moderate: 1,
+  clear: 2,
+};
+
+function evidenceLine(ev: AnalysisEvidence): string {
+  const parts: string[] = [];
+  if (ev.days.length) parts.push(`дни: ${ev.days.join(", ")}`);
+  if (ev.foods?.length) parts.push(`еда: ${ev.foods.join(", ")}`);
+  if (ev.events?.length) parts.push(`события: ${ev.events.join(", ")}`);
+  return parts.join("; ") || "нет опоры";
+}
+
+// Render the draft's gradable findings (observations + insights) as a compact,
+// id-tagged list for the critic. Ids are positional and MUST match the order
+// applyCriticVerdicts walks — both read the same AnalysisOutput, so they align.
+export function serializeDraftForCritic(output: AnalysisOutput): string {
+  const lines: string[] = [];
+  output.observations.forEach((o, i) => {
+    lines.push(
+      `o${i} [наблюдение, ${o.strength}] ${o.title} — ${o.detail} (${evidenceLine(o.evidence)})`,
+    );
+  });
+  output.insights.forEach((it, i) => {
+    lines.push(
+      `i${i} [инсайт ${it.valence}, ${it.strength}] ${it.title} — ${it.detail} (${evidenceLine(it.evidence)})`,
+    );
+  });
+  return lines.join("\n");
+}
+
+// Critic system prompt — skeptic reviewer persona, verdicts-only contract.
+export const CRITIC_SYSTEM_PROMPT = `Ты — придирчивый рецензент в персональной лаборатории еды и симптомов. Тебе дают исходные данные окна (приёмы пищи, события, ориентировочные нутриенты) и ЧЕРНОВИК находок другой нейросети — список наблюдений (o0, o1, …) и инсайтов (i0, i1, …). Твоя задача — проверить КАЖДУЮ находку на переоценку и на ложную корреляцию и вынести вердикт. Ты НЕ добавляешь новые находки и НЕ переписываешь тексты — только судишь имеющиеся.
+
+Как судить каждую находку:
+- Контраст: держится ли связка в дни БЕЗ этого продукта/фактора? Если симптом одинаково част и с фактором, и без — это совпадение.
+- Единичность: связка на 1 дне при заявленной силе "clear"/"moderate" — переоценка.
+- Лаг: правдоподобна ли задержка «еда → симптом» (часы–2 суток) или это натяжка.
+- Опора: соответствует ли evidence тексту находки.
+
+Вердикты:
+- "keep" — находка обоснована, сила адекватна. По умолчанию используй keep — режь только при реальной проблеме, не души всё подряд.
+- "downgrade" — находка реальна, но сила завышена. Укажи новую strength ("moderate" или "weak"), она может только ПОНИЖАТЬ.
+- "drop" — находка спурьёзна/беспочвенна (единичное совпадение, нет контраста, противоречит данным).
+
+Верни СТРОГО JSON и ничего кроме JSON:
+{
+  "verdicts": [
+    { "id": "i0", "action": "keep" },
+    { "id": "o1", "action": "downgrade", "strength": "weak", "reason": "связка лишь на одном дне" },
+    { "id": "i2", "action": "drop", "reason": "симптом так же част в дни без продукта" }
+  ]
+}
+Правила: id — ровно как в черновике (o<номер> / i<номер>). Каждой находке ровно один вердикт; находку без вердикта считаем keep. reason — коротко и на русском, он внутренний. Без markdown-заборов вокруг JSON.`;
+
+// Permissive verdict parser — same defensive style as tryParseOutput. Returns
+// [] on anything unusable (fail-open: no verdicts ⇒ draft kept as-is).
+export function parseCriticVerdicts(content: string): CriticVerdict[] {
+  let jsonStr = content.trim();
+  const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) jsonStr = fenceMatch[1].trim();
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch {
+    return [];
+  }
+  // Accept either { verdicts: [...] } or a bare [...] array.
+  const arr = Array.isArray(parsed)
+    ? parsed
+    : parsed && typeof parsed === "object"
+      ? (parsed as Record<string, unknown>).verdicts
+      : undefined;
+  if (!Array.isArray(arr)) return [];
+
+  const out: CriticVerdict[] = [];
+  for (const v of arr) {
+    if (!v || typeof v !== "object" || Array.isArray(v)) continue;
+    const o = v as Record<string, unknown>;
+    if (typeof o.id !== "string") continue;
+    if (o.action !== "keep" && o.action !== "drop" && o.action !== "downgrade")
+      continue;
+    const verdict: CriticVerdict = { id: o.id, action: o.action };
+    if (o.strength === "weak" || o.strength === "moderate" || o.strength === "clear")
+      verdict.strength = o.strength;
+    if (typeof o.reason === "string") verdict.reason = o.reason;
+    out.push(verdict);
+  }
+  return out;
+}
+
+// Apply verdicts to the draft. drop ⇒ remove; downgrade ⇒ lower strength only
+// (a target ≥ current is ignored; a downgrade with no/invalid target steps down
+// one level); keep / missing verdict ⇒ untouched. summary + hypotheses pass
+// through unchanged. Never adds a finding — pruning/softening only.
+export function applyCriticVerdicts(
+  output: AnalysisOutput,
+  verdicts: CriticVerdict[],
+): AnalysisOutput {
+  const byId = new Map<string, CriticVerdict>();
+  for (const v of verdicts) if (!byId.has(v.id)) byId.set(v.id, v);
+
+  const stepDown = (s: AnalysisStrength): AnalysisStrength =>
+    s === "clear" ? "moderate" : "weak";
+
+  const gradeOne = <T extends { strength: AnalysisStrength }>(
+    item: T,
+    id: string,
+  ): T | null => {
+    const v = byId.get(id);
+    if (!v || v.action === "keep") return item;
+    if (v.action === "drop") return null;
+    // downgrade
+    const target =
+      v.strength && STRENGTH_RANK[v.strength] < STRENGTH_RANK[item.strength]
+        ? v.strength
+        : STRENGTH_RANK[item.strength] > 0
+          ? stepDown(item.strength)
+          : item.strength;
+    return { ...item, strength: target };
+  };
+
+  const observations = output.observations
+    .map((o, i) => gradeOne(o, `o${i}`))
+    .filter((o): o is AnalysisObservation => o !== null);
+  const insights = output.insights
+    .map((it, i) => gradeOne(it, `i${i}`))
+    .filter((it): it is AnalysisInsight => it !== null);
+
+  return { ...output, observations, insights };
 }
 
 // Strip null bytes that Postgres text columns reject (Bug 36). LLM and user

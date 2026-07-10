@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // ─── Profile Drawer (logged-in user) ───────────────────────────
 
 // Ambient backdrop (canon: «ambient-backdrop page chrome», project_design_dna).
@@ -47,6 +49,46 @@
 .sectionLabel {
   margin: 0;
   color: var(--sys-color-text-primary);
+}
+
+// ─── Nav-строка «Внешний вид» → под-экран ───────────────────────
+// Модификатор к QuietActionButton (базово inline-flex, space-between, muted,
+// text-align:right). Делает из неё full-width settings-строку: значок+label
+// жмутся влево, шеврон уезжает вправо (margin-left:auto), тач-пол 48px, снизу —
+// тающий hairline-разделитель (design-DNA). Значок — холодно-серый (cold-icon-
+// palette); label наследует primary-цвет ряда.
+
+.appearanceRow {
+  width: 100%;
+  min-height: 48px;
+  justify-content: flex-start;
+  gap: var(--space-3);
+  text-align: left;
+  color: var(--sys-color-text-primary);
+  position: relative;
+
+  // Значок (первый ребёнок) — холодный серый, в отличие от primary-текста.
+  > :first-child {
+    color: var(--sys-color-icon);
+  }
+
+  // Шеврон (последний ребёнок) паркуется у правого края.
+  > :last-child {
+    margin-left: auto;
+  }
+
+  // Тающий hairline снизу — канон-разделитель ряда; геометрию (::after) держит
+  // консумер, цвет-градиент даёт mixin.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    pointer-events: none;
+    @include hairline(var(--sys-color-divider));
+  }
 }
 
 // ─── Синхронизация row ──────────────────────────────────────────

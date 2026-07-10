@@ -44,8 +44,8 @@
 }
 
 // Chips / scale derive from the same `--text-*` foreground as the rest of the
-// card, published by the SHARED `[data-dv='CardPalette']` anchor (один контрол на
-// еду/блюдо/события; default `lemon`; switchable in the DesignBar).
+// card, published by the events `data-dv-v` anchor (пер-поверхностный выбор цвета
+// карточек в настройках — useCardPalette('events'); default `amber`).
 .chipScale {
   background-color: var(--sys-color-chip-tint);
   color: var(--sys-color-text-secondary);

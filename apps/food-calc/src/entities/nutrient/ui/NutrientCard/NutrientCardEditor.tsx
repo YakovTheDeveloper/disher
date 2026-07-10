@@ -5,6 +5,7 @@ import NutrientInput from './NutrientInput';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import type { Nutrient } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import styles from './NutrientCardEditor.module.scss';
+import { formatAmount } from '@/shared/lib/formatNumber';
 
 export type NutrientCardEditorVariant = 'schedule' | 'dish' | 'product-edit' | 'product-view';
 
@@ -82,7 +83,7 @@ const NutrientCardEditor: FC<Props> = ({
       </div>
       <div className={styles.bottomRow}>
         <Text as="span" role="caption" className={clsx(styles.value, !showValue && styles.valueHidden)}>
-          {showValue ? <>{value.toFixed(1)} {unitRu}</> : ' '}
+          {showValue ? <>{formatAmount(value)} {unitRu}</> : ' '}
         </Text>
         {hasNorm && (
           <span className={styles.percentLabel}>

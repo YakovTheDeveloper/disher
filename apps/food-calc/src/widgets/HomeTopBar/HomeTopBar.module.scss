@@ -2,22 +2,26 @@
 //
 // Shell look = the «floating» canon (detached translucent pill, soft elevation),
 // baked into `.shell` directly (2026-06-13 — the `ribbon` alt + the DesignBar
-// anchor were retired). The date button always uses the "numeral" rendering
-// (short serif day «Пн» over tiny stacked dd.mm meta). Day/meta sizes and the
-// pill height come from the `--bar-*` tokens in `.shell` so the date pill stays
-// in one grid with the account/center pills.
+// anchor were retired). The date button renders weekday letters («Вс») inside a
+// thin calendar silhouette (frame + two binding posts, slightly tilted); no
+// numbers (флип 2026-07-10 — the dd.mm meta + relative words were dropped, the
+// dark pill flipped to the white soft look shared with account/«О!»). The pill
+// height comes from `$pill-h` so it stays in one grid with account/center pills.
 
-// Высота-пол для ВСЕХ пилюль бара (account / center / date) — единый источник,
-// чтобы пилюли не разъезжались по вертикали. SCSS-переменная (compile-time, проходит
-// token-gate, не плодит bespoke custom-prop). AccountPanel тоже 44px.
-$pill-h: 44px;
+// Размер-пол для ВСЕХ круглых пилюль бара (account / «О!» / date) — единый источник,
+// чтобы они были одного диаметра и не разъезжались. SCSS-переменная (compile-time,
+// проходит token-gate, не плодит bespoke custom-prop). HubButton + AccountPanel тоже
+// тянут 48px из своих $pill-h (унификация 2026-07-10: было 44, «О!» выпирала из-за
+// горизонтального паддинга — теперь все три = ровный круг 48×48).
+$pill-h: 48px;
 
 .shell {
-  // Тёмная floating-обвязка (канон 2026-06-23, выбор B предложки s_364ea3f6): все
-  // пилюли (аккаунт / центр / дата) + круглый «назад» = чёрная пилюля кнопки даты
-  // через sys-роль `--sys-color-surface-floating` (#0d0b07 — тёплый-чёрный ink-strong, контент белый, на press
-  // светлый флэш). Бывший component-named бандл `--bar-*` распущен. Пилюли читают
-  // sys-роли напрямую; blur снят (непрозрачные пилюли).
+  // Floating-обвязка: три круглые пилюли (аккаунт / «О!» / дата) 48×48, все на
+  // светлой бумажной sys-роли `--sys-color-surface-action-system-soft` + ink-контент,
+  // на press — мягкое затемнение soft-pressed (флип 2026-07-10: кнопка даты была
+  // последней ТЁМНОЙ floating-пилюлей с dd.mm через `--sys-color-surface-floating`;
+  // теперь белая, как аккаунт/«О!»). Бывший component-named бандл `--bar-*` распущен —
+  // пилюли читают sys-роли напрямую; blur снят (непрозрачные пилюли).
 
   // Floating overlay над контентом: иначе HomeTopBar занимает строку
   // в flex-layout родителя, swipeArea получает свою прямоугольную
@@ -31,9 +35,24 @@ $pill-h: 44px;
   box-sizing: border-box;
   background: none;
   pointer-events: none;
+  // Плавный уход в тень, пока открыта предложка еды (см. правило ниже).
+  transition: opacity 0.24s var(--easing-default);
 
   >* {
     pointer-events: auto;
+  }
+
+  // Предложка еды открыта → верхний бар гаснет вместе со страницей. Его пилюли
+  // парят на z:10 ПОВЕРХ свайп-зоны, а дим-оверлей предложки заперт внутри дока
+  // (bottomBar z:4) и до них не дотягивается — без этого они торчали бы из-под
+  // затемнения. Флаг `data-food-review-open` ставит FoodWriteBar на body, пока
+  // панель смонтирована. opacity гасит вид, pointer-events снимает клики.
+  :global(body[data-food-review-open]) & {
+    opacity: 0;
+
+    >* {
+      pointer-events: none;
+    }
   }
 }
 
@@ -122,14 +141,14 @@ $pill-h: 44px;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-height: $pill-h;
+  width: $pill-h;
+  height: $pill-h;
   box-sizing: border-box;
   margin-right: 4px;
-  // Кап ширины = ровно контент (44px пилюля + 2px рамка). Нужен, чтобы
-  // `max-width → 0` при scroll-hide='settings' анимировался БЕЗ мёртвого хода
-  // (transition из `none` не интерполируется). `overflow: hidden` прячет глиф,
-  // пока слот схлопывается.
-  max-width: 46px;
+  // Кап ширины = диаметр круга ($pill-h). Нужен, чтобы `max-width → 0` при
+  // scroll-hide='settings' анимировался БЕЗ мёртвого хода (transition из `none`
+  // не интерполируется). `overflow: hidden` прячет глиф, пока слот схлопывается.
+  max-width: $pill-h;
   overflow: hidden;
   background: var(--sys-color-surface-action-system-soft);
   border: 1px solid var(--sys-color-surface-action-system-soft);
@@ -148,131 +167,104 @@ $pill-h: 44px;
 // стиль `.hubButton` уехал в HubButton.module.scss. HomePage передаёт `hubDate`
 // (→ AnalysisHubDrawer), страница блюда — `onHubClick` (→ DishHubDrawer).
 
-.segment {
+// Кнопка-дата — единственный потребитель этого класса (в TSX идёт одним классом).
+// Бывшая переиспользуемая база `.segment` слита сюда 2026-07-10: её on-floating
+// цвет/press-правила ВСЕГДА перебивались `.dateSegment` после флипа в белую пилюлю
+// (мёртвый слой) — держать отдельную базу больше незачем.
+.dateSegment {
+  // Круглая 48×48 кнопка БЕЗ паддинга — единый диаметр и облик со всеми пилюлями
+  // бара (аккаунт 48 / «О!» 48): surface-action-system-soft + текст system-ink,
+  // radius-indicator (=9999px → круг). Флип 2026-07-10: раньше была широкая тёмная
+  // floating-пилюля с dd.mm; теперь ровно круг-сосед. Внутри — силуэт календаря
+  // с буквами дня, центрируется flex (inline-flex, align/justify center).
   appearance: none;
-  background: transparent;
-  border: none;
-  padding: 4px 8px;
+  width: $pill-h;
+  min-width: $pill-h;
+  min-height: $pill-h;
+  padding: 0;
   margin: 0;
+  margin-left: auto;
   font: inherit;
-  color: var(--sys-color-text-on-floating);
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
   white-space: nowrap;
-  border-radius: var(--sys-radius-indicator);
+  -webkit-tap-highlight-color: transparent;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition:
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
-
-  // Светлый флэш (канон 2026-06-23): тёмная пилюля на press заливается белым,
-  // контент чернеет. Вход мгновенный (--press-in), выход мягкий (--press-out).
-  &:active {
-    background: var(--sys-color-surface-floating-pressed);
-    color: var(--sys-color-text-system);
-    transition-duration: var(--sys-duration-press-in);
-  }
-}
-
-.dateSegment {
-  // Воздух по бокам по сетке проекта (space-5 = 20px) вместо raw 14px.
-  --date-pad-x: var(--space-5);
-  // Вертикальный паддинг минимален — высоту пилюли держит `$pill-h`
-  // (min-height ниже), а `.segment` (inline-flex, align-items:center)
-  // центрирует day/dd.mm-стопку внутри неё. Так date-пилюля ровно в одной
-  // сетке с account/center и не «вырастает» из-за serif-дня.
-  --date-pad-y: 4px;
-
-  // Контент date-пилюли: белый день/цифры, приглушённый разделитель — читаются
-  // через on-floating-роли напрямую (бывшие --inline-* кнобы выпилены). Поверхность
-  // общая с остальными пилюлями (--sys-color-surface-floating). Press-флэш (ink) —
-  // оверрайдом on-floating-ролей в `.dateSegment:active` (one-place flip).
-  min-height: $pill-h;
+  justify-content: center;
   box-sizing: border-box;
-  background: var(--sys-color-surface-floating);
-  border: 1px solid var(--sys-color-surface-floating);
+  background: var(--sys-color-surface-action-system-soft);
+  border: 1px solid var(--sys-color-surface-action-system-soft);
   box-shadow: var(--sys-elevation-action-rest);
   border-radius: var(--sys-radius-indicator);
-  padding: var(--date-pad-y) var(--date-pad-x);
-  margin-left: auto;
-  // Перебивает transition из `.segment` — добавляет transform/opacity для
-  // scroll-hide, сохраняя background/color press-инверсии (см. `.segment`).
+  color: var(--sys-color-text-system);
+  // transform/opacity — для scroll-hide; background — для press-затемнения.
   transition:
     transform var(--duration-normal) var(--easing-default),
     opacity var(--duration-normal) var(--easing-default),
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
+    background var(--press-out) var(--easing-default);
 }
 
-// ─── Date-button (inline numeral, баком 2026-06-22) ─────────────────────────
-// Одна строка: короткий serif-день «Пн» · тонкий вертикальный разделитель ·
-// цифры dd.mm. Палитра (чёрная пилюля, белый текст) — на `.dateSegment` выше
-// через --inline-*. Форк paper-inline снят (ink-inline был живым дефолтом).
+// ─── Date-button (силуэт календаря + буквы дня) ─────────────────────────────
+// Тонкая обложка-силуэт календаря (рамка + две «пружинки» переплёта сверху, чуть
+// диагонально) обрамляет буквы дня недели («Вс»). Ни чисел, ни относительных слов
+// — контекст даты несёт крупный лист-заголовок. Голос — «от руки поставленный
+// штамп» (дневник натуралиста). Палитра ink-контур на белой пилюле.
 
-.dateNumeral {
+.dateCalendar {
+  position: relative;
   display: inline-flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 28px;
+  padding: 3px 6px 2px;
+  border: 1.5px solid var(--sys-color-border-strong);
+  // Мягкий уголок обложки — control-рунг (наименьший --sys-radius). 4px-токена в
+  // шкале нет; SCSS-`$` per-property token-gate не принимает (ред. 2026-06-24).
+  border-radius: var(--sys-radius-control);
+  // Чуть диагонально — обложка «поставлена от руки».
+  transform: rotate(-4deg);
+  // Место сверху под «пружинки» переплёта — они торчат над верхней гранью рамки.
+  margin-top: 3px;
 }
 
-// Полный день недели не показываем в inline-раскладке (его место — короткий
-// serif «Пн» ниже). Рендерится в JSX, но скрыт.
+// Две «пружинки» переплёта над верхней гранью календаря (posts). Перекрывают
+// границу на 1px снизу, чтобы читаться как продолжение обложки.
+.dateCalendar::before,
+.dateCalendar::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 1.5px;
+  height: 5px;
+  background: var(--sys-color-border-strong);
+}
+
+.dateCalendar::before {
+  left: 7px;
+}
+
+.dateCalendar::after {
+  right: 7px;
+}
+
+// Буквы дня недели внутри обложки — тело body-label (голос несёт <Text role="label">),
+// ink на белой пилюле. Первая буква капсом (Intl отдаёт «вс» строчными).
 .dateWeekday {
-  display: none;
-}
-
-// Короткий serif-день («Пн») — основной день inline-пилюли.
-.dateWeekdayShort {
-  display: block;
-  // День «Пн» — основной (полная непрозрачность), перебивает тихий opacity:0.5
-  // примитива <QuietLabel>, чей serif-italic голос мы здесь переиспользуем.
-  opacity: 1;
-  color: var(--sys-color-text-on-floating);
+  color: var(--sys-color-text-system);
+  line-height: 1;
 
   &::first-letter {
     text-transform: uppercase;
   }
 }
 
-// Цифры dd.mm: тонкий вертикальный разделитель слева, ширина по контенту.
-.dateMeta {
-  display: flex;
-  align-items: baseline;
-  width: auto;
-  // padding-left: 8px;
-  // border-left: 1px solid var(--sys-color-on-floating-divider);
-  line-height: 1.2;
-}
-
-// Название месяца не показываем в inline-раскладке. Рендерится в JSX, но скрыт.
-.dateMonth {
-  display: none;
-}
-
-// dd.mm — приглушённые моноширинные цифры.
-.dateDdmm {
-  // Числовой голос (размер/вес/tnum/lnum) несёт <Numeral size="base" weight="semibold">.
-  color: var(--sys-color-on-floating-strong);
-}
-
-// Плавный выход цвета dd.mm в темпе с фоном пилюли (вход мгновенный --press-in).
-.dateDdmm {
-  transition: color var(--press-out) var(--easing-default);
-}
-
-// Светлый флэш (2026-06-23): на press вся палитра контента date-пилюли (day /
-// divider / dd.mm красятся через --inline-*) чернеет, чтобы читаться на белой
-// заливке. Flip одним местом — вместо перекраски каждого глифа.
+// Press — мягкое затемнение белой пилюли (как HubButton), контур календаря
+// остаётся ink. Перебивает background press из `.segment`.
 .dateSegment:active {
-  // Press-флэш: пилюля белеет (surface-floating-pressed) → контент чернеет.
-  // Оверрайдим on-floating-роли в одном месте (вместо перекраски каждого глифа).
-  --sys-color-text-on-floating: var(--sys-color-text-system);
-  --sys-color-on-floating-strong: var(--sys-color-text-system);
-  --sys-color-on-floating-divider: var(--sys-color-border-subtle);
+  background: var(--sys-color-surface-action-system-soft-pressed);
+  color: var(--sys-color-text-system);
   transition-duration: var(--sys-duration-press-in);
 }
 
@@ -320,8 +312,6 @@ $pill-h: 44px;
   }
 
   .dateSegment {
-    transition:
-      background var(--press-out) var(--easing-default),
-      color var(--press-out) var(--easing-default);
+    transition: background var(--press-out) var(--easing-default);
   }
 }

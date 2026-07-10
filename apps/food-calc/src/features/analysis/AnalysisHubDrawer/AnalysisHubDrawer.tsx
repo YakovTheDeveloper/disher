@@ -23,6 +23,9 @@ const LONG_IMG = '/art/long-analysis.png';
 
 type Props = BaseDrawerProps<void> & {
   date: string;
+  // Скрыть нав-плитку «Страница открытий»: на самой /analyses она вела бы на себя
+  // же (self-referencing). На Home плитка нужна — уводит в раздел открытий.
+  hideDiscoveriesLink?: boolean;
 };
 
 function formatDay(date: string): string {
@@ -39,7 +42,7 @@ function formatDay(date: string): string {
 // `state.justStarted`, so the feed hook seeds it optimistically the same way. The
 // daily row is gated (offline / empty day) exactly as the former
 // AnalysisKindDrawer «Текущий день».
-const AnalysisHubDrawer = ({ date, onClose }: Props) => {
+const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props) => {
   const navigate = useNavigate();
   const online = useOnline();
   const foods = useScheduleFoods(date) ?? [];
@@ -99,12 +102,14 @@ const AnalysisHubDrawer = ({ date, onClose }: Props) => {
           art={<img src={LONG_IMG} alt="" />}
           onClick={startLong}
         />
-        <ActionTile
-          inverse
-          top="Страница открытий"
-          bottom="Инсайты и гипотезы с твоих разборов"
-          onClick={openDiscoveries}
-        />
+        {!hideDiscoveriesLink && (
+          <ActionTile
+            inverse
+            top="Страница открытий"
+            bottom="Инсайты и гипотезы с твоих разборов"
+            onClick={openDiscoveries}
+          />
+        )}
       </div>
     </DrawerLayout>
   );

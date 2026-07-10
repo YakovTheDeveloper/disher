@@ -42,6 +42,43 @@
   --tod-night-tapped: #{nth($n, 5)};
 }
 
+// Reset every TOD surface token to the INHERITED value — i.e. stop re-pinning
+// them at the wrapper so the ancestor (:root) value flows through untouched.
+// Used by card-palette-set under dark mode: the warm light palettes below would
+// otherwise stay light (their wrapper specificity beats :root[data-theme-mode]),
+// and `inherit` pulls the theme-dark.scss dark --tod-* with zero duplication.
+@mixin _tod-inherit {
+  --tod-morning-bg-from: inherit;
+  --tod-morning-bg-to: inherit;
+  --tod-morning-outline-from: inherit;
+  --tod-morning-outline-to: inherit;
+  --tod-morning-tapped: inherit;
+  --tod-day-bg-from: inherit;
+  --tod-day-bg-to: inherit;
+  --tod-day-outline-from: inherit;
+  --tod-day-outline-to: inherit;
+  --tod-day-tapped: inherit;
+  --tod-evening-bg-from: inherit;
+  --tod-evening-bg-to: inherit;
+  --tod-evening-outline-from: inherit;
+  --tod-evening-outline-to: inherit;
+  --tod-evening-tapped: inherit;
+  --tod-night-bg-from: inherit;
+  --tod-night-bg-to: inherit;
+  --tod-night-outline-from: inherit;
+  --tod-night-outline-to: inherit;
+  --tod-night-tapped: inherit;
+}
+
+// Same idea for the foreground: let the :root (theme-dark) --text-* light ink
+// flow through instead of the graphite/twilight anchors the palettes pin.
+@mixin dv-text-inherit {
+  --text-primary: inherit;
+  --text-secondary: inherit;
+  --text-tertiary: inherit;
+  --text-muted: inherit;
+}
+
 // meadow — green → aqua → sky → graphite (cool cohesive).
 @mixin dv-palette-meadow {
   @include _tod-palette((rgba(225, 245, 230, 0.88), rgba(212, 238, 220, 0.88), rgba(60, 130, 90, 0.30), rgba(60, 130, 90, 0.20), rgba(202, 232, 212, 0.92)),
@@ -280,12 +317,13 @@ $dv-text-twilight: (
     (rgba(158, 132, 192, 0.85), rgba(140, 112, 178, 0.85), rgba(45, 31, 68, 0.35), rgba(45, 31, 68, 0.24), rgba(130, 102, 168, 0.90)));
 }
 
-// ─── ОБЩИЙ форк карточной палитры (один контрол на все поверхности) ──────────
-// Один источник: еда расписания, ингредиенты блюда и события зовут
-// `useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES)` (shared/lib/cardPalette.ts)
-// и включают ЭТОТ миксин под своей обёрткой. Дефолт = lemon (единый жёлтый голос);
-// форки по `data-dv-v` перекрывают. Строки `data-dv-v` обязаны совпадать с
-// CARD_PALETTES.
+// ─── Форк карточной палитры (пер-поверхностный выбор из настроек) ────────────
+// Еда расписания, ингредиенты блюда и события читают свою палитру через
+// `useCardPalette(surface)` (shared/lib/cardPalette.ts) и спредят `data-dv-v` на
+// свою обёртку, включая ЭТОТ миксин. Выбор постоянный, живёт в настройках
+// (ProfileDrawer → «Цвет карточек»), раздельный для каждой поверхности. Дефолт =
+// amber; форки по `data-dv-v` перекрывают. Строки `data-dv-v` обязаны совпадать
+// с CARD_PALETTES.
 //
 // СПЕЦИФИЧНОСТЬ: подключать под ТРОЕННЫМ селектором обёртки
 // (`.x.x.x { @include card-palette-set; }`), чтобы форки `&[data-dv-v]` встали на
@@ -312,4 +350,126 @@ $dv-text-twilight: (
   // глобально белит текст ночных строк, наши палитры остаются светлыми → имена
   // исчезают. Re-pin graphite на любом ночном потомке обёртки.
   [data-tod='night'] { @include dv-text($dv-text-graphite); }
+
+  // ── DARK MODE: collapse the warm light palettes back to the theme-dark TOD
+  // family + light ink. The card palettes above pin LIGHT --tod-*/--text-* at
+  // the (0,4,0) wrapper forks, which out-specify :root[data-theme-mode='dark']
+  // → every schedule/event/dish card would stay a light spot in the dark. This
+  // block sits at (0,5,0) (`:root[data-theme-mode='dark'] &`) so it beats the
+  // forks AND the night re-pin above; `inherit` pulls the dark :root values
+  // (theme-dark.scss) with no duplication. Covers all palettes at once.
+  :root[data-theme-mode='dark'] & {
+    @include _tod-inherit;
+    @include dv-text-inherit;
+    [data-tod='night'] { @include dv-text-inherit; }
+  }
+}
+
+// ─── PLUM edit-chip explorations (ItemActionsDrawer ряд правок) ──────────────
+// Сливовая (plum) расцветка трёх кнопок правок (Кол-во · Уточнения · Время) —
+// 6 форков, играющих осями ЗАЛИВКА / РАМКА / ТЕКСТ+ИКОНКА. Живёт ЗДЕСЬ (exempt-
+// файл палитр), как `card-palette-set` / `dv-palette-*`: сырые rgba + gated
+// `border-color`/`color` не нужны sys-токенам, пока идёт эксплорация цвета —
+// gate не покрывает exempt-палитры (когда выберут финал — минтим `--sys-*` роль).
+//
+// Консумер (`ItemActionsDrawer.module.scss`) включает миксин под `.editRow`,
+// на который сидит анкор `useDesignVariant('ItemActionsEdit', PLUM_EDIT_VARIANTS)`.
+// Форки бьют по `&[data-dv-v='plum-*']`, перекрывая опубликованные
+// `Button.systemSecondary` локали (`--sec-soft/-text/-press`) на `.editBtn`
+// (кастом-проперти на самом элементе бьёт `.systemSecondary` по специфичности).
+// Класс `.editBtn` хешируется CSS-модулем консумера (SCSS-разворот `@include` до
+// module-scoping), поэтому селекторы совпадут с `s.editBtn`.
+//
+// Один винный хюэ (~330°). Дефолт (без форка) = plum-soft (index 0 варианта).
+@mixin plum-edit-chips {
+  $ink: rgba(74, 40, 70, 1); //           глубокий сливовый текст на бледном
+  $ink-deep: rgba(58, 28, 56, 1); //      ещё темнее — под плотные форки
+  $soft: rgba(245, 233, 243, 0.96); //    бледная лиловая заливка
+  $soft-press: rgba(237, 221, 234, 0.97); // press — ступень темнее
+  $chroma: rgba(233, 213, 231, 0.96); //  плотнее хрома (deep)
+  $chroma-press: rgba(225, 202, 223, 0.97);
+  $border: rgba(150, 92, 140, 0.42); //   средняя сливовая рамка
+  $border-strong: rgba(140, 78, 132, 0.62); // сильный каркас (frame)
+  $icon: rgba(120, 70, 116, 0.85); //     сливовый глиф
+  $icon-deep: rgba(104, 58, 100, 0.9); // насыщеннее — под плотные форки
+  $bold: rgba(92, 52, 88, 1); //          сплошной глубокий plum (инверсия)
+  $bold-press: rgba(78, 42, 74, 1);
+  $on-bold: rgba(250, 243, 249, 0.96); // светлый текст на сплошном
+  $icon-on-bold: rgba(250, 243, 249, 0.72);
+
+  // Дефолт (нет форк-атрибута) = plum-soft: тональная заливка, без рамки.
+  .editBtn {
+    --sec-soft: #{$soft};
+    --sec-text: #{$ink};
+    --sec-press: #{$soft-press};
+  }
+  .editBtn > span[aria-hidden='true'] {
+    color: $icon;
+    opacity: 1;
+  }
+
+  // (1) plum-soft — то же, что дефолт (явный форк для полноты набора в баре).
+  &[data-dv-v='plum-soft'] {
+    .editBtn {
+      --sec-soft: #{$soft};
+      --sec-text: #{$ink};
+      --sec-press: #{$soft-press};
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon; }
+  }
+
+  // (2) plum-outline — прозрачный фон + сливовая рамка (воздушный контур).
+  &[data-dv-v='plum-outline'] {
+    .editBtn {
+      --sec-soft: transparent;
+      --sec-text: #{$ink};
+      --sec-press: #{$soft-press};
+      border-color: $border;
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon; }
+  }
+
+  // (3) plum-soft-border — заливка И рамка.
+  &[data-dv-v='plum-soft-border'] {
+    .editBtn {
+      --sec-soft: #{$soft};
+      --sec-text: #{$ink};
+      --sec-press: #{$soft-press};
+      border-color: $border;
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon; }
+  }
+
+  // (4) plum-deep — плотнее хрома заливки, глубже ink, тонкая рамка.
+  &[data-dv-v='plum-deep'] {
+    .editBtn {
+      --sec-soft: #{$chroma};
+      --sec-text: #{$ink-deep};
+      --sec-press: #{$chroma-press};
+      border-color: $border;
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon-deep; }
+  }
+
+  // (5) plum-frame — бледный фон + сильный 1.5px каркас (frame-forward).
+  &[data-dv-v='plum-frame'] {
+    .editBtn {
+      --sec-soft: #{$soft};
+      --sec-text: #{$ink};
+      --sec-press: #{$soft-press};
+      border-color: $border-strong;
+      border-width: 1.5px;
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon-deep; }
+  }
+
+  // (6) plum-bold — сплошной глубокий plum + светлый текст (инверсия «выбрано»).
+  &[data-dv-v='plum-bold'] {
+    .editBtn {
+      --sec-soft: #{$bold};
+      --sec-text: #{$on-bold};
+      --sec-press: #{$bold-press};
+    }
+    .editBtn > span[aria-hidden='true'] { color: $icon-on-bold; }
+  }
 }

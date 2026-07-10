@@ -11,6 +11,9 @@
 @import './palette.scss';
 @import './tokens.scss';
 @import './themes.scss';
+// Dark MODE layer — must come AFTER themes.scss so `:root[data-theme-mode='dark']`
+// wins at equal specificity over `:root[data-theme=<palette>]` (see theme-dark.scss).
+@import './theme-dark.scss';
 
 :root {
   margin: 0 auto;
@@ -99,6 +102,32 @@ button {
 input,
 textarea {
   font-family: inherit;
+}
+
+// Интерактивные элементы НЕ должны выделяться как текст: кнопка/лейбл/таб/опция —
+// это тап-таргет, а не проза. Выделение их глифа (long-press по чипам «Особенности»,
+// сегмент Еда|Мое, имена рядов SearchFood, дуги медали) читается как случайный
+// UX-мусор. Раньше защита стояла ad-hoc по компонентам (SwitcherTab/Select/… гасили,
+// Chip/Choice/Button/FoodActionCard — нет) → игра в whack-a-mole. Один ресет вместо N.
+// Инпуты/textarea/проза — не кнопки, их не задевает (см. re-enable ниже).
+button,
+label,
+[role='button'],
+[role='option'],
+[role='tab'] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+// user-select наследуется → `<label>` с вложенным `<input>` мог бы погасить
+// выделение ВНУТРИ поля (label-focus-делегация ModalByLabel/WriteBarMedal оборачивает
+// инпуты). Явно возвращаем text редактируемым/копируемым узлам.
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 

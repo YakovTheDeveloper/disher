@@ -12,7 +12,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-2) var(--space-3);
+  // Горизонтальный gutter НЕ несём сами — им владеет ОДИН слой, обёртка
+  // ModalShell.wrapper (padding-inline: --sys-inset-modal-fullscreen). Раньше тут
+  // было --space-2 (8), и внутри обёртки хедер лежал на 12+8=20, а standalone —
+  // на 8: один компонент, два x-офсета. Теперь 0 по бокам → хедер всегда встаёт
+  // ровно на инсет обёртки, консистентно и в ModalShell, и в ModalStepHeader.
+  padding: var(--space-4) 0 var(--space-1);
 }
 
 // compact — вложенные мелкие панели (atom-панели): меньше вертикали.
@@ -20,28 +25,15 @@
   padding: var(--space-2) var(--space-4);
 }
 
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: var(--space-1);
-  border-radius: var(--sys-radius-tmp); /* was 4px (radius-xs) — icon button */
-  color: var(--sys-color-text-system);
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
-
-  // Цветной отклик: на нажатии глиф → surface-акцент + лёгкий тинт-фон.
-  &:active {
-    background: var(--sys-color-bg-press);
-    color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--sys-duration-press-in);
-  }
+// Back-кнопка модалки = примитив IconButton tone="soft": покойная ink-подложка
+// (--sys-color-surface-icon-tile) + холодный глиф + press несёт сам тон. Здесь —
+// только ГЕОМЕТРИЯ круглой 40px-плитки + кегль стрелки. Раньше подложка/цвет/press
+// были bespoke-класс поверх neutral; вынесены в общий tone="soft" (один дом для
+// back/фильтр/ⓘ), у которого фон = именованный sys-токен (тема-безопасен ink-флипом).
+.header .backButton {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--sys-radius-indicator); // круглая
 
   svg {
     width: 24px;
@@ -49,20 +41,26 @@
   }
 }
 
-// Абсолютное центрирование относительно полосы: 50% — середина экрана,
-// независимо от ширины back-кнопки / trailing-слота. max-width резервирует
-// поля под оба боковых слота, чтобы длинный заголовок не наезжал на них.
-// Блок несёт центрирование, чтобы заголовок + подзаголовок ехали как одна
-// колонка по центру полосы.
+// Абсолютное центрирование ПО ГОРИЗОНТАЛИ относительно полосы: left 50% —
+// середина экрана, независимо от ширины back-кнопки / trailing-слота. max-width
+// резервирует поля под оба боковых слота, чтобы длинный заголовок не наезжал.
+// ПО ВЕРТИКАЛИ блок растянут на content-box (top/bottom = padding полосы) и
+// центрирует содержимое через justify-content. Так заголовок встаёт на ОДНУ
+// линию с back-кнопкой (flex-ребёнок центрируется по content-box) при ЛЮБОМ,
+// в т.ч. асимметричном, вертикальном padding — раньше `top:50%` мерил от
+// padding-box и рассинхронизировался со стрелкой, как только верх ≠ низ.
+// Значения top/bottom ДОЛЖНЫ совпадать с вертикальным padding `.header`.
 .titleBlock {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  top: var(--space-4);
+  bottom: var(--space-1);
+  transform: translateX(-50%);
   max-width: calc(100% - var(--space-12) * 2);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
 .title {
@@ -71,6 +69,65 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// titleAlign="rail" — заголовок покидает центр полосы и встаёт на «рельсу» контента.
+// Остаётся абсолютным (стрелка/трейлинг его не двигают), но левый край текста
+// прибит к var(--rail-text), которую экран-хозяин задаёт на общем предке (SearchFood
+// `.content`) — так заголовок, имена карточек и плейсхолдер поиска стоят на ОДНОЙ
+// вертикали. Fallback = сразу за back-кнопкой (padding + 24px глиф + gap ≈ 3rem),
+// если рельса не задана. Перебивает `.titleBlock` (равная специфичность, ниже по коду).
+.titleBlockRail {
+  left: var(--rail-text, 3rem);
+  transform: none;
+  align-items: flex-start;
+  // Резерв справа под трейлинг-слот/край, чтобы длинный заголовок обрезался ellipsis.
+  max-width: calc(100% - var(--rail-text, 3rem) - var(--space-8));
+
+  .title,
+  .subtitle {
+    text-align: left;
+  }
+}
+
+// titleMeta задан → трёхчастная раскладка по ширине полосы: заголовок слева на
+// рельсе, мета (дата) у правого края, middot `·` ПО ЦЕНТРУ зазора. Блок покидает
+// absolute-центрирование (`.titleBlockRail`) и тянется flex:1 между back-кнопкой
+// и правым краем полосы. Идёт ПОСЛЕ `.titleBlockRail` — при равной специфичности
+// (0,1,0) перебивает его конфликтующие position/left/transform/max-width.
+.titleBlockSplit {
+  position: static;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  transform: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0;
+
+  .title {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  // Auto-margins с обеих сторон съедают свободное место поровну → точка встаёт
+  // ровно по центру зазора между заголовком и датой.
+  .titleSep {
+    flex: 0 0 auto;
+    margin-inline: auto;
+    color: var(--sys-color-text-secondary);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .titleMeta {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    color: var(--sys-color-text-secondary);
+  }
 }
 
 // Подзаголовок-строка под заголовком (дата разбора и т.п.) — serif italic,

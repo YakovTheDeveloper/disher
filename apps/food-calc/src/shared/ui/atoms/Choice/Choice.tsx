@@ -9,17 +9,27 @@ import {
   type ReactNode,
 } from 'react';
 import clsx from 'clsx';
-import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './Choice.module.scss';
 
 type Orientation = 'horizontal' | 'vertical';
 type ChoiceVariant = 'default' | 'segmented';
 
+/** Surface-тир ХОСТА, на котором лежит группа (= `--sys-color-surface-N`). */
+export type ChoiceSurface = 0 | 1 | 2;
+/**
+ * Elevation-скин (ортогонален `surface`): `raised` — приподнят мягкой тенью
+ * (`--sys-elevation-action-rest`), выбранный плоский; `flat` — без тени, вместо
+ * неё тонкая рамка (плотные экраны, напр. дровер нутриентов).
+ */
+export type ChoiceElevation = 'raised' | 'flat';
+
 type ChoiceContextValue = {
   value: string | null | undefined;
   select: (value: string) => void;
   variant: ChoiceVariant;
+  surface: ChoiceSurface;
+  elevation: ChoiceElevation;
 };
 
 const ChoiceContext = createContext<ChoiceContextValue | null>(null);
@@ -43,6 +53,19 @@ export type ChoiceGroupProps = {
    * заливка БЕЗ тика (токены `--sys-color-control-*`). a11y/стрелки общие.
    */
   variant?: ChoiceVariant;
+  /**
+   * Тир ХОСТА, на котором ЛЕЖИТ группа (0–2, = `--sys-color-surface-N`). Задаёт
+   * СВОЙ фон чипа: `0` (модалка/стол) → чип surface-1; `1|2` (лист/дровер) → чип
+   * surface-2. Дефолт `0`. Игнорируется в `segmented` (у него свой трек-фон).
+   */
+  surface?: ChoiceSurface;
+  /**
+   * Elevation-скин (см. {@link ChoiceElevation}). Дефолт `raised`. Комбинируется
+   * с `surface` по контексту: разреженная модалка → `surface={0}` + `raised`
+   * (surface-1 + тень); плотный дровер → `surface={2}` + `flat` (surface-2 + рамка).
+   * Игнорируется в `segmented`.
+   */
+  elevation?: ChoiceElevation;
   'aria-label'?: string;
   className?: string;
   children: ReactNode;
@@ -55,9 +78,9 @@ export type ChoiceGroupProps = {
  * (←/→ или ↑/↓ по `orientation`, плюс Home/End). Стрелка перемещает фокус И
  * выбирает (канон WAI-ARIA radiogroup) — это смена семантики против старого
  * `aria-pressed`-тумблера, а не косметика. Маркер «выбрано» у `ChoiceItem` —
- * indicator-заливка `--sys-color-bg-selected` + флип текста на on-selected
- * (как Chip.active, плоско) + круглая плашка-«наклейка» на углу (фон
- * surface-raised, тик bg-selected, мягкая тень); форма угловатая
+ * indicator-заливка plum-полюса `--sys-color-bg-selected-plum` + флип текста на
+ * `--sys-color-text-on-selected-plum` (как Chip.active, плоско; читаем пару полюса
+ * напрямую, без scope-override семантического токена); форма угловатая
  * (`--sys-radius-control`).
  *
  * Дети приходят `.map()`-ом от консумера (значения/лейблы — его данные), поэтому
@@ -68,6 +91,8 @@ export function ChoiceGroup({
   onChange,
   orientation = 'horizontal',
   variant = 'default',
+  surface = 0,
+  elevation = 'raised',
   className,
   children,
   ...rest
@@ -125,7 +150,7 @@ export function ChoiceGroup({
       onKeyDown={onKeyDown}
       {...rest}
     >
-      <ChoiceContext.Provider value={{ value, select, variant }}>
+      <ChoiceContext.Provider value={{ value, select, variant, surface, elevation }}>
         {children}
       </ChoiceContext.Provider>
     </div>
@@ -144,8 +169,9 @@ export type ChoiceItemProps = Omit<
 
 /**
  * ChoiceItem — один вариант одиночного выбора (`role=radio`). Только внутри
- * `ChoiceGroup`. Презентация: угловатая кромка + галочка-маркер; поведение
- * (немедленный коммит / toggle-off) задаёт `onChange` группы у консумера.
+ * `ChoiceGroup`. Презентация: угловатая кромка, «выбрано» = заливка + обводка
+ * цвета текста; поведение (немедленный коммит / toggle-off) задаёт `onChange`
+ * группы у консумера.
  */
 export function ChoiceItem({
   value,
@@ -172,6 +198,10 @@ export function ChoiceItem({
       className={clsx(
         styles.choice,
         segmented && styles.segment,
+        // surface/elevation-скины — только для default-варианта (segmented несёт
+        // свой трек-фон + активную плашку, эти оси к нему не применяются).
+        !segmented && ctx.surface >= 1 && styles.onSheet,
+        !segmented && ctx.elevation === 'flat' && styles.flat,
         stacked && styles.stacked,
         checked && (segmented ? styles.segmentChecked : styles.checked),
         className,
@@ -185,12 +215,6 @@ export function ChoiceItem({
       <Text role="label" as="span" className={styles.content}>
         {children}
       </Text>
-      {/* Segmented активный = заливка-плашка БЕЗ углового тика (canon iOS-сегмент). */}
-      {!segmented && (
-        <span className={styles.marker} aria-hidden>
-          <TickIcon className={styles.markerTick} />
-        </span>
-      )}
     </button>
   );
 }

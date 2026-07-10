@@ -143,7 +143,7 @@
 .normModalClose {
   border: none;
   background: none;
-  color: var(--sys-card-accent, #007aff);
+  color: var(--sys-card-accent, var(--sys-color-text-accent));
   cursor: pointer;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--sys-radius-control);

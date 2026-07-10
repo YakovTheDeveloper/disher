@@ -7,7 +7,7 @@
   width: 100%;
   height: 50px;
   border-radius: var(--sys-radius-cta); /* was 14px */
-  border: 1.5px solid rgba(176, 52, 35, 0.38);
+  border: 1.5px solid var(--sys-color-status-danger-border);
   background: var(--sys-color-surface-1);
   color: var(--sys-color-status-danger);
   cursor: pointer;

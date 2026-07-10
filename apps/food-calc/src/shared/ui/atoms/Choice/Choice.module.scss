@@ -1,10 +1,10 @@
 // Choice — одиночный выбор (роль choice). Маркер «выбрано» = indicator-модель:
-// заливка --sys-color-bg-selected + флип текста на --sys-color-text-on-selected
-// (как Chip.active, плоско, без glow) + круглая плашка-«наклейка» центром в углу
-// (фон = surface-bright, тик = tick-selected — ХОЛОДНЫЙ indigo-глиф, мягкая тень). Цвета/
-// радиус ТОЛЬКО из sys-яруса (tds/interactive-tokens-system.md): перекрасить
-// «выбрано» по всему app = одна строка в tokens.scss или scope-override
-// --sys-color-bg-selected.
+// плоская заливка plum-полюса + флип текста на ink (как Chip.active, без glow).
+// Ink-кромки «выбрано» больше нет — сигнал несёт одна заливка (снята по фидбеку
+// 2026-07-05, параллельно Chip.active). Полюс plum читается ПРЯМО из своей sys-пары
+// (--sys-color-bg-selected-plum / --sys-color-text-on-selected-plum, см. .checked),
+// а НЕ через scope-override семантического --sys-color-*-selected — тот остаётся
+// глобально cool, descendant-читатели не ловят plum по наследованию.
 .choice {
   position: relative;
   appearance: none;
@@ -14,16 +14,36 @@
   gap: var(--space-1);
   min-height: 44px;
   padding: 9px 14px;
-  border: 1px solid var(--sys-color-border-subtle);
+  // Рамка резервируется прозрачной в покое (raised) — flat-скин лишь
+  // перекрашивает border-color, геометрия между скинами стабильна (без прыжка 1px).
+  border: 1px solid transparent;
   border-radius: var(--sys-radius-control);
-  background: var(--sys-color-surface-2);
+  background: var(--sys-color-surface-1);
   color: var(--sys-color-text-primary);
+  // Дефолт — приподнят мягкой rest-тенью (raised). flat-скин снимает её ниже,
+  // выбранный (.checked) тоже снимает — сигнал «выбрано» несёт заливка.
+  box-shadow: var(--sys-elevation-action-rest);
   cursor: pointer;
   transition:
     border-color var(--press-out) ease,
     background var(--press-out) ease,
     color var(--press-out) ease,
+    box-shadow 140ms ease,
     transform var(--press-out) ease;
+}
+
+// surface-тир хоста: 1|2 (лист/дровер) → чип поднимается до белого surface-2.
+// Объявлено ДО .checked → выбранный (plum) перебивает фон по порядку исходника.
+.onSheet {
+  background: var(--sys-color-surface-2);
+}
+
+// flat-скин (плотные экраны): тень снята, вместо неё ЯВНАЯ рамка. Средний рунг
+// лестницы бордеров (--sys-color-border-default, 0.28) — subtle(0.10) читался как
+// почти-невидимый (просьба 2026-07-10 «более тёмная, явная рамка»). Флип в dark.
+.flat {
+  border-color: var(--sys-color-border-default);
+  box-shadow: none;
 }
 
 .choice:focus-visible {
@@ -36,12 +56,20 @@
   transition-duration: var(--sys-duration-press-in);
 }
 
-// «Выбрано» — indicator-модель: ЗАЛИВКА + флип текста, плоско (без glow). Тон
-// «выбрано» во всём app = один токен --sys-color-bg-selected (как у Chip.active).
+// «Выбрано» — indicator-модель: ЗАЛИВКА + флип текста, плоско (без glow, без
+// ink-кромки — сигнал несёт одна заливка plum, как у Chip.active). Base subtle-
+// кромка остаётся (та же, что у покоя) — геометрия стабильна.
 .checked {
-  background: var(--sys-color-bg-selected);
-  border-color: var(--sys-color-bg-selected);
-  color: var(--sys-color-text-on-selected);
+  background: var(--sys-color-bg-selected-plum);
+  color: var(--sys-color-text-on-selected-plum);
+  // Выбранный — плоский (elevation снят в обоих скинах): сигнал несёт заливка.
+  box-shadow: none;
+}
+
+// В flat-скине выбранный чип гасит рамку (0-2-0 кроет .flat 0-1-0) — на plum-
+// заливке subtle-кант читался бы грязно, заливка сама несёт сигнал.
+.flat.checked {
+  border-color: transparent;
 }
 
 // Колонка «заголовок + подпись» (sex / активность / цель).
@@ -60,44 +88,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-}
-
-// Галочка-маркер «выбрано» — круглая плашка ЦЕНТРОМ ТОЧНО В правом-верхнем углу
-// (top/right: -10px = половина диаметра). Фон = непрозрачная всплывающая
-// поверхность surface-2, тик внутри = активный bg (navy), мягкая тень.
-// Голая чёрная галочка в углу — без кружка-подложки: жирнее и крупнее, читается
-// как «отмечено» прямо на заливке (по запросу 2026-07-05). Раньше был светлый
-// navy-тик в surface-2 кружке; подложку и тень убрали.
-.marker {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  opacity: 0;
-  transform: scale(0.6);
-  transition:
-    opacity var(--press-out) ease,
-    transform var(--press-out) ease;
-  pointer-events: none;
-}
-
-.checked .marker {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.markerTick {
-  width: 15px; // крупнее (было 10px)
-  height: 15px;
-  color: var(--sys-color-text-primary); // чёрный ink вместо холодного indigo
-}
-
-.markerTick path {
-  stroke-width: 2.6px; // жирнее (было 1.6px)
 }
 
 // ─── Segmented variant (iOS-сегмент-контрол) ─────────────────────────────────

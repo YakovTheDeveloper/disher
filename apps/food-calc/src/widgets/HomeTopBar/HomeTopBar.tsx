@@ -5,7 +5,7 @@ import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
-import { QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
+import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import { HubButton } from '@/shared/ui/HubButton';
 import styles from './HomeTopBar.module.scss';
 
@@ -73,52 +73,27 @@ type Props = {
   hubAriaLabel?: string;
 };
 
-type DateParts = {
-  weekday: string;
-  weekdayShort: string;
-  month: string;
-  ddmm: string;
-};
+const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
-const formatDateParts = (input: string): DateParts => {
+// Подпись пилюли-навигации — ВСЕГДА короткий день недели буквами («Вс» / «Пн» /
+// «Вт»), без чисел и без относительных слов (Сегодня/Вчера/Завтра сняты 2026-07-10).
+// Контекст даты несёт лист (крупный заголовок «Воскресенье, 5 июля»); пилюле хватает
+// буквенного дня внутри силуэта календаря.
+const formatWeekday = (input: string): string => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
-  if (!isValid(date)) {
-    return { weekday: '', weekdayShort: '', month: '', ddmm: input };
-  }
-  // Полная форма дня недели («суббота», «воскресенье» …) сверху; CSS
-  // `::first-letter` капитализирует → «Суббота». Стопка column + align-items:
-  // flex-end растёт в ширину, не в высоту, так что длинное название не ломает
-  // высоту пилюли.
-  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'long' }).format(date);
-  // Короткая форма («пн», «вт» …) — для компактных вариантов (ink-inline /
-  // ink-numeral). Рендерится всегда, CSS прячет её вне нужного варианта.
-  const weekdayShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date);
-  // Standalone-форма даёт именительный падеж нижним регистром («июнь»), а не
-  // родительный («июня»); в нижней строке месяц прижат влево, dd.mm — вправо.
-  const month = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date);
-  const dd = String(date.getDate()).padStart(2, '0');
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  return { weekday, weekdayShort, month, ddmm: `${dd}.${mm}` };
+  if (!isValid(date)) return input;
+  return cap(new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date));
 };
 
-// Единая разметка для всех текстовых вариантов (default + ink-*). Раскладку и
-// видимость частей (полный/короткий день, месяц, крупные цифры) целиком ведёт
-// CSS под `[data-dv-v]` — markup один, варианты переключаются атрибутом.
-const DateButtonContent = ({ parts }: { parts: DateParts }) => {
-  const { weekday, month, ddmm } = parts;
-  return (
-    <span className={styles.dateNumeral}>
-      <span className={styles.dateWeekday}>{weekday}</span>
-      {/* <QuietLabel className={styles.dateWeekdayShort}>{weekdayShort}</QuietLabel> */}
-      <span className={styles.dateMeta}>
-        <span className={styles.dateMonth}>{month}</span>
-        <Numeral as="span" size="base" weight="semibold" className={styles.dateDdmm}>
-          {ddmm}
-        </Numeral>
-      </span>
-    </span>
-  );
-};
+// Контент пилюли-навигации: буквы дня недели внутри тонкого силуэта календаря
+// (рамка + две «пружинки» сверху, чуть диагонально — весь вид в `.dateCalendar`).
+const DateButtonContent = ({ weekday }: { weekday: string }) => (
+  <span className={styles.dateCalendar}>
+    <Text as="span" role="label" className={styles.dateWeekday}>
+      {weekday}
+    </Text>
+  </span>
+);
 
 const HomeTopBar = ({
   date,
@@ -136,7 +111,7 @@ const HomeTopBar = ({
   hubAriaLabel = 'Разбор — открытия и анализ',
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
-  const dateParts = useMemo(() => formatDateParts(date), [date]);
+  const weekday = useMemo(() => formatWeekday(date), [date]);
   const openHub = useCallback(() => {
     if (!hubDate) return;
     void drawerStore.show(AnalysisHubDrawer, { date: hubDate });
@@ -203,14 +178,14 @@ const HomeTopBar = ({
           ))}
         <button
           type="button"
-          className={`${styles.segment} ${styles.dateSegment}`}
+          className={styles.dateSegment}
           onClick={handleDateClick}
           aria-label="Выбрать дату"
         >
           {dateButtonLabel != null ? (
             <span className={styles.dateLabel}>{dateButtonLabel}</span>
           ) : (
-            <DateButtonContent parts={dateParts} />
+            <DateButtonContent weekday={weekday} />
           )}
         </button>
       </div>

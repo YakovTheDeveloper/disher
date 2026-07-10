@@ -1,10 +1,14 @@
 import { pool } from "../db.js";
 import { refund } from "../../billing/wallet.js";
 import {
+  CRITIC_SYSTEM_PROMPT,
   DAILY_SYSTEM_PROMPT,
   SYSTEM_PROMPT_BASE,
+  applyCriticVerdicts,
   nutrientLineToken,
+  parseCriticVerdicts,
   safeStringifyArray,
+  serializeDraftForCritic,
   stripNullBytes,
   tryParseOutput,
   type AnalysisOutput,
@@ -174,7 +178,11 @@ function buildUserPrompt(payload: AnalyzePayload): string {
   return lines.join("\n");
 }
 
-async function fetchLLMOnce(
+// Core OpenRouter call, parametrised by model so the generator and the critic
+// (a DIFFERENT, also-cheap model — diversity guards against the false-consensus
+// two identical models fall into) can share one code path.
+async function fetchLLMWithModel(
+  model: string,
   systemPrompt: string,
   userPrompt: string,
   options: CallLLMOptions,
@@ -182,7 +190,6 @@ async function fetchLLMOnce(
   const { signal } = options;
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
-  const model = process.env.SUGGESTION_MODEL ?? "deepseek/deepseek-chat";
 
   const MAX_RETRIES = 3;
   let response!: Response;
@@ -216,6 +223,51 @@ async function fetchLLMOnce(
   return String(content);
 }
 
+// Generator call — the existing behaviour, model from SUGGESTION_MODEL.
+async function fetchLLMOnce(
+  systemPrompt: string,
+  userPrompt: string,
+  options: CallLLMOptions,
+): Promise<string> {
+  const model = process.env.SUGGESTION_MODEL ?? "google/gemini-2.5-flash-lite";
+  return fetchLLMWithModel(model, systemPrompt, userPrompt, options);
+}
+
+// Experimental critic stage (gated by ANALYSIS_CRITIC=on). Runs a cheap,
+// DIFFERENT model as a skeptic that prunes/softens the generator's draft. This
+// is a BEST-EFFORT quality layer: any failure (no findings, bad JSON, network,
+// timeout) returns the original draft unchanged — it must never break the paid
+// analysis path. Model comes from CRITIC_MODEL; falls back to SUGGESTION_MODEL
+// (still gives the skeptic-role diversity, just not model diversity).
+async function critiqueDraft(
+  draft: AnalysisOutput,
+  userPrompt: string,
+  options: CallLLMOptions,
+  callCritic: CallLLM,
+): Promise<AnalysisOutput> {
+  // Nothing gradable ⇒ nothing to critique.
+  if (draft.observations.length === 0 && draft.insights.length === 0) return draft;
+
+  const criticUserPrompt = `${userPrompt}\n\nЧерновик находок для проверки:\n<draft>\n${serializeDraftForCritic(draft)}\n</draft>`;
+  try {
+    const raw = await callCritic(CRITIC_SYSTEM_PROMPT, criticUserPrompt, options);
+    const verdicts = parseCriticVerdicts(raw);
+    if (verdicts.length === 0) return draft;
+    return applyCriticVerdicts(draft, verdicts);
+  } catch {
+    return draft; // best-effort — never fail the analysis on a critic hiccup
+  }
+}
+
+function makeCriticCall(): CallLLM {
+  const model =
+    process.env.CRITIC_MODEL ??
+    process.env.SUGGESTION_MODEL ??
+    "google/gemini-2.5-flash-lite";
+  return (systemPrompt, userPrompt, options) =>
+    fetchLLMWithModel(model, systemPrompt, userPrompt, options);
+}
+
 export async function callLLMWithValidation(
   systemPrompt: string,
   userPrompt: string,
@@ -236,6 +288,7 @@ export async function runAnalysisJob(
   analysisId: string,
   payload: AnalyzePayload,
   callLLM: CallLLM = fetchLLMOnce,
+  callCritic: CallLLM = makeCriticCall(),
 ): Promise<void> {
   if (!pool) throw new Error("DB pool not initialised");
 
@@ -269,12 +322,18 @@ export async function runAnalysisJob(
   const userPrompt = buildUserPrompt(payload);
 
   try {
-    const result = await callLLMWithValidation(
+    const draft = await callLLMWithValidation(
       isDaily ? DAILY_SYSTEM_PROMPT : SYSTEM_PROMPT_BASE,
       userPrompt,
       signal,
       callLLM,
     );
+    // Experimental skeptic pass — gated by env, best-effort (returns the draft
+    // untouched on any failure). Off by default ⇒ identical to the old path.
+    const result =
+      process.env.ANALYSIS_CRITIC === "on"
+        ? await critiqueDraft(draft, userPrompt, { signal }, callCritic)
+        : draft;
     // summary lives in result_md — guard against an empty string, which would
     // make deriveStatus read the done row as forever-pending (result_md === '').
     const summaryMd = result.summary.trim() || "Разбор готов.";

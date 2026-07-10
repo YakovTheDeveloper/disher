@@ -1,8 +1,11 @@
 // ─── Account trigger — иконка-шестерёнка (настройки + аккаунт + темы) ──
 
 .avatarButton {
-  width: 44px;
-  height: 44px;
+  // 48×48 — единый диаметр круглых кнопок бара (обёртка .accountSlot той же
+  // ширины клипует к кругу; унификация 2026-07-10, было 44). Press-заливка
+  // покрывает весь круг.
+  width: 48px;
+  height: 48px;
   border-radius: var(--sys-radius-indicator);
   border: none;
   background: transparent;

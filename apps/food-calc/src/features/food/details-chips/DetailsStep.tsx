@@ -19,10 +19,15 @@ type Props = {
   surface?: ChipSurface;
 };
 
-export function DetailsStep({ foodName, textareaId, value, onChange, productId, surface = 0 }: Props) {
-  const placeholder = foodName
-    ? `Особенности приема ${foodName.toLowerCase()}`
-    : 'Особенности приема, если есть';
+export function DetailsStep({
+  foodName,
+  textareaId,
+  value,
+  onChange,
+  productId,
+  surface = 0,
+}: Props) {
+  const placeholder = 'Есть ли уточнения?';
 
   return (
     <div className={s.root}>

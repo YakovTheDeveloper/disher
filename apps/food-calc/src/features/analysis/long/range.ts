@@ -76,16 +76,16 @@ export function rangeDayKeys(range: DateRange): string[] {
  * (the server sends `window_*` as ISO) or `yyyy-MM-dd`. Shared by the list row
  * and the per-row action-drawer title so they never drift.
  *
- * A daily analysis (window=1, `start === end`) collapses to `d MMM · день`
- * instead of the degenerate `2 июл — 2 июл` range — this is how the /analyses
- * list distinguishes daily rows from multi-week ones.
+ * A daily analysis (window=1, `start === end`) collapses to the bare date
+ * `d MMM` instead of the degenerate `2 июл — 2 июл` range — the single-date
+ * form is itself how the /analyses list reads as a daily row.
  */
 export function formatWindowLabel(startIso: string, endIso: string): string {
   const s = parseISO(startIso);
   const e = parseISO(endIso);
   if (!isValid(s) || !isValid(e)) return '—';
   if (differenceInCalendarDays(e, s) === 0) {
-    return `${format(s, 'd MMM', { locale: ru })} · день`;
+    return format(s, 'd MMM', { locale: ru });
   }
   return `${format(s, 'd MMM', { locale: ru })} — ${format(e, 'd MMM', { locale: ru })}`;
 }

@@ -1,12 +1,9 @@
 import { useCallback, useEffect } from 'react';
-import clsx from 'clsx';
 import { WriteBarShell, WriteBarMedal } from '@/shared/ui/WriteBarShell';
 import type { SendState } from '@/shared/ui/WriteBarShell';
-import { Button } from '@/shared/ui/atoms/Button';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import toaster from '@/shared/lib/toaster/toaster';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
@@ -17,7 +14,7 @@ import s from './FoodWriteBar.module.scss';
 
 // Дуговые подписи медальона-печати «Список еды / вручную» (верх/низ, как на монете).
 const ARC_TOP = 'Список еды';
-const ARC_BOTTOM = 'вручную';
+const ARC_BOTTOM = '';
 // Фоновая гравюра плитки — клош (cloche / room-service dome).
 const FOOD_TILE_IMG = '/art/plate.png';
 // aria-label медали (видимый текст дуг одинаков; сведён к одному 2026-06-25).
@@ -31,37 +28,6 @@ const PLACEHOLDER = 'Напишите, что Вы ели';
 // монтируется (спиннер в баре — единственный фидбэк), поэтому статус
 // «идёт разбор» несёт сам бар — пустое поле + этот плейсхолдер + спиннер-монета.
 const LOADING_PLACEHOLDER = 'Распознаём…';
-
-// DesignBar-анкор «FoodListCta»: ФОРМА входа «список еды» в высоком (2-строчном)
-// баре. Оба варианта = «еда» справа за фейдинг-дивайдером, в потоке (не перекрывает
-// список); отличие только в облике affordance. «Список» — не вторичная кнопка:
-// free-text-инпут требует интернет (LLM), а приложение offline-first → каталог
-// (в бандле) и есть единственный рабочий путь добавить еду оффлайн. Поэтому
-// оффлайн-эмфаза (`data-net='on'|'off'`): тихо онлайн → заметнее оффлайн.
-//
-//   tall-split — круг-иконка (вилка-нож), оффлайн-адаптивная амбра
-//   tall-medal — монета-печать «Список еды / вручную» (тот же канон-медальон)
-const LIST_CTA_VARIANTS = ['tall-split', 'tall-medal'] as const;
-
-// Вилка+нож (Lucide «utensils») — ведущая иконка кнопки «Список». Залита
-// currentColor → наследует цвет текста кнопки, поэтому контраст к заливке (белый
-// на тёмной / тёмный на светлой) решается автоматически. Размер берёт из
-// `.system .icon svg` в Button (20px).
-const ForkKnifeIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.8}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2" />
-    <path d="M7 2v20" />
-    <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
-  </svg>
-);
 
 // Примеры-подсказки для пустого бара (карусель в WriteBarShell): крутятся, пока
 // в инпуте пусто И список ещё пуст — онбординг свежего экрана. Вшиты в компонент:
@@ -100,8 +66,8 @@ export interface FoodWriteBarProps {
  *
  * Весь облик и тексты вшиты (максимальная конвергенция экранов); наружу торчат
  * только функциональные пропы. Вход «список еды» едет в `trailingSlot` высокого
- * бара (в потоке, за фейдинг-дивайдером, не перекрывает список) — облик выбирает
- * DesignBar-анкор `FoodListCta` (tall-split круг-иконка / tall-medal монета).
+ * бара (в потоке, за фейдинг-дивайдером, не перекрывает список) — облик = монета-
+ * печать `WriteBarMedal` (канон-медальон «Список еды / вручную»).
  * Caller обязан НЕ монтировать `<WriteFoodModals>` overlay — иначе дубль `inputId`.
  *
  * Док = бар + панель предложки (`InlineWriteFoodReview`), по паттерну Событий
@@ -144,28 +110,17 @@ export const FoodWriteBar = ({
     if (!panelOpen) dockRef.current?.style.removeProperty('transform');
   }, [panelOpen, dockRef]);
 
-  // Эксперимент-облик affordance «список еды» (см. LIST_CTA_VARIANTS).
-  const { variant: listCta, anchor: listCtaAnchor } = useDesignVariant(
-    'FoodListCta',
-    LIST_CTA_VARIANTS
-  );
-  // tall-medal = монета-печать в trailing; иначе (tall-split) круг-иконка.
-  const isMedalTrail = listCta === 'tall-medal';
-  // Оффлайн-эмфаза: онлайн тихо, оффлайн — заметный единственный путь.
-  const netAttr = online ? 'on' : 'off';
-
-  // Кнопка-«Список» (tall-split) — icon-only круг вилка-нож. Облик/вес задаёт
-  // обёртка `.listCtaTrail[data-dv-v='tall-split']` в .module.scss.
-  const ctaButton = (
-    <Button
-      as="label"
-      htmlFor={searchHtmlFor}
-      aria-label={SEARCH_LABEL}
-      variant="system"
-      icon={<ForkKnifeIcon />}
-      className={clsx(s.listCtaButton, panelOpen && s.listCtaDim)}
-    />
-  );
+  // Пока панель предложки открыта — гасим верхний бар (HomeTopBar). Дим-оверлей
+  // живёт ВНУТРИ дока (bottomBar z:4), а бар парит на z:10 над свайп-зоной, поэтому
+  // оверлей до него не достаёт и его пилюли торчали бы из-под затемнения. Флаг на
+  // body → CSS в HomeTopBar.module.scss фейдит `.shell` в тень вместе со страницей.
+  useEffect(() => {
+    if (!panelOpen) return;
+    document.body.dataset.foodReviewOpen = 'true';
+    return () => {
+      delete document.body.dataset.foodReviewOpen;
+    };
+  }, [panelOpen]);
 
   // Ready-state: панель предложки открыта → free-text-инпут больше не нужен
   // (пишут в предложку, не в бар). Его место занимает заголовок «Предложения»,
@@ -177,7 +132,7 @@ export const FoodWriteBar = ({
   // плоско на плашке, а не в утопленном поле-слоте.
   const readyHeader = (
     <Heading as="h2" role="headline" className={s.readyHeader}>
-      Предложения
+      Все верно?
     </Heading>
   );
 
@@ -232,6 +187,10 @@ export const FoodWriteBar = ({
         readOnly={isLoading}
         // На ready подменяем инпут заголовком «Предложения» (см. readyHeader).
         fieldOverride={panelOpen ? readyHeader : undefined}
+        // Пока предложка открыта — держим тёмный дим-бэкдроп на странице, чтобы
+        // подсветить нижний док (бар + панель). `fieldOverride` схлопывает
+        // `expanded`, поэтому фокус сам дим не удержит — форсим его флагом.
+        overlayVisible={panelOpen}
         // На сабмите блюрим (клавиатура уходит) → бар садится в спокойный
         // pending-вид: спиннер-монета + «Распознаём…». Раньше фокус держался, чтобы
         // дотечь до панели-скелетона; теперь панели во время loading нет.
@@ -241,24 +200,20 @@ export const FoodWriteBar = ({
         minRows={1}
         trailingSlot={
           // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,
-          // не перекрывает список). Обёртка несёт DesignBar-анкор + оффлайн-эмфазу.
-          <div className={s.listCtaTrail} data-net={netAttr} {...listCtaAnchor}>
-            {isMedalTrail ? (
-              // tall-medal: монета-печать в потоке (floating={false} → не уезжает
-              // в плавающий режим, не сворачивается на фокусе). Облик paper +
-              // внешний бордер, плоская (без тени) — задаётся в WriteBarMedal.
-              <WriteBarMedal
-                htmlFor={searchHtmlFor}
-                ariaLabel={SEARCH_LABEL}
-                img={FOOD_TILE_IMG}
-                arcTop={ARC_TOP}
-                arcBottom={ARC_BOTTOM}
-                floating={false}
-                dimmed={panelOpen}
-              />
-            ) : (
-              ctaButton
-            )}
+          // не перекрывает список). Монета-печать в потоке (floating={false} → не
+          // уезжает в плавающий режим, не сворачивается на фокусе). Режим flat —
+          // «часть панели»: внешний бордер, плоская (без тени) — задаётся в WriteBarMedal.
+          <div className={s.listCtaTrail}>
+            <WriteBarMedal
+              htmlFor={searchHtmlFor}
+              ariaLabel={SEARCH_LABEL}
+              img={FOOD_TILE_IMG}
+              arcTop={ARC_TOP}
+              arcBottom={ARC_BOTTOM}
+              floating={false}
+              look="flat"
+              dimmed={panelOpen}
+            />
           </div>
         }
       />

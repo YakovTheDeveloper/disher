@@ -1,0 +1,73 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Инлайн-календарь окна разбора. СТРУКТУРА решётки — общий миксин
+// `calendar-grid()` (mixin.scss), единый источник с мини-календарями
+// ScheduleNavigator. Состояния ниже — ЛОКАЛЬНЫЕ: диапазон (концы + полоса),
+// сегодня-кольцо, disabled-контекст.
+.root {
+  position: relative;
+}
+
+@include calendar-grid;
+
+// Тапаемый день (в пределах [min, max]).
+.day {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+
+  &:hover {
+    background: var(--sys-color-bg-hover);
+  }
+
+  &:active {
+    transform: scale(0.9);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+// День вне окна выбора (будущее / раньше границы) — тихий нетапаемый контекст.
+.disabled {
+  color: var(--sys-color-text-faint);
+}
+
+// Полоса диапазона (строго между концами) — тихая заливка-контекст, тот же
+// токен, что active-день в ScheduleNavigator (warm-coal 4%).
+.inRange {
+  background: var(--sys-color-bg-hover);
+}
+
+// Концы окна — заливка «выбрано» app-wide (cool-tint): заметнее полосы, читаются
+// «ручками» диапазона. Перебивают .inRange (объявлены ниже по каскаду).
+.rangeStart,
+.rangeEnd {
+  background: var(--sys-color-bg-selected);
+  color: var(--sys-card-text-active);
+  // Вес концов диапазона несёт примитив <Text weight="bold"> в RangeCalendar.tsx
+  // (унификация «выбранного» = 700, единая с навигатором/чипом; типо-голос в примитиве).
+}
+
+// Сегодня — кольцо-ориентир поверх любой заливки (идентично ScheduleNavigator).
+.today {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-width: 1.5px;
+    border-style: solid;
+    border-color: var(--sys-card-active);
+    border-radius: var(--sys-radius-control);
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day {
+    transition: none;
+  }
+}

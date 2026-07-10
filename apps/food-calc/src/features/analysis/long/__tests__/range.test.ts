@@ -121,8 +121,8 @@ describe('endsInFuture', () => {
 });
 
 describe('formatWindowLabel', () => {
-  it('collapses a window=1 (start === end) to the «· день» daily label', () => {
-    expect(formatWindowLabel('2026-07-02', '2026-07-02')).toBe('2 июл. · день');
+  it('collapses a window=1 (start === end) to the bare date', () => {
+    expect(formatWindowLabel('2026-07-02', '2026-07-02')).toBe('2 июл.');
   });
 
   it('renders a multi-day window as a «d MMM — d MMM» range', () => {
@@ -131,7 +131,7 @@ describe('formatWindowLabel', () => {
 
   it('treats an identical ISO-timestamp window (server daily row) as daily', () => {
     const iso = '2026-07-02T12:00:00.000Z';
-    expect(formatWindowLabel(iso, iso)).toBe('2 июл. · день');
+    expect(formatWindowLabel(iso, iso)).toBe('2 июл.');
   });
 
   it('returns «—» when either side is unparseable', () => {

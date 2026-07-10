@@ -414,6 +414,50 @@ $pad-right: max(10px, env(safe-area-inset-right));
 }
 
 // ---------------------------------------------------------------------------
+// Seed section — dev button that fills 1–10 июня with food + symptoms.
+// Always present in the expanded shell (even when no variants are mounted).
+// ---------------------------------------------------------------------------
+
+.seedSection {
+  padding: 12px 14px 14px;
+  border-top: 1px solid rgba(167, 139, 250, 0.14);
+}
+
+.seedBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+
+  background: rgba(52, 211, 153, 0.12); // emerald tint — «засеять»
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: 10px;
+  color: #d1fae5;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(52, 211, 153, 0.2);
+    border-color: rgba(52, 211, 153, 0.6);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+    background: rgba(52, 211, 153, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Anchor flash — unchanged from the previous design.
 // ---------------------------------------------------------------------------
 

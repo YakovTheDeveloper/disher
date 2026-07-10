@@ -213,10 +213,12 @@ const DrawerLayout = ({
               styles.dragHandle,
               showVisibleTitle && subtitle != null && styles.dragHandleStacked,
               header != null && styles.dragHandleHeader,
-              // Side drawers left-align the built-in title (space-saving); bottom
-              // drawers keep it centered. Only the built-in title path — custom
-              // `header` keeps its symmetric centered band.
-              showVisibleTitle && isSide && styles.dragHandleSideTitle,
+              // Заголовок ВСЕХ дроверов (нижних И боковых) центрируется по chrome-ряду
+              // (просьба 2026-07-10). В боковом дровере ряд живёт внутри `.panel`
+              // (edge-handle — отдельный flex-сосед), поэтому центр приходится на
+              // видимую белую панель, кромка-хэндл исключена по построению. Бывший
+              // left-align боковых (.dragHandleSideTitle, a7637b4b) снят; длинные
+              // подписи теперь переносятся на 2 строки, а не жмутся у креста.
             )}
           >
             {/*

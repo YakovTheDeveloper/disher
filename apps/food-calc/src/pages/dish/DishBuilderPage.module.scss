@@ -11,8 +11,8 @@
 // шаг лимона (LongPressRow default :17), т.е. ровный бледно-жёлтый без TOD-сдвига.
 $dish-lemon-hairline: rgba(206, 174, 78, 0.24); // тёплый шов между строками (в тон лимону)
 
-// Палитра ингредиентов — ОБЩИЙ контрол DesignBar (ключ CardPalette): один выбор
-// красит еду, блюдо и события. Дефолт lemon. У ингредиентов нет data-tod → строки
+// Палитра ингредиентов — пер-поверхностный выбор из настроек
+// (useCardPalette('dishFood') спредит data-dv-v). Дефолт amber. У ингредиентов нет data-tod → строки
 // берут morning-шаг палитры. Троённый класс держит специфичность против юзер-темы.
 .dishItemsGroup.dishItemsGroup.dishItemsGroup {
     @include card-palette-set;

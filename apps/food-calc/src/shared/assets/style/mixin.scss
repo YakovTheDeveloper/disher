@@ -538,23 +538,17 @@
 }
 
 // ── Card unification: inset-grouped paper-mono cards (canon 2026-06-19) ───────
-// Единый источник правды для облика карточек-рядов SearchFood И навигатора дат.
-// Три миксина, разделённые по слоям:
+// Облик карточек-рядов SearchFood / навигатора дат. Два миксина по слоям:
 //   paper-mono-cards() — ПАЛИТРА (--sys-card-* токены). iOS «inset grouped», белая
 //                        скруглённая группа на бледно-сером фоне, прозрачные ряды,
-//                        тающий hairline, тёмная press-пилюля. Раньше дублировалась
-//                        инлайном в SearchFood `.content`; вынесена сюда.
+//                        тающий hairline, тёмная press-пилюля. Публикуется на :root.
 //   inset-group()      — КОНТЕЙНЕР-ГРУППА (тело `.list`): overflow-clip + радиус +
 //                        мягкая тень группы, ряды впритык, hairline делит.
-//   stripe-fork-row()  — ПОВЕРХНОСТЬ РЯДА (тело `.wrapper` FoodActionCard): bg,
-//                        тающий ::after hairline, nth-child ритм-вошши,
-//                        press-инверсия [data-pressed]. Состояние active/selected
-//                        и инверсию текста консумер дописывает локально (зависит
-//                        от его классов имени/иконок).
+//                        (NB: сейчас без @include-консумеров — группу красят инлайном.)
 //
-// Консумер публикует палитру (`@include paper-mono-cards`) на корне поддерева,
-// затем оборачивает ряды в `@include inset-group` и красит каждый ряд
-// `@include stripe-fork-row`. mixin.scss exempt от token-gate → сырые литералы тут ок.
+// Бывший stripe-fork-row() (ПОВЕРХНОСТЬ РЯДА) снят 2026-07-10: он был на одного
+// консумера (FoodActionCard), а тот переопределял половину — тело заинлайнено в
+// FoodActionCard.module.scss. mixin.scss exempt от token-gate → сырые литералы тут ок.
 
 @mixin paper-mono-cards() {
     // Фон страницы под группой списка = тёплая бумага. Теплота живёт в ref-лестнице
@@ -619,66 +613,6 @@
     display: flex;
     flex-direction: column;
     gap: 0; // ряды впритык (canon inset-group); бывший --card-row-gap хук — мёртвый, снят
-}
-
-@mixin stripe-fork-row() {
-    display: flex;
-    align-items: stretch;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
-
-    background: var(--sys-card-bg);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-
-    transition:
-        background var(--press-out) ease,
-        outline-color 0.18s ease,
-        transform var(--press-out) var(--easing-spring);
-
-    // Тающий hairline-разделитель (вместо плоского border-bottom).
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        @include hairline(var(--sys-card-hairline));
-        pointer-events: none;
-    }
-
-    &:last-child::after {
-        display: none;
-    }
-
-    &:hover {
-        background: var(--sys-card-hover);
-    }
-
-    &:active {
-        transition-duration: var(--press-in);
-    }
-
-    // Press — тёмная инверсия скруглённой inset-пилюлей (::before, z-index 0 под
-    // текстом z-index 1). data-pressed (usePressFeedback) гарантирует отрисовку на
-    // тапе, который тут же уводит дальше.
-    &[data-pressed] {
-        transition-duration: var(--press-in);
-
-        &::before {
-            content: '';
-            position: absolute;
-            inset: 3px 6px;
-            border-radius: var(--radius-md);
-            background: var(--sys-card-press-bg);
-            z-index: 0;
-            pointer-events: none;
-        }
-    }
 }
 
 // ─── calendar-grid() — СТРУКТУРА мини-календаря (месяц-решётка 7×N) ─────────────

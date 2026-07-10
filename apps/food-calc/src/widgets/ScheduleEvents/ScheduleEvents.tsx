@@ -20,8 +20,7 @@ import { buildEventEditActions } from './eventActions';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
+import { useCardPalette } from '@/shared/lib/cardPalette';
 
 type Props = {
   children?: React.ReactNode;
@@ -40,9 +39,10 @@ type Props = {
 const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props) => {
   const eventsGroupedByTime = useMemo(() => groupItemsByTime(events), [events]);
 
-  // DesignBar anchor: ОБЩИЙ ключ палитры карточек — один контрол красит еду, блюдо
-  // и события сразу (shared/lib/cardPalette.ts). Раньше был отдельный 'ScheduleEvents'.
-  const { anchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
+  // Палитра карточек «событий» — постоянный пер-поверхностный выбор из настроек
+  // (ProfileDrawer → «Цвет карточек»). Дефолт amber. Раньше был общий контрол в
+  // dev-DesignBar (единый ключ на еду/блюдо/события).
+  const palette = useCardPalette('events');
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -98,7 +98,7 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
           description="Отмечайте самочувствие, симптомы, сон — всё, что заметили за день. Потом это ложится в разбор."
         />
       ) : (
-      <section {...anchor} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
+      <section data-dv-v={palette} className={clsx(['builder__time-groups', styles.eventsBuilder])}>
         <ItemsList>
             {(() => {
               let globalIndex = 0;

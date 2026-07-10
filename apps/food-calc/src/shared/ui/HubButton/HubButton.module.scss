@@ -3,20 +3,21 @@
 // кнопку с разными onClick. Облик = светлая soft floating-пилюля (mirrors
 // `.accountSlot` в HomeTopBar), читается как сосед пилюли аккаунта.
 
-// Высота-пол пилюли бара — единый источник (совпадает с $pill-h в
-// HomeTopBar.module.scss / AccountPanel 44px). SCSS-переменная (compile-time,
-// проходит token-gate, не плодит bespoke custom-prop).
-$pill-h: 44px;
+// Диаметр круглой пилюли бара — единый источник (совпадает с $pill-h в
+// HomeTopBar.module.scss / AccountPanel 48px). SCSS-переменная (compile-time,
+// проходит token-gate, не плодит bespoke custom-prop). Унификация 2026-07-10:
+// было 44 + горизонтальный паддинг (овал, выпирала) → теперь ровный круг 48×48.
+$pill-h: 48px;
 
 .hubButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  min-width: $pill-h;
-  min-height: $pill-h;
+  width: $pill-h;
+  height: $pill-h;
   box-sizing: border-box;
-  padding: 0 var(--space-3);
+  padding: 0;
   appearance: none;
   background: var(--sys-color-surface-action-system-soft);
   border: 1px solid var(--sys-color-surface-action-system-soft);

@@ -46,3 +46,28 @@
 .text.card-caption {
   color: var(--sys-color-text-card-caption);
 }
+
+// ── Ось ВЕСА (опц.) — перекрывает вес роли ───────────────────────────────────
+// Объявлена ПОСЛЕ ролей: при равной специфичности (0,1,0) её font-weight выигрывает
+// по порядку исходника у `.body`/`.label`/… Зеркалит шкалу <Numeral>. Дом произвольного
+// веса — примитив (Text ALLOW в check-typo-encapsulation), а не сырой font-weight в
+// компонентном scss (концы диапазона календаря / активный день навигатора / чип).
+.thin {
+  font-weight: 200;
+}
+
+.regular {
+  font-weight: 400;
+}
+
+.medium {
+  font-weight: 500;
+}
+
+.semibold {
+  font-weight: 600;
+}
+
+.bold {
+  font-weight: 700;
+}

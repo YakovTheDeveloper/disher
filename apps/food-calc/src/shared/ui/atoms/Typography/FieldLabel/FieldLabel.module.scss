@@ -5,7 +5,6 @@
 // иначе метка наследует случайный цвет родителя и тонет на тёмной поверхности.
 .fieldLabel {
     display: block;
-    padding-left: var(--space-1);
     color: var(--sys-color-text-primary);
 }
 

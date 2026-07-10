@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
+import { ModalShell } from '@/shared/ui/ModalShell';
 import { type BaseModalProps } from '@/shared/ui';
 import {
   upsertUserNorm,
@@ -16,11 +17,16 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { useFieldError } from '@/shared/ui/form/useFieldError';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
-import { FieldLabel } from '@/shared/ui/atoms/Typography/FieldLabel';
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
+import { FormLayout } from '@/shared/ui/form/FormLayout';
 import styles from './CreateDailyNormModal.module.scss';
-import { Heading, Text, Numeral, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Text, Numeral, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
+
+// Explanatory copy under the «Моя норма» title — shared verbatim by both chrome
+// modes (modal: first body line; panel: compact subtitle).
+const EXPLAINER =
+  'Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются ' +
+  'по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.';
 
 // chrome:
 //   'modal' (default) — full modal with ModalLayout, hero title header
@@ -130,108 +136,96 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
   const isPanel = chrome === 'panel';
 
-  const content = (
-    <div className={clsx(styles.root, isPanel && styles.rootPanel)}>
-      {!isPanel && (
-        <header className={styles.header}>
-          <button
-            type="button"
-            className={styles.backButton}
-            onClick={onClose}
-            aria-label="Назад"
+  const commitButton = (
+    <Button
+      variant="system"
+      fullWidth
+      disabled={!isValid}
+      onClick={handleCommit}
+    >
+      Готово
+    </Button>
+  );
+
+  const formBody = (
+    <>
+      <FormLayout>
+        <FormLayout.Caption>{EXPLAINER}</FormLayout.Caption>
+
+        <FormLayout.Group label="Пол">
+          <ChoiceGroup
+            className={styles.pillRow}
+            aria-label="Пол"
+            value={survey.sex}
+            onChange={(v) => patch({ sex: v as NormSurvey['sex'] })}
           >
-            <ArrowLeftIcon />
-          </button>
-          <Heading role="title" className={styles.title}>Моя норма</Heading>
-          <Text as="p" role="caption" className={styles.subtitle}>
-            Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
-            по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
-          </Text>
-        </header>
-      )}
-      {isPanel && (
-        <Text as="p" role="caption" className={styles.panelSubtitle}>
-          Несколько ответов — и калории, БЖУ, основные микроэлементы посчитаются
-          по формуле Mifflin-St Jeor. Точные числа можно поправить руками позже.
-        </Text>
-      )}
+            <ChoiceItem className={styles.choiceCell} value="male">
+              Мужской
+            </ChoiceItem>
+            <ChoiceItem className={styles.choiceCell} value="female">
+              Женский
+            </ChoiceItem>
+          </ChoiceGroup>
+        </FormLayout.Group>
 
-        <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
-          <Section label="Пол">
-            <ChoiceGroup
-              className={styles.pillRow}
-              aria-label="Пол"
-              value={survey.sex}
-              onChange={(v) => patch({ sex: v as NormSurvey['sex'] })}
-            >
-              <ChoiceItem className={styles.choiceCell} value="male">
-                Мужской
+        <FormLayout.Group label="Возраст · Вес · Рост" direction="horizontal">
+          <NumberField
+            unit="лет"
+            value={survey.age}
+            min={LIMITS.age.min}
+            max={LIMITS.age.max}
+            onChange={(v) => patch({ age: v })}
+          />
+          <NumberField
+            unit="кг"
+            value={survey.weightKg}
+            min={LIMITS.weightKg.min}
+            max={LIMITS.weightKg.max}
+            onChange={(v) => patch({ weightKg: v })}
+          />
+          <NumberField
+            unit="см"
+            value={survey.heightCm}
+            min={LIMITS.heightCm.min}
+            max={LIMITS.heightCm.max}
+            onChange={(v) => patch({ heightCm: v })}
+          />
+        </FormLayout.Group>
+
+        <FormLayout.Group label="Активность">
+          <ChoiceGroup
+            className={styles.pillCol}
+            orientation="vertical"
+            aria-label="Активность"
+            value={survey.activity}
+            onChange={(v) => patch({ activity: v as Activity })}
+          >
+            {ACTIVITY_OPTIONS.map((o) => (
+              <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
+                <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
+                <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
               </ChoiceItem>
-              <ChoiceItem className={styles.choiceCell} value="female">
-                Женский
+            ))}
+          </ChoiceGroup>
+        </FormLayout.Group>
+
+        <FormLayout.Group label="Цель">
+          <ChoiceGroup
+            className={styles.pillCol}
+            orientation="vertical"
+            aria-label="Цель"
+            value={survey.goal}
+            onChange={(v) => patch({ goal: v as Goal })}
+          >
+            {GOAL_OPTIONS.map((o) => (
+              <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
+                <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
+                <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
               </ChoiceItem>
-            </ChoiceGroup>
-          </Section>
-
-          <Section label="Возраст · Вес · Рост">
-            <div className={styles.numbersRow}>
-              <NumberField
-                unit="лет"
-                value={survey.age}
-                min={LIMITS.age.min}
-                max={LIMITS.age.max}
-                onChange={(v) => patch({ age: v })}
-              />
-              <NumberField
-                unit="кг"
-                value={survey.weightKg}
-                min={LIMITS.weightKg.min}
-                max={LIMITS.weightKg.max}
-                onChange={(v) => patch({ weightKg: v })}
-              />
-              <NumberField
-                unit="см"
-                value={survey.heightCm}
-                min={LIMITS.heightCm.min}
-                max={LIMITS.heightCm.max}
-                onChange={(v) => patch({ heightCm: v })}
-              />
-            </div>
-          </Section>
-
-          <Section label="Активность">
-            <ChoiceGroup
-              className={styles.pillCol}
-              orientation="vertical"
-              aria-label="Активность"
-              value={survey.activity}
-              onChange={(v) => patch({ activity: v as Activity })}
-            >
-              {ACTIVITY_OPTIONS.map((o) => (
-                <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                  <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
-                  <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
-                </ChoiceItem>
-              ))}
-            </ChoiceGroup>
-          </Section>
-
-          <Section label="Цель">
-            <ChoiceGroup
-              className={styles.pillCol}
-              orientation="vertical"
-              aria-label="Цель"
-              value={survey.goal}
-              onChange={(v) => patch({ goal: v as Goal })}
-            >
-              {GOAL_OPTIONS.map((o) => (
-                <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                  <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
-                  <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
-                </ChoiceItem>
-              ))}
-            </ChoiceGroup>
-          </Section>
+            ))}
+          </ChoiceGroup>
+        </FormLayout.Group>
+      </FormLayout>
 
           <div className={styles.preview}>
             <div className={styles.previewKcal}>
@@ -243,45 +237,44 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
               <MacroChip label="Ж" value={macros.fatG} />
               <MacroChip label="У" value={macros.carbsG} />
             </div>
+            {/* Тихий ярус: «ориентир»-оговорка + провенанс (BMR/поддержание) — одна
+                строка, один разделитель «·». «ориентир» спущен сюда, к своей родне
+                (оговорка про точность), а не болтается сиротой у числа. */}
             <Text as="p" role="caption" className={styles.previewMeta}>
-              BMR ~{fmt(bmr)} · поддержание ~{fmt(tdee)} ккал
-            </Text>
-            <Text as="p" role="caption" className={styles.disclaimer}>
-              Это ориентир, не медицинская рекомендация. Disher — про корреляции
-              «что съел / как себя чувствую», не про точный калькулятор.
+              ориентир · BMR ~{fmt(bmr)} · поддержание ~{fmt(tdee)} ккал
             </Text>
           </div>
-        </div>
-
-        <footer className={clsx(styles.footer, isPanel && styles.footerPanel)}>
-          <Button
-            variant="system"
-            fullWidth
-            disabled={!isValid}
-            onClick={handleCommit}
-          >
-            Готово
-          </Button>
-        </footer>
-      </div>
+    </>
   );
 
-  return isPanel ? content : <ModalLayout>{content}</ModalLayout>;
-};
+  // Panel mode — inline body inside a drawer that already owns header + scroll.
+  // Интро теперь принадлежит форме (FormLayout.Caption), а actions — терминальный
+  // «flow»-архетип общего shell-API (не hand-roll footer).
+  if (isPanel) {
+    return (
+      <div className={clsx(styles.root, styles.rootPanel)}>
+        <div className={clsx(styles.body, styles.bodyPanel)}>{formBody}</div>
+        <ModalShell.ActionButtons placement="flow" right={commitButton} />
+      </div>
+    );
+  }
 
-type SectionProps = {
-  label: string;
-  children: React.ReactNode;
+  // Modal mode — canonical ModalShell chrome (header + body + keyboard-stick
+  // ActionButtons). Интро — часть формы (FormLayout.Caption), больше не плоский
+  // section-сосед Body.
+  return (
+    <ModalLayout a11yLabel="Моя норма">
+      <ModalShell>
+        <ModalShell.Header title="Моя норма" onBack={onClose} />
+        <ModalShell.Body>
+          {formBody}
+          <ModalShell.Spacer />
+          <ModalShell.ActionButtons debugId="daily-norm-create" right={commitButton} />
+        </ModalShell.Body>
+      </ModalShell>
+    </ModalLayout>
+  );
 };
-
-const Section = ({ label, children }: SectionProps) => (
-  <section className={styles.section}>
-    <div className={styles.sectionHead}>
-      <FieldLabel>{label}</FieldLabel>
-    </div>
-    {children}
-  </section>
-);
 
 type NumberFieldProps = {
   unit: string;
@@ -320,11 +313,13 @@ type MacroChipProps = {
   value: number;
 };
 
+// Б/Ж/У = группа «serif-label · число». Единица «г» убрана (для макросов граммы
+// подразумеваются — тройное «г» было шумом); разделитель «·» между группами
+// живёт в scss (::before), чтобы ряд читался как чистый триплет.
 const MacroChip = ({ label, value }: MacroChipProps) => (
   <div className={styles.macroChip}>
     <QuietLabel as="span" className={styles.macroLabel}>{label}</QuietLabel>
     <Numeral as="span" size="base" weight="semibold" className={styles.macroValue}>{fmt(value)}</Numeral>
-    <Text as="span" role="caption" className={styles.macroUnit}>г</Text>
   </div>
 );
 

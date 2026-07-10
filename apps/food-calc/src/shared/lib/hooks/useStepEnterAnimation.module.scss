@@ -1,26 +1,24 @@
-// Мягкое появление заголовка шага wizard-флоу — «так же как карточка» нового ряда
-// на HomePage (LongPressRow `.row_recent` → rowRecentAppear): opacity 0→1 + лёгкий
-// наплыв сверху. Только transform/opacity → GPU-композит, без layout (animation
-// budget канон). Переигрывается сменой React-`key` обёртки (useStepEnterAnimation.ts):
-// remount → анимация стартует заново на каждый вход в шаг.
+// Мягкое появление заголовка шага wizard-флоу. Только transform → GPU-композит, без
+// layout (animation budget канон). Переигрывается сменой React-`key` обёртки
+// (useStepEnterAnimation.ts): remount → анимация стартует заново на каждый вход в шаг.
 //
-// Отличие от карточки: у ряда 400ms delay синхронит появление с mount'ом liveQuery;
-// у заголовка такой причины нет — задержка читалась бы как «шапка пропала». Поэтому
-// то же движение (translateY(-20px), 500ms linear), но без delay.
+// БЕЗ opacity намеренно: контент шапки (title + крошки) рендерится мгновенно, а любой
+// растянутый `opacity 0→1` держит текст полупрозрачным доли секунды — читается не как
+// «мягкое появление», а как «шапка недорисовалась». Поэтому движение несёт ТОЛЬКО
+// translate: текст всегда 100% непрозрачен, а сам вход — короткий наплыв сверху с
+// лёгкой «резиной» (easeOutBack: перелёт ~1.5px вниз и доседание) → инерция, а не фейд.
 .stepEnter {
-  // fill: backwards — держит `from`-кадр до старта, отпускает transform/opacity к
-  // базе по завершении (как у useEntranceStagger / .row_recent).
-  animation: step-enter-appear 500ms linear backwards;
+  // fill: backwards — держит `from`-кадр (сдвиг вверх) до старта, отпускает transform
+  // к базе по завершении.
+  animation: step-enter-appear 340ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 @keyframes step-enter-appear {
   from {
-    opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
 
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }

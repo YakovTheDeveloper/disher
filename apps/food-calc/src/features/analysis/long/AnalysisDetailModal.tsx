@@ -4,8 +4,8 @@ import { ru } from 'date-fns/locale';
 import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
+import { ModalShell } from '@/shared/ui/ModalShell';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
 import { AnalysisResult } from '../AnalysisResult';
 import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
@@ -13,7 +13,7 @@ import { deriveStatus, startAnalysis, useAnalysis, type Analysis } from '../api'
 import { restartArgs } from './restart';
 import { windowSpanDays } from './range';
 import styles from './AnalysisDetailModal.module.scss';
-import { Heading, Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 
 // The modal resolves with a freshly-started analysis when the user restarts a
@@ -80,18 +80,15 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
   }
 
   return (
-    <ModalLayout className={styles.layout} a11yLabel="Детали разбора">
-      <header className={styles.header}>
-        <div className={styles.headerText}>
-          <Heading role="title" className={styles.title}>{title}</Heading>
-          <Text as="p" role="caption" className={styles.range}>
-            {formatRange(analysis.windowStart, analysis.windowEnd)}
-          </Text>
-        </div>
-        <CloseButton onClick={() => onClose()} />
-      </header>
+    <ModalLayout a11yLabel="Детали разбора">
+      <ModalShell>
+        <ModalShell.Header
+          title={title}
+          subtitle={formatRange(analysis.windowStart, analysis.windowEnd)}
+          onBack={() => onClose()}
+        />
 
-      <div className={styles.body}>
+      <ModalShell.Body>
         {status === 'running' && (
           <div className={styles.pending}>
             <Spinner />
@@ -136,7 +133,6 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
           <Button
             variant="accent"
             fullWidth
-            className={styles.restart}
             disabled={restarting}
             onClick={handleRestart}
           >
@@ -163,7 +159,8 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
             </ul>
           )}
         </section>
-      </div>
+      </ModalShell.Body>
+      </ModalShell>
     </ModalLayout>
   );
 };

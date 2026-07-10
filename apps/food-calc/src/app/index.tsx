@@ -15,7 +15,7 @@ import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { installGlobalErrorHandlers } from '@/shared/lib/errors/installGlobalErrorHandlers';
 import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePressure';
-import { DesignVariantsBar, shouldShowDvBar, ButtonSecondaryProbe } from '@/app/ui/DesignVariantsBar';
+import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
 // idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
@@ -111,7 +111,6 @@ ReactDOM.createRoot(root).render(
     showDialog={false}
   >
     {shouldShowDvBar() && <DesignVariantsBar />}
-    {shouldShowDvBar() && <ButtonSecondaryProbe />}
     <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );

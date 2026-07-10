@@ -33,8 +33,8 @@
   // читается светлее. Вместе с inset-тенью (--sys-field-shadow на .qty) = утоплено.
   // Один knob — глубина (выше → темнее/впалее), серый — нейтральный тон.
   --sys-color-surface-hue-card-field: color-mix(in oklch,
-      var(--sys-color-row-bg, #fff),
-      #9e9e9e 5%);
+      var(--sys-color-row-bg, var(--sys-color-surface-1)),
+      var(--sys-color-field-well-shade-neutral) 5%);
 }
 
 // Контент-столбик: прежняя вертикаль карточки (title/meta ряды). flex:1 —

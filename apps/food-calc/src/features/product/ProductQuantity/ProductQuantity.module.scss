@@ -181,6 +181,33 @@
     flex: 0 0 auto;
 }
 
+// Chip typography (Recipe B — middle-dot seam, hierarchy by colour/opacity).
+// The label leads at full label-role ink (weight comes from <Text role="label">);
+// the middle-dot is a quiet seam; grams are demoted so the word is recognised
+// first and the weight only confirms. Demotion is OPACITY, not a secondary token
+// — the chip flips text to on-selected ink on the plum fill (Choice.checked), and
+// opacity rides that flip correctly on both backgrounds.
+.chipSep {
+    margin: 0 0.4ch;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+// Grams block: rendered through <Numeral size="base" weight="medium"> — the
+// sanctioned numeric voice (tabular + lining figures come from Numeral itself, so
+// no font-variant-numeric here). weight 500 keeps the small 16px number present
+// against the 600 label; opacity carries the demotion (survives the plum-selected
+// text flip, unlike a secondary colour token). The unit is demoted one step
+// further so it never competes. nowrap keeps «50 г» from breaking.
+.chipGrams {
+    opacity: 0.62;
+    white-space: nowrap;
+}
+
+.chipUnit {
+    opacity: 0.7; // на герое-числе единица ещё тише (эффективно ≈0.43)
+}
+
 // ── Multiplier stepper ──────────────────────────────────────────────────────
 // Right grid column, pinned to its right edge (justify-self: end). min-width: 0
 // keeps the (wider-than-track) stepper from forcing the right flank track open,

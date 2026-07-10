@@ -9,7 +9,15 @@ import '@testing-library/jest-dom/vitest';
 import type { ReactNode } from 'react';
 
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  // Title now rides DrawerLayout's chrome row (the `title` prop). The real
+  // layout renders it as the drawer's <h2> Drawer.Title — mirror that so the
+  // heading-role assertions still exercise the visible title.
+  DrawerLayout: ({ title, children }: { title?: ReactNode; children: ReactNode }) => (
+    <div>
+      {title != null && <h2>{title}</h2>}
+      {children}
+    </div>
+  ),
 }));
 
 vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({

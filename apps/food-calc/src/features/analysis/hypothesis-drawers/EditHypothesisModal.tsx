@@ -173,17 +173,6 @@ const EditHypothesisModal = ({
                   maxRows={10}
                   collapseOnBlur={false}
                 />
-                {body.length > 0 && (
-                  <span
-                    className={
-                      body.length > 5000
-                        ? `${styles.counter} ${styles.counterOver}`
-                        : styles.counter
-                    }
-                  >
-                    {body.length}
-                  </span>
-                )}
               </div>
             </div>
             {isExpanded && (

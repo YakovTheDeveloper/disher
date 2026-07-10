@@ -4,7 +4,6 @@
     gap: 14px;
 }
 
-// ─── Manual masked DD-MM-YYYY fields ──────────────────────────────────
 .fieldRow {
     display: flex;
     gap: 10px;
@@ -17,22 +16,28 @@
     gap: 5px;
 }
 
-// Field-slot — тот же warm-pill field-bundle, что AutoGrowSearch, и та же БРОВКА:
-// тающий нижний hairline (Divider-канон, центр 18–82%, прозрачен в покое → тёплый
+// Поле-триггер — тот же warm-pill field-bundle, что у AutoGrowSearch и бывшего
+// нативного поля даты: тающая нижняя БРОВКА (Divider-канон, центр 18–82%, тёплая
 // в фокусе через `--sys-field-hairline-focus`) поверх мягкой inset-тени
-// `--sys-field-shadow`. НЕ полный inset-ring (`-shadow-hairline`) — он рисовал
-// прямоугольную рамку-коробку, мимо канон-инпутов. На <input> ::after недоступен,
-// поэтому hairline — слой фона (`--_brow` флипается в :focus). БЕЗ литеральной рамки.
-.input {
+// `--sys-field-shadow`. Тап раскрывает общий инлайн-календарь (RangeCalendar);
+// активное поле держит бровку в фокус-тоне — панель открыта именно по нему.
+// БЕЗ литеральной рамки (canon-инпуты). Слой 1 = бровка (1px у низа), слой 2 =
+// заливка (position/size/repeat вынесены из shorthand — strict-value спотыкается
+// о `bottom` внутри `background`; на background-image градиенты не гейтятся).
+.trigger {
     --_brow: var(--sys-field-hairline, transparent);
     width: 100%;
+    min-width: 0;
     box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    min-height: 44px; // touch floor
     padding: 11px 12px;
+    text-align: left;
     border-radius: var(--sys-field-radius, var(--radius-sm));
     border: none;
-    // Слой 1 = тающая нижняя бровка (1px у низа), слой 2 = заливка поля. Position/
-    // size/repeat вынесены из shorthand `background` (strict-value спотыкается о
-    // ключевое `bottom` внутри shorthand; на background-image градиенты не гейтятся).
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
     background-image:
         linear-gradient(90deg,
             transparent 0%,
@@ -50,22 +55,31 @@
     font-family: inherit;
     font-size: var(--sys-field-font-size);
     font-feature-settings: 'tnum' 1, 'lnum' 1;
-    letter-spacing: 0.02em;
     color: var(--sys-field-text, var(--text-primary));
-    caret-color: var(--sys-field-caret);
     transition: box-shadow 120ms ease, background 120ms ease;
 
-    &::placeholder {
-        color: var(--sys-field-placeholder, rgba(34, 31, 25, 0.4));
-        letter-spacing: 0;
-    }
-
     &:hover,
-    &:focus {
+    &:focus-visible,
+    &.triggerActive {
         --_brow: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.32));
         outline: none;
         box-shadow: var(--sys-field-shadow-focus, inset 0 1px 3px rgba(124, 65, 15, 0.16));
     }
+}
+
+.triggerPlaceholder {
+    color: var(--sys-field-placeholder, rgba(34, 31, 25, 0.4));
+}
+
+// ─── Раскрытый инлайн-календарь ───────────────────────────────────────────
+// Ограничен по высоте, скроллится внутри (окно разбора редко дальше пары
+// месяцев). Верхний зазор отделяет решётку от полей.
+.calendarPanel {
+    max-height: 52vh;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-top: var(--space-2);
 }
 
 // ─── Summary line ─────────────────────────────────────────────────────

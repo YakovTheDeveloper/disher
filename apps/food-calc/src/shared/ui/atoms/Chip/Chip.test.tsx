@@ -40,25 +40,31 @@ describe('Chip', () => {
     expect(active).toContain('active');
   });
 
-  it('defaults to host surface 0 — light pill, no elevation modifier', () => {
+  it('defaults to host surface 0 (light pill) + raised elevation — no modifier classes', () => {
     render(<Chip>Цинк</Chip>);
     const cls = screen.getByRole('button').className.split(' ');
     expect(cls).not.toContain('onSheet');
-    expect(cls).not.toContain('floating');
+    expect(cls).not.toContain('flat');
   });
 
-  it('lifts the pill to white (onSheet, no shadow) on a light host, surface={1}', () => {
+  it('lifts the pill to white (onSheet) on a light host, surface={1}', () => {
     render(<Chip surface={1}>Цинк</Chip>);
     const cls = screen.getByRole('button').className.split(' ');
     expect(cls).toContain('onSheet');
-    expect(cls).not.toContain('floating');
+    expect(cls).not.toContain('flat');
   });
 
-  it('adds a rest shadow (floating) on a white surface-2 ceiling, surface={2}', () => {
+  it('surface={2} stays onSheet — rest shadow now rides the base, not a class', () => {
     render(<Chip surface={2}>Цинк</Chip>);
     const cls = screen.getByRole('button').className.split(' ');
     expect(cls).toContain('onSheet');
-    expect(cls).toContain('floating');
+    expect(cls).not.toContain('flat');
+  });
+
+  it('adds the flat class for the dense (bordered, no-shadow) elevation skin', () => {
+    render(<Chip elevation="flat">Цинк</Chip>);
+    const cls = screen.getByRole('button').className.split(' ');
+    expect(cls).toContain('flat');
   });
 
   it('merges a caller-supplied className', () => {

@@ -26,6 +26,7 @@ import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { formatAmount } from '@/shared/lib/formatNumber';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
@@ -400,7 +401,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
             {massWarningGrams != null && (
               <p className={s.massWarning} role="status">
                 <Text as="span" role="caption">
-                  Совокупная масса нутриентов ({massWarningGrams.toFixed(1)} г) превышает 100 г
+                  Совокупная масса нутриентов ({formatAmount(massWarningGrams)} г) превышает 100 г
                 </Text>
               </p>
             )}

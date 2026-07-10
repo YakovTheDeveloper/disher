@@ -15,12 +15,6 @@
     border: none;
 }
 
-// ─── Inline title (dishes-only / titled flows) ───────────────────────────────
-.title {
-    flex-shrink: 0;
-    white-space: nowrap;
-}
-
 // ─── Segmented control (Еда / Мое) ───────────────────────────────────────────
 // Теперь = примитив ChoiceGroup variant="segmented" (трек-фон + активная плашка
 // БЕЗ тика + a11y/стрелки внутри Choice, токены --sys-color-control-*). Здесь
@@ -34,8 +28,14 @@
 // placeholder/иконка/каретка. Палитра приходит из app-wide тона
 // (`body[data-modal-fields]` — живой ModalShell-вариант).
 
-// The common pill — fills the bar beside the back button and holds ONLY the search
-// field now (the Еда|Мое toggle + nutrient button moved into the filter popover).
+// Поле поиска = структурный «нулевой ряд» списка. Зеркалит раскладку `.item`
+// FoodActionCard через общую рельсу `--rail-*` (на `.railHost` = ModalShell.wrapper):
+// пилюля flush к краю вжатой группы (боковой инсет несёт рама, отрицательный margin
+// СНЯТ 2026-07-10), слот лупы прижат к краю карточки (padding-left --rail-gutter = 0),
+// а плейсхолдер приземляется на РЕЛЬСУ ИМЁН (--rail-text). Так текст поля и имена
+// рядов стоят на ОДНОЙ вертикали, а лупа/миниатюры совпадают с лид-рельсой (закон
+// iOS inset-grouped). Плоский прозрачный + тающий хайрлайн снизу → поле читается
+// первой строкой списка.
 .pill {
     display: flex;
     align-items: center;
@@ -43,19 +43,13 @@
     flex: 1;
     min-width: 0;
     border: none;
-    // Размер «обычного инпута формы» (запрос юзера 2026-06-27): высота и горизонт.
-    // отступ зеркалят field-атом AutoGrowSearch (min-height 50px, pad space-4) —
-    // поле перестаёт быть тонкой пилюлей, читается как полноценный input.
-    min-height: 50px;
-    padding: 0 var(--space-4);
-    border-radius: var(--sys-field-radius, var(--radius-sm));
-    background: linear-gradient(90deg,
-            var(--sys-field-bg-from, #fffefb) 0%,
-            var(--sys-field-bg-mid, #fffaf2) 55%,
-            var(--sys-field-bg-to, #fdf4e3) 100%);
+    // Высота = высоте карточки еды (просьба 2026-07-10 «поле = ряд-ноль списка,
+    // подчеркнуть сродство»). Ряд FoodActionCard держит ⓘ-кнопка (IconButton
+    // size=56; .item без своего padding намеренно) → ряд = 56px. Поле берёт ту же
+    // высоту, чтобы читаться первой строкой списка.
+    min-height: 56px;
+    padding: 0 var(--space-4) 0 var(--rail-gutter); // лупа на лид-рельсе (rail-gutter=0)
     color: var(--sys-field-text, rgb(31, 31, 31));
-    box-shadow: var(--sys-field-shadow, 0 1px 3px rgba(124, 65, 15, 0.06));
-    transition: box-shadow 120ms ease;
 
     // Placeholder + иконка-лупа поиска — ХОЛОДНЫЕ (запрос юзера 2026-06-26). Scope-
     // override общих field-токенов ТОЛЬКО на этой пилюле (каретка/текст остаются
@@ -80,16 +74,13 @@
         transition: background 120ms ease;
     }
 
-    &:has(input:focus) {
-        box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(124, 65, 15, 0.12));
-
-        &::after {
-            background: linear-gradient(90deg,
-                    transparent 0%,
-                    var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                    var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
-                    transparent 100%);
-        }
+    // Фокус усиливает тающий хайрлайн (поле плоское — тень пилюли снята).
+    &:has(input:focus)::after {
+        background: linear-gradient(90deg,
+                transparent 0%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
+                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
+                transparent 100%);
     }
 }
 
@@ -99,11 +90,15 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    // Слот лупы = ширина миниатюры (--rail-thumb) → центр svg (justify-content:center)
+    // ровно под центром круглой миниатюры ряда. Кегль svg (--rail-icon-lg) на центр
+    // слота не влияет → лупа центрирована независимо от своего размера.
+    width: var(--rail-thumb);
     color: var(--sys-field-adornment, rgba(124, 65, 15, 0.55));
 
     svg {
-        width: 18px;
-        height: 18px;
+        width: var(--rail-icon-lg);
+        height: var(--rail-icon-lg);
     }
 }
 
@@ -112,7 +107,7 @@
     width: 100%;
     min-width: 0;
     border: none;
-    padding-left: 10px;
+    padding-left: var(--rail-gap); // gap лупа→текст = `.item` gap → плейсхолдер на рельсе имён (--rail-text)
     padding-right: 8px;
     line-height: 1.2;
     caret-color: var(--sys-field-caret, #b76d1a);
@@ -259,14 +254,14 @@
 
 // ─── Кнопка-«ползунки» (фильтр+сортировка за popover) ────────────────────────
 // Сидит в баре справа от search-пилюли (зеркалит back-кнопку слева) = триггер
-// PopoverTrigger. Примитив IconButton tone="neutral" size=36: тихий глиф, на press —
-// заливка чернилами + on-accent глиф. Глиф в покое — ХОЛОДНЫЙ (indigo) «инструмент»
-// в контраст к тёплой бумаге списка (канон 2026-06-26, как back-шеврон/нутриенты).
-// `:not([data-pressed])` оставляет press-инверсию (.neutral[data-pressed]) нетронутой.
+// PopoverTrigger. Примитив IconButton tone="soft" size=48: покойная ink-плитка +
+// холодный глиф (--sys-color-icon), на press — well темнеет + глиф в чернила. ОДИН
+// облик с back-кнопкой шапки и ⓘ рядов (унификация 2026-07-10, бывший neutral+indigo).
 // Рельс кнопки-фильтра = ширина info-колонки рядов (.infoBtn 56px в FoodActionCard).
-// Кнопка (48px, зеркалит «назад») стоит по центру рельса → её глиф на 28px от правого
-// края экрана, ровно как ⓘ у list-items (обе колонки flush к правому краю, глифы по
-// центру своих 56px). Бар full-bleed (без h-паддинга) — иначе выравнивание уедет.
+// Кнопка (40px) стоит по центру рельса → её глиф ровно над ⓘ list-items: и бар, и
+// ряды теперь инсетятся ОДНИМ боковым паддингом рамы ModalShell (inset-grouped
+// 2026-07-10), а обе правые колонки flush к правому краю группы → выравнивание
+// кнопки-фильтра над ⓘ держится само, без спец-кейса по правому краю.
 .filterRail {
     flex-shrink: 0;
     display: flex;
@@ -275,13 +270,12 @@
     width: 56px;
 }
 
+// Глиф/подложка/press несёт tone="soft" (покойная ink-плитка + холодный глиф,
+// один дом с back/ⓘ). Здесь — только layout-каркас; бывший idle-override на
+// indigo снят (унификация глифов на холодный --sys-color-icon, канон cold-icon).
 .filterButton {
     flex-shrink: 0;
     position: relative;
-
-    &:not([data-pressed]) {
-        color: var(--sys-color-text-accent);
-    }
 }
 
 // Активный (не-дефолт) фильтр = точка-индикатор в правом-верхнем углу кнопки:
@@ -306,15 +300,33 @@
 .filterPanel {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
     min-width: 200px;
-    padding: var(--space-1);
+    // Панель кроет триггер (overlapTrigger) — .content отдаёт padding:0. Внутренние
+    // отступы теперь несёт сама панель: секции с боковым/нижним inset, а header-ряд
+    // с ✕ остаётся flush к правому-верхнему углу (ровно над кнопкой-фильтром).
+    padding: 0 0 var(--space-2);
+}
+
+// Ряд-шапка: ✕ прижат вправо, 40px = размер кнопки-фильтра под ним. Flush к краю
+// панели → правый край ✕ совпадает с правым краем триггера.
+.filterPanelHeader {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+// ✕ закрытия = tone="soft" — ЗЕРКАЛИТ кнопку-фильтр под собой (та же покойная
+// ink-плитка + холодный глиф + press), чтобы переход триггер→✕ был бесшовным.
+.filterCloseButton {
+    flex-shrink: 0;
 }
 
 .filterSection {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    padding-inline: var(--space-2);
 }
 
 .filterSectionLabel {

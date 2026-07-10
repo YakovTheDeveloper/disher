@@ -11,6 +11,7 @@ import { memo, useCallback, useRef, useState, useEffect } from 'react';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Heading, Numeral, Text } from '@/shared/ui/atoms/Typography';
 import { NutrientGroupTitle } from '@/entities/nutrient/ui/NutrientGroupTitle';
+import { formatAmount } from '@/shared/lib/formatNumber';
 
 interface Props {
   getValue: (id: string) => number;
@@ -246,7 +247,7 @@ const NutrientTable = ({ getValue, variant = 'view', onRichFood, onValueChange }
           {isView && (
             <>
               <Numeral as="span" size="sm" className={clsx(s.value, s.valueLeft)}>
-                <span>{nutrient.unitRu === 'г' ? Math.round(value) : value.toFixed(1)}</span>
+                <span>{nutrient.unitRu === 'г' ? Math.round(value) : formatAmount(value)}</span>
                 {/* см. renderRow: юнит еды убран при заданной норме, оставлен без неё. */}
                 {!hasNorm && (
                   <Text as="span" role="caption" className={s.unit}>{nutrient.unitRu}</Text>

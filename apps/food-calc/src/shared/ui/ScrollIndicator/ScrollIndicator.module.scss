@@ -13,8 +13,17 @@
     }
 }
 
+// Full-bleed: тянем градиент за боковой инсет хоста в оба края. Модальная рама
+// пэддит --sys-inset-modal-fullscreen(=12) и клипает overflow:hidden'ом НА краю
+// padding-box, поэтому уход на -inset заполняет паддинг ровно до края экрана и
+// не режется. Величину можно переопределить хостом через --scroll-indicator-bleed.
+.bleed {
+    left: calc(-1 * var(--scroll-indicator-bleed, var(--sys-inset-page)));
+    right: calc(-1 * var(--scroll-indicator-bleed, var(--sys-inset-page)));
+}
+
 .light {
-    background: linear-gradient(to top, rgba(245, 245, 247, 0.92) 0%, transparent 100%);
+    background: linear-gradient(to top, var(--sys-color-scroll-fade) 0%, transparent 100%);
 }
 
 .dark {

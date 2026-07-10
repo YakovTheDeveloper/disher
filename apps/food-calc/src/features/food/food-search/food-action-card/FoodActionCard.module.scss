@@ -1,53 +1,148 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // ──────────────────────────────────────────────────────────────────────
-// FoodActionCard — stripe-fork row, token-driven by the app-wide tone.
-// Surface tokens (--sys-card-*) come from the live ModalShell variant on
-// `body[data-modal-fields]` (see tds/modalshell-lawgiver-2026-06-13).
-// Structure is v5 stripe-fork: 3-stop gradient + fading hairline ::after
-// + full-height richness bar + nth-child rhythm overlay + tabular numerics.
+// FoodActionCard — ряд-карточка результата поиска, token-driven по app-тону.
+// Surface-токены (--sys-card-*) приходят с живого варианта ModalShell на
+// `body[data-modal-fields]` (см. tds/modalshell-lawgiver-2026-06-13).
+// Облик ряда заинлайнен в `.wrapper` — бывший shared-миксин `stripe-fork-row()`
+// снят 2026-07-10: он был на ОДНОГО консумера и наполовину переопределялся
+// (тающий hairline → сплошной, скруглённая press-пилюля → во всю строку).
 // ──────────────────────────────────────────────────────────────────────
 
 .wrapper {
-    // Surface = stripe-fork-row canon (mixin.scss): bg, fading ::after hairline,
-    // nth-child rhythm, [data-pressed] dark press pill. The active-selection state
-    // below stays local — it keys off this card's own `.item_active` child.
-    @include stripe-fork-row;
+    // Тело ряда (бывший stripe-fork-row(), заинлайнен 2026-07-10). Active-selection
+    // остаётся локальным ниже — он ключуется по своему `.item_active` ребёнку.
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
 
-    // padding-left: var(--sys-inset-page);
-
+    background: var(--sys-card-bg);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     // Маркеры «выбрано» (amber-кромка + галочка-бейдж) убраны по запросу 2026-06-26:
-    // единственный фидбэк ряда — тёмная заливка ниже. Mixin держит outline прозрачным.
+    // единственный фидбэк ряда — тёмная press-заливка ниже. Держим outline прозрачным.
+    outline: 2px solid transparent;
+    outline-offset: -2px;
 
-    // Divider ряда: СПЛОШНОЙ вместо тающего hairline (запрос юзера). В плотном
-    // сканируемом списке глазу нужна твёрдая линия-рельс, а не воздушный fade. Это
-    // НЕ рамка вокруг ряда (анти-паттерн «Laboratory trap») — по-прежнему divider
-    // снизу, просто сплошной. Перебивает `hairline()`-градиент из stripe-fork-row
-    // (равная специфичность, позже по исходнику).
+    border-radius: var(--sys-radius-control);
+
+    // Градиенты-реликты сняты локально (просьба 2026-07-10 «градиенты = пережиток»).
+    // Переопределяем hover/press-заливку карточки на ПЛОСКИЕ токены — не трогая
+    // общий paper-mono-cards (--sys-card-hover/press-bg там ещё несут градиент для
+    // ScheduleNavigator/NutrientRow/RangeCalendar). hover = утопленный ink-wash,
+    // press = плоский near-black. Полюс «выбрано» (plum) уже плоский.
+    --sys-card-hover: var(--sys-card-bg-sunk);
+    --sys-card-press-bg: var(--sys-card-text-rest);
+
+    transition:
+        background var(--press-out) ease,
+        outline-color 0.18s ease,
+        transform var(--press-out) var(--easing-spring);
+
+    // Divider ряда: СПЛОШНОЙ в середине + лёгкое 20px-затухание строго по кончикам
+    // (запрос юзера). В плотном сканируемом списке глазу нужна твёрдая линия-рельс, а
+    // не воздушный fade — поэтому это НЕ канонический тающий hairline (18%/82%), а
+    // узкий 20px-фейд только у самых краёв. Это НЕ рамка вокруг ряда (анти-паттерн
+    // «Laboratory trap») — по-прежнему divider снизу на var(--sys-card-hairline).
     //
     // Левый край divider = НАЧАЛО ИМЕНИ, чтобы взгляд вёл воображаемую дугу от
     // контента вниз к бордеру (iOS-сепаратор, aligned to text). Адаптивно:
     //  • без миниатюры (блюда, свои продукты, режим «Мое») имя стартует от
-    //    page-gutter (--space-4) → divider оттуда же;
-    //  • с миниатюрой имя уезжает за кружок → gutter + 36 thumb + 14 gap.
-    // До правого края — flush.
+    //    рельсы ряда --rail-gutter → divider оттуда же (сведено на ОДНУ рельсу
+    //    2026-07-10; был рассинхрон --space-4(16) vs имя на rail-gutter);
+    //  • с миниатюрой имя уезжает за кружок, divider тянется от края карточки (0).
+    // До правого края — flush (карточка уже вжата рамой, отдельный right-инсет не нужен).
     &::after {
-        left: var(--space-4);
+        content: '';
+        position: absolute;
+        left: var(--rail-gutter, var(--space-4));
         right: 0;
-        background: var(--sys-card-hairline);
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0,
+                var(--sys-card-hairline) 20px,
+                var(--sys-card-hairline) calc(100% - 20px),
+                transparent 100%);
+        pointer-events: none;
     }
 
     &[data-has-thumb]::after {
-        left: calc(var(--space-4) + 36px);
+        left: 0;
     }
 
-    // Подсветка ряда (press/выбор) = ВО ВСЮ СТРОКУ, без скруглённой пилюли
-    // (запрос юзера 2026-06-26: «вся строка выделяется, по бокам не выделяется,
-    //  бордеры не нужны»). Перебивает inset:3px 6px + border-radius пилюли из
-    //  stripe-fork-row — равная специфичность, позже по исходнику → выигрывает.
+    &:last-child::after {
+        display: none;
+    }
+
+    // Первый ряд списка: без ВЕРХНЕЙ границы он сливается с полем поиска/фоном над
+    // ним и «не читается как айтем» (фидбек юзера). Рельсы-::after стоят МЕЖДУ
+    // рядами (last-child гасит нижний), поэтому у первого ряда верхний край голый.
+    // Даём ему верхний divider — зеркало нижнего ::after: тот же solid
+    // --sys-card-hairline, те же инсеты (left = начало имени, адаптивно под
+    // миниатюру; right flush). Рисуем на ::before — он свободен в покое (press-
+    // пилюля живёт на ::before ТОЛЬКО под [data-pressed]); `:not([data-pressed])`
+    // уступает ::before press-пилюле на тапе без драки за каскад.
+    // :not(:has(.item_active)) — у выбранного первого ряда ::before занят
+    // скруглённой plum-подложкой (ниже), верхний divider туда не лезет.
+    &:first-child:not([data-pressed]):not(:has(.item_active))::before {
+        content: '';
+        position: absolute;
+        left: var(--rail-gutter, var(--space-4));
+        right: 0;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0,
+                var(--sys-card-hairline) 20px,
+                var(--sys-card-hairline) calc(100% - 20px),
+                transparent 100%);
+        pointer-events: none;
+    }
+
+    &:first-child[data-has-thumb]:not([data-pressed]):not(:has(.item_active))::before {
+        left: 0;
+    }
+
+    &:hover {
+        background: var(--sys-card-hover);
+    }
+
+    &:active {
+        transition-duration: var(--sys-duration-press-in);
+    }
+
+    // Press/выбор — СКРУГЛЁННАЯ подложка-плитка, чуть уже краёв ряда (просьба
+    // 2026-07-10, разворот full-row-решения 2026-06-26). ::before под текстом
+    // (z-index 0 под контентом z-index 1), inset 4px + radius = «плитка под
+    // контентом». data-pressed (usePressFeedback) гарантирует отрисовку на тапе.
+    // Тот же inset/radius несёт selected-подложка ниже — press и выбор совпадают
+    // по форме. Внутри клипа inset-group, соседей не задевает.
     &[data-pressed]::before {
-        inset: 0;
-        border-radius: 0;
+        content: '';
+        position: absolute;
+        // Плитка ВЫХОДИТ за ряд «чуть-чуть» (просьба 2026-07-10): по бокам flush
+        // к краю вжатой группы (горизонтальный bleed всё равно клипается
+        // overflow-x:hidden скроллера), сверху/снизу — bleed на 2px в зазор
+        // соседей. Скругление читается на всех углах (radius-container). Тот же
+        // inset/radius несёт selected-подложка ниже — press и выбор совпадают.
+        inset: 3px 6px;
+        border-radius: var(--sys-radius-container);
+        background: var(--sys-card-press-bg);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    // Плитка (press/выбор) перекрывает край ряда → нижний divider-::after режет её
+    // хайрлайном (::after красится ПОВЕРХ ::before). Гасим divider под плиткой.
+    &[data-pressed]::after {
+        display: none;
+    }
+
+    &[data-pressed] {
+        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -66,7 +161,12 @@
 .item {
     display: flex;
     align-items: center;
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-2);
+    // padding-left + gap = левый край рельсы имён (--rail-text). Читаем общие --rail-*
+    // (заданы на `.railHost` = ModalShell.wrapper в SearchFood.module.scss), fallback =
+    // прежние литералы — карточка, поле поиска и заголовок считаются из ОДНОГО источника
+    // и не рассинхронятся. rail-gutter=0 → миниатюра прижата к краю вжатой карточки.
+    // Вертикальный padding у .item НАМЕРЕННО снят — высоту ряда держит ⓘ-кнопка
+    // (IconButton size=56), поэтому ряд = 56px без своего padding.
     flex-grow: 1;
     min-width: 0;
     overflow: hidden;
@@ -77,7 +177,7 @@
 
     cursor: pointer;
     transition: background var(--press-out) ease;
-    gap: 14px;
+    gap: var(--rail-gap, 14px);
     margin: 0;
     border-radius: inherit;
     z-index: 1; // над press-инверсией ::before (z-index 0) — имя всегда читаемо
@@ -93,36 +193,58 @@
 }
 
 // Каталожная миниатюра продукта (build-route поле `image`). Круглая, кадрируется
-// по центру. 1px фото-кант = канонический холодный hairline (--sys-color-divider) —
-// семантически border (а не box-shadow-хак), box-sizing:border-box глобален → кадр
-// не сдвигается. Был сырой stripe-warm box-shadow rgba(124,65,15,.1) — остаток
-// старой honey-палитры, который карточки давно расхолодили в divider.
+// по центру. Обрамление = канон framed-plate (@include, миксин в mixin.scss):
+// белая рамка + мягкая тень + серый мат — фото «лежит на подложке» (голос
+// «гравюра в дневнике натуралиста»), роднит полноцветный снимок с моно-карточкой
+// лучше плоского канта. Раньше был 1px холодный hairline (--sys-color-divider);
+// ещё раньше — сырой stripe-warm box-shadow (остаток honey-палитры). Рамка =
+// box-shadow-ring (не border): не двигает кадр и рисуется поверх соседнего контента.
 .thumb {
-    width: 36px;
-    height: 36px;
+    // Диаметр = общая --rail-thumb (fallback 36px, прежний литерал) — та же
+    // переменная задаёт ширину слота лупы в поле поиска, поэтому лупа центрируется
+    // ровно под этим кружком. Меняешь размер миниатюры тут — едет и лупа/рельса.
+    width: var(--rail-thumb, 36px);
+    height: var(--rail-thumb, 36px);
     flex-shrink: 0;
-    border-radius: 50%;
+    // Малый радиус (8px, --sys-radius-control) вместо круга — миниатюра еды теперь
+    // «карточка-фото», отличимая от круглых кнопок-плиток (back/фильтр/ⓘ) в том же
+    // ряду. Рамка/тень/мат несёт framed-plate; на скруглённом квадрате смотрится ок.
+    border-radius: var(--sys-radius-control);
     object-fit: cover;
-    border: 1px solid var(--sys-color-divider);
-    background: var(--sys-color-bg-hover);
+    @include framed-plate;
+}
+
+// «Выбрано» = канон-indicator (как выбранные чипы / Choice): плоский plum + флип
+// текста. Полюс «выбрано» = plum читается ПРЯМО из своей sys-пары
+// (--sys-color-bg-selected-plum / --sys-color-text-on-selected-plum), а НЕ через
+// scope-override семантического --sys-color-*-selected (тот остаётся глобально cool
+// для не-choice consumers).
+//
+// Форма (2026-07-10, разворот ::before-плитки того же дня): заливка ВСЕГО ряда,
+// «как раньше» (до 2026-07-10 full-row держался на этом же .wrapper). Ряд скруглён —
+// .wrapper несёт border-radius: --sys-radius-control (стр. 29), поэтому plum ложится
+// скруглённым, без inset-плитки. Специфичность (0,2,0) = как :hover, но правило стоит
+// ПОЗЖЕ hover в файле → выигрывает (ховер выбранного ряда остаётся plum). НЕ gated на
+// :not([data-pressed]): press-пилька (::before near-black inset) ложится ПОВЕРХ plum-
+// ряда — тап по выбранному = near-black плитка внутри plum-строки (press-фидбэк виден,
+// принято осознанно).
+.wrapper:has(.item_active) {
+    background: var(--sys-color-bg-selected-plum);
+}
+
+// Divider выбранного ряда гасим — plum-плитка сама держит край (иначе хайрлайн
+// ::after прорезал бы её снизу, см. press-::after выше).
+.wrapper:has(.item_active)::after {
+    display: none;
+}
+
+.wrapper:has(.item_active) .infoBtn {
+    color: var(--sys-color-text-on-selected-plum);
 }
 
 .item_active {
-
-
     .name {
-        color: var(--sys-card-text-active);
-    }
-}
-
-
-
-.wrapper:has(.item_active) {
-    background: var(--sys-color-surface-1);
-    box-shadow: var(--sys-elevation-overlay);
-
-    .infoBtn {
-        color: var(--sys-card-text-active);
+        color: var(--sys-color-text-on-selected-plum);
     }
 }
 
@@ -274,27 +396,38 @@
     background: var(--sys-card-press-fg);
 }
 
+// Обёртка ⓘ, гасящая bubbling pointer-событий до `<li>` (см. stopRowPress в
+// FoodActionCard.tsx). display:contents — span не создаёт бокс, flex-раскладка
+// ряда (.item grow + ⓘ-слот) не меняется, но узел остаётся в DOM-пути события.
+.infoSlot {
+    display: contents;
+}
+
 // Каркас кнопки (размер/flex/border/transition/press-scale) теперь несёт общий
 // примитив IconButton (bare-shell, `size={56}`); здесь остаётся ТОЛЬКО карточный
-// вид: цвет-токен ряда, утопленная плашка ::before и press-инверсия ниже.
+// вид: цвет-токен ряда, круглая подложка-плитка ::before и press-инверсия ниже.
 .infoBtn {
-    color: var(--sys-card-info-rest);
+    // Цвет ТУСКЛОГО глифа приходит от emphasis="quiet" (класс .quiet у IconButton,
+    // --sys-color-icon-muted) — второстепенная кнопка, зеркалит back-кнопку шапки.
+    // Тут цвет НЕ задаём НАМЕРЕННО: .infoBtn (FoodActionCall.module) грузится ПОЗЖЕ
+    // .quiet (IconButton.module) и при равной 0,1,0 перебил бы его по source-order.
+    // active/press-инверсии ниже (0,3,0) и `:active` (0,1,1) перебивают quiet штатно.
     position: relative;
     z-index: 1; // stacking-context: утопленная плашка (::before z-index:-1) садится
     //           ПОД глиф, но НАД фоном ряда; сам слот остаётся над press-пилюлей.
 
-    // Right-rail замена A (запрос юзера): вместо вертикального hairline-рельса (читался
-    // как сплошная колонка «таблицы») — тихая УТОПЛЕННАЯ ПЛАШКА, обнимающая глиф
-    // с полями. Из-за inset + скругления соседние ряды НЕ сливаются в колонку: каждый
-    // слот читается как отдельная кнопка-чип. Affordance через форму (кнопка выглядит
-    // кнопкой), покой-сигнал области клика сохранён.
+    // КРУГЛАЯ подложка-плитка (inset 8px в 56px-слоте → ~40px кружок), тот же токен
+    // --sys-color-surface-icon-tile, что у кнопки Назад/фильтра — ⓘ читается как та же
+    // круглая кнопка. Inset держит слот 56px (фильтр верхнего бара центрирован над ним),
+    // сама плитка не заполняет всю колонку. Обводка-кольцо в глифе (InfoIcon) — тихая
+    // (opacity 0.5) поверх этой плитки, «i» остаётся полной.
     &::before {
         content: '';
         position: absolute;
         inset: 8px;
         z-index: -1;
-        border-radius: var(--sys-radius-control);
-        background: var(--sys-card-bg-sunk);
+        border-radius: var(--sys-radius-indicator);
+        background: var(--sys-color-surface-icon-tile);
         pointer-events: none;
     }
 

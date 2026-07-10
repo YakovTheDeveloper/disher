@@ -2,13 +2,13 @@ import { useCallback } from 'react';
 import clsx from 'clsx';
 import { modalStore, type BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
+import { ModalShell } from '@/shared/ui/ModalShell';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
 import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
 import Button from '@/shared/ui/atoms/Button/Button';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import CreateDailyNormModal from './CreateDailyNormModal';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './EditDailyNormModal.module.scss';
 
 // chrome:
@@ -43,50 +43,50 @@ const EditDailyNormModal = ({ onClose, chrome = 'modal', onRecalc }: Props) => {
   const isPanel = chrome === 'panel';
   const isLoading = userItems === undefined;
 
-  const content = (
-    <div className={clsx(styles.root, isPanel && styles.rootPanel)}>
-      {!isPanel && (
-        <div className={clsx(styles.header)}>
-          <button
-            type="button"
-            className={styles.backButton}
-            onClick={onClose}
-            aria-label="Назад"
-          >
-            <ArrowLeftIcon />
-          </button>
-          <div className={styles.titleWrap}>
-            <Heading as="span" role="headline" className={styles.title}>{USER_NORM_NAME}</Heading>
-          </div>
-        </div>
-      )}
-      <div className={clsx(styles.body, isPanel && styles.bodyPanel)}>
-        {isLoading ? (
-          <div className={styles.loadingState} aria-live="polite">
-            <Spinner size={20} />
-            <Text as="span" role="caption" className={styles.loadingText}>Загружаем норму…</Text>
-          </div>
-        ) : (
-          <NutrientTable
-            variant="view-norms"
-            getValue={ZERO_VALUE}
-          />
-        )}
-      </div>
-      {/* Парящая ActionBar-кнопка справа-снизу (sticky над контентом). */}
-      <div className={clsx(styles.recalcBar, isPanel && styles.recalcBarFloat)}>
-        <Button
-          variant="system"
-          onClick={handleRecalc}
-          icon={<span className={styles.recalcGlyph}>↻</span>}
-        >
-          Пересчитать по анкете
-        </Button>
-      </div>
+  const bodyContent = isLoading ? (
+    <div className={styles.loadingState} aria-live="polite">
+      <Spinner size={20} />
+      <Text as="span" role="caption" className={styles.loadingText}>Загружаем норму…</Text>
     </div>
+  ) : (
+    <NutrientTable variant="view-norms" getValue={ZERO_VALUE} />
   );
 
-  return isPanel ? content : <ModalLayout>{content}</ModalLayout>;
+  const recalcButton = (
+    <Button
+      variant="system"
+      onClick={handleRecalc}
+      icon={<span className={styles.recalcGlyph}>↻</span>}
+    >
+      Пересчитать по анкете
+    </Button>
+  );
+
+  // Panel mode — inline body inside a drawer that already owns header + scroll.
+  // The recalc action floats sticky bottom-right over the drawer's own scroller.
+  if (isPanel) {
+    return (
+      <div className={clsx(styles.root, styles.rootPanel)}>
+        <div className={clsx(styles.body, styles.bodyPanel)}>{bodyContent}</div>
+        <div className={clsx(styles.recalcBar, styles.recalcBarFloat)}>{recalcButton}</div>
+      </div>
+    );
+  }
+
+  // Modal mode — canonical ModalShell chrome. The recalc action rides the fixed
+  // ActionButtons footer (pinned above content, above the keyboard).
+  return (
+    <ModalLayout a11yLabel={USER_NORM_NAME}>
+      <ModalShell>
+        <ModalShell.Header title={USER_NORM_NAME} onBack={onClose} />
+        <ModalShell.Body>
+          {bodyContent}
+          <ModalShell.Spacer />
+          <ModalShell.ActionButtons debugId="daily-norm-edit" right={recalcButton} />
+        </ModalShell.Body>
+      </ModalShell>
+    </ModalLayout>
+  );
 };
 
 export default EditDailyNormModal;

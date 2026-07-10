@@ -2,18 +2,23 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { ThemePicker } from '@/features/theme';
 import { WallpaperPicker } from '@/features/wallpaper';
+import { CardPalettePicker } from '@/features/card-palette';
 import { dump, apply, deleteBackup } from '@/shared/lib/snapshot';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
 import { Text } from '@/shared/ui/atoms/Typography';
-import { Button } from '@/shared/ui/atoms/Button';
+import { Button, IconButton } from '@/shared/ui/atoms/Button';
+import { QuietActionButton } from '@/shared/ui/atoms/Button/QuietActionButton';
 import { Switch } from '@/shared/ui/atoms/Switch';
+import MoonIcon from '@/shared/assets/icons/moon.svg?react';
+import SunIcon from '@/shared/assets/icons/sun.svg?react';
+import EyeIcon from '@/shared/assets/icons/eye.svg?react';
 import { Accordion } from '@/shared/ui/Accordion';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
+import { useColorModeStore } from '@/shared/lib/color-mode';
 import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
 import SyncDisableDrawer from './SyncDisableDrawer';
 
@@ -64,6 +69,13 @@ export function ProfileDrawer() {
   const signOut = useAuthStore((s) => s.signOut);
   const syncEnabled = useSyncPrefStore((s) => s.syncEnabled);
   const setSyncEnabled = useSyncPrefStore((s) => s.setSyncEnabled);
+  const colorMode = useColorModeStore((s) => s.mode);
+  const setColorMode = useColorModeStore((s) => s.setMode);
+  // Один drawer, два экрана: корень (identity + компактные разделы) и под-экран
+  // «Внешний вид» (высокие пикеры Обои + Цвет карточек). Навигация — локальный
+  // стейт + DrawerLayout.onBack (крест → стрелка «Назад»). Свежий mount при
+  // каждом drawerStore.show сбрасывает в 'root' — between-opens не храним.
+  const [screen, setScreen] = useState<'root' | 'appearance'>('root');
   // Sign-out lives behind a collapsed «Опасная зона» so it can't be hit by a
   // stray tap — the user must expand the section first (see task #15).
   const [dangerOpen, setDangerOpen] = useState(false);
@@ -140,22 +152,70 @@ export function ProfileDrawer() {
     // email sits right under it as the chrome subtitle — together they form the
     // identity header, replacing the old centered avatar block. A soft peach→rose
     // ambient glow (`.surface`) sits behind that header, echoing HomeAmbient.
-    <DrawerLayout title="Аккаунт" subtitle={email} className={styles.surface} contentInset="panel">
+    <DrawerLayout
+      title={screen === 'root' ? 'Аккаунт' : 'Внешний вид'}
+      subtitle={screen === 'root' ? email : undefined}
+      onBack={screen === 'root' ? undefined : () => setScreen('root')}
+      className={styles.surface}
+      contentInset="panel"
+      // Быстрый тумблер темы живёт в chrome-слоте шапки (topRight) — светлая/тёмная
+      // одним тапом, без раскрытия секции. Иконка показывает режим, в который
+      // ПЕРЕКЛЮЧИШЬСЯ: луна на светлой теме, солнце на тёмной. Ось режима — см.
+      // lib/color-mode (ортогональна «Обои» / «Цвет карточек»).
+      topRight={
+        <IconButton
+          tone="ghost"
+          onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
+          aria-label={colorMode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+          icon={
+            colorMode === 'dark' ? (
+              <SunIcon width={18} height={18} />
+            ) : (
+              <MoonIcon width={18} height={18} />
+            )
+          }
+        />
+      }
+    >
+      {screen === 'appearance' ? (
+        // Под-экран «Внешний вид» — высокие пикеры Обои + Цвет карточек, ушедшие
+        // с корня за одну nav-строку. Подписи — h3 (заголовок drawer = h2, тело
+        // держит h3+ для корректного outline; см. DrawerLayout.title).
+        <div className={styles.container}>
+          {/* Обои — своя гравюра-обложка для каждого экрана (Рацион / События /
+              Разборы), выбор из общего каталога. Пишется в localStorage, сразу
+              читается hero-обложками. */}
+          <section className={styles.section}>
+            <Text as="h3" role="label" className={styles.sectionLabel}>Обои</Text>
+            <WallpaperPicker />
+          </section>
+
+          {/* Цвет карточек — постоянный пер-поверхностный выбор палитры (еда
+              расписания / события / ингредиенты блюда). Переехал сюда из dev-
+              DesignBar. Пишется в localStorage, сразу читается поверхностями. */}
+          <section className={styles.section}>
+            <Text as="h3" role="label" className={styles.sectionLabel}>Цвет карточек</Text>
+            <CardPalettePicker />
+          </section>
+        </div>
+      ) : (
       <div className={styles.container}>
         <BalanceSection />
 
-        <section className={styles.section}>
-          <Text as="h2" role="label" className={styles.sectionLabel}>Оформление</Text>
-          <ThemePicker />
-        </section>
+        {/* Внешний вид — единственная nav-строка корня: высокие пикеры (обои +
+            палитра карточек) свёрнуты в под-экран, чтобы не раздувать скролл.
+            Reuse QuietActionButton (значок + label + шеврон); модификатор делает
+            её full-width settings-строкой с тающим hairline снизу. */}
+        <QuietActionButton
+          className={styles.appearanceRow}
+          icon={<EyeIcon width={18} height={18} />}
+          label="Внешний вид"
+          chevron
+          onClick={() => setScreen('appearance')}
+        />
 
-        {/* Обои — своя гравюра-обложка для каждого экрана (Рацион / События /
-            Разборы), выбор из общего каталога. Пишется в localStorage, сразу
-            читается hero-обложками. */}
-        <section className={styles.section}>
-          <Text as="h2" role="label" className={styles.sectionLabel}>Обои</Text>
-          <WallpaperPicker />
-        </section>
+        {/* Тема (светлая / тёмная) переехала в chrome-слот шапки (topRight) —
+            быстрый тумблер одним тапом. См. DrawerLayout topRight выше. */}
 
         {/*
           Синхронизация — облачный бэкап включён по умолчанию. Тумблер OFF ведёт
@@ -268,6 +328,7 @@ export function ProfileDrawer() {
           </Accordion>
         </section>
       </div>
+      )}
     </DrawerLayout>
   );
 }

@@ -1,62 +1,90 @@
 import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { addDays, format, startOfDay } from 'date-fns';
+import { addDays, format, startOfDay, subDays } from 'date-fns';
 import RangePickerWithFallback from '../RangePickerWithFallback';
 import type { DateRange } from '../range';
 
-const RANGE: DateRange = { start: '2026-05-01', end: '2026-05-15' };
+const ISO = 'yyyy-MM-dd';
+const clickDay = (dateStr: string) =>
+  fireEvent.click(document.querySelector(`[data-date="${dateStr}"]`) as Element);
 
 describe('RangePickerWithFallback', () => {
-  it('renders Начало/Конец masked fields with the value as DD-MM-YYYY', () => {
-    render(<RangePickerWithFallback value={RANGE} onChange={() => {}} />);
-    expect(screen.getByLabelText('Начало')).toHaveValue('01-05-2026');
-    expect(screen.getByLabelText('Конец')).toHaveValue('15-05-2026');
+  it('renders Начало/Конец field triggers for the current range', () => {
+    const today = startOfDay(new Date());
+    const range: DateRange = { start: format(subDays(today, 10), ISO), end: format(today, ISO) };
+    render(<RangePickerWithFallback value={range} onChange={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Начало' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Конец' })).toBeInTheDocument();
   });
 
-  it('typing a complete date emits the canonical yyyy-MM-dd, keeping the other end', () => {
-    const onChange = vi.fn();
-    render(<RangePickerWithFallback value={RANGE} onChange={onChange} />);
+  it('the calendar is collapsed until a field is tapped', () => {
+    const today = startOfDay(new Date());
+    const range: DateRange = { start: format(subDays(today, 10), ISO), end: format(today, ISO) };
+    render(<RangePickerWithFallback value={range} onChange={() => {}} />);
 
-    fireEvent.change(screen.getByLabelText('Начало'), {
-      target: { value: '03052026' },
-    });
-
-    expect(onChange).toHaveBeenCalledWith({ start: '2026-05-03', end: '2026-05-15' });
+    // No day cells before opening.
+    expect(document.querySelector('[data-date]')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Начало' }));
+    expect(document.querySelector('[data-date]')).not.toBeNull();
   });
 
-  it('emits an empty side while the typed date is still incomplete', () => {
+  it('tapping «Начало» then a day emits that day as the new start, keeping the end', () => {
+    const today = startOfDay(new Date());
+    const newStart = subDays(today, 12);
+    const range: DateRange = { start: format(subDays(today, 10), ISO), end: format(today, ISO) };
     const onChange = vi.fn();
-    render(<RangePickerWithFallback value={RANGE} onChange={onChange} />);
+    render(<RangePickerWithFallback value={range} onChange={onChange} />);
 
-    fireEvent.change(screen.getByLabelText('Начало'), {
-      target: { value: '0305' },
+    fireEvent.click(screen.getByRole('button', { name: 'Начало' }));
+    clickDay(format(newStart, ISO));
+
+    expect(onChange).toHaveBeenCalledWith({
+      start: format(newStart, ISO),
+      end: format(today, ISO),
     });
+  });
 
-    expect(onChange).toHaveBeenCalledWith({ start: '', end: '2026-05-15' });
+  it('picking a start later than the end drags the end along (start ≤ end)', () => {
+    const today = startOfDay(new Date());
+    const laterThanEnd = subDays(today, 5);
+    const range: DateRange = {
+      start: format(subDays(today, 20), ISO),
+      end: format(subDays(today, 10), ISO),
+    };
+    const onChange = vi.fn();
+    render(<RangePickerWithFallback value={range} onChange={onChange} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Начало' }));
+    clickDay(format(laterThanEnd, ISO));
+
+    expect(onChange).toHaveBeenCalledWith({
+      start: format(laterThanEnd, ISO),
+      end: format(laterThanEnd, ISO),
+    });
   });
 
   it('shows the 7..35 hint when the window is out of range', () => {
+    const today = startOfDay(new Date());
     render(
       <RangePickerWithFallback
-        value={{ start: '2026-05-12', end: '2026-05-15' }}
+        value={{ start: format(subDays(today, 3), ISO), end: format(today, ISO) }}
         onChange={() => {}}
-      />,
+      />
     );
-    expect(screen.getByText(/окно должно быть от 7 до 35 дней/)).toBeTruthy();
+    expect(screen.getByText(/окно должно быть от 7 до 35 дней/)).toBeInTheDocument();
   });
 
   it('warns when the end date is in the future', () => {
     const today = startOfDay(new Date());
-    // Valid 8-day span, but the end sits one day ahead of today.
     const end = addDays(today, 1);
     const start = addDays(today, 1 - 7);
     render(
       <RangePickerWithFallback
-        value={{ start: format(start, 'yyyy-MM-dd'), end: format(end, 'yyyy-MM-dd') }}
+        value={{ start: format(start, ISO), end: format(end, ISO) }}
         onChange={() => {}}
-      />,
+      />
     );
-    expect(screen.getByText(/конец не может быть в будущем/)).toBeTruthy();
+    expect(screen.getByText(/конец не может быть в будущем/)).toBeInTheDocument();
   });
 });

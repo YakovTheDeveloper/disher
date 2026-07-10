@@ -44,13 +44,15 @@ describe('ProductQuantity — portions carousel', () => {
 
   it('renders a chip per portion when product has portions', () => {
     renderQuantity({ product: { portions } });
-    expect(screen.getByText('среднее (50г)')).toBeInTheDocument();
-    expect(screen.getByText('крупное (63г)')).toBeInTheDocument();
+    // Chip content is split across spans (label · grams) — query the radio by its
+    // accessible name (concatenated text content) rather than a single text node.
+    expect(screen.getByRole('radio', { name: /среднее/ })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /крупное/ })).toBeInTheDocument();
   });
 
   it('renders portion chips when dish has portions', () => {
     renderQuantity({ dish: { portions } });
-    expect(screen.getByText('среднее (50г)')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /среднее/ })).toBeInTheDocument();
   });
 });
 
@@ -61,7 +63,7 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
 
     expect(updateQuantity).toHaveBeenLastCalledWith(50);
   });
@@ -70,8 +72,8 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
-    await user.click(screen.getByText('крупное (63г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
+    await user.click(screen.getByRole('radio', { name: /крупное/ }));
 
     expect(updateQuantity).toHaveBeenLastCalledWith(63);
   });
@@ -82,7 +84,7 @@ describe('ProductQuantity — portion selection', () => {
 
     expect(screen.queryByRole('button', { name: 'Увеличить количество' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
 
     expect(screen.getByRole('button', { name: 'Увеличить количество' })).toBeInTheDocument();
   });
@@ -91,11 +93,11 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
     expect(screen.getByRole('button', { name: 'Увеличить количество' })).toBeInTheDocument();
 
     // Second tap on the same portion clears the selection.
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
     expect(screen.queryByRole('button', { name: 'Увеличить количество' })).not.toBeInTheDocument();
   });
 
@@ -103,7 +105,7 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
     // "+" → multiplier 1.5 → round(50 × 1.5) = 75
     await user.click(screen.getByRole('button', { name: 'Увеличить количество' }));
 
@@ -114,7 +116,7 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
     expect(screen.getByText('×1')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Увеличить количество' }));
@@ -125,7 +127,7 @@ describe('ProductQuantity — portion selection', () => {
     const user = userEvent.setup();
     const { updateQuantity } = renderQuantity({ quantity: 0, product: { portions } });
 
-    await user.click(screen.getByText('среднее (50г)'));
+    await user.click(screen.getByRole('radio', { name: /среднее/ }));
     // ×1 → "−" → ×0.5 → 25
     await user.click(screen.getByRole('button', { name: 'Уменьшить количество' }));
     expect(updateQuantity).toHaveBeenLastCalledWith(25);

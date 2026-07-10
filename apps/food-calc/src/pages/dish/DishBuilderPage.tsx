@@ -22,8 +22,7 @@ import {
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { CARD_PALETTE_KEY, CARD_PALETTES } from '@/shared/lib/cardPalette';
+import { useCardPalette } from '@/shared/lib/cardPalette';
 import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -96,9 +95,10 @@ const DishBuilderPage = () => {
 
 const DishBuilderPageInner = ({ id }: { id: string }) => {
   const dish = useDish(id);
-  // ОБЩИЙ контрол палитры карточек (ключ CardPalette): один выбор в DesignBar
-  // красит еду, блюдо и события. Раньше ингредиенты были жёстко `dv-palette-lemon`.
-  const { anchor: paletteAnchor } = useDesignVariant(CARD_PALETTE_KEY, CARD_PALETTES);
+  // Палитра карточек «ингредиентов блюда» — постоянный пер-поверхностный выбор из
+  // настроек (ProfileDrawer → «Цвет карточек»). Дефолт amber. Раньше был общий
+  // контрол в dev-DesignBar; ещё раньше ингредиенты жёстко `dv-palette-lemon`.
+  const palette = useCardPalette('dishFood');
   const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
   const dishTotals = useDishNutrientTotals(id);
@@ -339,7 +339,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
             />
           }
         >
-          <div {...paletteAnchor} className={styles.dishItemsGroup}>
+          <div data-dv-v={palette} className={styles.dishItemsGroup}>
             <ItemsList>
               {items.map((item, index) => {
                 // onPointerDown стэшит activeItemId на DETAILS_INPUT ДО фокуса —

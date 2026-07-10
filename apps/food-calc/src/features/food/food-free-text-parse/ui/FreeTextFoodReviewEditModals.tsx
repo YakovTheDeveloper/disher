@@ -1,6 +1,7 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
-import { SearchFood } from '@/features/food/food-search';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { SearchFood, useSearchHeaderContent, searchFoodStyles } from '@/features/food/food-search';
 import { DetailsChips } from '@/features/food/details-chips';
 import type {
   ReviewEditStep,
@@ -36,6 +37,8 @@ export const FreeTextFoodReviewEditModals = ({
   inputIds: { SEARCH_INPUT, DETAILS_INPUT },
   excludeSupplements = false,
 }: Props) => {
+  // Тайтл хедера: при активном нутриент-фильтре имя нутриента перебивает «Продукт».
+  const searchHeader = useSearchHeaderContent('Продукт');
   return (
     <div>
       {/* Search Food */}
@@ -43,20 +46,29 @@ export const FreeTextFoodReviewEditModals = ({
         position="fixed"
         isExpanded={step === 'search'}
         content={
-          <SearchFood
-            onBack={onClose}
-            title="Продукт"
-            mode="products-only"
-            onSelectFood={({ variant, id, name }) => {
-              if (variant !== 'product') return;
-              onChange({ productId: id, name });
-              onClose();
-            }}
-            activeItemId={row?.productId ?? undefined}
-            inputId={SEARCH_INPUT}
-            initialSearchQuery={row?.originalName ?? row?.productName ?? ''}
-            excludeSupplements={excludeSupplements}
-          />
+          // SearchFood в общей раме ModalShell: одна поверхность + backdrop + gutter.
+          // Хедер поиска — ПРЯМОЙ ребёнок <ModalShell> (симметрия с соседями), список
+          // инсетится боковым паддингом рамы (iOS inset-grouped). railHost хостит
+          // общую рельсу --rail-* для хедера-соседа и списка.
+          <ModalShell className={searchFoodStyles.railHost}>
+            <ModalShell.Header
+              title={searchHeader.title}
+              onBack={onClose}
+              titleAlign="center"
+            />
+            <SearchFood
+              mode="products-only"
+              onSelectFood={({ variant, id, name }) => {
+                if (variant !== 'product') return;
+                onChange({ productId: id, name });
+                onClose();
+              }}
+              activeItemId={row?.productId ?? undefined}
+              inputId={SEARCH_INPUT}
+              initialSearchQuery={row?.originalName ?? row?.productName ?? ''}
+              excludeSupplements={excludeSupplements}
+            />
+          </ModalShell>
         }
       />
 

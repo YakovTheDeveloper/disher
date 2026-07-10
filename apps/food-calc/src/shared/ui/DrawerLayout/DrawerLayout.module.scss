@@ -59,7 +59,7 @@
     // Верх/низ дыхание, когда хедер перерастает высоту chrome-ряда (двухстрочный
     // title+subtitle / кастомный header). Роднит верхний инсет обоих путей с
     // ~центровкой однострочного title в 56px-ряду.
-    --drawer-chrome-pad-block: var(--space-3);
+    --drawer-chrome-pad-block: var(--space-4);
     // Всплывающий лист (drawer) = surface-2 (белый) → surface-aware глубина поля
     // (стратегия C): на белом лунка узнаётся бровкой + inset-тенью.
     @include field-depth(--sys-color-surface-2);
@@ -126,6 +126,7 @@
         // токены, что читает .headerSlot / .dragHandleHeader (см. --drawer-chrome-*
         // на .content). Раньше тут стоял магический `6px 56px 10px`.
         padding: var(--drawer-chrome-pad-block) var(--drawer-chrome-gutter);
+        padding-bottom: 0;
 
         // The chrome buttons center against the FIRST (chrome-height) line, not
         // the grown row — pin their midline to half the chrome height so they
@@ -149,6 +150,7 @@
         // быть инсет-агностиком: своих top/side-паддингов НЕ добавляет — слот уже
         // даёт унифицированный жёлоб и ритм.
         padding-block: var(--drawer-chrome-pad-block);
+        padding-bottom: 0;
 
         // Ведущий крестик пиним к средней линии ПЕРВОЙ (chrome-высотной) строки —
         // как в .dragHandleStacked. Когда header-контент двухстрочный (например,
@@ -166,23 +168,22 @@
     // }
 }
 
-// ─── Бровка под chrome-рядом (нижний дровер) ────────────────────────────────
+// ─── Бровка под chrome-рядом (ВСЕ дроверы) ──────────────────────────────────
 // Затухающий hairline у нижней кромки заголовка — тихо отделяет chrome-ряд
 // (заголовок/крест) от прокручиваемого тела (canon rule 1 — затухающий hairline,
-// НЕ сплошной border). Только нижние дроверы: боковые уже несут вертикальную
-// бровку у edge-handle, а floatingClose / hideTopChrome вовсе не рендерят
-// .dragHandle → там бровки нет по построению. База .dragHandle всегда
-// присутствует (title / title+subtitle / кастомный header — все три несут её),
-// так что одно правило кроет все хедер-пути. Джустуется по --drawer-inset =
-// боковой линии тела. `.content_bottom` — модификатор-сосед на том же элементе,
-// поэтому селектор живёт СНАРУЖИ `.content` (вложение дало бы недостижимый
-// `.content .content_bottom`).
+// НЕ сплошной border). На ВСЕХ дроверах с chrome-рядом — нижних И боковых
+// (боковые вдобавок несут вертикальную бровку у edge-handle; горизонтальная
+// бровка под заголовком — отдельный аффорданс, просьба 2026-07-05). floatingClose /
+// hideTopChrome вовсе не рендерят .dragHandle → там бровки нет по построению.
+// База .dragHandle всегда присутствует (title / title+subtitle / кастомный
+// header — все три несут её), так что одно правило кроет все хедер-пути.
+// Джустуется по --drawer-inset = боковой линии тела.
 //
 // Цвет = --sys-color-divider (единый ХОЛОДНЫЙ divider-токен, унификация бровок
 // 2026-06-26). НЕ --sys-field-hairline: тот — field-well токен, на дровер-
 // поверхности РАЗВЁРНУТ в `transparent` (rest-бровки у поля нет, field-depth), и
 // бровка была невидима.
-.content_bottom .dragHandle::after {
+.dragHandle::after {
     content: '';
     position: absolute;
     left: var(--drawer-inset);
@@ -195,6 +196,20 @@
             var(--sys-color-divider) 82%,
             transparent 100%);
     pointer-events: none;
+}
+
+// Боковые дроверы наследуют БАЗОВУЮ симметричную бровку (тает с обоих концов,
+// inset по --drawer-inset). Прежний left:0 + fade-вправо был подогнан под ЛЕВЫй
+// заголовок (.dragHandleSideTitle); теперь заголовок центрирован (2026-07-10) —
+// симметричная бровка снова под ним, спец-кейс снят.
+
+// Нижние дроверы (.content_bottom на popup-root) ГАСЯТ header-hairline (запрос
+// 2026-07-10 — под заголовком нижнего дровера линия не нужна). Боковые
+// (.content_left/.content_right) её сохраняют. Базовый .dragHandle всегда в clsx
+// (DrawerLayout.tsx) → один селектор кроет все варианты шапки
+// (.dragHandleStacked/.dragHandleHeader).
+.content_bottom .dragHandle::after {
+    display: none;
 }
 
 // ─── Bottom drawer (default) ────────────────────────────────────
@@ -218,10 +233,9 @@
     border-top-right-radius: var(--sys-radius-drawer);
     // Edge-glint — НАМЕРЕННЫЙ декоративный glass-кант (Vista/Aero voice), НЕ elevation.
     // Отделение краевого дровера несёт scrim (Drawer.module.scss .overlay, black/0.2);
-    // этот тонкий кант — чистый голос, выведен из --sys-elevation-* (решение 2026-06-22:
-    // стандарт M3/Apple = scrim, не тень у краевых панелей). Navy-tint по locked-канону
-    // теней. Exempt в будущем shadow-греп-гейте (как focus/selection-ring).
-    box-shadow: 0px -2px 4px rgba(45, 38, 28, 0.03); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), exempt как focus-ring */
+    // этот тонкий кант — чистый голос. Токенизирован (dark-двойник — override токена в
+    // theme-dark.scss, поэтому dark-правила ниже больше не нужны).
+    box-shadow: var(--sys-elevation-drawer-glint-bottom);
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
     // Live gesture-driven transform during swipe; --drawer-swipe-movement-y is set
@@ -267,6 +281,13 @@
     // blow it up and a narrow phone still gets a usable grab target.
     --drawer-handle-w: clamp(20px, 6vw, 30px);
 
+    // Верхний зазор «заголовок → контент» — тот же --space-3, что несут нижние
+    // дроверы (.content_bottom). Раньше боковые держали base 0 и тело слипалось
+    // с chrome-рядом заголовка (просьба 2026-07-05). Боковой инсет тела остаётся
+    // 0 (full-bleed) — consumer-.body держит свой padding-inline; layout владеет
+    // только верхним зазором.
+    --drawer-content-pad-top: var(--space-3);
+
     flex-direction: row;
     width: calc(var(--side-drawer-width, min(88vw, 380px)) + var(--drawer-handle-w));
     max-width: 100vw;
@@ -287,7 +308,7 @@
     flex-direction: row-reverse;
     border-top-right-radius: var(--sys-radius-drawer);
     border-bottom-right-radius: var(--sys-radius-drawer);
-    box-shadow: 4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
+    box-shadow: var(--sys-elevation-drawer-glint-left);
 
     &[data-starting-style],
     &[data-ending-style] {
@@ -307,7 +328,7 @@
     right: 0;
     border-top-left-radius: var(--sys-radius-drawer);
     border-bottom-left-radius: var(--sys-radius-drawer);
-    box-shadow: -4px 0 16px rgba(45, 38, 28, 0.08); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- glass-кант (voice, НЕ elevation), см. .content_bottom */
+    box-shadow: var(--sys-elevation-drawer-glint-right);
 
     &[data-starting-style],
     &[data-ending-style] {
@@ -513,35 +534,6 @@
     pointer-events: none;
 }
 
-// ─── Боковой дровер: заголовок влево (экономия ширины) ───────────────────────
-// Нижние дроверы держат каноничный центрированный title. Боковые — левят его у
-// креста: длинные подписи («Выбери нутриенты») получают всю ширину ряда вместо
-// клампа в ~60% с ранним ellipsis (просьба 2026-07-03). Единственный in-flow
-// ребёнок ряда (одиночный title ИЛИ стек title+subtitle) стартует от общего
-// chrome-жёлоба (расходится с абсолютным крестом слева) и резервирует тот же
-// жёлоб справа (под topRight), так что длинный title ужимается в ellipsis, а не
-// заезжает под контролы.
-.dragHandleSideTitle {
-    justify-content: flex-start;
-
-    > .titleCenter,
-    > .titleStack {
-        flex: 1 1 auto;
-        min-width: 0;
-        max-width: 100%;
-        padding-inline: var(--drawer-chrome-gutter);
-        align-items: flex-start; // no-op на одиночном title; левит колонку стека
-    }
-
-    .titleCenter {
-        text-align: left;
-    }
-
-    .titleSubtitle {
-        text-align: left;
-    }
-}
-
 // Центр-слот кастомного `header` (DrawerLayout `header`). Заполняет chrome-ряд
 // (flex:1) и центрирует свой контент. Горизонтальный padding резервирует
 // СИММЕТРИЧНЫЙ жёлоб под контрол-зону (inset + тап-арея) с ОБЕИХ сторон: левый
@@ -671,36 +663,19 @@
     // adds no layout/style/paint containment side effects (CSS Containment 3).
     container-type: scroll-state;
 
-    // Top/bottom scroll-hints: sticky white→transparent gradients, content fades
-    // into the surface. White-on-white means no hard edge — the fade only ever
-    // dissolves content, never paints a visible band. Pure CSS scroll-driven
-    // animation (industry 2026 pattern, CSS-Tricks "Modern Scroll Shadows"). When
-    // there's no overflow, scroll progress can't change and the keyframe sits at
-    // 0% → opacity 0 (hint hidden).
+    // Bottom scroll-hint: a sticky white→transparent gradient — the last rows dissolve
+    // into the surface, signalling «ниже есть ещё» at the bottom edge where there's no
+    // footer. Pure CSS scroll-driven animation (industry 2026 pattern, CSS-Tricks
+    // "Modern Scroll Shadows"). When there's no overflow the scroll timeline is inactive
+    // → keyframe sits at 0% → opacity 0 (hint hidden).
+    //
+    // NB: there is intentionally NO top hint. A top fade under the always-present drawer
+    // chrome (`.headerSlot`, same white surface) signals nothing — it only ghosts the top
+    // row into a white haze on scroll, reading as an unnatural gap from the header. The
+    // header↔content seam is already carried by the chrome's own fading hairline «бровка»
+    // (`.dragHandle::after`, --sys-color-divider) — a content-side veil on top of it is
+    // pure liability. (Removed 2026-07-10.)
     position: relative;
-
-    // Top hint: visible once the user has scrolled away from the top.
-    &::before {
-        content: '';
-        position: sticky;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 32px;
-        margin-bottom: -32px;
-        background: linear-gradient(to bottom, white 30%, rgba(255, 255, 255, 0));
-        pointer-events: none;
-        flex-shrink: 0;
-        z-index: 2;
-
-        // No `forwards` fill: when content doesn't overflow the scroll timeline is
-        // inactive, and a forwards-fill would paint this hint's last keyframe
-        // (100% → opacity 1) — leaving the top fade visible with nothing to scroll
-        // up to. Default `none` fill falls back to the base opacity:0 instead.
-        opacity: 0;
-        animation: scroll-fade-hint-top linear;
-        animation-timeline: --scrollerY;
-    }
 
     // Bottom hint: visible while there's more content below.
     &::after {
@@ -724,11 +699,10 @@
     }
 }
 
-// Opt-out (DrawerLayout `scrollHints={false}`): drop both edge-fade pseudo-elements
-// for short form drawers whose own footer marks the end — there the bottom fade
-// dissolves the last row into the surface and reads as a glitch, not a hint.
+// Opt-out (DrawerLayout `scrollHints={false}`): drop the bottom edge-fade for short
+// form drawers whose own footer marks the end — there the fade dissolves the last row
+// into the surface and reads as a glitch, not a hint.
 .noScrollHints {
-    &::before,
     &::after {
         content: none;
     }
@@ -756,19 +730,6 @@
 // account drawer's «Опасная зона»).
 .footer {
     flex-shrink: 0;
-}
-
-@keyframes scroll-fade-hint-top {
-
-    // 0% (top of scroll) → invisible; fades in within the first 5% and holds.
-    0% {
-        opacity: 0;
-    }
-
-    5%,
-    100% {
-        opacity: 1;
-    }
 }
 
 @keyframes scroll-fade-hint {
@@ -801,6 +762,19 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+// ─── Dark: scroll-hint ──────────────────────────────────────────────────────
+// Glass-кант краевого дровера теперь токенизирован — его dark-двойник (светлый rim +
+// тёмная ambient) живёт как override --sys-elevation-drawer-glint-* в theme-dark.scss,
+// поэтому базовые .content_bottom/_left/_right box-shadow: var(…) сами берут dark-значение.
+// Здесь остаётся только перекрас scroll-hint: он хардкодит `white` (растворял контент в
+// белую surface-2) → на тёмной surface-2 это была бы светлая дымка; красим в дровер-
+// поверхность (#2a251d), чтобы фейд растворял, а не подсвечивал.
+:root[data-theme-mode='dark'] {
+    .scrollableContent::after {
+        background: linear-gradient(to top, #2a251d 30%, rgba(42, 37, 29, 0));
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

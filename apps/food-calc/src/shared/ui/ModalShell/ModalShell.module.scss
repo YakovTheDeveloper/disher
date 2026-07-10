@@ -118,6 +118,29 @@
   }
 }
 
+// ─── Dark: warm-coal ambient orbs ────────────────────────────────────────────
+// Light-sand orbs (#fdfcf8…) were bright blobs on the espresso base. Re-tint to
+// warm-coal discs a rung above surface-0, so the ambient reads as subtle depth,
+// not light pits. NB: `.springOrbs` currently `display:none` (probe 2026-06-26)
+// → orbs don't render today; this keeps them dark-correct if the ambient returns.
+:root[data-theme-mode='dark'] .wrapper {
+  .orb1 {
+    background: radial-gradient(circle, #2a251d 0%, #221e17 56%, transparent 84%);
+  }
+  .orb2 {
+    background: radial-gradient(circle, #262019 0%, #201b15 56%, transparent 84%);
+  }
+  .orb3 {
+    background: radial-gradient(circle, #282219 0%, #221d15 56%, transparent 84%);
+  }
+  .orb4 {
+    background: radial-gradient(circle, #2c261d 0%, #241f17 56%, transparent 84%);
+  }
+  .orb5 {
+    background: radial-gradient(circle, #29231a 0%, #211c15 56%, transparent 84%);
+  }
+}
+
 // ── Field / chip / card palette MOVED OUT (2026-06-22) ───────────────────────
 // The `field-chip-palette` (+ `paper-mono-cards` for `--sys-card-*`) mixin
 // DEFINITIONS now live in shared/assets/style/mixin.scss; the `:root` publication
@@ -209,6 +232,42 @@
   left: 0;
   right: 0;
   padding: var(--sys-inset-page);
+}
+
+// 'flow' архетип — терминальный бар В ПОТОКЕ (для панелей/дроверов со своим
+// скроллом): без fixed, без keyboard-stick. Идёт ПОСЛЕ `.actionButtons` →
+// равная специфичность, перекрывает fixed-правила порядком. Владеет своим
+// терминальным зазором сверху (section) + тающим hairline-разделителем +
+// safe-area снизу. Портирован из бывшего hand-roll `.footerPanel`
+// (CreateDailyNormModal) — теперь один shell-API на оба архетипа.
+.actionButtonsFlow {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  transform: none;
+  width: 100%;
+  padding: var(--sys-stack-section) var(--sys-inset-page)
+    max(var(--sys-inset-page), env(safe-area-inset-bottom));
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+
+  // Тающий hairline сверху = терминальный разделитель (канон: не 1px-рамка).
+  &::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--sys-field-hairline) 18%,
+        var(--sys-field-hairline) 82%,
+        transparent 100%);
+    pointer-events: none;
+  }
 }
 
 .actionButtonsSlotPrev {

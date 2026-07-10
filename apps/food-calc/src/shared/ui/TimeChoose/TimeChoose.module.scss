@@ -250,6 +250,6 @@ input.nativeInput {
 
     &:focus {
         outline: none;
-        box-shadow: 0 0 0 3px rgba(51, 112, 255, 0.25); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- focus-ring (colored, не elevation) */
+        box-shadow: 0 0 0 3px var(--sys-color-bg-focus-ring); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- focus-ring colour is tokenized; bare 0-offsets are geometry */
     }
 }

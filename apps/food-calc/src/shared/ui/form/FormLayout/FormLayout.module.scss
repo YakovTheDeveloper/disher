@@ -1,0 +1,54 @@
+// FormLayout — раскладка формы на трёх ярусах stack-токенов. Только пространство,
+// без цвета/типографики: layout-слой, gate-чистый (одни var(--sys-stack-*)).
+
+// Верхний уровень формы. Контейнер владеет КАЖДЫМ зазором по ОТНОШЕНИЮ пары,
+// а не лупит один gap на всех (owl-паттерн, не `gap`, — чтобы капшен получил
+// свой, тесный, зазор):
+//   • соседние группы = равные секции  → --sys-stack-section (24);
+//   • капшен → первая группа = «принадлежит»→ --sys-stack-field (12), тесно.
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  > * + * {
+    margin-block-start: var(--sys-stack-section);
+  }
+
+  // Интро-капшен принадлежит форме — тесный field-зазор, не секционный разрыв.
+  // Специфичнее (.caption + *) базового (* + *) → перекрывает порядком/весом.
+  > .caption + * {
+    margin-block-start: var(--sys-stack-field);
+  }
+}
+
+// Интро-капшен (голос несёт <Text role="caption">). Зазор до первой группы —
+// на контейнере (owl-правило выше), сам капшен margin не ставит.
+.caption {
+  min-width: 0;
+}
+
+// Группа: лейбл → контент тесно (row), поля внутри — field.
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-row);
+  min-width: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-field);
+  min-width: 0;
+}
+
+// Горизонтальная группа — поля делят ширину поровну (как числовой ряд).
+.horizontal {
+  flex-direction: row;
+
+  > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}

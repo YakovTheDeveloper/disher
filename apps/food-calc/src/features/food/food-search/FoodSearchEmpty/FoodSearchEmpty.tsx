@@ -34,10 +34,8 @@ export const FoodSearchEmpty = ({ onCreateProduct, onCreateDish, createInputHtml
             htmlFor={createInputHtmlFor}
             onClick={onCreateProduct}
           >
-            Продукт
-            <Text as="span" role="caption" className={styles.clickHint}>
-              в два клика
-            </Text>
+            <Text role="body">Продукт</Text>
+            <Text role="caption" className={styles.clickHint}>в 2 клика</Text>
           </Button>
         )}
         {onCreateDish && (
@@ -49,10 +47,8 @@ export const FoodSearchEmpty = ({ onCreateProduct, onCreateDish, createInputHtml
             htmlFor={createInputHtmlFor}
             onClick={onCreateDish}
           >
-            Блюдо
-            <Text as="span" role="caption" className={styles.clickHint}>
-              в два клика
-            </Text>
+            <Text role="body">Блюдо</Text>
+            <Text role="caption" className={styles.clickHint}>в 2 клика</Text>
           </Button>
         )}
       </div>

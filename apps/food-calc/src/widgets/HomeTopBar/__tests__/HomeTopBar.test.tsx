@@ -69,3 +69,16 @@ describe('HomeTopBar — noInterruptGuard', () => {
     expect(h.toScheduleBuilder).not.toHaveBeenCalled();
   });
 });
+
+describe('HomeTopBar — date button content', () => {
+  it('shows the short weekday letters and NO dd.mm numbers', () => {
+    // DATE = 15-05-2026 → пятница (short «Пт»). Флип 2026-07-10: относительные слова
+    // (Сегодня/Вчера/Завтра) и мета dd.mm сняты — только буквы дня в силуэте календаря.
+    render(<HomeTopBar date={DATE} />);
+    const btn = screen.getByLabelText('Выбрать дату');
+
+    expect(btn.textContent).toContain('Пт');
+    // Guard против отката к старому рендеру с числом dd.mm (напр. «15.05»).
+    expect(btn.textContent).not.toMatch(/\d\d\.\d\d/);
+  });
+});

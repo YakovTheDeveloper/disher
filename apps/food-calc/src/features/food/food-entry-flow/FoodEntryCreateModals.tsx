@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
-import { SearchFood } from '@/features/food/food-search';
+import { SearchFood, useSearchHeaderContent, searchFoodStyles } from '@/features/food/food-search';
 import { ProductQuantity } from '@/features/product/ProductQuantity';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
@@ -47,6 +48,16 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // У блюда в блюдо нельзя класть блюдо → products-only; в день можно добавить
   // целое блюдо → products-and-dishes.
   const searchMode = kind === 'dish' ? 'products-only' : 'products-and-dishes';
+
+  // Заголовок шага поиска (ModalHeader внутри SearchFood). Блюдо → статичный
+  // «Добавить продукт»; расписание → «Выбор еды». Дата-мета убрана (запрос юзера
+  // 2026-07-10) — заголовок центрируется по полосе (titleAlign="center"). При
+  // активном нутриент-фильтре SearchFood сам перебивает заголовок именем нутриента.
+  const searchTitle = kind === 'dish' ? 'Добавить продукт' : 'Выбор еды';
+  // Тайтл хедера поиска: при активном нутриент-фильтре имя нутриента перебивает
+  // статичный тайтл (логика жила в SearchFood, поднята сюда вместе с выносом хедера
+  // на уровень ModalShell).
+  const searchHeader = useSearchHeaderContent(searchTitle);
 
   const hasHints = useHasDetailsHints(draft.productId);
   const createSteps = hasHints ? CREATE_STEPS_WITH_DETAILS : CREATE_STEPS_NO_DETAILS;
@@ -121,6 +132,20 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // бы неверную сумму → БАД не создаём и не ищем в блюде (2026-06-20).
   const showSupplementOption = kind === 'schedule' && draft.variant !== 'dish';
 
+  // Сегмент «Продукт | Блюдо» в модалке создания — только в расписании. В блюдо
+  // блюдо не вкладывается → на dish-таргете (DishBuilderPage) вариант всегда
+  // product, сегмент не рендерим. Смена типа сбрасывает БАД-конфиг: он валиден
+  // только для продукта (handleConfirmCreate его игнорирует для блюда, но stale
+  // isSupplement выставил бы quantity=1).
+  const showVariantSegment = kind === 'schedule';
+  const handleVariantChange = (next: string) => {
+    const variant = next === 'dish' ? 'dish' : 'product';
+    setDraft((d) => ({ ...d, variant, productId: null, dishId: null }));
+    setIsSupplement(false);
+    setSupplementNutrients({});
+    setOpenGroup(null);
+  };
+
   return (
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Search */}
@@ -128,23 +153,33 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
         position="absolute"
         isExpanded={step === 'search'}
         content={
-          <SearchFood
-            onInfoClick={() => {
-              handleClose();
-            }}
-            key={sessionKey}
-            mode={searchMode}
-            onSelectFood={handleFoodSelect}
-            onBack={handleClose}
-            title="Еда"
-            activeItemId={draft.productId ?? draft.dishId ?? undefined}
-            itemHtmlFor={QUANTITY_INPUT}
-            inputId={SEARCH_INPUT}
-            isActive={step === 'search'}
-            createInputHtmlFor={CREATE_INPUT}
-            onPickCreate={handlePickCreate}
-            excludeSupplements={kind === 'dish'}
-          />
+          // SearchFood в общей раме ModalShell (как create/quantity шаги): одна
+          // поверхность + backdrop + gutter обёртки. Хедер поиска — ПРЯМОЙ ребёнок
+          // <ModalShell> (симметрия с шагами), список еды инсетится тем же боковым
+          // паддингом рамы (iOS inset-grouped). railHost на обёртке хостит общую
+          // рельсу --rail-* для хедера-соседа и списка.
+          <ModalShell className={searchFoodStyles.railHost}>
+            <ModalShell.Header
+              title={searchHeader.title}
+              onBack={handleClose}
+              titleAlign="center"
+            />
+            <SearchFood
+              onInfoClick={() => {
+                handleClose();
+              }}
+              key={sessionKey}
+              mode={searchMode}
+              onSelectFood={handleFoodSelect}
+              activeItemId={draft.productId ?? draft.dishId ?? undefined}
+              itemHtmlFor={QUANTITY_INPUT}
+              inputId={SEARCH_INPUT}
+              isActive={step === 'search'}
+              createInputHtmlFor={CREATE_INPUT}
+              onPickCreate={handlePickCreate}
+              excludeSupplements={kind === 'dish'}
+            />
+          </ModalShell>
         }
       />
 
@@ -163,6 +198,18 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
             />
             <ModalShell.Body>
               <div className={styles.createBody}>
+                {showVariantSegment && (
+                  <ChoiceGroup
+                    variant="segmented"
+                    value={draft.variant}
+                    onChange={handleVariantChange}
+                    aria-label="Тип: продукт или блюдо"
+                    className={styles.variantSegment}
+                  >
+                    <ChoiceItem value="product">Продукт</ChoiceItem>
+                    <ChoiceItem value="dish">Блюдо</ChoiceItem>
+                  </ChoiceGroup>
+                )}
                 <AutoGrowSearch
                   singleLine
                   id={CREATE_INPUT}
@@ -185,12 +232,14 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                 )}
                 {showSupplementOption && isSupplement && (
                   <div className={styles.supplementBlock}>
-                    <QuietLabel as="p" className={styles.supplementUnit}>1 приём = 1 шт</QuietLabel>
+                    <QuietLabel as="p" className={styles.supplementUnit}>
+                      1 приём = 1 шт
+                    </QuietLabel>
                     <div className={styles.nutrientGroupsList}>
                       {nutrientGroups.map((group) => {
                         const isOpen = openGroup === group.name;
                         const filledCount = group.content.filter(
-                          (n) => (supplementNutrients[n.id] ?? 0) > 0,
+                          (n) => (supplementNutrients[n.id] ?? 0) > 0
                         ).length;
                         return (
                           // Примитив Accordion. hideChevron — индикатор несёт сам
@@ -298,7 +347,12 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                     <ModalShell.ActionButtons
                       debugId="create-qty"
                       left={
-                        <Text as="label" role="body" htmlFor={DETAILS_INPUT} className={styles.detailsOptIn}>
+                        <Text
+                          as="label"
+                          role="body"
+                          htmlFor={DETAILS_INPUT}
+                          className={styles.detailsOptIn}
+                        >
                           + деталь
                         </Text>
                       }

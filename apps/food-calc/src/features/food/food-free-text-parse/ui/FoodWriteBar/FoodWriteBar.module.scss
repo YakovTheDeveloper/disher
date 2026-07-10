@@ -83,55 +83,21 @@
     min-width: 0;
     display: flex;
     align-items: center;
+    // Заголовок «Предложения» — по центру пилюли (запрос 2026-07-05). justify +
+    // text-align центрируют текст в поле readyHeader (flex:1 занимает пилюлю).
+    justify-content: center;
+    text-align: center;
     min-height: var(--pill-h);
     padding: 0;
     margin: 0;
 }
 
-// ─── DesignBar-эксперимент «FoodListCta» — ОБЛИК входа «список еды» × оффлайн ────
-// Высокий 2-строчный бар: вход «список еды» едет в `trailingSlot` WriteBarShell —
-// в потоке, справа от пилюли, за фейдинг-дивайдером (не плавает, не перекрывает
-// список). `data-dv-v` (через анкор на `.listCtaTrail`) выбирает облик; `data-net=
-// 'on'|'off'` — оффлайн-эмфазу (онлайн тихо → оффлайн заметная амбра, т.к. это
-// единственный рабочий путь без сети). Два варианта:
-//   tall-split — круг-иконка вилка-нож (стили ниже)
-//   tall-medal — монета-печать WriteBarMedal (стилизует себя сама, floating={false})
-
-// ── Базовая кнопка (облик/вес задаёт обёртка по data-dv-v) ──
-.listCtaButton {
-    white-space: nowrap;
-    min-height: var(--medal-size);
-}
-
-// Ready-state (показана предложка) — приглушаем, как dimmed-медаль.
-.listCtaDim {
-    opacity: 0.6;
-}
-
-// ─── trailing-обёртка: вход в потоке справа от высокого бара ─────────────────────
+// ─── Вход «список еды» — монета-печать WriteBarMedal ─────────────────────────────
+// Высокий 2-строчный бар: вход «список еды» едет в `trailingSlot` WriteBarShell — в
+// потоке, справа от пилюли, за фейдинг-дивайдером (не плавает, не перекрывает
+// список). Облик = монета-печать WriteBarMedal (стилизует себя сама, floating={false}).
 .listCtaTrail {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-}
-
-// ─── tall-split — круг-иконка справа (под рост send-монеты), БЕЗ тени (плоская) ──
-// Фикс-фон (медовый soft); оффлайн-эмфаза перебивает его сплошной амброй (единствен-
-// ный путь без сети). Тинт-ось медали круг не трогает.
-.listCtaTrail[data-dv-v='tall-split'] .listCtaButton {
-    width: var(--coin-size);
-    height: var(--coin-size);
-    min-width: var(--coin-size);
-    min-height: var(--coin-size);
-    padding: 0;
-    justify-content: center;
-    border-radius: var(--sys-radius-indicator);
-    background: var(--sys-color-surface-action-primary-soft);
-    color: var(--sys-color-text-action-primary-soft);
-    box-shadow: none;
-}
-
-.listCtaTrail[data-dv-v='tall-split'][data-net='off'] .listCtaButton {
-    background: var(--sys-color-surface-action-primary);
-    color: var(--sys-color-on-action-primary);
 }

@@ -33,6 +33,7 @@ const EXEMPT = [
   'assets/style/tokens.scss',
   'assets/style/palette.scss',
   'assets/style/themes.scss',
+  'assets/style/theme-dark.scss',
   'assets/style/mixin.scss',
   'assets/style/index.scss',
   'assets/style/design-variant-palettes.scss',

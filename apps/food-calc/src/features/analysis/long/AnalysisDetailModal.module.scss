@@ -1,45 +1,7 @@
-.layout {
-    display: flex;
-    flex-direction: column;
-    width: min(560px, 100%);
-    max-height: 82vh;
-}
-
-.header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px 20px 10px;
-    padding-top: var(--modal-title-offset);
-    flex-shrink: 0;
-}
-
-.headerText {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-// Типографику несёт <Heading role="title"> (миграция 2026-06-23 — голос в
-// примитиве). Класс — только layout-слот в .headerText.
-.title {
-    margin: 0;
-}
-
-.range {
-    margin: 0;
-    color: var(--sys-color-text-tertiary);
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-}
-
-// .closeButton удалён — × теперь общий примитив CloseButton.
-
-.body {
-    overflow-y: auto;
-    padding: 4px 20px 22px;
-    -webkit-overflow-scrolling: touch;
-}
+// Chrome (layout / header / body scroller) теперь несёт общий ModalShell —
+// заголовок разбора и дата-подзаголовок живут в ModalShell.Header, скролл-зона
+// и вертикальные зазоры (--sys-stack-section между статусом / CTA / секцией) —
+// в ModalShell.Body. Ниже остаётся только контент состояний и снапшота гипотез.
 
 // ─── States ───────────────────────────────────────────────────────────
 .pending {
@@ -76,17 +38,12 @@
     word-break: break-word;
 }
 
-// Вид несёт примитив <Button variant="accent" fullWidth>. Класс — layout-слот:
-// только верхний зазор от блока-статуса (раньше был bespoke CTA).
-.restart {
-    margin-top: 14px;
-}
-
 // ─── Sections (ideas + hypothesis snapshot) ───────────────────────────
+// Верхний зазор от предыдущего блока несёт ModalShell.Body gap
+// (--sys-stack-section); секция добавляет лишь hairline-разделитель.
 .section {
-    margin-top: var(--sys-stack-section);
     padding-top: 18px;
-    border-top: 1px solid rgba(15, 23, 42, 0.07);
+    border-top: 1px solid var(--sys-color-divider);
 }
 
 // Тихий serif-italic указатель секции — голос несёт <QuietLabel>. Класс держит
@@ -121,7 +78,7 @@
     gap: 2px;
     padding: 10px 12px;
     border-radius: var(--sys-radius-container);
-    background: linear-gradient(90deg, #fffdff 0%, #f7f4fb 100%);
+    background: var(--sys-color-surface-1);
 }
 
 .snapshotItemTitle {

@@ -8,7 +8,7 @@ import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { AiSparkleIcon } from '@/shared/ui/atoms/icons/AiSparkleIcon';
-import { Chip } from '@/shared/ui/atoms/Chip';
+import { Select, type SelectOption } from '@/shared/ui/atoms/Select';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { type Analysis } from '@/features/analysis/api';
 import {
@@ -35,10 +35,13 @@ type Filter = 'all' | 'daily' | 'long';
 const isDaily = (a: Analysis): boolean =>
   windowSpanDays({ start: a.windowStart, end: a.windowEnd }) === 1;
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'Все' },
-  { key: 'daily', label: 'Дневн.' },
-  { key: 'long', label: 'Длительн.' },
+// Опции селекта-фильтра. Полные подписи (не сокращения «Дневн.»/«Длительн.») —
+// селект показывает выбранный пункт как самостоятельную строку, а не в тесном
+// ряду чипов, поэтому есть место на человеческое слово.
+const FILTER_OPTIONS: SelectOption[] = [
+  { value: 'all', label: 'Все' },
+  { value: 'daily', label: 'Дневные' },
+  { value: 'long', label: 'Длительные' },
 ];
 
 const EMPTY_COPY: Record<Filter, { title: string; description: string }> = {
@@ -98,7 +101,12 @@ const AnalysesSlide = ({ topSlot }: Props) => {
   // `date` = сегодня (для «Разобрать день»); хаб-дровер тот же, что открывает «О!»
   // на Home (там date = дата расписания).
   const openCreate = useCallback(() => {
-    void drawerStore.show(AnalysisHubDrawer, { date: format(new Date(), 'dd-MM-yyyy') });
+    // Мы уже на странице открытий → скрываем нав-плитку «Страница открытий»
+    // (она вела бы на себя же).
+    void drawerStore.show(AnalysisHubDrawer, {
+      date: format(new Date(), 'dd-MM-yyyy'),
+      hideDiscoveriesLink: true,
+    });
   }, []);
 
   // Плашка (raised dock plate) как на HomePage — `plate` красит бар surface-2 +
@@ -123,30 +131,23 @@ const AnalysesSlide = ({ topSlot }: Props) => {
   return (
     <Screen stickyTop={topSlot} headerOverlap topBarHide="settings" bottomBar={bottomBar}>
       <div className={styles.container}>
-        {/* Фильтр Все / Дневные / Длительные — чипы единственного выбора (атом
-            Chip, как во флоу создания еды / порциях). Локальный, лёгкий (чисто
-            клиентский предикат по окну). Лежат на листе Screen (headerOverlap =
-            surface-1) → surface={1}. Селект-скин `outline` (второй скин Chip):
-            покой приподнят (elevation), выбранный — плоский + ink-рамка + жирнее
-            текст, БЕЗ butter-заливки. Прячем во время первичной загрузки/ошибки. */}
+        {/* Фильтр Все / Дневные / Длительные — селект единственного выбора (общий
+            атом Select на Base UI, тот же, что «способ измерения» в ProductDrawer).
+            Локальный, лёгкий (чисто клиентский предикат по окну). Прижат вправо,
+            без видимой подписи (опции самоочевидны; a11y держит ariaLabel).
+            Прячем во время первичной загрузки/ошибки. */}
         {!loading && !failedToLoad && (
           <>
-            <div className={styles.filter} role="group" aria-label="Фильтр разборов">
-              {FILTERS.map((f) => (
-                <Chip
-                  key={f.key}
-                  surface={1}
-                  variant="outline"
-                  active={filter === f.key}
-                  aria-pressed={filter === f.key}
-                  onClick={() => setFilter(f.key)}
-                >
-                  {f.label}
-                </Chip>
-              ))}
+            <div className={styles.filter}>
+              <Select
+                ariaLabel="Фильтр разборов"
+                value={filter}
+                options={FILTER_OPTIONS}
+                onChange={(next) => setFilter(next as Filter)}
+              />
             </div>
             {/* Фирменная тающая линия под фильтром (canon Divider) с небольшим
-                воздухом сверху/снизу — отделяет чипы от списка разборов. */}
+                воздухом сверху/снизу — отделяет фильтр от списка разборов. */}
             <div className={styles.filterDivider} aria-hidden="true" />
           </>
         )}

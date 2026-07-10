@@ -1,3 +1,5 @@
+import { formatPercent } from '@/shared/lib/formatNumber';
+
 // Split out of FoodActionCard.tsx so that file stays component-only (a stray
 // function export breaks React Fast Refresh → full reload).
 
@@ -6,7 +8,5 @@
 // у нутриентов без нормы (сахар, B7, часть аминокислот) она undefined, процент
 // не рисуется, остаётся абсолютное значение + единица.
 export function formatNormPercent(percent: number): string {
-  if (percent > 0 && percent < 1) return `${percent.toFixed(2)}%`;
-  if (percent < 10) return `${percent.toFixed(1)}%`;
-  return `${Math.round(percent)}%`;
+  return `${formatPercent(percent)}%`;
 }

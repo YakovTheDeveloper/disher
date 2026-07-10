@@ -46,6 +46,12 @@ export function useKeyboardStick<T extends HTMLElement>(
           el.style.left = '0';
           el.style.right = '0';
           el.style.zIndex = '10';
+          // Прижимаем содержимое ВПЛОТНУЮ к клавиатуре: bar'ы в состоянии покоя
+          // держат нижний padding (--sys-inset-page / safe-area) как воздух над
+          // краем экрана. При подъёме над клавиатурой этот же padding превращается
+          // в зазор между кнопкой и клавой — обнуляем его, пока bar приподнят.
+          // На release removeAttribute('style') ниже вернёт CSS-padding покоя.
+          el.style.paddingBottom = '0';
         }
         el.style.transform = `translateY(-${offset}px)`;
       } else if (mode === 'fixed') {

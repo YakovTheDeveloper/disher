@@ -7,10 +7,20 @@ import s from './IconButton.module.scss';
 // чернилами (system) с on-accent глифом. `danger` — danger-глиф, на press —
 // danger-подложка (урна). `ghost` — холодный глиф БЕЗ подложки (ни в покое, ни на
 // press: только scale + приглушение), для page-level слотов (topContentRight
-// листа). Без тона — «голый» shell: вид целиком несёт className (напр. clear-×
-// с собственной заливкой-пузырём), примитив даёт только каркас + usePressFeedback
-// + a11y.
-export type IconButtonTone = 'neutral' | 'danger' | 'ghost';
+// листа). `soft` — покойная ink-подложка (--sys-color-surface-icon-tile) + холодный
+// глиф (--sys-color-icon), на press — bg-press + потемнение глифа: тихая «плитка-
+// кнопка» на бумаге (back в шапке модалок / фильтр поиска). Без тона — «голый»
+// shell: вид целиком несёт className (напр. clear-× с собственной заливкой-пузырём),
+// примитив даёт только каркас + usePressFeedback + a11y.
+export type IconButtonTone = 'neutral' | 'danger' | 'ghost' | 'soft';
+
+// Ось «важности», ОРТОГОНАЛЬНАЯ tone: tone = ЧТО за кнопка (архетип + press-
+// трактовка), emphasis = НАСКОЛЬКО громкая. `quiet` притушивает глиф на ступень
+// (--sys-color-icon-muted, авто-флип в dark) — для второстепенных кнопок (назад/ⓘ),
+// чтобы они отступали за primary-действием (напр. фильтр остаётся default). Задел
+// под `strong` оставлен намеренно. Имя `emphasis` (не primary/secondary) — чтобы не
+// путать с ролями Button (там primary/secondary УДАЛЕНЫ, см. button-tone-names).
+export type IconButtonEmphasis = 'default' | 'quiet';
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Глиф (svg). currentColor; собственный размер несёт сам svg или `size`. */
@@ -18,6 +28,8 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Обязателен — у иконки-кнопки нет текстовой метки (a11y). */
   'aria-label': string;
   tone?: IconButtonTone;
+  /** Визуальный вес (ортогонален tone). `quiet` — тусклее глиф. По умолч. default. */
+  emphasis?: IconButtonEmphasis;
   /** Сторона квадратного тап-таргета (px). Без фикс-пресетов — прокидывается. */
   size?: number;
   /**
@@ -35,7 +47,7 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // он прокидывает ref на каркас для focus-менеджмента. В label-режиме (`htmlFor`)
 // ref не форвардится (Base UI этот путь не использует).
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, tone, size, className, style, type = 'button', htmlFor, disabled, ...props },
+  { icon, tone, emphasis, size, className, style, type = 'button', htmlFor, disabled, ...props },
   ref
 ) {
   const { pressed, pressProps } = usePressFeedback();
@@ -44,6 +56,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
     tone === 'neutral' && s.neutral,
     tone === 'danger' && s.danger,
     tone === 'ghost' && s.ghost,
+    tone === 'soft' && s.soft,
+    emphasis === 'quiet' && s.quiet,
     className
   );
   const mergedStyle = size != null ? { ...style, width: size, height: size } : style;

@@ -51,7 +51,7 @@ interface Props {
 type NavTab = 'quick' | 'active';
 
 // Два режима навигатора как ряд табов HomePage. Index ↔ tab по порядку.
-// «Навигация» — якоря вчера/завтра (частый прыжок); «Активные дни» —
+// «Навигация» — якоря вчера/сегодня/завтра (частый прыжок); «Активные дни» —
 // мини-календари по месяцам (дни с записями). Дефолт — всегда 'quick'.
 const NAV_TAB_ORDER: NavTab[] = ['quick', 'active'];
 const NAV_SCREENS: ScreenEntry[] = [
@@ -70,11 +70,12 @@ const PANEL_MAX_VH = 0.56;
 const inertWhen = (on: boolean) =>
   (on ? { inert: '' } : {}) as unknown as HTMLAttributes<HTMLElement>;
 
-// ─── DayRow (anchors — two ActionTiles) ────────────────────────────────────
-// Вчера/Завтра как общий примитив `ActionTile` (унификация 2026-06-21; «сегодня»
-// убрано из быстрой навигации 2026-07-03): относительное слово сверху (heading-
-// голос), дата снизу (короткий день недели · dd.mm), глиф справа — стрелка ←/→.
-// Выбранный день несёт emphasis, «есть записи» — тихую точку.
+// ─── DayRow (anchors — three ActionTiles) ──────────────────────────────────
+// Вчера/Сегодня/Завтра как общий примитив `ActionTile` (унификация 2026-06-21;
+// «сегодня» возвращено 2026-07-05): относительное слово сверху (heading-голос),
+// дата снизу (короткий день недели · dd.mm), глиф справа — стрелка ←/→ для
+// вчера/завтра, точка-маркер для «сегодня». «Сегодня» несёт inverse-карту («ты
+// здесь» — тёмная плитка-центр ряда), «есть записи» — тихую точку.
 interface DayRowProps {
   day: ParsedDay;
   today: Date;
@@ -87,22 +88,31 @@ const DayRow = memo(function DayRow({ day, today, isFilled, isSelected, onSelect
   const handleClick = useCallback(() => onSelect(day.dateStr), [day.dateStr, onSelect]);
 
   const diff = differenceInCalendarDays(day.date, today);
-  // На quick-табе всегда вчера/завтра; weekday — безопасный fallback.
+  // На quick-табе всегда вчера/сегодня/завтра; weekday — безопасный fallback.
   const relativeLabel =
-    diff === -1 ? 'вчера' : diff === 1 ? 'завтра' : format(day.date, 'EEEE', { locale: ru });
+    diff === 0
+      ? 'сегодня'
+      : diff === -1
+        ? 'вчера'
+        : diff === 1
+          ? 'завтра'
+          : format(day.date, 'EEEE', { locale: ru });
 
   // 'EEEEEE' = short standalone weekday in ru ("пн", "вт", …). dd.MM — дата.
   const weekdayShort = format(day.date, 'EEEEEE', { locale: ru });
   const ddmm = format(day.date, 'dd.MM');
 
-  // Глиф направления: вчера ← / завтра → (fallback-дни без глифа).
-  const glyphDir = diff === -1 ? 'left' : diff === 1 ? 'right' : undefined;
+  // Глиф: вчера ← / сегодня • / завтра → (fallback-дни без глифа).
+  const glyphDir =
+    diff === 0 ? 'dot' : diff === -1 ? 'left' : diff === 1 ? 'right' : undefined;
 
   return (
     <ActionTile
       data-date={day.dateStr}
       top={relativeLabel}
-      inverse={relativeLabel === 'завтра'}
+      // «Сегодня» — тёмная inverse-карта («ты здесь», центр ряда); вчера/завтра —
+      // белые плитки-стрелки. (emphasis выбранного дня сейчас без стиля — no-op.)
+      inverse={relativeLabel === 'сегодня'}
       bottom={`${weekdayShort} · ${ddmm}`}
       art={glyphDir ? <ArrowGlyph dir={glyphDir} /> : undefined}
       emphasis={isSelected}
@@ -170,19 +180,9 @@ const MonthCalendar = memo(function MonthCalendar({
           const isToday = isSameDay(date, today);
           const isSelected = dateStr === selectedDate;
 
-          // Пустой день = тихий контекст (не кнопка). Только активные тапаемы —
-          // семантика таба «Активные дни»; прыжок на пустой день живёт на quick.
-          if (!isActive) {
-            return (
-              <span
-                key={dateStr}
-                className={clsx(s.cell, s.cellEmpty, isToday && s.cellToday)}
-                aria-hidden
-              >
-                {d}
-              </span>
-            );
-          }
+          // Любой день тапаем — прыжок в календаре ведёт и в пустой день (нет
+          // записей). Активный день «залит» (тепловая карта), пустой — тихий
+          // бледный контекст, но остаётся кнопкой (можно перейти).
           return (
             <button
               key={dateStr}
@@ -192,13 +192,18 @@ const MonthCalendar = memo(function MonthCalendar({
               aria-pressed={isSelected}
               className={clsx(
                 s.cell,
-                s.cellActive,
+                isActive ? s.cellActive : s.cellEmpty,
                 isToday && s.cellToday,
                 isSelected && s.cellSelected
               )}
               onClick={() => onSelect(dateStr)}
             >
-              {d}
+              {/* Цифры дня = role="body" (16px, единый кегль всех ячеек). Активный
+                  день (есть записи) несёт вес через примитив (weight="bold"), раньше —
+                  сырой font-weight:600 в .cellActive. */}
+              <Text as="span" role="body" weight={isActive ? 'bold' : undefined}>
+                {d}
+              </Text>
             </button>
           );
         })}
@@ -266,6 +271,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabP
   }, [emblaApi]);
 
   const yesterdayStr = useMemo(() => format(subDays(today, 1), DATE_FORMAT), [today]);
+  const todayStr = useMemo(() => format(today, DATE_FORMAT), [today]);
   const tomorrowStr = useMemo(() => format(addDays(today, 1), DATE_FORMAT), [today]);
 
   const filledAsc = useMemo(() => parseKeys(filledKeys), [filledKeys]);
@@ -281,9 +287,10 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabP
   const anchors: ParsedDay[] = useMemo(
     () => [
       { date: yesterday, dateStr: yesterdayStr },
+      { date: today, dateStr: todayStr },
       { date: addDays(today, 1), dateStr: tomorrowStr },
     ],
-    [yesterday, yesterdayStr, today, tomorrowStr]
+    [yesterday, yesterdayStr, today, todayStr, tomorrowStr]
   );
 
   const handleSelect = useCallback((dateStr: DateStr) => onSelect(dateStr), [onSelect]);

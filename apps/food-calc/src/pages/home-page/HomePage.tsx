@@ -1,8 +1,6 @@
 import { RouterLinks } from '@/app/router';
 import { useCallback, useEffect, useMemo, type Ref } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { parse, isValid, format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { FoodSchedule } from '@/widgets/FoodSchedule';
 import { ScheduleEvents } from '@/widgets/ScheduleEvents';
 import { HomeTopBar } from '@/widgets/HomeTopBar';
@@ -14,6 +12,7 @@ import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { HomeHero } from './ui/HomeHero';
 import { useRolloverNudge } from './useRolloverNudge';
+import { formatDayHeading } from './formatDayHeading';
 import styles from './HomePage.module.scss';
 
 // Два раздела HomePage — поверхности ВВОДА: Рацион (default) + События. Слайд
@@ -44,15 +43,12 @@ const Page = ({ date }: { date: string }) => {
   // → topSlot'ы в SwipeDeck мемоизируются, memo() слайдов не сбрасывается.
   const heroForSlide = useCallback((i: number) => <HomeHero slide={i} />, []);
 
-  // Заголовок-дата (крупное имя дня недели) в правом-верхнем углу листа. Владелец —
+  // Заголовок-дата («Воскресенье, 5 июля») в правом-верхнем углу листа. Владелец —
   // HomePage; один элемент прокидывается в оба экрана дека (Рацион + События) через
-  // `topContent` их `Screen`. Капитализуем ТОЛЬКО первую букву вручную (CSS
-  // `capitalize` заглавил бы лишнее).
+  // `topContent` их `Screen`. Формат — чистая `formatDayHeading` (покрыта тестом).
   const dateHeading = useMemo(() => {
-    const parsed = parse(date, 'dd-MM-yyyy', new Date());
-    if (!isValid(parsed)) return null;
-    const weekday = format(parsed, 'EEEE', { locale: ru });
-    const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    const label = formatDayHeading(date);
+    if (label === null) return null;
     return (
       <Heading role="title" as="h2" className={styles.dateHeading}>
         {label}

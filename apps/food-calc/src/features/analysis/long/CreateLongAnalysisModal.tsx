@@ -2,7 +2,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
-import CloseButton from '@/shared/ui/atoms/Button/CloseButton/CloseButton';
+import { ModalShell } from '@/shared/ui/ModalShell';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
@@ -16,8 +16,6 @@ import {
   rangeDayKeys,
   type DateRange,
 } from './range';
-import styles from './CreateLongAnalysisModal.module.scss';
-import { Heading } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 
 // The modal resolves with the created (pending) analysis so AnalysesPage can
@@ -27,8 +25,9 @@ type Props = BaseModalProps<Analysis | null>;
 // «Анализ по неделям» on the AnalysesPage long-analyses slide. Picks a 7..35-day
 // window (manual DD-MM-YYYY) + a set of hypotheses, POSTs to /api/analyze, and
 // hands the pending row back so the list shows it as «идёт» right away. Modal
-// (not drawer) since 2026-06-13 — a focused create wizard, sharing the detail
-// modal's header chrome.
+// (not drawer) since 2026-06-13 — a focused create wizard sharing the canonical
+// ModalShell chrome (header + body + fixed ActionButtons) with its daily sibling
+// AnalysisClarificationModal.
 const CreateLongAnalysisModal = ({ onClose }: Props) => {
   const hypotheses = useAllHypotheses();
   const [range, setRange] = useState<DateRange>(defaultRange);
@@ -79,16 +78,14 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
   }
 
   return (
-    <ModalLayout className={styles.layout} a11yLabel="Новый разбор по неделям">
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <Heading role="title" className={styles.title}>Разбор по неделям</Heading>
-          <CloseButton onClick={() => onClose()} />
-        </header>
+    <ModalLayout a11yLabel="Новый разбор по неделям">
+      <ModalShell>
+        <ModalShell.Header title="Разбор по неделям" onBack={() => onClose()} />
 
-        {/* Single scroll container — the list flows (maxBodyHeight='none') so the
-            whole middle scrolls as one, header + footer stay pinned. */}
-        <div className={styles.scrollArea}>
+        {/* ModalShell.Body flows as one scroller (list uses maxBodyHeight='none')
+            with a --sys-stack-section gap between the window picker and the
+            hypotheses — header + fixed ActionButtons stay pinned. */}
+        <ModalShell.Body>
           <RangePickerWithFallback value={range} onChange={setRange} />
 
           {hypotheses.length === 0 ? (
@@ -107,19 +104,24 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
               maxBodyHeight="none"
             />
           )}
-        </div>
 
-        <div className={styles.footer}>
-          <Button
-            variant="accent"
-            fullWidth
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-          >
-            {submitting ? 'Запускаем…' : 'Запустить разбор'}
-          </Button>
-        </div>
-      </div>
+          <ModalShell.Spacer />
+
+          <ModalShell.ActionButtons
+            debugId="create-long-analysis"
+            right={
+              <Button
+                variant="accent"
+                fullWidth
+                disabled={!canSubmit}
+                onClick={handleSubmit}
+              >
+                {submitting ? 'Запускаем…' : 'Запустить разбор'}
+              </Button>
+            }
+          />
+        </ModalShell.Body>
+      </ModalShell>
     </ModalLayout>
   );
 };

@@ -109,13 +109,13 @@ const ProductQuantity = ({
               </span>
               <NumberInput
                 id={inputId}
-                placeholder="Количество"
+                placeholder="0"
                 ref={inputRef}
                 className={style.input}
                 onChange={setValue}
                 value={value}
                 onBlur={onBlur}
-                maxLength={5}
+                maxLength={4}
               />
             </span>
             <Numeral as="span" size="md" weight="medium" className={style.unit}>{'г'}</Numeral>
@@ -212,7 +212,22 @@ const ProductQuantityHeavy = ({ content, activePortion, onPortionClick }: HeavyP
       >
         {portions.map((portion, i) => (
           <ChoiceItem key={portionKey(portion, i)} value={portionKey(portion, i)} className={style.portionChip}>
-            {portion.label} ({portion.grams}г)
+            {/* Recipe B (2026 chip canon): hierarchy via weight/colour + a middle-dot
+                seam, NOT parentheses. Many portion labels already carry their own
+                `(200 мл)` clause in the data, so the old `label (Nг)` wrapper stacked
+                a second paren-set (`стакан (200 мл) (200г)`). Grams are demoted via
+                OPACITY (not a secondary token) so they read correctly on both the
+                surface-2 rest bg AND the plum selected fill (text flips there). */}
+            {portion.label}
+            {portion.label && (
+              <span aria-hidden className={style.chipSep}>
+                ·
+              </span>
+            )}
+            <Numeral as="span" size="base" weight="medium" className={style.chipGrams}>
+              {portion.grams}
+              <span className={style.chipUnit}>&nbsp;г</span>
+            </Numeral>
           </ChoiceItem>
         ))}
       </ChoiceGroup>

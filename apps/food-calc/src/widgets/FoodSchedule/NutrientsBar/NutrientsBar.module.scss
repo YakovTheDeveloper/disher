@@ -29,7 +29,7 @@
         right: 0;
         top: 0;
         height: 1px;
-        width: 80%;
+        width: 120%;
         // Канон Divider через общий `hairline()`-миксин + единый холодный токен
         // (`--sys-color-divider`); раньше — хэнд-ролл с тёплым `--color-ink` 14%.
         @include hairline(var(--sys-color-divider));

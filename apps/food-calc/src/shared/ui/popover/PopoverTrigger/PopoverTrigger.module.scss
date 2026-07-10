@@ -24,6 +24,22 @@
         transform: translateY(-4px) scale(0.96);
     }
 
+    // Overlap mode: panel covers the trigger (top edges aligned), so it grows out of the
+    // trigger corner. Zero padding lets a corner control (the ✕) sit flush over the trigger;
+    // the panel body owns its own insets.
+    &.overlap {
+        padding: 0;
+        transform-origin: top right;
+
+        &.closed {
+            transform: scale(0.96);
+        }
+
+        @starting-style {
+            transform: scale(0.96);
+        }
+    }
+
     &.closed {
         display: none;
         opacity: 0;

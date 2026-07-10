@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import clsx from 'clsx';
 import s from './ModalShell.module.scss';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
@@ -85,13 +86,31 @@ type ActionButtonsProps = {
   /** Опциональный контекстный слот (НЕ «Назад»). Пуст → right на всю ширину. */
   left?: ReactNode;
   debugId?: string;
+  /**
+   * Два архетипа размещения actions (различие ЖИВЁТ в shell, не hand-roll в
+   * каждой модалке):
+   *   'keyboard-stick' (деф.) — полноэкранная модалка: бар `position: fixed`
+   *      у низа вьюпорта, поднимается НАД экранной клавиатурой (useKeyboardStick).
+   *      Требует `ModalShell.Spacer` в конце body (резерв прокрутки под фикс-бар).
+   *   'flow' — модалка/панель, живущая ВНУТРИ дровера со своим скроллом: бар
+   *      просто в КОНЦЕ потока (терминальный), без fixed и без keyboard-stick.
+   *      Владеет своим терминальным зазором + hairline-разделителем + safe-area.
+   */
+  placement?: 'keyboard-stick' | 'flow';
 };
 
-const ModalShellActionButtons = ({ left, right, debugId }: ActionButtonsProps) => {
-  const ref = useKeyboardStick<HTMLDivElement>({ debugId });
+const ModalShellActionButtons = ({
+  left,
+  right,
+  debugId,
+  placement = 'keyboard-stick',
+}: ActionButtonsProps) => {
+  const stick = placement === 'keyboard-stick';
+  // 'flow' не цепляет visualViewport — бар статичен в потоке дровера.
+  const ref = useKeyboardStick<HTMLDivElement>({ debugId, enabled: stick });
 
   return (
-    <div ref={ref} className={s.actionButtons}>
+    <div ref={ref} className={clsx(s.actionButtons, !stick && s.actionButtonsFlow)}>
       {left != null && <div className={s.actionButtonsSlotPrev}>{left}</div>}
       <div className={s.actionButtonsSlotNext}>{right}</div>
     </div>

@@ -22,74 +22,12 @@ $ink-muted: rgba(58, 46, 20, 0.55);
             var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
 }
 
-// ─── Header ─────────────────────────────────────────────────────
-
-.header {
-    position: relative;
-    padding: 20px 22px 16px;
-    padding-top: max(var(--modal-title-offset), env(safe-area-inset-top));
-    flex-shrink: 0;
-
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
-        pointer-events: none;
-    }
-}
-
-.backButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: -8px;
-    margin-bottom: 8px;
-    padding: var(--space-1);
-    border: none;
-    background: none;
-    color: var(--sys-field-text, #{$ink});
-    border-radius: var(--sys-radius-tmp);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-        background var(--press-out) var(--easing-default),
-        color var(--press-out) var(--easing-default);
-
-    svg {
-        width: 24px;
-        height: 24px;
-    }
-
-    &:hover { background: var(--sys-color-bg-press); }
-    // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
-    &:active {
-        background: var(--sys-color-bg-press);
-        color: var(--sys-field-caret, var(--color-ink));
-        transition-duration: var(--sys-duration-press-in);
-    }
-    &:focus-visible { outline: 2px solid var(--sys-color-border-focus); outline-offset: 2px; }
-}
-
-// Типографику несёт <Heading role="title"> (миграция 2026-06-23). Класс — layout-слот.
-// Зазор до подзаголовка владеет .subtitle (margin-top), а НЕ собственный
-// margin-bottom заголовка: база примитива <Heading> ставит margin:0 на равной
-// специфичности и при неудачном порядке CSS-модулей перебила бы его. Канон:
-// spacing-вниз от заголовка — у соседа/контейнера (см. Heading.module.scss).
-.title {
-    margin: 0;
-}
-
-.subtitle {
-    // 6px зазора от заголовка живёт здесь (margin-top соседа), а не в .title
-    // margin-bottom — детерминированно против базы примитива (см. .title выше).
-    margin: 6px 0 0;
-    line-height: 1.45;
-    color: var(--sys-field-adornment, #{$ink-soft});
-}
+// ─── Header (modal mode) ────────────────────────────────────────
+// Заголовок «Моя норма» + back-стрелка несёт общий ModalShell.Header.
+// Пояснительный абзац (интро) теперь ПРИНАДЛЕЖИТ форме — рендерится через
+// `FormLayout.Caption` вверху FormLayout с тесным зазором до первой группы
+// (оба chrome-режима). Плоских `.modalExplainer` / `.panelSubtitle`
+// section-соседей Body больше нет.
 
 // ─── Body ────────────────────────────────────────────────────────
 
@@ -103,21 +41,6 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-section);
-}
-
-// ─── Section ─────────────────────────────────────────────────────
-
-.section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-// Подпись секции — общий примитив FieldLabel (serif italic, тихий ярус).
-.sectionHead {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
 }
 
 // ─── Choices (single-select) ─────────────────────────────────────
@@ -166,12 +89,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 }
 
 // ─── Number fields ───────────────────────────────────────────────
-
-.numbersRow {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
+// Горизонтальный ряд (Возраст·Вес·Рост) несёт FormLayout.Group direction="horizontal".
 
 .numberField {
     display: flex;
@@ -225,7 +143,11 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         background: transparent;
         border: none;
         padding: 0;
-        font-family: var(--sys-text-family-serif);
+        // Один числовой голос: вводимые числа (возраст/вес/рост) звучат тем же
+        // семейством, что и ВЫЧИСЛЕННЫЙ результат в превью (Numeral →
+        // --font-big-numeric, Onest tabular). Serif здесь был канон-дрейфом
+        // (serif-italic живёт только в <QuietLabel>) — убран.
+        font-family: var(--font-big-numeric);
         font-size: var(--sys-field-font-size-md);
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -249,28 +171,29 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 // ─── Preview (hero) ──────────────────────────────────────────────
 
 .preview {
+    // De-boxed «тихий выдох формы» (2026-07-09): результат живёт на ОБЩЕЙ
+    // поверхности — без собственного градиента / радиуса / drop-shadow-«лифта»,
+    // которые раньше делали из превью трофей-в-рамке, дерущийся с полями формы.
+    // Отделён от формы ОДНИМ тающим hairline (канон-divider) — «форма кончилась,
+    // начался вывод». Зазор до формы владеет родитель (Body / .bodyPanel
+    // section-gap); свой верхний отступ — только чтобы контент отошёл от hairline.
+    //
+    // Три яруса вывода (число · макросы · тихий провенанс) с РОВНЫМ ритмом:
+    // контейнер владеет одним gap, ни один ярус не ставит себе margin.
     position: relative;
-    margin-top: 6px;
-    padding: 20px 18px 18px;
-    background: linear-gradient(135deg,
-            var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
-            var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
-            var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
-    border-radius: var(--sys-radius-cta);
-    overflow: hidden;
-    // Lift the kcal hero off the (same-family) surface — needed now that both
-    // read the variant's near-white field-bg and would otherwise blend.
-    box-shadow: var(--sys-field-shadow-focus, 0 1px 8px rgba(44, 29, 10, 0.1));
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-field);
+    padding-top: 20px;
 
-    // Top fading hairline
     &::before {
         content: '';
         position: absolute;
-        left: 14px;
-        right: 14px;
+        left: 0;
+        right: 0;
         top: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 20%, var(--sys-field-hairline, #{$hairline}) 80%, transparent 100%);
         pointer-events: none;
     }
 }
@@ -280,7 +203,6 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     align-items: baseline;
     flex-wrap: wrap;
     gap: 4px 10px;
-    margin-bottom: 12px;
 }
 
 .previewKcalValue {
@@ -292,11 +214,16 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     color: var(--sys-field-adornment, #{$ink-soft});
 }
 
+// De-boxed макро-ряд: Б·Ж·У больше не плитки-с-обводкой (анти-канон 1px-рамки),
+// а тихий инлайн-триплет на общей поверхности — «пометка на полях», не приборные
+// плитки. Разделитель между группами — «·» (одна конвенция на весь виджет),
+// а не двусмысленный whitespace: горизонтальный gap = 0, интервал несёт сам «·».
 .macros {
     display: flex;
+    align-items: baseline;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
+    row-gap: 4px;
+    column-gap: 0;
 }
 
 .macroChip {
@@ -304,14 +231,17 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     display: flex;
     align-items: baseline;
     gap: 3px;
-    padding: 3px 9px;
-    background: var(--sys-chip-bg, rgba(255, 255, 255, 0.6));
-    border: 1px solid var(--sys-chip-border, rgba(124, 65, 15, 0.12));
-    border-radius: var(--sys-radius-tmp);
+
+    // Средняя точка-разделитель перед каждой группой, кроме первой (Б | ·Ж | ·У).
+    &:not(:first-child)::before {
+        content: '·';
+        margin: 0 10px;
+        color: var(--sys-field-placeholder, #{$ink-muted});
+    }
 }
 
 // Голос (serif-italic + цвет/opacity) несёт примитив <QuietLabel>.
-// Класс — layout-слот; держим baseline для ровного align в чипе.
+// Класс — layout-слот; держим baseline для ровного align в ряду.
 .macroLabel {
     flex-shrink: 0;
 }
@@ -320,46 +250,19 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     color: var(--sys-field-text, #{$ink});
 }
 
-.macroUnit {
-    color: var(--sys-field-placeholder, #{$ink-muted});
-}
-
+// Тихая фактическая строка вывода (ориентир · BMR · поддержание) — последний
+// ярус превью; ритм до неё владеет контейнер (.preview gap), margin не ставит.
 .previewMeta {
-    margin: 0 0 8px;
+    margin: 0;
     color: var(--sys-field-adornment, #{$ink-soft});
     font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
-.disclaimer {
-    margin: 0;
-    line-height: 1.45;
-    color: var(--sys-field-placeholder, #{$ink-muted});
-}
-
 // ─── Footer ──────────────────────────────────────────────────────
-
-.footer {
-    position: relative;
-    display: flex;
-    gap: 10px;
-    padding: 14px 22px;
-    padding-bottom: max(14px, env(safe-area-inset-bottom));
-    flex-shrink: 0;
-    background: var(--sys-color-surface-1);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-
-    &::before {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        top: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 18%, var(--sys-field-hairline, #{$hairline}) 82%, transparent 100%);
-        pointer-events: none;
-    }
-}
+// Actions больше НЕ hand-roll'ятся здесь: оба архетипа («над клавиатурой» и
+// «в конце потока») развёл общий shell-API `ModalShell.ActionButtons`
+// (`placement="keyboard-stick" | "flow"`). Modal-режим = keyboard-stick,
+// panel-режим = flow. Бывшие `.footer`/`.footerPanel` удалены.
 
 // .commitBtn/.commitBtnInactive удалены — CTA «Готово» теперь примитив
 // <Button variant="system" fullWidth disabled={!isValid}> (он несёт вид + disabled).
@@ -402,28 +305,13 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     &::after { bottom: 0; }
 }
 
-.panelSubtitle {
-    margin: 12px 16px 0;
-    line-height: 1.45;
-    color: var(--sys-field-adornment, #{$ink-soft});
-}
-
 // Drawer.Content already owns the scroll. Body must not start its own
 // overflow container or it competes with the drawer scroll and pins the
-// subtitle/footer in place while the middle scrolls.
+// intro/footer in place while the middle scrolls. Боковой инсет = канон-панель
+// `--sys-inset-page` (12) — совпадает со сторонами flow-footer'а, CTA-край в
+// линию с контентом.
 .bodyPanel {
     flex: 0 0 auto;
     overflow: visible;
-    padding: 6px 16px 16px;
-}
-
-.footerPanel {
-    position: relative;
-    padding: 14px 16px;
-    padding-bottom: 14px;
-    // No backdrop/blur in inline mode — footer flows with the warm fill,
-    // not as a floating bar over scrolling content.
-    background: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+    padding: 6px var(--sys-inset-page) 16px;
 }

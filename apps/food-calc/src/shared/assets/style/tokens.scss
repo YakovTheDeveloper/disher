@@ -227,6 +227,16 @@
   // FoodSearchEmpty bottom-dock.
   --sys-elevation-dock: 0 -1px 6px rgba(45, 38, 28, 0.1);
 
+  // Drawer edge-glint — НАМЕРЕННЫЙ декоративный glass-кант краевого дровера (голос
+  // Vista/Aero), НЕ elevation: отделение дровера несёт scrim (Drawer .overlay), а
+  // этот тонкий кант — чистый голос по странично-обращённой кромке (bottom → вверх,
+  // left/right → вбок). Живёт под elevation-namespace, т.к. box-shadow-гейт принимает
+  // только `var(--sys-elevation-*)` (доктрина «sys-elevation-* = единственный API теней»).
+  // Dark-двойники (слабый светлый rim + мягкая тёмная ambient) — override в theme-dark.scss.
+  --sys-elevation-drawer-glint-bottom: 0px -2px 4px rgba(45, 38, 28, 0.03);
+  --sys-elevation-drawer-glint-left: 4px 0 16px rgba(45, 38, 28, 0.08);
+  --sys-elevation-drawer-glint-right: -4px 0 16px rgba(45, 38, 28, 0.08);
+
   // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
   // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
   --plate-fill: #ebecf0; // grey fill inside frame
@@ -454,6 +464,12 @@
   --sys-color-text-on-hue-card: var(--ref-color-cool-800);
   --sys-color-font-weight-on-hue-card: 500;
 
+  // Яркий ХОЛОДНЫЙ почти-чёрный текст — cool-900 (#1f2a44). Контрапункт тёплому
+  // -text-primary/-system: для элементов, которым нужен резкий холодный ink
+  // (парящая медаль «Новая еда»). Тёмная тема флипает в яркий cold-near-white
+  // (theme-dark.scss), иначе near-black был бы невидим на тёмной медали.
+  --sys-color-text-cold-strong: var(--ref-color-cool-900);
+
   --sys-color-text-placeholder: rgba(74, 80, 94, 0.5);
 
   --sys-color-text-card-caption: var(--ref-color-neutral-700);
@@ -467,6 +483,11 @@
 
   // color · border (one neutral hairline)
   --sys-color-border-subtle: var(--border-subtle);
+  // Middle rung of the subtle/default/strong ladder — a border that is EXPLICITLY
+  // visible without reading as a heavy frame. For chip-like controls that need a
+  // legible outline on a dense surface (flat-скин Choice в дровере нутриентов).
+  // subtle(0.10) < default(0.28) < strong(0.80). Flips to light-alpha in dark.
+  --sys-color-border-default: rgba(34, 31, 25, 0.28);
   // Strong opaque-ish outline (warm-coal, NOT cold black) — the one heavy border
   // that reads as a deliberate frame (ModalFooter back-button). Replaced a raw
   // rgba(0,0,0,0.8). Flips to light-alpha in dark.
@@ -525,6 +546,16 @@
   // Утопленная плашка (6% warm-ink wash) — глобальный спутник scoped --sys-card-bg-sunk
   // для rest/hover/badge-фонов вне paper-mono-карточек (бейджи-счётчики, тихие pill-rest).
   --sys-color-bg-sunk: rgba(34, 31, 25, 0.06);
+  // Покойная подложка icon-кнопки (back / фильтр / ⓘ) — та же state-layer семья, что
+  // bg-hover(4%)/bg-sunk(6%), но ступенью тише (3%). ink-относительная (не rgba per-
+  // theme): color-mix на --color-ink авто-флипается в dark (ink → светлый), поэтому
+  // корректна на ЛЮБОЙ поверхности без dark-override. Кормит IconButton tone="soft"
+  // (бывший bespoke color-mix(ink 2.5%) кнопки Назад — теперь именованный sys-токен).
+  --sys-color-surface-icon-tile: color-mix(in srgb, var(--color-ink) 3%, transparent);
+  // Плитка второстепенной icon-кнопки (IconButton emphasis="quiet"): ступенью тише
+  // основной (1.5% vs 3%) — назад/ⓘ отступают за primary-действием (фильтр держит
+  // полную 3%). Тоже ink-относительная → авто-флип в dark, корректна на любой поверхности.
+  --sys-color-surface-icon-tile-quiet: color-mix(in srgb, var(--color-ink) 1.5%, transparent);
   // Нижняя панель Screen.bottomBar прозрачна по умолчанию; страница может переопределить (override-слот).
   --sys-color-bottom-bar-bg: transparent;
   // Тёплый амбер-press-флэш на строках расписания/еды (:active food/schedule rows).

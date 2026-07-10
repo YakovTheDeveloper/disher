@@ -5,77 +5,8 @@
   min-height: 0;
 }
 
-.header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 20px 20px 12px;
-  padding-top: max(var(--modal-title-offset), env(safe-area-inset-top));
-  flex-shrink: 0;
-
-  // Canon rule 2: fading hairline via ::after, NOT a solid 1px border.
-  &::after {
-    content: '';
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        var(--sys-field-hairline, rgba(124, 65, 15, 0.12)) 18%,
-        var(--sys-field-hairline, rgba(124, 65, 15, 0.12)) 82%,
-        transparent 100%);
-    pointer-events: none;
-  }
-}
-
-.backButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: var(--space-1);
-  border-radius: var(--sys-radius-tmp); /* was 4px */
-  color: var(--sys-field-text, #111);
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background var(--press-out) var(--easing-default),
-    color var(--press-out) var(--easing-default);
-
-  // Цветной отклик: кнопка «Назад» (иконка) → тинт фона + цвет иконки
-  &:active {
-    background: var(--sys-color-bg-press);
-    color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--sys-duration-press-in);
-  }
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-.titleWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-// Типографику несёт <Heading role="headline" as="span"> (миграция в примитив).
-// Класс держит цвет + обрезку в одну строку.
-.title {
-  color: var(--sys-field-text, var(--text-primary));
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+// Header (заголовок «Моя норма» + back-стрелка) теперь несёт общий
+// ModalShell.Header в modal-режиме; в panel-режиме шапку даёт сам drawer.
 
 .body {
   flex: 1 1 auto;
@@ -132,13 +63,6 @@
 .rootPanel {
   height: auto;
   min-height: 0;
-}
-
-.headerPanel {
-  justify-content: flex-end;
-  padding: 4px 4px 12px;
-  padding-top: 0;
-  border-bottom: none;
 }
 
 .bodyPanel {

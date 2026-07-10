@@ -182,16 +182,20 @@
 // In-flow mode (`floating={false}`, tall bar trailing slot): opt OUT of the float
 // anchor + the focus-collapse. Higher specificity ([data-write-bar] … [data-inline]
 // = 0,3,0) beats the float (0,2,0) and collapse (0,2,0) rules regardless of order.
+// РАСКЛАДКА только (позиция/поток); ОБЛИК переехал в `[data-look='flat'|'elevated']`
+// ниже (flat = панель HomePage, elevated = плавающий FAB SearchFood).
 [data-write-bar] .writeBarList[data-inline] {
     position: static;
     top: auto;
     right: auto;
     margin: 0;
-    // Облик food-медали (paper): внешняя «монета» = парящий лист (surface-1),
-    // внутренний диск = лист над листом (surface-2). На одноцветной плашке дока
-    // (тоже surface-1) край определяет ВНЕШНИЙ тонкий бордер. Плоская: float-тень
-    // снята (медаль сидит в потоке за дивайдером, не парит). Анализ/События
-    // (плавающие, не [data-inline]) сохраняют белую монету + тень.
+}
+
+// Flat-режим — «часть панели»: «лист над листом» (внешняя «монета» surface-2,
+// внутренний диск surface-0) + тонкий внешний бордер, плоская (float-тень снята).
+// Край на одноцветной плашке дока определяет внешний бордер (Food-бар HomePage,
+// `floating={false}` в потоке). Спецификость 0,2,0 бьёт дефолт `.writeBarList` (0,1,0).
+.writeBarList[data-look='flat'] {
     --medal-plate: var(--sys-color-surface-2);
     --medal-coin: var(--sys-color-surface-0);
     box-shadow:
@@ -199,9 +203,35 @@
         0 0 0 4px var(--sys-color-border-subtle);
 }
 
-// Внутренний диск тоже без лифт-тени в потоке (плоская медаль).
-[data-write-bar] .writeBarList[data-inline]::before {
+// Внутренний диск тоже без лифт-тени (плоская медаль).
+.writeBarList[data-look='flat']::before {
     box-shadow: none;
+}
+
+// Elevated-режим — «висит в воздухе»: БЕЗ бордер-обводки, отрыв несёт sys-elevation
+// важного объекта (`--sys-elevation-action-raised`, shadow-2). 3px-spread оставляем
+// — это ПЛАШКА-подложка дуг (тот же цвет surface-2, не видимый кант), НЕ обводка.
+// Плавающий FAB «Новая еда» в поиске (`.createFab`, вне бара).
+.writeBarList[data-look='elevated'] {
+    --medal-plate: var(--sys-color-surface-2);
+    --medal-coin: var(--sys-color-surface-0);
+    box-shadow:
+        0 0 0 3px var(--medal-plate, var(--sys-color-surface-2)),
+        var(--sys-elevation-action-raised);
+}
+
+// Внутренний диск без собственной лифт-тени — подъём несёт вся медаль.
+.writeBarList[data-look='elevated']::before {
+    box-shadow: none;
+}
+
+// Яркий ХОЛОДНЫЙ текст дуг + глиф-нода (cold near-black, парный к воздушному подъёму).
+.writeBarList[data-look='elevated'] .writeBarListArc text {
+    fill: var(--sys-color-text-cold-strong);
+}
+
+.writeBarList[data-look='elevated'] .writeBarListCenter {
+    color: var(--sys-color-text-cold-strong);
 }
 
 [data-expanded] .writeBarList[data-inline] {
@@ -210,6 +240,35 @@
     opacity: 1;
     transform: none;
     pointer-events: auto;
+}
+
+// ─── Dark: float-тень + инверсия press ───────────────────────────────────────
+// 1) Warm-coal float/lift тени (rgba(45,38,28,α)) невидимы на тёмной базе →
+//    заменяем на тёмную ambient-тень (диск/медаль всё ещё «парят»).
+// 2) Press: `::before` заливается `--color-ink`, который в dark ФЛИПается в
+//    светлый (#f3efe7). Значит press-пилюля СВЕТЛАЯ → глиф обязан стать ТЁМНЫМ
+//    (в light он белый). Перекрашиваем `--press-fg-invert` в тёмный и снимаем
+//    invert(1)/screen с png (тёмная гравюра остаётся тёмной на светлой пилюле).
+:root[data-theme-mode='dark'] .writeBarList {
+    --press-fg-invert: #1a1712; // тёмный глиф на светлой press-пилюле
+    --medal-shadow:
+        0 6px 16px rgba(0, 0, 0, 0.5),
+        0 2px 5px rgba(0, 0, 0, 0.4);
+
+    &::before {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    &[data-pressed] .writeBarListImg {
+        filter: none;
+        mix-blend-mode: multiply;
+    }
+}
+
+:root[data-theme-mode='dark'] .lifted {
+    --medal-shadow:
+        -7px 11px 22px rgba(0, 0, 0, 0.45),
+        -2px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 // Center glyph — engraving png (Food) ghosted by the coin.
@@ -225,6 +284,17 @@
     mix-blend-mode: multiply;
     pointer-events: none;
     user-select: none;
+}
+
+// Гравюра медали «Новая еда» на SearchFood (dish.png / plate-question.png) сидит
+// ниже и крупнее плейт-клоша: art-специфичная посадка под новые картинки. Анкор =
+// плоский `[data-dv='SearchFoodMedal']` (на `.createFab`, cross-module — как
+// `[data-write-bar]`); img-класс хешируется в ЭТОМ модуле → descendant матчится.
+// Спецификость 0,2,0 бьёт base `.writeBarListImg` (0,1,0). Без ghost-opacity.
+[data-dv='SearchFoodMedal'] .writeBarListImg {
+    top: 68%;
+    width: 85%;
+    opacity: 1;
 }
 
 // Center node — icon variant (Analysis flask). Glyph = text-secondary (sys).

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
 import ArrowUpIcon from '@/shared/assets/icons/arrowLeft.svg?react';
@@ -13,8 +14,21 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientPickerDrawer } from './NutrientPickerDrawer';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
+import { WriteBarMedal } from '@/shared/ui/WriteBarShell/WriteBarMedal';
+import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import { mergeRefs } from '@/shared/lib/mergeRefs';
+import { useDebouncedValue } from '@/shared/lib/hooks/useDebouncedValue';
+
+// Гравюра-заглушка в центре медали «Новая еда» — flip'ается 🎨-баром вживую,
+// чтобы выбрать картинку глазами. Дефолт (первый) = plate-question.
+const MEDAL_IMG_BY_VARIANT = {
+  'plate-question': '/art/plate-question.png',
+  dish: '/art/dish.png',
+} as const;
+const MEDAL_VARIANTS = ['plate-question', 'dish'] as const;
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 export type SearchFilter = 'all' | 'mine';
@@ -32,16 +46,9 @@ type Props = {
   mode: SearchMode;
   activeItemId?: string | null;
   onInfoClick?: (variant: 'product' | 'dish', id: string) => void;
-  onBack?: () => void;
-  /**
-   * Когда задан — в верхней строке рядом с полем поиска встаёт заголовок
-   * (serif italic). Стрелка «назад» (`onBack`) — слева от него. Заголовок
-   * и поиск живут в одном баре `SearchFoodControls`.
-   *
-   * Если `mode` допускает фильтр (не `dishes-only`), статический title
-   * игнорируется — вместо него рендерится кликабельный селект.
-   */
-  title?: string;
+  // NB: хедер (back + тайтл) больше НЕ живёт внутри SearchFood — он вынесен
+  // прямым ребёнком <ModalShell> в консумере (симметрия с create/quantity),
+  // тайтл считает useSearchHeaderContent. Отсюда ушли пропы title/titleMeta/onBack.
   bottomLeft?: React.ReactNode;
   itemHtmlFor?: string;
   inputId?: string;
@@ -71,8 +78,6 @@ const SearchFood = ({
   mode = 'products-and-dishes',
   activeItemId,
   onInfoClick,
-  onBack,
-  title,
   bottomLeft,
   itemHtmlFor,
   inputId,
@@ -180,15 +185,49 @@ const SearchFood = ({
     [onSelectFood, filterOptions]
   );
 
+  // Плавающая монета «Новая еда» — только в create-флоу (когда хост дал
+  // onPickCreate + createInputHtmlFor). Заменила нижний док/инлайн-плитки
+  // FoodSearchEmpty; выбор блюдо/продукт переехал в саму модалку создания
+  // (сегмент). Прячем при активном richNutrient (паритет с инлайн-createButtons,
+  // которые тоже глушились под фильтром богатства). При выборе нутриента поиск =
+  // режим фильтра, создавать еду в нём нет смысла.
+  const showCreateDock = Boolean(onPickCreate && createInputHtmlFor) && !richNutrient;
+  // Монета «Новая еда» липнет над клавиатурой. mode:'transform' (НЕ 'fixed'):
+  // это ПРАВЫЙ FAB (position:absolute; right:12px), а не full-width бар. Режим
+  // 'fixed' ставил left:0;right:0 → контейнер растягивался на всю ширину и flex
+  // без justify кидал монету к ЛЕВОМУ краю («уходит влево»). 'transform' только
+  // поднимает translateY на высоту клавы, сохраняя absolute-якорь right:12px:
+  // `.content` full-height, его низ = низ экрана (layout viewport клавой не жмётся),
+  // подъём на высоту клавы сажает монету ровно над ней.
+  const createFabRef = useKeyboardStick<HTMLDivElement>({
+    mode: 'transform',
+    enabled: showCreateDock,
+  });
+
+  // Design-variant картинки медали «Новая еда» (см. MEDAL_* сверху). Anchor.ref
+  // (callback) мёржим с createFabRef (RefObject) на одном узле createFab —
+  // IntersectionObserver бара видит медаль, keyboard-stick продолжает её липить.
+  const { variant: medalVariant, anchor: medalAnchor } = useDesignVariant(
+    'SearchFoodMedal',
+    MEDAL_VARIANTS
+  );
+  const { ref: medalRef, ...medalDataAttrs } = medalAnchor;
+  const medalImg = MEDAL_IMG_BY_VARIANT[medalVariant];
+  // createFab несёт два потребителя узла: keyboard-stick (RefObject) + IO-anchor
+  // design-варианта (callback). Сливаем через mergeRefs — оба видят элемент.
+  const setCreateFabRef = useMemo(() => mergeRefs(createFabRef, medalRef), [createFabRef, medalRef]);
+
   return (
     <div className={styles.content}>
-      <div className={styles.scroller} ref={scrollerRef} onScroll={handleScroll}>
+      <div
+        className={clsx(styles.scroller, showCreateDock && styles.scrollerWithDock)}
+        ref={scrollerRef}
+        onScroll={handleScroll}
+      >
         <div className={styles.header} ref={headerRef}>
           <SearchFoodControls
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onBack={onBack}
-            title={title}
             inputId={inputId}
             filterOptions={filterOptions ?? undefined}
             selectedFilter={selectedFilter}
@@ -226,7 +265,7 @@ const SearchFood = ({
 
       {/* Индикатор «есть ещё ниже» + FAB «наверх» якорятся к viewport-размерному
           `.content`, поверх скролл-рута и нижнего дока. */}
-      {showHeavy && <ScrollIndicator visible={hasMoreBelow} variant="dark" />}
+      {showHeavy && <ScrollIndicator visible={hasMoreBelow} variant="light" bleed />}
       {showHeavy && showScrollTop && (
         <button
           type="button"
@@ -236,6 +275,29 @@ const SearchFood = ({
         >
           <ArrowUpIcon />
         </button>
+      )}
+
+      {/* Плавающая круглая монета «Новая еда» внизу-справа — тот же WriteBarMedal,
+          что Food-бар на HomePage: дуга «Новая еда» сверху + гравюра-клош в центре
+          (не плюс — тот читался убого) + paper-облик. Сама по себе `<label
+          htmlFor={CREATE_INPUT}>` — делегирует фокус инпуту имени в модалке
+          создания → onFocusCapture хоста флипнет шаг на 'create' (канон Label
+          focus delegation — setStep НЕ зовём, только stash варианта+имени через
+          onPickCreate в onClick). Дефолт-вариант product; в модалке переключается
+          сегментом. Имя = текущий запрос (префилл). Липнет над клавиатурой
+          (useKeyboardStick). */}
+      {showCreateDock && createInputHtmlFor && (
+        <div ref={setCreateFabRef} className={styles.createFab} {...medalDataAttrs}>
+          <WriteBarMedal
+            htmlFor={createInputHtmlFor}
+            ariaLabel="Создать новую еду"
+            arcTop="Новая еда"
+            img={medalImg}
+            floating={false}
+            look="elevated"
+            onClick={() => onPickCreate?.('product', searchQuery.trim())}
+          />
+        </div>
       )}
     </div>
   );
@@ -283,8 +345,19 @@ const SearchFoodHeavy = ({
   sentinelRef,
 }: HeavyProps) => {
   const userOnlyProducts = selectedFilter === 'mine';
+
+  // Дебаунс поиска: дорогой Fuse-фильтр по каталогу + рендер ~700 карточек не
+  // должен гонять на КАЖДОЕ нажатие. Поле печатает по немедленному `searchQuery`
+  // (живёт в outer, без лага), а фильтр читает ДЕБАУНС-значение — на быстром вводе
+  // нескольких символов тяжёлая работа считается ОДИН раз, после паузы 200мс.
+  // useDeferredValue тут не подошёл: он ре-рендерит список ДВАЖДЫ на нажатие
+  // (stale+fresh), и на ~700 карточках быстрый ввод начинал лагать. С дебаунсом
+  // products/dishes стабильны между нажатиями → React Compiler переиспользует
+  // отрисованные ряды. NB: имя для создания еды (`trimmedQuery` ниже) остаётся на
+  // немедленном `searchQuery` — префилл должен совпадать с напечатанным сейчас.
+  const debouncedQuery = useDebouncedValue(searchQuery, 200);
   const { products, dishes, nutrientMap } = useFilteredFoods(
-    searchQuery,
+    debouncedQuery,
     richNutrient?.id,
     userOnlyProducts,
     excludeSupplements
@@ -436,8 +509,12 @@ const SearchFoodHeavy = ({
         {showDishes && <ul className={styles.list}>{dishes.map(renderDishItem)}</ul>}
       </div>
       <div ref={sentinelRef} />
-      {/* При выбранном нутриенте поиск = режим фильтра по богатству; create-пустышку прячем. */}
-      {!richNutrient && createButtons}
+      {/* Инлайновые плитки «Продукт|Блюдо» остаются ТОЛЬКО для legacy-пути (без
+          onPickCreate — toaster-консумеры). В create-флоу (onPickCreate задан)
+          их заменяет постоянный нижний док в outer SearchFood, а выбор блюдо/
+          продукт переехал в модалку создания. При richNutrient — прячем (режим
+          фильтра по богатству). */}
+      {!richNutrient && !onPickCreate && createButtons}
 
       {bottomLeft && <div className={styles.bottomLeft}>{bottomLeft}</div>}
     </>

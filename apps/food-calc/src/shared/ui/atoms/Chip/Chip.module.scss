@@ -1,16 +1,21 @@
 // Унифицированный чип — кнопка быстрого выбора текста.
 // Канон визуала: пилюля пикера нутриентов (вариант C) — БЕЛАЯ, мягкая тень,
-// БЕЗ рамки. Выбранный/нажатый (active) — navy-заливка из единого sys-токена
-// --sys-color-bg-selected (tokens.scss · ЯРУС sys): перекрасить «выбранное» во
-// всём приложении = правка одного токена. Читаем sys НАПРЯМУЮ (индирекция
-// --sys-chip-active-* схлопнута 2026-06-22). Цвет текста rest наследует --sys-chip-text.
+// БЕЗ рамки. Выбранный/нажатый (active) = plum-полюс (сливовый) + ink-текст.
+// Полюс читается ПРЯМО из своей sys-пары --sys-color-bg-selected-plum /
+// --sys-color-text-on-selected-plum (см. .chip.active / .chip:active), а НЕ через
+// scope-override семантического --sys-color-*-selected: тот остаётся глобально cool
+// для не-чиповых consumers, и descendant-читатели (напр. DetailsChips inset-тень)
+// не ловят plum по наследованию. Это НЕ старый channel --sys-chip-active-* (схлопнут
+// 2026-06-22, гейт check-selected-token). Цвет текста rest наследует --sys-chip-text.
 //
 // Surface-aware возвышение: проп `surface` = тир ХОСТА (0–2, = --sys-color-surface-N),
 // чип поднимается на ТИР ВЫШЕ хоста — имитирует приподнятость цветом. База .chip (хост
 // surface-0 = бежевый стол) = светлая пилюля surface-1 #fefcf9. .onSheet (хост surface-1+)
-// → белая пилюля surface-2. .floating (хост surface-2 = потолок): цветом выше уже не уйти
-// → мягкая rest-тень рычага, иначе белый чип сливается с белым хостом. Канон: хост
-// называет caller, как Button `flat`; авто-детект через [data-surface] запрещён.
+// → белая пилюля surface-2. Отрыв от хоста несёт rest-тень — теперь она в БАЗЕ .chip
+// (дефолт elevation='raised'), на любом тире, а не только у бывшего surface-2-.floating.
+// Ортогональный проп `elevation='flat'` (.flat) снимает тень → тонкая рамка (плотные
+// экраны). Канон: хост называет caller, как Button `flat`; авто-детект через
+// [data-surface] запрещён.
 .chip {
   appearance: none;
   -webkit-tap-highlight-color: transparent;
@@ -19,10 +24,16 @@
   gap: 4px;
   min-height: 42px;
   padding: 7px 14px;
-  border: none;
+  // Рамка резервируется прозрачной в покое (raised) — flat-скин лишь перекрашивает
+  // border-color, геометрия между скинами стабильна (без прыжка 1px).
+  border: 1px solid transparent;
   border-radius: var(--sys-radius-indicator);
   background: var(--sys-color-surface-1);
   color: var(--sys-chip-text, var(--sys-card-text-rest));
+  // Дефолт — приподнят мягкой rest-тенью (raised), на ЛЮБОМ surface-тире (раньше
+  // тень нёс только .floating для surface-2; теперь база — отрыв от хоста везде).
+  // flat-скин снимает её ниже, выбранный (.active) тоже — сигнал несёт заливка.
+  box-shadow: var(--sys-elevation-action-rest);
   cursor: pointer;
   transition: background var(--press-out) ease, color var(--press-out) ease,
     transform var(--press-out) ease, box-shadow 140ms ease,
@@ -35,12 +46,11 @@
   background: var(--sys-color-surface-2);
 }
 
-// хост surface-2 (белый потолок): выше тира по цвету нет → мягкая rest-тень рычага
-// (action-rest = shadow-1, НЕ overlay-тень модалки — на пилюле та грубовата). Лежит
-// ниже rest-лесенки: :hover поднимет до action-hover, :active/.active — до amber-glow
-// (обе перекрывают, будучи позже при равной специфичности).
-.chip.floating {
-  box-shadow: var(--sys-elevation-action-rest);
+// flat-скин (плотные экраны): тень снята, вместо неё тонкая рамка. Объявлено ДО
+// :hover/.active — те перекрывают по порядку исходника, где нужно.
+.chip.flat {
+  border-color: var(--sys-color-border-subtle);
+  box-shadow: none;
 }
 
 .chip:hover {
@@ -55,28 +65,37 @@
 // Цветной отклик: на нажатии чип заливается navy — тот же вид, что у выбранного
 // `.chip.active`. Вход мгновенный, выход мягкий.
 .chip:active {
-  background: var(--sys-color-bg-selected);
-  color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (amber), color-mix не снапается на --sys-elevation-* */
+  background: var(--sys-color-bg-selected-plum);
+  color: var(--sys-color-text-on-selected-plum);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected-plum) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (plum), color-mix не снапается на --sys-elevation-* */
   transform: scale(0.96);
   transition-duration: var(--sys-duration-press-in);
 }
 
 .chip.active {
-  background: var(--sys-color-bg-selected);
-  color: var(--sys-color-text-on-selected);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--sys-color-bg-selected) 30%, transparent); /* stylelint-disable-line scale-unlimited/declaration-strict-value -- динамический glow от «выбрано» (amber), color-mix не снапается на --sys-elevation-* */
+  background: var(--sys-color-bg-selected-plum);
+  color: var(--sys-color-text-on-selected-plum);
+  // Выбранный — ПЛОСКИЙ (elevation снят по фидбеку 2026-07-10): сигнал «выбрано»
+  // несёт одна plum-заливка, без тени/glow. Без ink-обводки (снята 2026-07-05:
+  // на сливовой заливке рамка читалась грязно).
+  box-shadow: none;
+}
+
+// flat-скин: выбранный чип гасит рамку (0-3-0 кроет .chip.flat 0-2-0) — на plum-
+// заливке subtle-кант читался бы грязно, заливка сама несёт сигнал.
+.chip.flat.active {
+  border-color: transparent;
 }
 
 // ─── Variant: outline (второй селект-скин) ─────────────────────────────────
 // Инверсия fill-схемы: покой = ПРИПОДНЯТ (elevation-action-rest на любом хосте),
-// выбранный = ПЛОСКИЙ + ink-рамка + жирнее текст, тот же фон (butter НЕ участвует —
+// выбранный = ПЛОСКИЙ + ink-рамка + жирнее текст, тот же фон (заливка НЕ участвует —
 // сигнал несут снятие тени + рамка + вес). Геометрия стабильна: рамка резервируется
-// прозрачной в покое (1px в обоих состояниях). Живой консумер — фильтр разборов
-// (/analyses · AnalysesSlide).
+// прозрачной в покое (1px в обоих состояниях). Сейчас без живого консумера — фильтр
+// разборов переехал на fill+warm 2026-07-05; скин остаётся для витрины UiKit/предложки.
 //
 // Фон press/select НАДО restate явно: fill-правила `.chip:active` / `.chip.active`
-// (butter, 0-2-0) иначе бы залили. Заливка «покоя» зависит от surface-тира хоста,
+// (plum, 0-2-0) иначе бы залили. Заливка «покоя» зависит от surface-тира хоста,
 // а `background` гейтится только на `var(--sys-…)` (локальный var не пройдёт), поэтому
 // surface-1/2 повторяются напрямую. Специфичность: `.chip.outline.active` (0-3-0) >
 // fill-правил (0-2-0); `.chip.outline.onSheet…` (0-4-0) кроет base-тир внутри скина.
@@ -89,7 +108,7 @@
   box-shadow: var(--sys-elevation-action-hover);
 }
 
-// press + select делят фон «покоя» (тот же тир) + гашение butter-цвета текста.
+// press + select делят фон «покоя» (тот же тир) + гашение selected-цвета текста.
 .chip.outline:active,
 .chip.outline.active {
   background: var(--sys-color-surface-1); // хост surface-0 (база)
@@ -101,7 +120,7 @@
   background: var(--sys-color-surface-2); // хост surface-1+ (лист/дровер)
 }
 
-// press: без butter — компрессия тени + scale.
+// press: без заливки — компрессия тени + scale.
 .chip.outline:active {
   box-shadow: var(--sys-elevation-action-pressed);
   transform: scale(0.96);
@@ -110,13 +129,10 @@
 
 // selected: плоский (тень снята) + ink-рамка. Ниже press-правила в исходнике —
 // при равной специфичности (0-3-0) выбранный остаётся плоским даже во время нажатия.
+// Жирнее текст выбранного несёт примитив <Text weight="bold"> в Chip.tsx (типо-голос
+// в примитиве, не сырой font-weight; вес унифицирован с календарём/навигатором = 700).
 .chip.outline.active {
   border-color: var(--sys-color-border-action-system);
   box-shadow: none;
-}
-
-// Жирнее текст выбранного: перекрываем вес роли `label` (600) на <Text> span.
-// Селектор 0-3-1 кроет `.label` примитива Text (0-1-0). font-weight вне гейтов.
-.chip.outline.active span {
-  font-weight: 700;
+  outline: none; // outline-скин несёт сигнал своей ink-рамкой, не fill-обводкой
 }
