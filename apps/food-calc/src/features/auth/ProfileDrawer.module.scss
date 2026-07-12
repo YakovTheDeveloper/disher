@@ -64,3 +64,10 @@
   margin: 0;
   color: var(--sys-color-status-danger);
 }
+
+// Build-штамп — служебная подпись в самом низу; центр + приглушение, чтобы не
+// спорила с рядами настроек.
+.buildStamp {
+  text-align: center;
+  opacity: 0.6;
+}

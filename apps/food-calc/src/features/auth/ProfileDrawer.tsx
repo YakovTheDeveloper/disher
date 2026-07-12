@@ -327,6 +327,12 @@ export function ProfileDrawer() {
               />
             </div>
           </ActionList.Section>
+
+          {/* Build-штамп — видимая с телефона правда о том, какая сборка запущена
+              (протокол верификации PWA-обновления, без chrome://inspect). */}
+          <Text role="caption" className={styles.buildStamp}>
+            Сборка {__BUILD_ID__} · {__BUILT_AT__.slice(0, 16).replace('T', ' ')}
+          </Text>
         </ActionList>
       )}
 

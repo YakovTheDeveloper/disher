@@ -121,6 +121,13 @@ printf '  %-34s %s  (сосед)\n' "$NEIGHBOR_URL/" "$c_nb"
 html="$(curl -s "$SPA_URL/")"
 js="$(grep -oE '/assets/index-[^"]+\.js' <<<"$html" | head -1 || true)"
 if [[ -n "$js" ]]; then
+  # Строгая сверка: живой ассет обязан существовать в ЭТОЙ локальной сборке —
+  # иначе сервер отдаёт не то, что мы только что собрали (кеш/чужой каталог/старый swap).
+  if [[ -f "dist$js" ]]; then
+    echo "  ✓ живой ассет $js есть в локальном dist/"
+  else
+    echo "  ✗ живой ассет $js ОТСУТСТВУЕТ в локальном dist/ — сервер отдаёт не эту сборку"; fail=1
+  fi
   bundle="$(curl -s "$SPA_URL$js")"
   if grep -qF "$API_BASE" <<<"$bundle"; then
     echo "  ✓ отданный бандл ($js) смотрит на $API_BASE"
@@ -129,6 +136,20 @@ if [[ -n "$js" ]]; then
   fi
 else
   echo "  ✗ в отданном index.html не найден /assets/index-*.js"; fail=1
+fi
+
+# Build-штамп: version.json вне precache (globPatterns без .json) → всегда с сети.
+# Побайтовое расхождение с локальной сборкой = выкатили не то / не туда.
+if [[ -f dist/version.json ]]; then
+  v_local="$(cat dist/version.json)"
+  v_remote="$(curl -s "$SPA_URL/version.json")"
+  if [[ "$v_remote" == "$v_local" ]]; then
+    echo "  ✓ version.json совпадает: $v_remote"
+  else
+    echo "  ✗ version.json расходится: сервер='$v_remote' локально='$v_local'"; fail=1
+  fi
+else
+  echo "  ✗ в dist/ нет version.json — сборка без build-штампа"; fail=1
 fi
 
 if (( fail )); then

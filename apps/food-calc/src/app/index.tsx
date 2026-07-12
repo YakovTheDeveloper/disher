@@ -18,6 +18,11 @@ import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePr
 import { installPwaAutoUpdate } from '@/app/pwa-update';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
+// Build-штамп в консоль — всегда, включая прод: при отладке PWA-обновления с
+// телефона (chrome://inspect) это первая строка, отличающая «не обновилось»
+// от «обновилось, но UI похож».
+console.info(`[disher] build ${__BUILD_ID__} · ${__BUILT_AT__}`); // eslint-disable-line no-console
+
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
 // idb-keyval roundtrip probe. Gated behind VITE_DIAG=1 so cold-start (incl.
 // prod) stays clean by default.

@@ -8,10 +8,41 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import type { Plugin } from 'vite';
 import { readFileSync, existsSync } from 'fs';
+import { execSync } from 'child_process';
 
 const pkg = JSON.parse(
   readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
 ) as { version: string };
+
+// Build-штамп: без него «PWA не обновилось» неотличимо от «обновилось, но UI
+// похож». SHA — с машины сборки; суффикс +dirty честно помечает сборку из
+// грязного дерева (одинаковый SHA ≠ одинаковый код). Вне git-чекаута не падаем.
+const buildId = (() => {
+  try {
+    const sha = execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
+    const dirty =
+      execSync('git status --porcelain', { cwd: __dirname }).toString().trim() !== '';
+    return dirty ? `${sha}+dirty` : sha;
+  } catch {
+    return 'nogit';
+  }
+})();
+const builtAt = new Date().toISOString();
+
+// version.json — честный ответ «что лежит на сервере»: в precache НЕ попадает
+// (globPatterns без .json) → всегда с сети. deploy-spa.sh после свопа строго
+// сверяет его с локальным dist/version.json.
+const versionJson = (): Plugin => ({
+  name: 'disher-version-json',
+  apply: 'build',
+  generateBundle() {
+    this.emitFile({
+      type: 'asset',
+      fileName: 'version.json',
+      source: JSON.stringify({ buildId, builtAt }),
+    });
+  },
+});
 
 // open-in-editor целимся на CLI `code`, а не на автодетект.
 //
@@ -119,6 +150,8 @@ const reactClickToComponentLocal = (): Plugin => {
 export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+    __BUILD_ID__: JSON.stringify(buildId),
+    __BUILT_AT__: JSON.stringify(builtAt),
   },
   plugins: [
     // React Compiler (авто-мемоизация, 1.0). Это Babel-плагин, поэтому ушли с
@@ -162,6 +195,7 @@ export default defineConfig({
         enabled: false,
       },
     }),
+    versionJson(),
     patchCssModules(),
     reactClickToComponentLocal(),
     svgr({
