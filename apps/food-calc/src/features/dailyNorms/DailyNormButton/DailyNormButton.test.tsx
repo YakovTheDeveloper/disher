@@ -23,19 +23,19 @@ describe('DailyNormButton', () => {
   it('shows a neutral label while the norm is loading (no wrong-state flash)', () => {
     h.items = undefined;
     const { getByText } = render(<DailyNormButton />);
-    expect(getByText('Дневная норма')).toBeInTheDocument();
+    expect(getByText('Норма')).toBeInTheDocument();
   });
 
-  it('reads «Задать дневную норму» when no norm is set', () => {
+  it('reads «Установить суточную норму» when no norm is set', () => {
     h.items = {};
     const { getByText } = render(<DailyNormButton />);
-    expect(getByText('Задать дневную норму')).toBeInTheDocument();
+    expect(getByText('Установить суточную норму')).toBeInTheDocument();
   });
 
-  it('reads «Дневная норма» when a norm exists', () => {
+  it('reads «Норма» when a norm exists', () => {
     h.items = { '1': 100 };
     const { getByText } = render(<DailyNormButton />);
-    expect(getByText('Дневная норма')).toBeInTheDocument();
+    expect(getByText('Норма')).toBeInTheDocument();
   });
 
   it('opens DailyNormDrawer on click', () => {

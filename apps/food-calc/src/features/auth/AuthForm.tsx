@@ -1,33 +1,86 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import styles from './AuthForm.module.scss';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
-type Mode = 'signIn' | 'signUp';
-type Step = 'email' | 'password';
+// 2026-07-13: на AuthScreen оставлен ТОЛЬКО вход/регистрация через Telegram.
+// Email+пароль (двухшаговая форма, переключатель signIn/signUp, verify-email
+// ветка) закомментированы целиком — код сохранён ниже, чтобы вернуть флоу одним
+// раскомментированием. Сервер (better-auth emailAndPassword) не трогали.
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Synced with backend auth/server.ts emailAndPassword.minPasswordLength —
-// менять ТОЛЬКО парой, иначе форма и сервер разойдутся в валидации.
-const MIN_PASSWORD = 11;
+// type Mode = 'signIn' | 'signUp';
+// type Step = 'email' | 'password';
+//
+// const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// // Synced with backend auth/server.ts emailAndPassword.minPasswordLength —
+// // менять ТОЛЬКО парой, иначе форма и сервер разойдутся в валидации.
+// const MIN_PASSWORD = 11;
 
 type Props = {
-  /** Initial mode for the form. Defaults to signIn. */
-  initialMode?: Mode;
-  /** Called on successful auth — typically closes the host (drawer) or is a no-op (gate, store flips automatically). */
-  onSuccess?: () => void;
-  /** Headline copy override for the email step. */
-  signInSubheadline?: string;
-  signUpSubheadline?: string;
+  // /** Initial mode for the form. Defaults to signIn. */
+  // initialMode?: Mode;
+  // /** Called on successful auth — typically closes the host (drawer) or is a no-op (gate, store flips automatically). */
+  // onSuccess?: () => void;
+  // /** Headline copy override for the email step. */
+  // signInSubheadline?: string;
+  // signUpSubheadline?: string;
   /** Geometry preset. `card` = centered glass card (V1 photo), `stretch` = edge-to-edge fullscreen (V2/V3/V4). Drawer hosts pass nothing → base centered 360px layout. */
   layout?: 'card' | 'stretch';
 };
 
 /**
- * Two-step email → password auth form. Hosted by AuthScreen (fullscreen
- * blocker). All state is local except auth-store loading / error.
+ * Telegram-only auth. Hosted by AuthScreen (fullscreen blocker). The redirect
+ * navigates away on success, so the only thing that comes back here is a
+ * failure to START it — surfaced as the error banner under the button.
  */
+export function AuthForm({ layout }: Props) {
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const error = useAuthStore((s) => s.error);
+  const signInWithTelegram = useAuthStore((s) => s.signInWithTelegram);
+  const clearError = useAuthStore((s) => s.clearError);
+
+  useEffect(() => {
+    return () => clearError();
+  }, [clearError]);
+
+  return (
+    <div className={styles.container} data-auth-layout={layout}>
+      <header className={styles.header}>
+        <Heading as="h1" role="headline" className={styles.heading}>
+          Вход
+        </Heading>
+      </header>
+
+      <div className={styles.formWrap}>
+        <div className={styles.altAuth}>
+          <Button
+            variant="system"
+            type="button"
+            className={styles.telegramBtn}
+            onClick={() => signInWithTelegram()}
+            disabled={isLoading}
+          >
+            Войти через Telegram
+          </Button>
+
+          {error && (
+            <p id="auth-form-error" className={styles.fieldError} role="alert">
+              <Text as="span" role="caption">
+                {error}
+              </Text>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Email + пароль (отключено 2026-07-13) ─────────────────────────────────
+Чтобы вернуть: раскомментировать типы/константы выше, этот блок и заменить им
+тело AuthForm; проп-контракт (initialMode / onSuccess / *Subheadline) тоже выше.
+
 export function AuthForm({
   initialMode = 'signIn',
   onSuccess,
@@ -232,3 +285,4 @@ export function AuthForm({
     </div>
   );
 }
+──────────────────────────────────────────────────────────────────────────── */

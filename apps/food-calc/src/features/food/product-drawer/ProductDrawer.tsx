@@ -498,17 +498,14 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
               />
             ) : (
               <>
-                {/* Количество + норма — ПРЯМО над таблицей нутриентов. Еда: выбор
-                    количества (50% слева) + кнопка нормы (50% справа, текст
-                    переносится и прижат влево). БАД: выбора количества нет → норма
-                    на всю ширину + подпись «состав на 1 единицу». */}
+                {/* Норма — отдельной строкой на всю ширину над блоком количества
+                    (и у еды, и у БАД). Ниже: еда — выбор количества, БАД — подпись
+                    «состав на 1 единицу». Всё ПРЯМО над таблицей нутриентов. */}
+                <div className={s.normRowFull}>
+                  <DailyNormButton className={s.normButtonFull} />
+                </div>
                 {isSupplement ? (
-                  <>
-                    <div className={s.normRowFull}>
-                      <DailyNormButton className={s.normButtonFull} />
-                    </div>
-                    <Text as="p" role="body" className={s.servingComposition}>Состав на одну единицу:</Text>
-                  </>
+                  <Text as="p" role="body" className={s.servingComposition}>Состав на одну единицу:</Text>
                 ) : (
                   <>
                     <div className={s.measureRow}>
@@ -520,9 +517,6 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                           options={quantityOptions}
                           onChange={handleQuantityModeChange}
                         />
-                      </div>
-                      <div className={s.normSlot}>
-                        <DailyNormButton className={s.normButton} />
                       </div>
                     </div>
                     {isCustom && (

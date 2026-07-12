@@ -28,7 +28,7 @@ export const DailyNormButton = ({ className }: Props) => {
   }, []);
 
   const hasNorm = items != null && Object.keys(items).length > 0;
-  const label = hasNorm || items === undefined ? 'Норма' : 'Установить дневную норму';
+  const label = hasNorm || items === undefined ? 'Норма' : 'Установить суточную норму';
 
   // Вид по состоянию: норма ЗАДАНА → тихая плитка с рамкой (onSurface=1, без тени).
   // Норма НЕ задана → «кричим» тенью-приглашением (onSurface=2). «Кричим» только

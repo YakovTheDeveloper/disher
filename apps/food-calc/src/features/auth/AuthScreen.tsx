@@ -16,6 +16,9 @@ import styles from './AuthScreen.module.scss';
  * растворяется низ обложки до того, как её накроет белый лист.
  */
 export function AuthScreen() {
+  // Inert while auth is Telegram-only (2026-07-13): nothing calls signUp, so
+  // pendingVerificationEmail can no longer be set. Branch kept wired for the
+  // day AuthForm's email flow is uncommented back in.
   const pendingEmail = useAuthStore((s) => s.pendingVerificationEmail);
   // Держит сфокусированный инпут над экранной клавиатурой (iOS). CSS-контракт —
   // в `.screen`: единственный скроллер (`overflow-y: auto`) + `padding-bottom:

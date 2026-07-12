@@ -15,6 +15,7 @@ import { installViewTransitionCleanup } from '@/shared/lib/viewTransition';
 import { diagLog } from '@/shared/lib/observability/diagLog';
 import { installGlobalErrorHandlers } from '@/shared/lib/errors/installGlobalErrorHandlers';
 import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePressure';
+import { installPwaAutoUpdate } from '@/app/pwa-update';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
 
 // Boot diagnostics — UA + AbortSignal.any/timeout + storage.estimate +
@@ -97,6 +98,10 @@ installStoragePressureWatcher();
 // selector set right before each VT navigation) is cleared on every
 // transition.finished — covers both hook and imperative (pushNavigate) sites.
 installViewTransitionCleanup();
+
+// Регистрирует service worker через workbox-window и перезагружает страницу,
+// когда активировалась новая сборка. Без этого Android-PWA залипает на старой.
+installPwaAutoUpdate();
 
 // Resolve the initial session. AuthGate flips to `isReady` and either renders
 // AuthScreen or BackupGate→app accordingly.

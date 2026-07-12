@@ -174,13 +174,21 @@ export default defineConfig({
       // props на JSX callsite.
       include: "**/*.svg?react",
     }),
-    checker({
-      typescript: {
-        tsconfigPath: 'tsconfig.json',
-      },
-      overlay: false,
-      terminal: false,
-    }),
+    // Прод-деплой (scripts/deploy-spa.sh --no-typecheck) должен уметь выкатить
+    // фронт, когда type-гейт красный от НЕ-прод кода (тест-фикстуры, dev-предложки):
+    // esbuild всё равно стрипает типы без проверки, эмит от этого не меняется.
+    // Это осознанный escape hatch, а не «выключили проверку»: по умолчанию гейт жив.
+    ...(process.env.SKIP_TYPECHECK
+      ? []
+      : [
+          checker({
+            typescript: {
+              tsconfigPath: 'tsconfig.json',
+            },
+            overlay: false,
+            terminal: false,
+          }),
+        ]),
   ],
   optimizeDeps: {
     include: ['react', 'react-dom'],
