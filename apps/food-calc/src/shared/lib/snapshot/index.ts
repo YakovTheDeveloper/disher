@@ -150,18 +150,19 @@ export async function pruneTombstones(): Promise<void> {
   await db.tombstones.filter((t) => t.deleted_at < cutoff).delete();
 }
 
-export async function push(): Promise<void> {
+export async function push(signal?: AbortSignal): Promise<void> {
   const body = JSON.stringify(await dump());
   const r = await authedFetch(URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body,
+    signal,
   });
   if (!r.ok) throw statusError('push', r.status);
 }
 
-export async function pull(): Promise<Snapshot | null> {
-  const r = await authedFetch(URL);
+export async function pull(signal?: AbortSignal): Promise<Snapshot | null> {
+  const r = await authedFetch(URL, { signal });
   if (r.status === 404) return null;
   if (!r.ok) throw statusError('pull', r.status);
   return (await r.json()) as Snapshot;
@@ -198,17 +199,25 @@ function statusError(op: string, status: number): Error & { status: number } {
 // the fast path (don't even take the lock) and again INSIDE the lock before
 // push(), so a mid-flight OFF (flipped while a sync was already running) is
 // honoured and an in-progress run can't push after consent was withdrawn.
-export async function syncNow(): Promise<void> {
+//
+// `signal` bounds BOTH ways this can hang forever: the HTTP round-trips (fetch
+// has no default timeout) and the wait for the Web Lock (another tab holding
+// 'disher-sync' blocks the grant indefinitely). An abort rejects the returned
+// promise, and — load-bearing for signOut — it rejects only once the in-flight
+// step has actually unwound, so a caller may safely wipe Dexie afterwards
+// without racing a merge() that is still writing rows back in.
+export async function syncNow(opts: { signal?: AbortSignal } = {}): Promise<void> {
+  const { signal } = opts;
   if (!isSyncEnabled()) return; // fast path: sync off → no pull/merge/push
   const run = async () => {
     if (!isSyncEnabled()) return; // re-check under the lock: honour a mid-flight OFF
-    const incoming = await pull();
+    const incoming = await pull(signal);
     if (incoming) await merge(incoming);
     await pruneTombstones(); // GC expired tombstones before they ride the blob up
-    await push();
+    await push(signal);
   };
   if (typeof navigator !== 'undefined' && navigator.locks) {
-    await navigator.locks.request('disher-sync', run);
+    await navigator.locks.request('disher-sync', signal ? { signal } : {}, run);
   } else {
     await run();
   }

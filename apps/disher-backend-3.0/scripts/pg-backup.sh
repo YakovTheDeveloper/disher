@@ -30,10 +30,20 @@ BACKUP_DIR="${BACKUP_DIR:-/srv/disher/backups}"
 RCLONE_REMOTE="${RCLONE_REMOTE:-}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-}"
 DISK_ALERT_PCT="${DISK_ALERT_PCT:-85}"
-# shellcheck disable=SC1091
-set -a; . ./.env.production; set +a
-: "${POSTGRES_USER:?POSTGRES_USER unset}"
-: "${POSTGRES_DB:?POSTGRES_DB unset}"
+# .env.production is a docker-compose env file, NOT a shell script: values are
+# unquoted and may contain shell metacharacters (RESEND_FROM=Disher <no-reply@...>
+# reads as a redirection), so `source`-ing it is a syntax error. Read the two keys
+# we actually need, literally.
+read_env() {
+  local v
+  v="$(sed -n "s/^$1=//p" ./.env.production | head -n1 | tr -d '\r')"
+  v="${v%\"}"; v="${v#\"}"; v="${v%\'}"; v="${v#\'}"
+  printf '%s' "$v"
+}
+POSTGRES_USER="${POSTGRES_USER:-$(read_env POSTGRES_USER)}"
+POSTGRES_DB="${POSTGRES_DB:-$(read_env POSTGRES_DB)}"
+: "${POSTGRES_USER:?POSTGRES_USER unset (not in env, not in .env.production)}"
+: "${POSTGRES_DB:?POSTGRES_DB unset (not in env, not in .env.production)}"
 
 mkdir -p "$BACKUP_DIR"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"

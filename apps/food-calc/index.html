@@ -11,7 +11,10 @@
   <title>Disher.</title>
 
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="theme-color" content="#4FACFE" />
+  <!-- Системная шапка = «стол» приложения (--sys-color-surface-0), а не бренд-цвет:
+       иначе PWA рисует полосу, которой нет ни на одном экране. -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f7f3eb" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#16130e" />
 
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />

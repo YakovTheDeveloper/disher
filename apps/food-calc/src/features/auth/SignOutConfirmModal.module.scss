@@ -76,6 +76,20 @@
     border-color: var(--sys-color-border-action-system);
     color: var(--sys-color-text-on-accent);
   }
+
+  // Заблокирована на время финального push'а — уход из модалки в этот момент
+  // оставил бы sync без адресата решения.
+  &:disabled {
+    color: var(--sys-color-text-tertiary);
+    cursor: default;
+
+    &:active {
+      background: transparent;
+      border-color: var(--sys-color-border-subtle);
+      color: var(--sys-color-text-tertiary);
+      transform: none;
+    }
+  }
 }
 
 .confirmDanger {

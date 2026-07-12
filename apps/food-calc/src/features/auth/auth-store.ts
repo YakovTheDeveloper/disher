@@ -9,6 +9,7 @@ import { modalStore } from '@/shared/ui/modal-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 import { syncNow } from '@/shared/lib/snapshot';
 import { resetSessionExpired } from './handleSessionExpired';
+import toaster from '@/shared/lib/toaster/toaster';
 
 // Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
 // drafts) before switching identities. Without this clear, user B on a shared
@@ -21,6 +22,37 @@ async function wipeLocalData(): Promise<void> {
   // idb-keyval clear only leaves stale Zustand drafts, no user data is lost.
   // eslint-disable-next-line no-restricted-syntax
   await idbKeyvalClear().catch(() => {});
+}
+
+// Ceiling for the final pre-signOut sync. `fetch` has no default timeout and the
+// 'disher-sync' Web Lock waits forever if another tab holds it — without this
+// bound a hung server (seen in prod) leaves the user watching a sign-out that
+// never lands and cannot be cancelled.
+const FINAL_SYNC_TIMEOUT_MS = 12_000;
+
+/**
+ * Best-effort FINAL sync before sign-out tears local state down. There is no
+ * sync scheduler or beforeunload flush, so edits made since the last push live
+ * only in Dexie — and signOut wipes Dexie. Push them first while the session is
+ * still valid (this MUST run before the server revoke, which would 401 the push).
+ *
+ * Never throws: returns `true` when the vault is up to date (including the
+ * sync-OFF case, where there is nothing to lose), `false` when the push failed
+ * or timed out. A `false` is the caller's cue to ASK before wiping — the user is
+ * about to destroy the only copy of those edits.
+ */
+export async function finalSyncBeforeSignOut(): Promise<boolean> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FINAL_SYNC_TIMEOUT_MS);
+  try {
+    await syncNow({ signal: controller.signal });
+    return true;
+  } catch (e) {
+    console.error('final sync before signOut failed', e);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 type AuthState = {
@@ -67,7 +99,12 @@ type AuthActions = {
    * the verify-email page calls `authClient.verifyEmail`.
    */
   signUp: (email: string, password: string) => Promise<boolean>;
-  signOut: () => Promise<void>;
+  /**
+   * Drop the session + wipe local data. Runs a bounded best-effort final sync
+   * first; pass `skipFinalSync` when the caller already ran (and reported on)
+   * `finalSyncBeforeSignOut` itself.
+   */
+  signOut: (opts?: { skipFinalSync?: boolean }) => Promise<void>;
   /** Alias for signOut. */
   logout: () => Promise<void>;
   /**
@@ -112,7 +149,11 @@ function applyUser(set: (s: Partial<AuthState>) => void, user: AppUser | null) {
   Sentry.setUser({ id: user.id });
 }
 
-function authFail(set: (s: Partial<AuthState>) => void, error: AuthError, op: 'auth.signIn' | 'auth.signUp') {
+function authFail(
+  set: (s: Partial<AuthState>) => void,
+  error: AuthError,
+  op: 'auth.signIn' | 'auth.signUp' | 'auth.linkTelegram',
+) {
   Sentry.captureException(error.raw ?? error, {
     tags: {
       kind: error.kind,
@@ -220,26 +261,32 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   linkTelegram: async () => {
     set({ isLoading: true, error: null, errorKind: null });
     const res = await authProvider.linkOAuth('telegram', '/');
+    // Успех → браузер уже уходит на Telegram. Сюда попадаем ТОЛЬКО когда редирект
+    // не стартовал (провайдер не поднят на сервере → 404, сеть, истёкшая сессия).
+    // ProfileDrawer, в отличие от AuthScreen, не рендерит error-баннер — без
+    // тостера такой провал выглядит мёртвой кнопкой.
     if (res && !res.ok) {
-      authFail(set, res.error, 'auth.signIn');
+      authFail(set, res.error, 'auth.linkTelegram');
+      // 404 = genericOAuth-провайдер не зарегистрирован на бэкенде (нет
+      // TELEGRAM_CLIENT_ID/SECRET в env) — «Не найдено» из общего словаря тут
+      // бессмысленно для юзера.
+      const message =
+        res.error.kind === 'not_found'
+          ? 'Привязка Telegram сейчас недоступна'
+          : defaultUserMessage(res.error);
+      toaster.error(message, { kind: res.error });
     }
   },
 
-  signOut: async () => {
-    // Best-effort FINAL sync before anything is torn down. There is no sync
-    // scheduler or beforeunload flush, so edits made since the last push live
-    // only in Dexie — and the wipe below clears Dexie. Push them first while
-    // the session is still valid (this MUST run before the server revoke, which
-    // would 401 the push). syncNow() is a no-op when cloud sync is OFF and
-    // self-serializes on the 'disher-sync' lock. Best-effort by decision: on the
-    // forced 401-funnel path the bearer is already dead (this throws, caught),
-    // and an online server error must not trap the user in a session they asked
-    // to leave — we proceed to wipe regardless (unconditional-local signOut).
-    try {
-      await syncNow();
-    } catch (e) {
-      console.error('final sync before signOut failed; wiping anyway', e);
-    }
+  signOut: async ({ skipFinalSync = false } = {}) => {
+    // The final sync is bounded + never throws (finalSyncBeforeSignOut). Its
+    // outcome is deliberately IGNORED here: an interactive caller (ProfileDrawer)
+    // runs it itself, shows the "не удалось сохранить — всё равно выйти?" branch
+    // and arrives with skipFinalSync, while the forced 401-funnel path has a dead
+    // bearer and nothing to salvage. Either way a failure must not trap the user
+    // in a session they asked to leave — we wipe regardless (unconditional-local
+    // signOut).
+    if (!skipFinalSync) await finalSyncBeforeSignOut();
     // Server revoke is best-effort — if the server is unreachable we still
     // want to drop the local session so the user isn't stuck logged-in over
     // wiped Dexie. Local wipe is the load-bearing step.

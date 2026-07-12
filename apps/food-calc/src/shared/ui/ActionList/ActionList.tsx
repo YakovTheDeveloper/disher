@@ -1,6 +1,6 @@
 import type { ElementType, ReactNode } from 'react';
 import clsx from 'clsx';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import styles from './ActionList.module.scss';
 
 type ActionListProps = {
@@ -51,9 +51,9 @@ function Section({ children, label, as = 'h2', className }: SectionProps) {
   return (
     <section className={clsx(styles.section, className)}>
       {label != null && (
-        <Text as={as} role="label" className={styles.sectionLabel}>
+        <Heading as={as} role="title" className={styles.sectionLabel}>
           {label}
-        </Text>
+        </Heading>
       )}
       {children}
     </section>

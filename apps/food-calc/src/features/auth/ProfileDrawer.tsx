@@ -127,9 +127,11 @@ export function ProfileDrawer() {
     // The modal is also where the sync-aware backup offer now lives.
     const confirmed = await modalStore.show(SignOutConfirmModal, { syncEnabled });
     if (confirmed !== true) return;
+    // The modal already ran the final sync (and, on failure, got an explicit
+    // "выйти всё равно") — don't run it a second time here.
     // signOut wipes Dexie + idb-keyval and resets the overlay stores, which
     // unmounts this drawer — no explicit onClose() needed.
-    await signOut();
+    await signOut({ skipFinalSync: true });
   };
 
   return (

@@ -48,11 +48,12 @@ vi.mock('@/shared/lib/dexie/schema', () => ({
 
 // Best-effort pre-wipe sync (fix #2). Spy records order + lets each test drive
 // success/failure.
-const syncNowMock = vi.fn(async () => {
+const syncNowMock = vi.fn(async (_opts?: { signal?: AbortSignal }) => {
   opOrder.push('sync');
 });
 vi.mock('@/shared/lib/snapshot', () => ({
-  syncNow: () => syncNowMock(),
+  // Forward opts — the abort signal is what bounds the final pre-signOut sync.
+  syncNow: (opts?: { signal?: AbortSignal }) => syncNowMock(opts),
 }));
 
 vi.mock('idb-keyval', () => ({
@@ -65,7 +66,7 @@ vi.mock('@/shared/lib/observability/sentry', () => ({
 
 // Import AFTER mocks so the module sees the stubbed authProvider during its
 // top-level `authProvider.onAuthChange(...)` subscription.
-const { useAuthStore } = await import('../auth-store');
+const { useAuthStore, finalSyncBeforeSignOut } = await import('../auth-store');
 
 function reset() {
   useAuthStore.setState({
@@ -260,6 +261,45 @@ describe('signOut', () => {
     const s = useAuthStore.getState();
     expect(s.isLoggedIn).toBe(false);
     expect(s.userId).toBeNull();
+  });
+
+  // The interactive path (ProfileDrawer → SignOutConfirmModal) runs the final
+  // sync itself, so it can ASK before wiping when the push fails. It arrives with
+  // skipFinalSync — a second sync here would be a duplicate round-trip.
+  it('skips the final sync when the caller already ran it', async () => {
+    useAuthStore.setState({ isLoggedIn: true, userId: 'uid-1', email: 'a@b.com' });
+
+    await useAuthStore.getState().signOut({ skipFinalSync: true });
+
+    expect(syncNowMock).not.toHaveBeenCalled();
+    expect(opOrder).toEqual(['wipe']);
+    expect(useAuthStore.getState().isLoggedIn).toBe(false);
+  });
+});
+
+// A hung server used to trap the user: signOut awaited an unbounded syncNow()
+// (fetch has no default timeout, and the Web Lock wait is unbounded too), so the
+// wipe never ran and the drawer sat there forever. finalSyncBeforeSignOut aborts
+// and reports false instead.
+describe('finalSyncBeforeSignOut', () => {
+  it('gives up on a hung sync and reports failure instead of hanging', async () => {
+    vi.useFakeTimers();
+    syncNowMock.mockImplementation(
+      (opts?: { signal?: AbortSignal }) =>
+        new Promise((_res, rej) => {
+          opts?.signal?.addEventListener('abort', () => rej(new Error('aborted')));
+        }),
+    );
+
+    const pending = finalSyncBeforeSignOut();
+    await vi.advanceTimersByTimeAsync(13_000);
+
+    await expect(pending).resolves.toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('reports success when the sync lands', async () => {
+    await expect(finalSyncBeforeSignOut()).resolves.toBe(true);
   });
 });
 

@@ -17,12 +17,17 @@ Requires=docker.service
 
 [Service]
 Type=oneshot
-# CHANGE ME: absolute path to apps/disher-backend-3.0 on this VPS.
 WorkingDirectory=/srv/disher/apps/disher-backend-3.0
 Environment=BACKUP_DIR=/srv/disher/backups
-# CHANGE ME: offsite remote + monitor URL (leave unset to disable a feature).
-Environment=RCLONE_REMOTE=b2:disher-backups
-Environment=HEALTHCHECK_URL=https://hc-ping.com/REPLACE-WITH-UUID
+# Offsite + heartbeat are OFF: both need real credentials we do not have yet.
+# Leaving a placeholder value here is worse than leaving it unset — pg-backup.sh
+# fails the whole run when `rclone copyto` fails, so a fake remote = zero backups.
+# To enable offsite: install rclone, write a root-owned /root/.config/rclone/rclone.conf,
+# then uncomment and point this at the real remote.
+#Environment=RCLONE_REMOTE=b2:disher-backups
+# To enable heartbeat: create a check on healthchecks.io / Better Stack and paste its
+# ping URL here. Unset = no alert if this timer silently dies.
+#Environment=HEALTHCHECK_URL=https://hc-ping.com/<uuid>
 ExecStart=/usr/bin/env bash scripts/pg-backup.sh
 Nice=10
 IOSchedulingClass=idle
