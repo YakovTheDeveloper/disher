@@ -55,18 +55,60 @@ export function windowSpanDays(start: string, end: string): number | null {
 // requestId is the analysis id (see analyze.ts chargeOr402); refund is idempotent,
 // so calling this from both the in-job catch and updateAnalysisFailed is safe.
 // Best-effort — a refund hiccup must not mask the original failure.
-async function refundAnalysis(analysisId: string): Promise<void> {
+//
+// `userId` is passed in (known at kick time) rather than looked up via the
+// analyses row: a user can DELETE a still-pending analysis, and a later
+// job-failure refund that read user_id THROUGH that deleted row would find
+// nothing and silently skip the refund. The charge is keyed on (userId,
+// "long_analysis", analysisId), all of which are known without the row.
+async function refundAnalysis(analysisId: string, userId: string): Promise<void> {
   if (!pool) return;
   try {
-    const r = await pool.query<{ user_id: string }>(
-      `select user_id from public.analyses where id = $1::uuid`,
-      [analysisId],
-    );
-    const userId = r.rows[0]?.user_id;
-    if (userId) await refund(userId, "long_analysis", analysisId);
+    await refund(userId, "long_analysis", analysisId);
   } catch {
     /* best-effort refund */
   }
+}
+
+// Threshold past which a still-pending analysis (result_md='') can only be a
+// job orphaned by a process restart/crash — the in-memory runner that would
+// have finished or refunded it is gone. Comfortably above the 120s job window
+// so a live, slow job is never swept.
+const STALE_PENDING_MS = 10 * 60 * 1000;
+
+// Startup-sweep: on process boot, fail + refund any analysis left pending by a
+// previous process that died mid-job (deploy/restart/crash). Without this the
+// user's 5 ₽ charge is burned and the row hangs pending forever — the refund
+// path only ever ran in-process. refund is idempotent and the update is guarded
+// on `result_md = ''`, so racing a (theoretical) still-live job is safe: a job
+// that just succeeded won't be clobbered, and a double refund can't happen.
+// Returns the number of rows actually swept (for logging/tests).
+export async function sweepStaleAnalyses(): Promise<number> {
+  if (!pool) return 0;
+  const cutoffIso = new Date(Date.now() - STALE_PENDING_MS).toISOString();
+  const stale = await pool.query<{ id: string; user_id: string }>(
+    `select id, user_id from public.analyses
+      where result_md = '' and created_at < $1::timestamptz`,
+    [cutoffIso],
+  );
+  let swept = 0;
+  for (const row of stale.rows) {
+    const upd = await pool.query(
+      `update public.analyses
+          set result_md = $1, idea_cards = '[]'::jsonb,
+              insights = '[]'::jsonb, observations = '[]'::jsonb
+        where id = $2::uuid and result_md = ''`,
+      [`${FAILURE_PREFIX}: прерван перезапуском сервера`, row.id],
+    );
+    // Guard matched (still pending) → this row is really ours to fail. If a job
+    // finished between the select and here, rowCount is 0 and we skip the refund
+    // (a done job keeps its money).
+    if ((upd.rowCount ?? 0) > 0) {
+      await refundAnalysis(row.id, row.user_id);
+      swept += 1;
+    }
+  }
+  return swept;
 }
 
 // Snapshot shape of a hypothesis the user ticked for this analysis. `id` is
@@ -286,6 +328,7 @@ export async function callLLMWithValidation(
 
 export async function runAnalysisJob(
   analysisId: string,
+  userId: string,
   payload: AnalyzePayload,
   callLLM: CallLLM = fetchLLMOnce,
   callCritic: CallLLM = makeCriticCall(),
@@ -314,7 +357,7 @@ export async function runAnalysisJob(
        where id = $2::uuid and result_md = ''`,
       ["День пустой — за этот день нет ни еды, ни событий для разбора.", analysisId],
     );
-    await refundAnalysis(analysisId);
+    await refundAnalysis(analysisId, userId);
     return;
   }
 
@@ -364,12 +407,13 @@ export async function runAnalysisJob(
         [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
       )
       .catch(() => {});
-    await refundAnalysis(analysisId);
+    await refundAnalysis(analysisId, userId);
   }
 }
 
 export async function updateAnalysisFailed(
   analysisId: string,
+  userId: string,
   err: unknown,
 ): Promise<void> {
   if (!pool) return;
@@ -382,5 +426,5 @@ export async function updateAnalysisFailed(
       [`${FAILURE_PREFIX}: ${reason.slice(0, 500)}`, analysisId],
     )
     .catch(() => {});
-  await refundAnalysis(analysisId);
+  await refundAnalysis(analysisId, userId);
 }

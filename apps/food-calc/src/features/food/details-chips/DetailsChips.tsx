@@ -109,7 +109,7 @@ export function DetailsChips({
               <Chip
                 key={tag}
                 active={active}
-                surface={surface}
+                onSurface={surface}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleToggle(tag)}
                 aria-pressed={active}
@@ -211,7 +211,7 @@ function CustomChip({ tag, active, surface = 0, onToggle, onDelete }: CustomChip
   return (
     <Chip
       active={active}
-      surface={surface}
+      onSurface={surface}
       // styles.customChipPress отключает iOS callout/text-selection для long-press
       // явно на корне CustomChip — не зависит от структуры Chip (см. SCSS-комментарий).
       className={styles.customChipPress}

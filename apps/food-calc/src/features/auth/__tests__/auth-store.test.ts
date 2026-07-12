@@ -30,14 +30,29 @@ vi.mock('@/shared/lib/auth/authProvider', () => ({
   authProvider: authProviderMock,
 }));
 
+// Records the interleaving of the final sync vs the local wipe so a test can
+// assert syncNow() runs (and completes) BEFORE Dexie is cleared.
+const opOrder: string[] = [];
+
 vi.mock('@/shared/lib/dexie/schema', () => ({
   db: {
     tables: [],
     transaction: vi.fn(
-      async (_mode: unknown, _tables: unknown, fn: () => Promise<unknown>) =>
-        fn(),
+      async (_mode: unknown, _tables: unknown, fn: () => Promise<unknown>) => {
+        opOrder.push('wipe');
+        return fn();
+      },
     ),
   },
+}));
+
+// Best-effort pre-wipe sync (fix #2). Spy records order + lets each test drive
+// success/failure.
+const syncNowMock = vi.fn(async () => {
+  opOrder.push('sync');
+});
+vi.mock('@/shared/lib/snapshot', () => ({
+  syncNow: () => syncNowMock(),
 }));
 
 vi.mock('idb-keyval', () => ({
@@ -70,6 +85,11 @@ function reset() {
   authProviderMock.signOut.mockResolvedValue(undefined);
   authProviderMock.onAuthChange.mockReturnValue(() => {});
   authProviderMock.getCurrentUser.mockReturnValue(null);
+  opOrder.length = 0;
+  syncNowMock.mockReset();
+  syncNowMock.mockImplementation(async () => {
+    opOrder.push('sync');
+  });
 }
 
 beforeEach(reset);
@@ -194,6 +214,50 @@ describe('signOut', () => {
 
     const s = useAuthStore.getState();
     expect(s.pendingVerificationEmail).toBeNull();
+    expect(s.isLoggedIn).toBe(false);
+    expect(s.userId).toBeNull();
+  });
+
+  // Fix #2: signOut used to wipe Dexie without a final push, silently losing
+  // any edits made since the last sync. It must now best-effort syncNow()
+  // FIRST — before both the server revoke and the local wipe.
+  it('runs a final sync BEFORE wiping local data', async () => {
+    useAuthStore.setState({ isLoggedIn: true, userId: 'uid-1', email: 'a@b.com' });
+
+    await useAuthStore.getState().signOut();
+
+    expect(syncNowMock).toHaveBeenCalledOnce();
+    // sync completes before the Dexie wipe (order, not just presence).
+    expect(opOrder).toEqual(['sync', 'wipe']);
+  });
+
+  it('syncs before the server revoke (so the push is still authenticated)', async () => {
+    const seq: string[] = [];
+    syncNowMock.mockImplementation(async () => {
+      opOrder.push('sync');
+      seq.push('sync');
+    });
+    authProviderMock.signOut.mockImplementation(async () => {
+      seq.push('revoke');
+    });
+    useAuthStore.setState({ isLoggedIn: true, userId: 'uid-1', email: 'a@b.com' });
+
+    await useAuthStore.getState().signOut();
+
+    expect(seq).toEqual(['sync', 'revoke']);
+  });
+
+  it('still wipes + logs out when the final sync fails (best-effort, proceed anyway)', async () => {
+    syncNowMock.mockRejectedValue(
+      Object.assign(new Error('push failed: 500'), { status: 500 }),
+    );
+    useAuthStore.setState({ isLoggedIn: true, userId: 'uid-1', email: 'a@b.com' });
+
+    await useAuthStore.getState().signOut();
+
+    // The sync threw, but the wipe still ran and the session was dropped.
+    expect(opOrder).toEqual(['wipe']);
+    const s = useAuthStore.getState();
     expect(s.isLoggedIn).toBe(false);
     expect(s.userId).toBeNull();
   });

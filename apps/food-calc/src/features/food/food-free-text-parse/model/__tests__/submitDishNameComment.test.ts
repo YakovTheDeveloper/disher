@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Guards the «Уточнения» comment threading through the MIDDLE layer of the
 // flow: submitDishName(name, comment) → startIntake → startFetch →
-// parseDishName(text, comment, signal). The lower boundary (parseDishName body
-// shape) and the backend are covered elsewhere; this proves the hook actually
-// forwards the comment instead of dropping it on the floor.
+// parseDishName(text, requestId, comment, signal). The lower boundary
+// (parseDishName body shape) and the backend are covered elsewhere; this proves
+// the hook actually forwards the comment instead of dropping it on the floor.
 
 const parseDishNameMock = vi.fn();
 const parseFreeTextFoodMock = vi.fn();
@@ -49,6 +49,7 @@ describe('useWriteFoodFlow — submitDishName comment threading', () => {
     await waitFor(() => expect(parseDishNameMock).toHaveBeenCalledTimes(1));
     expect(parseDishNameMock).toHaveBeenCalledWith(
       'борщ',
+      expect.any(String), // caller-owned requestId (X-Request-Id)
       'вегетарианский',
       expect.anything(), // AbortSignal
     );
@@ -63,6 +64,7 @@ describe('useWriteFoodFlow — submitDishName comment threading', () => {
     });
 
     await waitFor(() => expect(parseDishNameMock).toHaveBeenCalledTimes(1));
-    expect(parseDishNameMock.mock.calls[0][1]).toBeUndefined();
+    // Args: (dishName, requestId, comment, signal) — comment is the 3rd arg now.
+    expect(parseDishNameMock.mock.calls[0][2]).toBeUndefined();
   });
 });

@@ -1,4 +1,5 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -53,6 +54,7 @@ function formatDay(date: string): string {
 // (the same server route as the weekly one), then lands the user on /analyses
 // where the fresh row animates «идёт» at the top of the list.
 const AnalysisClarificationModal = ({ date, onClose }: Props) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const hypotheses = useAllHypotheses();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(lastSelectedIds));
@@ -68,6 +70,15 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
     });
   }, []);
 
+  // Analysis id = X-Request-Id idempotency key. Reused on a resubmit after an
+  // error (a lost response may hide a row that already charged 2 ₽); reset when
+  // the day, hypothesis selection, or note changes so an edited run gets a fresh
+  // id. See CreateLongAnalysisModal for the full rationale.
+  const requestIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    requestIdRef.current = null;
+  }, [date, selectedIds, message]);
+
   async function handleRun() {
     if (submitting) return;
     setSubmitting(true);
@@ -78,11 +89,13 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
     );
     lastSelectedIds = snapshot.map((h) => h.id); // remember for the next open this session
     const window = dayKeyToWindow(date);
+    const requestId = (requestIdRef.current ??= crypto.randomUUID());
     try {
       const { analysis } = await startAnalysis({
         windowStart: window,
         windowEnd: window,
         dayKeys: [date],
+        requestId,
         ...(snapshot.length > 0 ? { hypotheses: snapshot } : {}),
         ...(userMessage ? { userMessage } : {}),
       });
@@ -114,7 +127,7 @@ const AnalysisClarificationModal = ({ date, onClose }: Props) => {
             <AutoGrowSearch
               value={message}
               onChange={setMessage}
-              placeholder="Что учесть при разборе? (необязательно)"
+              placeholder={t('analyses.clarification.placeholder')}
               maxRows={8}
               maxLength={MESSAGE_MAX}
               collapseOnBlur={false}

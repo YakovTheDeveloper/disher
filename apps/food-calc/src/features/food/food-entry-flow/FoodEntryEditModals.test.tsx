@@ -45,7 +45,6 @@ vi.mock('@/features/food/details-chips', () => ({
   ),
 }));
 
-// ── flow fixtures ──────────────────────────────────────────────────────────────
 const baseFlow = (): FoodEntryFlow =>
   ({
     kind: 'dish',
@@ -102,7 +101,6 @@ const expanded = (): HTMLElement => {
   return node as HTMLElement;
 };
 
-// ── dish edit: details header title ────────────────────────────────────────────
 describe('FoodEntryEditModals (dish) — details header title', () => {
   it('shows the product name as the header title (no "Уточнение:" prefix)', () => {
     render(<FoodEntryEditModals flow={makeDishFlow()} />);
@@ -143,7 +141,6 @@ describe('FoodEntryEditModals (dish) — details header title', () => {
   });
 });
 
-// ── schedule edit: Time step + info-target gating ─────────────────────────────
 describe('FoodEntryEditModals (schedule) — time + info gating', () => {
   it('renders the «Время» step', () => {
     render(<FoodEntryEditModals flow={makeScheduleFlow({ step: 'time' })} />);

@@ -17,6 +17,27 @@
   }
 }
 
+// Раскладка `columns` — Embla-строй столбиков по 2 (зеркалит CardPalettePicker):
+// viewport = Embla-root (clip overflow), track = flex-ряд колонок, каждая колонка
+// = столбик из 2 миниатюр. Edge-bleed сюда приносит консумент через `className`.
+.viewport {
+  overflow: hidden;
+  padding-block: 4px;
+}
+
+.track {
+  display: flex;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.column {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .thumb {
   position: relative;
   flex: 0 0 auto;

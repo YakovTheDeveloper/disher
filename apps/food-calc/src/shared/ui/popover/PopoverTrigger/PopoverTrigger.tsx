@@ -25,13 +25,22 @@ interface PopoverTriggerProps {
    * control in the panel's corner visually replaces the trigger. Disables flip (no jump-away).
    */
   overlapTrigger?: boolean;
+  /**
+   * Surface-тир фона панели (= `--sys-color-surface-N`). Дефолт `2` (самый верхний
+   * — плавающий оверлей). Задаётся консумером: маленький попап на модалке может
+   * лечь на `1`, чтобы чипы/контролы surface-2 читались подъёмом над панелью.
+   */
+  surface?: 0 | 1 | 2;
 }
+
+const SURFACE_CLASS = { 0: styles.surface0, 1: styles.surface1, 2: undefined } as const;
 
 const PopoverTrigger: React.FC<PopoverTriggerProps> = ({
   trigger,
   content,
   placement = 'bottom-end',
   overlapTrigger = false,
+  surface = 2,
 }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const close = React.useCallback(() => setIsOpen(false), []);
@@ -74,7 +83,12 @@ const PopoverTrigger: React.FC<PopoverTriggerProps> = ({
           ref={refs.setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
-          className={clsx(styles.content, overlapTrigger && styles.overlap, !isOpen && styles.closed)}
+          className={clsx(
+            styles.content,
+            SURFACE_CLASS[surface],
+            overlapTrigger && styles.overlap,
+            !isOpen && styles.closed,
+          )}
           aria-hidden={!isOpen}
         >
           {typeof content === 'function' ? content(close) : content}

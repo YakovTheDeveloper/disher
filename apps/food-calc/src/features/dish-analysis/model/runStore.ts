@@ -17,6 +17,9 @@ export type DishRun = {
   status: 'loading' | 'done' | 'error';
   result?: DishAnalysisResult;
   error?: string;
+  /** X-Request-Id for this attempt — carried on an errored run so a retry
+   *  reuses it and the server dedups the 2 ₽ charge (dish has no cache). */
+  requestId?: string;
 };
 
 type RunStore = {
@@ -28,17 +31,23 @@ type RunStore = {
 export const useDishRunStore = create<RunStore>((set, get) => ({
   runs: {},
   start: async (dishId) => {
+    const prev = get().runs[dishId];
     // Идемпотентность: если разбор уже идёт — не запускаем второй POST.
-    if (get().runs[dishId]?.status === 'loading') return;
-    set((s) => ({ runs: { ...s.runs, [dishId]: { status: 'loading' } } }));
+    if (prev?.status === 'loading') return;
+    // Reuse the failed attempt's requestId so a retry of a lost-response run
+    // dedups the charge server-side; a fresh run (or one after success) mints a
+    // new key. crypto.randomUUID is available in every target (PWA/modern).
+    const requestId =
+      prev?.status === 'error' && prev.requestId ? prev.requestId : crypto.randomUUID();
+    set((s) => ({ runs: { ...s.runs, [dishId]: { status: 'loading', requestId } } }));
     try {
       // Без signal: запрос доводится до конца даже если модалка закрыта.
-      const result = await runDishAnalysis({ dishId });
+      const result = await runDishAnalysis({ dishId, requestId });
       set((s) => ({ runs: { ...s.runs, [dishId]: { status: 'done', result } } }));
     } catch (e) {
       // PaymentRequiredError extends Error → сообщение о балансе едет через .message.
       const error = e instanceof Error ? e.message : String(e);
-      set((s) => ({ runs: { ...s.runs, [dishId]: { status: 'error', error } } }));
+      set((s) => ({ runs: { ...s.runs, [dishId]: { status: 'error', error, requestId } } }));
     }
   },
   clear: (dishId) =>

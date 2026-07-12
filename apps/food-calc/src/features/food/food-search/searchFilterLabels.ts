@@ -7,3 +7,9 @@ export const FILTER_LABELS: Record<SearchFilter, string> = {
   all: 'Всё',
   mine: 'Мое',
 };
+
+// Подпись под заголовком варианта (stacked ChoiceItem в popover-фильтре).
+export const FILTER_HINTS: Record<SearchFilter, string> = {
+  all: 'Показывать всю еду',
+  mine: 'Показывать созданную вами еду',
+};

@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './BalanceSection.module.scss';
 import { fetchBalance, fetchLedger, type LedgerEntry } from '@/shared/lib/api/billing';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
-import { Button } from '@/shared/ui/atoms/Button';
 
 // Balance + recent transactions, shown in the ProfileDrawer. Fetched fresh each
 // time the drawer opens (balance only changes on spend/top-up — no live bus).
@@ -36,41 +35,55 @@ export function BalanceSection() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [failed, setFailed] = useState(false);
 
+  // Reusable fetch so the failed-state retry re-runs the exact same load. No
+  // AbortSignal on a manual retry (there's no unmount race — the drawer stays
+  // open); the mount effect passes one so a fast close doesn't set state.
+  const load = useCallback(async (signal?: AbortSignal) => {
+    setFailed(false);
+    try {
+      const [b, l] = await Promise.all([
+        fetchBalance(signal),
+        fetchLedger(8, signal),
+      ]);
+      setBalanceKop(b.balanceKop);
+      setLedger(l);
+    } catch {
+      if (!signal?.aborted) setFailed(true);
+    }
+  }, []);
+
   useEffect(() => {
     const ac = new AbortController();
-    void (async () => {
-      try {
-        const [b, l] = await Promise.all([
-          fetchBalance(ac.signal),
-          fetchLedger(8, ac.signal),
-        ]);
-        setBalanceKop(b.balanceKop);
-        setLedger(l);
-      } catch {
-        if (!ac.signal.aborted) setFailed(true);
-      }
-    })();
+    void load(ac.signal);
     return () => ac.abort();
-  }, []);
+  }, [load]);
 
   return (
     <section className={styles.section}>
       <Text as="h2" role="label" className={styles.sectionLabel}>Баланс</Text>
 
       {failed ? (
-        <Text as="p" role="caption" className={styles.hint}>Не удалось загрузить баланс</Text>
+        // Ошибка баланса — не тупик: человекочитаемая строка + inline-retry
+        // (2026-канон / NN/G: мёртвый текст ошибки без действия вреден).
+        <div className={styles.errorRow}>
+          <Text as="span" role="caption" className={styles.hint}>Баланс недоступен</Text>
+          <button type="button" className={styles.retry} onClick={() => void load()}>
+            <Text as="span" role="label">Обновить</Text>
+          </button>
+        </div>
       ) : (
         <>
           <Numeral as="p" size="display" weight="bold" className={styles.value}>
             {balanceKop === null ? '…' : `${rub(balanceKop)} ₽`}
           </Numeral>
           <Text as="p" role="caption" className={styles.hint}>
-            Списывается за запросы к ИИ — разбор еды и анализы. Пополнение пока
-            вручную.
+            Списывается за запросы к ИИ — разбор еды и анализы.
           </Text>
-          <Button variant="system-secondary" flat disabled fullWidth>
-            Пополнить — скоро
-          </Button>
+          {/* Пополнение пока вручную — тихая строка-подпись, НЕ мёртвая disabled-CTA
+              (NN/G: disabled-only CTA вводит в заблуждение). */}
+          <Text as="p" role="caption" className={styles.comingSoon}>
+            Пополнение — скоро
+          </Text>
 
           {ledger.length > 0 && (
             <ul className={styles.ledger}>

@@ -9,7 +9,7 @@
   margin: 0;
   font-family: var(--font-big-numeric);
   font-feature-settings: 'tnum' 1, 'lnum' 1;
-  line-height: 1.1;
+  line-height: var(--sys-numeral-line);
 }
 
 // ── Ось РАЗМЕРА (числовая шкала --sys-numeral-*) ─────────────────────────────

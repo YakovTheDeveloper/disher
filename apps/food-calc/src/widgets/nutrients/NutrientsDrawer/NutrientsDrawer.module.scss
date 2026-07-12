@@ -2,10 +2,9 @@
 // боковой left-align путь) — тут остаётся только тело. Крест закрытия несёт
 // сам DrawerLayout; a11y-имя дровера = видимый title.
 //
-// Mirrors the legacy SideDrawer `.body` padding so the nutrient grid and norm
-// form keep their inset against the drawer edge. `overflow-x: hidden` clips
-// the decorative nutrient-group bleed (NutrientDesignVariants `.deco`) at the
-// padded content box.
+// Боковой инсет тела отдан DrawerLayout `contentInset="panel"` (единый краевой
+// инсет — крест и тело выровнены по построению); здесь остаётся только нижний
+// зазор. `overflow-x: hidden` держим ради sticky-контракта ниже.
 //
 // DO NOT add sticky pseudo-elements here. `overflow-x: hidden` makes `.body`
 // a sticky scroll-container per CSS Position spec — sticky descendants would
@@ -17,6 +16,8 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding: 0 var(--sys-inset-panel) 24px;
+    // Боковой инсет отдан DrawerLayout `contentInset="panel"`; тут только нижний
+    // зазор тела (у DrawerLayout своего владельца низа нет).
+    padding-block-end: 24px;
     overflow-x: hidden;
 }

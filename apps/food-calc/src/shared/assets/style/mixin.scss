@@ -9,6 +9,24 @@
     text-overflow: ellipsis;
 }
 
+// ── Заливка контрола ПО ПОВЕРХНОСТИ ХОСТА ────────────────────────────────────
+// ЕДИНЫЙ источник маппинга «фон кнопки/чипа зависит от поверхности, на которой
+// она лежит». Контрол возвышается на тир ВЫШЕ хоста (host + 1, потолок surface-2),
+// имитируя приподнятость цветом. $host = тир ХОСТА (0–2, = --sys-color-surface-N):
+//   • 0 (стол / фон страницы)  → fill surface-1
+//   • 1 (парящий лист)         → fill surface-2
+//   • 2 (белый модал/дровер)   → fill surface-2 (потолок по цвету — выше нет)
+// Отделение от хоста (рамка vs тень) — НЕ здесь: его выбирает каждый компонент
+// сам (Button рамка/тень, Chip/Choice тень/рамка через elevation). Потребители:
+// Button (`.surface`), Chip (`.chip`), Choice (`.choice`). Проп-имя везде `onSurface`.
+@mixin bg-based-on-host-surface($host) {
+    @if $host == 0 {
+        background: var(--sys-color-surface-1);
+    } @else {
+        background: var(--sys-color-surface-2);
+    }
+}
+
 // ── Field & chip palette (app-wide tone) ─────────────────────────────────────
 // The interactive widgets (AutoGrowSearch / TimeChoose / the ProductQuantity
 // surface / DetailsChips) read their colours off `--sys-field-*` / `--sys-chip-*`
@@ -34,6 +52,9 @@
 //         $on-dark — text on the active chip
 @mixin field-chip-palette($text, $ink, $accent, $pill, $dark, $on-dark) {
     --sys-field-radius: var(--radius-sm);
+    // Общий горизонтальный content-inset field-семейства: примитив-поле + сиблинг-
+    // контент в одном well'е садятся на ОДИН рельс by construction (не разъезжаются).
+    --sys-field-inset-x: 16px;
     // Field typography — единый sys-голос поля (16px). Семейство = body-голос
     // app (--font-sans = Onest-led); Jost выпилен 2026-06-23.
     --sys-field-font-family: var(--font-sans);
@@ -241,6 +262,100 @@
             $color $start,
             $color $end,
             transparent 100%);
+}
+
+// Sibling of hairline() for DENSE, scannable lists (SearchFood rows, состав-
+// аккордеоны): a SOLID rail that fades only over a narrow $tip at each end —
+// NOT the airy 18%/82% canon fade. In a tight list the eye wants a firm rail,
+// not a vanishing line. Colour + tip passed in; consumer owns ::after geometry
+// (position/left/right/bottom/height). Extracted from FoodActionCard `.wrapper
+// ::after` (the inlined «сплошной + 20px по кончикам» divider) 2026-07-11.
+@mixin rail-divider($color, $tip: 20px) {
+    background: linear-gradient(90deg,
+            transparent 0,
+            $color $tip,
+            $color calc(100% - $tip),
+            transparent 100%);
+}
+
+// ─── Единый нижний fade прокрутки (scroll-edge-fade) ────────────────────────
+// Маска-растворение нижней кромки скролл-тела: последние ряды тают в
+// прозрачность через `mask-image` — фон-агностично (никакого цветного градиента
+// под поверхность, значит и dark-двойника не нужно). Best-practice 2026 (CSS-
+// Tricks «Modern Scroll Shadows»), но БЕЗ CSS scroll-timeline / @container
+// scroll-state (Chrome-only — из-за них фейды «то есть, то нет» на iOS Safari).
+//
+// Видимостью правит JS-хук `useScrollEdges` (shared/ui/hooks): он вешает
+// `data-more-below` на скроллер РОВНО когда ниже видимой области есть контент,
+// через IntersectionObserver на нижнем сентинеле (работает во ВСЕХ браузерах).
+// Так маска включается только при переполнении и гаснет у самого низа — иначе
+// последний ряд размывался бы всегда и читался как глюк.
+//
+// ВНИМАНИЕ: mask клипает ВСЕХ потомков скроллера, включая `position: sticky`
+// дети. Плавающая CTA / sticky-кнопка у НИЗА скролл-тела приглушится вместе с
+// контентом, если попадает в нижнюю полосу фейда. Варианты: держать её ВЫШЕ полосы
+// (`bottom >= --sys-size-scroll-fade`) ИЛИ вынести из скроллера отдельным сиблингом-
+// футером (так сделано в DailyNormDrawer — кнопка «Пересчитать» живёт в пиннованном
+// футере под скролл-областью). Sticky-ХЕДЕРЫ (top) не задеты — фейд только снизу.
+@mixin scroll-edge-fade($size: var(--sys-size-scroll-fade)) {
+    &[data-more-below] {
+        -webkit-mask-image: linear-gradient(to top, transparent 0, #000 #{$size});
+        mask-image: linear-gradient(to top, transparent 0, #000 #{$size});
+    }
+}
+
+// ─── Единый scroll-shadow шов под chrome-рядом (scroll-seam) ────────────────
+// Divider у нижней кромки sticky-заголовка, ПОЯВЛЯЕТСЯ только когда тело
+// прокручено (в покое шва нет — заголовок сливается с первым экраном). Рисуется
+// СПЛОШНЫМ рельсом (`rail-divider` с --sys-color-divider) — тем же, что divider
+// рядов SearchFood: твёрдая линия почти во всю ширину, затухание только по 20px у
+// кончиков. Воздушный 18%/82% hairline тут плохо читался (запрос юзера 2026-07-11).
+// НЕ сплошной border вокруг (анти-паттерн «Laboratory trap») — только нижняя линия.
+// Видимостью правит `[data-scrolled]` на ТОМ ЖЕ элементе — его ставит JS
+// (useScrollEdges → верхний сентинел), НЕ CSS scroll-timeline / @container
+// scroll-state (Chrome-only — молчали бы на iOS Safari, а это PWA). Один дом для
+// дровера (.dragHandle) и модалки (ModalHeader / .stepHeader) — расхождение
+// «то есть шов, то нет» физически невозможно. Требует positioned-хозяина (sticky/
+// relative). $inset джустует линию к боковой колее тела (дровер = --drawer-inset).
+@mixin scroll-seam($inset: 0, $tip: 20px, $color: var(--sys-color-divider)) {
+    &::after {
+        content: '';
+        position: absolute;
+        left: $inset;
+        right: $inset;
+        bottom: 0;
+        height: 1px;
+        @include rail-divider($color, $tip);
+        // Скрыт в покое; мягкий фейд, чтобы шов не «щёлкал» на первом пикселе.
+        opacity: 0;
+        transition: opacity 160ms ease;
+        pointer-events: none;
+    }
+
+    &[data-scrolled]::after {
+        opacity: 1;
+    }
+}
+
+// Zero-space сентинел прокрутки — 1px-проба у верхней/нижней кромки скролл-тела,
+// за которой следит `useScrollEdges` (IntersectionObserver). flex-shrink:0, чтобы
+// flex-колонка его не схлопнула; из a11y-дерева убирается через aria-hidden в TSX.
+// Отрицательный margin «назад» гасит отступ ПЕРЕД сентинелом: без $gap — его
+// собственную 1px-высоту (нулевой вклад в поток); с $gap (сентинел — прямой ребёнок
+// gapped flex-скроллера) — фантомный flex-gap, иначе край сработал бы на gap раньше.
+// $gap отдаёт потребитель своим токеном отступа — формула гашения живёт тут одна.
+@mixin scroll-sentinel($edge: bottom, $gap: null) {
+    height: 1px;
+    flex-shrink: 0;
+    pointer-events: none;
+
+    $edge-prop: if($edge == top, margin-bottom, margin-top);
+
+    @if $gap == null {
+        #{$edge-prop}: -1px;
+    } @else {
+        #{$edge-prop}: calc(-1 * #{$gap});
+    }
 }
 
 @mixin mobile-breakpoint($breakpoint: 768px) {

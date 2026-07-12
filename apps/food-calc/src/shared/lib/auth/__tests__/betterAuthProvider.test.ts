@@ -178,6 +178,68 @@ describe('betterAuthProvider.bootstrap', () => {
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 
+  // Fix #3: bootstrap used to log the user out on ANY getSession error. A fast
+  // 5xx/429 in the 1s boot window (deploy, pg-pool restart, proxy) is transient
+  // — the token must survive and the app must boot local-first, exactly like a
+  // network throw. Only 401/403 is a real revocation.
+  it('keeps bearer + falls back to last-known user on a 500 (transient, NOT a revoke)', async () => {
+    localStorage.setItem(BEARER_KEY, 'live-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 500, message: 'Bad Gateway' } });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u1', email: 'u1@example.com' });
+    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
+  });
+
+  it('keeps bearer on a 429 (rate-limited, transient)', async () => {
+    localStorage.setItem(BEARER_KEY, 'live-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u2', email: 'u2@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 429, message: 'Too Many Requests' } });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u2', email: 'u2@example.com' });
+    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
+  });
+
+  it('keeps bearer on a status-less error shape (better-fetch surfaced a network error as {error})', async () => {
+    localStorage.setItem(BEARER_KEY, 'live-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u3', email: 'u3@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: { message: 'Failed to fetch' } });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u3', email: 'u3@example.com' });
+    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
+  });
+
+  it('wipes bearer AND lastUser when server returns 403 (forbidden ≡ dead token)', async () => {
+    localStorage.setItem(BEARER_KEY, 'dead-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 403, message: 'Forbidden' } });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
+  });
+
+  it('wipes bearer on a clean 200 with no user (server explicitly says: no session)', async () => {
+    localStorage.setItem(BEARER_KEY, 'stale-token');
+    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
+    getSessionMock.mockResolvedValue({ data: null, error: null });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
+  });
+
   it('persists last-known user on successful bootstrap', async () => {
     localStorage.setItem(BEARER_KEY, 'valid-token');
     getSessionMock.mockResolvedValue({

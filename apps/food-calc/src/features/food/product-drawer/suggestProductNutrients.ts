@@ -28,13 +28,16 @@ interface SuggestResponse {
  */
 export async function suggestProductNutrients(
   productName: string,
+  requestId: string,
   signal?: AbortSignal,
 ): Promise<Record<string, number>> {
   const res = await authedFetch(`${API_BASE}/api/suggestions/product-nutrients`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'X-Request-Id': crypto.randomUUID(),
+      // Caller-owned idempotency key: reused on a retry of the same product so
+      // a lost response doesn't double-debit the 0.5 ₽ suggest charge.
+      'X-Request-Id': requestId,
     },
     body: JSON.stringify({ productName, nutrients: NUTRIENT_SPEC }),
     signal,

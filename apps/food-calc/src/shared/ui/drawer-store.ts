@@ -56,6 +56,7 @@ function show<P extends BaseDrawerProps<any>>(
     const resolvedOptions: ResolvedDrawerOptions = {
       side: options?.side ?? 'bottom',
       width: options?.width,
+      trapFocus: options?.trapFocus ?? true,
     };
     useDrawerStore.setState((state) => ({
       instances: [

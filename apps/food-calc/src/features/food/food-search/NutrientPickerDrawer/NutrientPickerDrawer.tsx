@@ -42,7 +42,7 @@ export function NutrientPickerDrawer({ onClose, activeId }: Props) {
           onChange={handleSelect}
           // Плотный список на белом дровере (surface-2): фон surface-2 + тонкая
           // рамка вместо парящей тени — тень на каждом из ~40 чипов бухтела бы.
-          surface={2}
+          onSurface={2}
           elevation="flat"
         >
           {nutrientGroups.map((group) => (

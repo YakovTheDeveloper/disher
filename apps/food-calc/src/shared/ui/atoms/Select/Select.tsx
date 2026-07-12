@@ -20,7 +20,7 @@ interface SelectProps {
 // Chevron — inline (в icons/ нет down-варианта; svgr-импорт ради одной стрелки
 // избыточен). currentColor → красится `--sys-field-adornment`.
 const ChevronDownIcon = () => (
-  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+  <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
     <path
       d="M4 6l4 4 4-4"
       stroke="currentColor"

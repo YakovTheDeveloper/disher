@@ -1,0 +1,105 @@
+// Полноэкранный гейт установки. Кроет всё (выше modal-стека 6001) — это
+// pre-app «настойчивое» окно, а не оверлей в потоке. Скролл внутри карточки,
+// safe-area учитывается (iPhone notch / home-indicator).
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(env(safe-area-inset-top) + var(--sys-inset-page))
+    var(--sys-inset-page)
+    calc(env(safe-area-inset-bottom) + var(--sys-inset-page));
+  overflow-y: auto;
+  background: var(--sys-color-surface-page);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 30rem;
+  margin: auto;
+  text-align: center;
+}
+
+.icon {
+  border-radius: var(--sys-radius-sheet);
+  box-shadow: var(--sys-elevation-action-rest);
+}
+
+.title {
+  color: var(--sys-color-text-system);
+}
+
+.lede {
+  color: var(--sys-color-text-secondary);
+}
+
+.cta {
+  margin-top: var(--space-2);
+}
+
+// ─── Пошаговая инструкция (iOS / ручной Android) ─────────────────────────────
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  margin-top: var(--space-2);
+  list-style: none;
+  text-align: left;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stepIcon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sys-radius-control);
+  background: var(--sys-color-surface-icon-tile);
+  color: var(--sys-color-text-system);
+}
+
+.stepGlyph {
+  width: 24px;
+  height: 24px;
+}
+
+.stepText {
+  color: var(--sys-color-text-system);
+}
+
+// ─── Уведомление «откройте в Safari» (iOS не-Safari) ─────────────────────────
+.notice {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--sys-radius-sheet-inner);
+  background: var(--sys-color-surface-analysis);
+  color: var(--sys-color-text-system);
+  text-align: left;
+}
+
+// ─── Escape-hatch ────────────────────────────────────────────────────────────
+.escape {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--sys-color-text-secondary);
+  cursor: pointer;
+  text-decoration: underline;
+  -webkit-tap-highlight-color: transparent;
+}

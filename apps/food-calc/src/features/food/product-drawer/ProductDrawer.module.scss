@@ -5,9 +5,11 @@
 .body {
     display: flex;
     flex-direction: column;
-    // Боковой инсет отдан DrawerLayout `contentInset="panel"` (единый краевой
-    // инсет — крест и тело выровнены по построению); тут только вертикальный ритм.
-    padding-block: var(--space-3) var(--space-6);
+    // Боковой инсет + верхний зазор «хедер→тело» отданы DrawerLayout
+    // (`.scrollableContent` → --drawer-content-*): здесь только НИЖНИЙ padding.
+    // Свой padding-top задвоил бы каноничный space-3 из layout'а (был баг ~24px).
+    // Внутренний вертикальный ритм несут margin'ы детей (portions/measureRow/…).
+    padding-block-end: var(--space-6);
 }
 
 // ─── Карандаш в правом углу обвязки (topRight slot DrawerLayout) ──
@@ -85,6 +87,15 @@
 
 .quantitySelect {
     width: 100%;
+}
+
+// Текст селекта количества поднят до стандартного field-размера (16) — чтобы
+// совпасть с кнопкой нормы рядом (<Text role="label"> = 16) в measureRow. Скоуплено
+// сюда: прочие Select'ы (анализы/лаборатория) остаются компактными (12.8 default).
+// Специфичность `.quantityControl .quantitySelect` (0,2,0) кроет базовый `.trigger`
+// (0,1,0) из Select.module.scss.
+.quantityControl .quantitySelect {
+    font-size: var(--sys-field-font-size);
 }
 
 // Правая половина ряда — кнопка нормы; на БАД норма на всю ширину

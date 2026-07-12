@@ -13,14 +13,71 @@
     gap: var(--space-1);
     width: 100%;
     border: none;
+
+    // Divider стыка «поле поиска ↔ список»: СПЛОШНАЯ линия во всю ширину, приехавшая
+    // с верхнего края первого ряда (FoodActionCard `::before`, снят 2026-07-11). Висит
+    // на `.bar` (корневой контейнер контролов), а НЕ на `.pill`: пилюля ýже (справа —
+    // рельса кнопки-фильтра 56px), а `.bar` = width:100% рамы, поэтому линия достаёт
+    // до правого края группы. Один divider на стыке (верхний ::before первого ряда снят)
+    // → двойной линии нет.
+    // NB: inset (left/right:0), НЕ full-bleed. `.bar` снова живёт ПЕРВЫМ ребёнком
+    // скролл-рута `.scroller` (SearchFood, 2026-07-12 — шапка уезжает с контентом), а
+    // `overflow-y:auto` того рута клипает горизонтальный вылет: прежний -12px bleed за
+    // инсет рамы всё равно был бы срезан. Линия спанит ширину вжатой группы = ровно под
+    // рядами (inset-grouped), что консистентнее былого дотягивания до кромки экрана.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--sys-color-divider);
+        pointer-events: none;
+    }
 }
 
-// ─── Segmented control (Еда / Мое) ───────────────────────────────────────────
-// Теперь = примитив ChoiceGroup variant="segmented" (трек-фон + активная плашка
-// БЕЗ тика + a11y/стрелки внутри Choice, токены --sys-color-control-*). Здесь
-// остаётся только layout-привязка в общей пилюле: не ужиматься рядом с инпутом.
-.segmented {
-    flex-shrink: 0;
+// ─── Фильтр «Всё / Мое» (в popover-панели) ───────────────────────────────────
+// ДЕФОЛТНЫЙ вариант ChoiceGroup в RAISED-скине: каждый чип приподнят мягкой
+// rest-тенью (--sys-elevation-action-rest), surface={1} = тир хоста-попапа
+// (панель опущена на surface-1 → чип surface-2 читается подъёмом над ней). Канон
+// «разрежённая плавающая панель → raised». Flat-скин (голая рамка --sys-color-
+// border-default, без тени) снят по фидбеку 2026-07-11 — в маленьком попапе рамка
+// читалась дёшево/несистемно, а тень даёт tactile-подъём чипа. Дефолтная группа =
+// голый div (display:block), раскладку несём тут: flex-ряд с зазором, оба чипа
+// делят ширину поровну — заполняют узкую панель.
+.filterChoices {
+    display: flex;
+    gap: var(--space-2);
+
+    >* {
+        flex: 1;
+    }
+}
+
+// Ячейка stacked-варианта: «Всё / Мое» + подпись-подсказка снизу (заголовки секций
+// сняты 2026-07-12 → смысл несёт сама подпись под вариантом). min-width:0 чтобы
+// длинная подпись переносилась, а не распирала ряд.
+.filterChoiceCell {
+    min-width: 0;
+}
+
+// Заголовок наследует цвет чипа (флип на on-selected-plum при выборе).
+.filterChoiceTitle {
+    color: inherit;
+}
+
+// Подпись под заголовком — тихий secondary-тон, переносится.
+.filterChoiceHint {
+    color: var(--sys-color-text-secondary);
+    line-height: 1.25;
+}
+
+// «Выбрано» = plum-заливка: подпись флипается на on-selected-plum (тише через
+// opacity), иначе secondary сливается с заливкой. aria-checked живёт на ChoiceItem.
+.filterChoices [aria-checked='true'] .filterChoiceHint {
+    color: var(--sys-color-text-on-selected-plum);
+    opacity: 0.82;
 }
 
 // ─── Inlined search input (full-width row, token-driven) ─────────────────────
@@ -34,8 +91,8 @@
 // СНЯТ 2026-07-10), слот лупы прижат к краю карточки (padding-left --rail-gutter = 0),
 // а плейсхолдер приземляется на РЕЛЬСУ ИМЁН (--rail-text). Так текст поля и имена
 // рядов стоят на ОДНОЙ вертикали, а лупа/миниатюры совпадают с лид-рельсой (закон
-// iOS inset-grouped). Плоский прозрачный + тающий хайрлайн снизу → поле читается
-// первой строкой списка.
+// iOS inset-grouped). Плоский прозрачный; сплошную линию под полем несёт
+// `.bar::after` (divider стыка «поле ↔ список») → поле читается первой строкой списка.
 .pill {
     display: flex;
     align-items: center;
@@ -58,30 +115,11 @@
     --sys-field-placeholder: var(--sys-color-text-placeholder);
     --sys-field-adornment: var(--sys-color-text-accent);
 
-    &::after {
-        content: '';
-        position: absolute;
-        left: 14px;
-        right: 14px;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0%,
-                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 18%,
-                var(--sys-field-hairline, rgba(124, 65, 15, 0.18)) 82%,
-                transparent 100%);
-        pointer-events: none;
-        transition: background 120ms ease;
-    }
-
-    // Фокус усиливает тающий хайрлайн (поле плоское — тень пилюли снята).
-    &:has(input:focus)::after {
-        background: linear-gradient(90deg,
-                transparent 0%,
-                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 18%,
-                var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36)) 82%,
-                transparent 100%);
-    }
+    // Нижний хайрлайн поля СНЯТ отсюда (2026-07-11): линию стыка «поле ↔ список»
+    // несёт теперь `.bar::after` — СПЛОШНОЙ divider во всю ширину группы (пилюля
+    // ýже из-за рельсы кнопки-фильтра справа). Фокус-усиление хайрлайна убрано
+    // вместе с ним: фокус поля читается по каретке, а divider стал структурным
+    // разделителем списка, а не подчёркиванием поля.
 }
 
 .searchIcon {
@@ -182,8 +220,10 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    min-height: 36px;
-    padding: 0 3px 0 9px;
+    // Touch-floor: пилюля = внутренний контрол ≥40px (был 36 — ниже пола). Обе
+    // вложенные кнопки (main / clear) тоже подтянуты к 40 ниже.
+    min-height: 44px;
+    padding: 0 4px 0 12px;
     border-radius: var(--sys-radius-indicator);
     background: var(--sys-color-surface-action-system);
     color: var(--sys-color-text-on-accent);
@@ -196,6 +236,7 @@
     align-items: center;
     gap: 6px;
     min-width: 0;
+    min-height: 40px; // touch-floor для chip-триггера (тап = сменить нутриент)
     padding: 4px 2px;
     border: none;
     background: transparent;
@@ -231,8 +272,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 40px; // touch-floor для icon-кнопки (был 26 — глиф ✕ остаётся 11px)
+    height: 40px;
     padding: 0;
     border: none;
     border-radius: var(--sys-radius-indicator);
@@ -296,28 +337,51 @@
 // ─── Popover-панель фильтров (содержимое PopoverTrigger.content) ──────────────
 // Компактная колонка-панель под кнопкой: секция «Показывать» (сегмент Всё|Мое) +
 // секция «Богатая нутриентом» (триггер выбора / выбранная пилюля). Подложку/тень/
-// радиус несёт сам .content PopoverTrigger (surface-2 + overlay-elevation).
+// радиус несёт сам .content PopoverTrigger (surface={1} + overlay-elevation).
 .filterPanel {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    min-width: 200px;
+    gap: var(--space-3); // 12 — секции дышат (header→секция, секция→секция)
+    // Панель на всю ширину экрана (просьба 2026-07-12) — floating-ui `shift` пинит
+    // её в вьюпорт, панель раскрывается full-bleed под баром, а не узкой колонкой.
+    width: 100vw;
     // Панель кроет триггер (overlapTrigger) — .content отдаёт padding:0. Внутренние
-    // отступы теперь несёт сама панель: секции с боковым/нижним inset, а header-ряд
-    // с ✕ остаётся flush к правому-верхнему углу (ровно над кнопкой-фильтром).
-    padding: 0 0 var(--space-2);
+    // отступы теперь несёт сама панель: НИЖНИЙ inset здесь, БОКОВОЙ — на .filterSection
+    // (панель держит бока=0, чтобы header-ряд с ✕ остался flush к правому-верхнему
+    // углу — ровно над кнопкой-фильтром). Нижний = --sys-inset-panel (12, был 8).
+    padding: 0 0 var(--sys-inset-panel);
 }
 
-// Ряд-шапка: ✕ прижат вправо, 40px = размер кнопки-фильтра под ним. Flush к краю
-// панели → правый край ✕ совпадает с правым краем триггера.
+// Ряд-шапка: заголовок абсолютом по центру полосы, ✕ прижат вправо. Панель full-
+// bleed до правого края экрана, а кнопка-фильтр под ней инсетится боковым паддингом
+// рамы (--sys-inset-modal-fullscreen). Поэтому ✕ сдвигаем на тот же инсет вправо-
+// паддингом — его центр встаёт РОВНО под кнопкой-фильтром (просьба 2026-07-12).
 .filterPanelHeader {
+    position: relative;
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    // Мин-высота = размеру ✕ (40px) → абсолютный заголовок центрируется по той же
+    // вертикали, что и крестик, независимо от своей высоты.
+    min-height: 40px;
+    padding-right: var(--sys-inset-modal-fullscreen);
 }
 
-// ✕ закрытия = tone="soft" — ЗЕРКАЛИТ кнопку-фильтр под собой (та же покойная
-// ink-плитка + холодный глиф + press), чтобы переход триггер→✕ был бесшовным.
+// Заголовок панели — МЕНЬШЕ modal-header (role="title" против headline 28px), по
+// центру полосы И чётко по центру экрана: absolute + left:50% (панель full-bleed →
+// центр полосы = центр экрана), крестик у правого края его не сдвигает.
+.filterPanelTitle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+// ✕ закрытия = tone="ghost" — голый холодный глиф БЕЗ подложки-плитки (просьба
+// 2026-07-12): в лёгкой панели крестик читается штрихом, а не кнопкой.
 .filterCloseButton {
     flex-shrink: 0;
 }
@@ -325,38 +389,10 @@
 .filterSection {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
-    padding-inline: var(--space-2);
+    gap: var(--sys-stack-row); // 8 — вертикальный зазор внутри секции
+    padding-inline: var(--sys-inset-panel); // 12 — боковой воздух панели (был 8, лепилось к краям)
 }
 
-.filterSectionLabel {
-    color: var(--sys-color-text-secondary);
-}
+// NB: заголовки секций («Показывать» / «Богатая нутриентом») сняты 2026-07-12 —
+// смысл несут подписи под вариантами (stacked ChoiceItem) + сама кнопка «По нутриентам».
 
-// Idle-строка выбора нутриента (нутриент не выбран): тихий ряд «иконка + текст»,
-// тап открывает боковой NutrientPickerDrawer. Холодный indigo глиф/текст.
-.nutrientPickRow {
-    appearance: none;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: 40px;
-    padding: 0 var(--space-2);
-    border: 1px solid var(--sys-color-border-subtle);
-    border-radius: var(--sys-radius-control);
-    background: var(--sys-color-surface-1);
-    color: var(--sys-color-text-accent);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform var(--press-in) ease;
-
-    &:active {
-        transform: scale(0.97);
-    }
-
-    svg {
-        flex-shrink: 0;
-        width: 18px;
-        height: 18px;
-    }
-}

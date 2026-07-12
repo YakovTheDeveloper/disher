@@ -101,7 +101,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const palette = useCardPalette('dishFood');
   const dishItems = useDishItemsWithProducts(id);
   const portionsRaw = useDishPortions(id);
-  const dishTotals = useDishNutrientTotals(id);
+  const { totals: dishTotals, missingNutrientNames: dishMissing } = useDishNutrientTotals(id);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -115,10 +115,10 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const openNutrients = useCallback(() => {
     void drawerStore.show(
       NutrientsDrawer,
-      { totals: dishTotals },
+      { totals: dishTotals, missingNutrientNames: dishMissing },
       { side: 'left', width: 'min(85vw, 360px)' }
     );
-  }, [dishTotals]);
+  }, [dishTotals, dishMissing]);
   // Сумма нутриентов блюда — 1:1 с HomePage: полоса-сводка (NutrientsBar) в
   // конце списка ингредиентов, а не пилюля верхнего бара (пилюлю убрали
   // 2026-06-19). Тот же dishTotals открывает тот же NutrientsDrawer слева.

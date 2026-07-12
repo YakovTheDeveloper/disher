@@ -17,6 +17,44 @@
   &[data-tone='danger'] {
     color: var(--sys-color-status-danger);
     background: var(--sys-color-status-danger-surface);
-    cursor: pointer;
+    // Правый край подтягиваем: круглая кнопка-повтор несёт свой правый воздух.
+    padding-right: var(--space-1);
   }
+}
+
+// Действие «повторить» — круглая иконка-кнопка, отделённая от статуса формой и
+// весом (не конкурирующий текст). Холодный danger-глиф в прозрачной лунке,
+// press = лёгкий scale (канон одиночного действия). Глиф визуально 14px, но
+// тап-зона растянута до 40×40 (канон touch-floor «inner controls ≥40px») и
+// втянута отрицательным margin — в потоке чип не раздувается (footprint ~22px).
+.retry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: -9px;
+  padding: 0;
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--press-out) var(--easing-default);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.retry:active {
+  transform: scale(0.92);
+  transition-duration: var(--sys-duration-press-in);
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--sys-color-border-focus);
+  outline-offset: 1px;
 }

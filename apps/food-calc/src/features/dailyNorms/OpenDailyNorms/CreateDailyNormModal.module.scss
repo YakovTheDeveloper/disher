@@ -17,9 +17,9 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     height: 100%;
     min-height: 0;
     background: linear-gradient(90deg,
-            var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
-            var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
-            var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
+        var(--sys-field-bg-from, #{$bg-warm-from}) 0%,
+        var(--sys-field-bg-mid, #{$bg-warm-mid}) 55%,
+        var(--sys-field-bg-to, #{$bg-warm-to}) 100%);
 }
 
 // ─── Header (modal mode) ────────────────────────────────────────
@@ -37,7 +37,6 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding: 6px 22px 24px;
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-section);
@@ -128,7 +127,7 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     // and the unit (fragment order: input, <p>, unit). `order: 1` sorts the error
     // last so number+unit stay together on line 1 and the error wraps onto its own
     // full-width line below (flex-basis: 100% + the row's flex-wrap).
-    > p {
+    >p {
         order: 1;
         flex-basis: 100%;
         margin: 0;
@@ -148,7 +147,9 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         // --font-big-numeric, Onest tabular). Serif здесь был канон-дрейфом
         // (serif-italic живёт только в <QuietLabel>) — убран.
         font-family: var(--font-big-numeric);
-        font-size: var(--sys-field-font-size-md);
+        // Было -md (24) — крупные числа (возраст/вес/рост) + единица не помещались в
+        // ряд. Шаг вниз по той же field-шкале до стандартного размера поля (16).
+        font-size: var(--sys-field-font-size);
         font-weight: 500;
         font-feature-settings: 'tnum' 1, 'lnum' 1;
         color: var(--sys-field-text, #{$ink});
@@ -168,91 +169,32 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     flex-shrink: 0;
 }
 
-// ─── Preview (hero) ──────────────────────────────────────────────
+// ─── Итог (секция-ровня) ─────────────────────────────────────────
+// Итог теперь обычная `FormLayout.Group` (заголовок «Итог» + сводка
+// `NutrientTotalsColumn` align="start" + оговорка). Раскладкой/зазорами владеет
+// FormLayout — секция встаёт в общий section-ритм, отдельного контейнера/бровки
+// у неё больше нет.
 
-.preview {
-    // De-boxed «тихий выдох формы» (2026-07-09): результат живёт на ОБЩЕЙ
-    // поверхности — без собственного градиента / радиуса / drop-shadow-«лифта»,
-    // которые раньше делали из превью трофей-в-рамке, дерущийся с полями формы.
-    // Отделён от формы ОДНИМ тающим hairline (канон-divider) — «форма кончилась,
-    // начался вывод». Зазор до формы владеет родитель (Body / .bodyPanel
-    // section-gap); свой верхний отступ — только чтобы контент отошёл от hairline.
-    //
-    // Три яруса вывода (число · макросы · тихий провенанс) с РОВНЫМ ритмом:
-    // контейнер владеет одним gap, ни один ярус не ставит себе margin.
-    position: relative;
+// Две колонки: слева — сводка нутриентов (content-width), справа — оговорка.
+// align-items:flex-start → подсказка встаёт вровень с верхней строкой сводки.
+.summaryRow {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-6);
+}
+
+// Правая колонка: оговорка про точность + провенанс — тихий 2-строчный блок,
+// забирает остаток ширины. Строки прижаты плотно (свой малый gap), не через
+// field-зазор; оба <Text> margin не ставят.
+.previewMeta {
+    flex: 1 1 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--sys-stack-field);
-    padding-top: 20px;
-
-    &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent 0%, var(--sys-field-hairline, #{$hairline}) 20%, var(--sys-field-hairline, #{$hairline}) 80%, transparent 100%);
-        pointer-events: none;
-    }
+    gap: var(--space-1);
 }
 
-.previewKcal {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 4px 10px;
-}
-
-.previewKcalValue {
-    color: var(--sys-field-text, #{$ink});
-    line-height: 1;
-}
-
-.previewKcalUnit {
-    color: var(--sys-field-adornment, #{$ink-soft});
-}
-
-// De-boxed макро-ряд: Б·Ж·У больше не плитки-с-обводкой (анти-канон 1px-рамки),
-// а тихий инлайн-триплет на общей поверхности — «пометка на полях», не приборные
-// плитки. Разделитель между группами — «·» (одна конвенция на весь виджет),
-// а не двусмысленный whitespace: горизонтальный gap = 0, интервал несёт сам «·».
-.macros {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    row-gap: 4px;
-    column-gap: 0;
-}
-
-.macroChip {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-
-    // Средняя точка-разделитель перед каждой группой, кроме первой (Б | ·Ж | ·У).
-    &:not(:first-child)::before {
-        content: '·';
-        margin: 0 10px;
-        color: var(--sys-field-placeholder, #{$ink-muted});
-    }
-}
-
-// Голос (serif-italic + цвет/opacity) несёт примитив <QuietLabel>.
-// Класс — layout-слот; держим baseline для ровного align в ряду.
-.macroLabel {
-    flex-shrink: 0;
-}
-
-.macroValue {
-    color: var(--sys-field-text, #{$ink});
-}
-
-// Тихая фактическая строка вывода (ориентир · BMR · поддержание) — последний
-// ярус превью; ритм до неё владеет контейнер (.preview gap), margin не ставит.
-.previewMeta {
+.previewMetaLine {
     margin: 0;
     color: var(--sys-field-adornment, #{$ink-soft});
     font-feature-settings: 'tnum' 1, 'lnum' 1;
@@ -293,16 +235,21 @@ $ink-muted: rgba(58, 46, 20, 0.55);
         right: 14px;
         height: 1px;
         background: linear-gradient(90deg,
-                transparent 0%,
-                var(--sys-field-hairline, #{$hairline}) 18%,
-                var(--sys-field-hairline, #{$hairline}) 82%,
-                transparent 100%);
+            transparent 0%,
+            var(--sys-field-hairline, #{$hairline}) 18%,
+            var(--sys-field-hairline, #{$hairline}) 82%,
+            transparent 100%);
         pointer-events: none;
         z-index: 1;
     }
 
-    &::before { top: 0; }
-    &::after { bottom: 0; }
+    &::before {
+        top: 0;
+    }
+
+    &::after {
+        bottom: 0;
+    }
 }
 
 // Drawer.Content already owns the scroll. Body must not start its own
@@ -313,5 +260,4 @@ $ink-muted: rgba(58, 46, 20, 0.55);
 .bodyPanel {
     flex: 0 0 auto;
     overflow: visible;
-    padding: 6px var(--sys-inset-page) 16px;
 }

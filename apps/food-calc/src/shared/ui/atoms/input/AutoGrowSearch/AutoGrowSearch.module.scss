@@ -9,7 +9,10 @@
   gap: var(--space-3);
   width: 100%;
   min-height: 50px;
-  padding: 0 var(--space-4);
+  // Горизонтальный контент-инсет = системный рельс field-семейства (тот же токен,
+  // что несёт .container у LabeledCheckbox / .supplementBlock состава) — фолбэк
+  // var(--space-4)=16px повторяет прежний вид. Раньше был прямой --space-4.
+  padding: 0 var(--sys-field-inset-x, var(--space-4));
   border-radius: var(--sys-field-radius, var(--radius-sm));
   background: linear-gradient(90deg,
       var(--sys-field-bg-from, #fffefb) 0%,
@@ -132,6 +135,14 @@
   letter-spacing: var(--sys-field-letter-spacing);
   color: var(--sys-field-placeholder, rgba(124, 65, 15, 0.45));
   white-space: nowrap;
+  // Длинный пример-плейсхолдер (nowrap) тает у правого края поля вместо
+  // столкновения с send-монетой / медалью «Список» — тот же голос «тающего
+  // hairline», что и дивайдеры. Зона затухания = отступ поля ×2
+  // (--input-container-inset = --sys-inset-page ×2 у write-бара; фолбэк 24px
+  // для прочих потребителей AutoGrowSearch, где этот var не объявлен).
+  --ph-fade: calc(var(--input-container-inset, 24px) * 2);
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--ph-fade)), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--ph-fade)), transparent 100%);
   pointer-events: none;
   user-select: none;
   opacity: 0;

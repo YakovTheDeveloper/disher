@@ -71,4 +71,33 @@ describe('runStore', () => {
     useDishRunStore.getState().clear('d4');
     expect(useDishRunStore.getState().runs['d4']).toBeUndefined();
   });
+
+  // Fix #5: a retry after a lost-response error must REUSE the same X-Request-Id
+  // so the server dedups the 2 ₽ charge instead of debiting twice. The store
+  // carries the requestId on the errored run and feeds it back into the retry.
+  it('переиспользует requestId при повторе после ошибки (идемпотентность charge)', async () => {
+    mockRun.mockRejectedValueOnce(new Error('Сеть')).mockResolvedValueOnce({
+      summary: 'ок',
+      insights: [],
+    });
+
+    await useDishRunStore.getState().start('d5');
+    await useDishRunStore.getState().start('d5');
+
+    const firstArg = mockRun.mock.calls[0]?.[0] as { dishId: string; requestId: string };
+    const secondArg = mockRun.mock.calls[1]?.[0] as { dishId: string; requestId: string };
+    expect(firstArg.requestId).toBeTruthy();
+    expect(secondArg.requestId).toBe(firstArg.requestId);
+  });
+
+  it('свежий запуск (не после ошибки) минтит новый requestId', async () => {
+    mockRun.mockResolvedValue({ summary: 's', insights: [] });
+
+    await useDishRunStore.getState().start('a');
+    await useDishRunStore.getState().start('b');
+
+    const argA = mockRun.mock.calls[0]?.[0] as { requestId: string };
+    const argB = mockRun.mock.calls[1]?.[0] as { requestId: string };
+    expect(argA.requestId).not.toBe(argB.requestId);
+  });
 });

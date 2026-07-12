@@ -9,8 +9,6 @@ import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 // `auth + code` cases below are constructed as ErrorKind directly rather than
 // fed through classifyError.
 
-// ─── network ─────────────────────────────────────────────────────────────────
-
 describe('classifyError → network', () => {
   it('TypeError "Load failed" → network (Safari)', () => {
     const r = classifyError(new TypeError('Load failed'));
@@ -34,8 +32,6 @@ describe('classifyError → network', () => {
   });
 });
 
-// ─── timeout ─────────────────────────────────────────────────────────────────
-
 describe('classifyError → timeout', () => {
   it('AbortError DOMException → timeout', () => {
     const e = new DOMException('aborted', 'AbortError');
@@ -47,8 +43,6 @@ describe('classifyError → timeout', () => {
     expect(classifyError(e).kind).toBe('timeout');
   });
 });
-
-// ─── auth ────────────────────────────────────────────────────────────────────
 
 describe('classifyError → auth', () => {
   it('plain HTTP-like 403 → auth', () => {
@@ -63,8 +57,6 @@ describe('classifyError → auth', () => {
   });
 });
 
-// ─── validation ──────────────────────────────────────────────────────────────
-
 describe('classifyError → validation', () => {
   it('HTTP-like 400 → validation', () => {
     const r = classifyError({ status: 400, statusText: 'Bad Request' });
@@ -77,8 +69,6 @@ describe('classifyError → validation', () => {
   });
 });
 
-// ─── not_found ───────────────────────────────────────────────────────────────
-
 describe('classifyError → not_found', () => {
   it('HTTP-like 404 → not_found', () => {
     const r = classifyError({ status: 404, statusText: 'Not Found' });
@@ -86,8 +76,6 @@ describe('classifyError → not_found', () => {
     if (r.kind === 'not_found') expect(r.status).toBe(404);
   });
 });
-
-// ─── rate_limit ──────────────────────────────────────────────────────────────
 
 describe('classifyError → rate_limit', () => {
   it('HTTP-like 429 → rate_limit', () => {
@@ -102,8 +90,6 @@ describe('classifyError → rate_limit', () => {
     if (r.kind === 'rate_limit') expect(r.retryAfter).toBe(30);
   });
 });
-
-// ─── payment_required ────────────────────────────────────────────────────────
 
 describe('classifyError → payment_required', () => {
   it('PaymentRequiredError → payment_required (status 402, need/have preserved)', () => {
@@ -124,8 +110,6 @@ describe('classifyError → payment_required', () => {
   });
 });
 
-// ─── server ──────────────────────────────────────────────────────────────────
-
 describe('classifyError → server', () => {
   it('HTTP-like 500 → server', () => {
     const r = classifyError({ status: 500, statusText: 'Internal Server Error' });
@@ -138,8 +122,6 @@ describe('classifyError → server', () => {
     expect(r.kind).toBe('server');
   });
 });
-
-// ─── unknown ─────────────────────────────────────────────────────────────────
 
 describe('classifyError → unknown', () => {
   it('null → unknown', () => {
@@ -167,8 +149,6 @@ describe('classifyError → unknown', () => {
     expect(r.message).toBe('boom');
   });
 });
-
-// ─── defaultUserMessage (PROD) ───────────────────────────────────────────────
 
 describe('defaultUserMessage prod', () => {
   // The `auth + code` pairs are produced by classifyBetterAuthError, not by
@@ -217,8 +197,6 @@ describe('defaultUserMessage prod', () => {
     expect(defaultUserMessage(classifyError(null), false)).toBe('Что-то пошло не так');
   });
 });
-
-// ─── defaultUserMessage (DEV) ────────────────────────────────────────────────
 
 describe('defaultUserMessage dev', () => {
   it('prepends [kind status code] tag with raw message', () => {

@@ -309,4 +309,14 @@ describe('startAnalysis — billing surface', () => {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
     );
   });
+
+  // Fix #5: a caller retrying the SAME logical analysis passes the failed
+  // attempt's id via `requestId`; the body id (== the idempotency key) reuses it
+  // so the server dedups the row + 5 ₽ charge instead of creating a second one.
+  it('reuses a caller-supplied requestId as the body `id`', async () => {
+    mockFetch.mockResolvedValue(jsonRes(402, {}));
+    await startAnalysis({ ...args, requestId: 'reused-analysis-id' }).catch(() => {});
+    const body = JSON.parse(String(mockFetch.mock.calls[0]?.[1]?.body));
+    expect(body.id).toBe('reused-analysis-id');
+  });
 });

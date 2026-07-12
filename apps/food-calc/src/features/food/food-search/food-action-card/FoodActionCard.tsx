@@ -17,6 +17,7 @@ import { DishDrawer } from '@/features/food/dish-drawer';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
 import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
 import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
+import { ArcLabel } from '@/shared/ui/ArcLabel/ArcLabel';
 import { formatNormPercent } from './formatNormPercent';
 import { formatAmount } from '@/shared/lib/formatNumber';
 
@@ -138,6 +139,20 @@ const FoodActionCard = ({
     />
   ) : null;
 
+  // Режим «Мое»: в слоте миниатюры (в «Мое» она всегда пуста — свои продукты не в
+  // каталоге, у блюд картинок нет) рисуем вид ПО ДУГЕ — «блюдо» / «продукт», разными
+  // цветами (штемпель-стемпель, паттерн дуговой надписи из «Новая еда»). Он же несёт
+  // вид вместо тихой подписи-под-именем (та в «Мое» гасится, см. showKindLabel ниже).
+  const kindBadge = mineFilter ? (
+    <ArcLabel
+      text={variant === 'dish' ? 'блюдо' : 'продукт'}
+      // Блюдо — дуга вывернута вниз (долина), продукт — арка вверх: вид читается
+      // и цветом, и формой дуги.
+      flip={variant === 'dish'}
+      className={clsx(styles.kindBadge, variant === 'dish' ? styles.kindBadge_dish : styles.kindBadge_product)}
+    />
+  ) : null;
+
   const handleDelete = () => {
     if (variant === 'product') {
       void safeMutate(() => deleteProducts([item.id]), 'Не удалось удалить продукт');
@@ -197,7 +212,10 @@ const FoodActionCard = ({
   // чтобы отличаться от каталожных. Блюдо всегда «блюдо» (всегда своё).
   const kindLabel =
     variant === 'product' ? (mineFilter ? 'продукт' : 'мой продукт') : 'блюдо';
-  const showKindLabel = userCreated;
+  // В «Мое» вид переехал на дуговой бейдж (kindBadge) в слоте миниатюры, а тихую
+  // подпись-под-именем убираем ЦЕЛИКОМ (запрос юзера) — карточка читается как
+  // обычная, имя одно. В «Все» подпись остаётся прежней.
+  const showKindLabel = userCreated && !mineFilter;
   const isSupplement = variant === 'product' && item.servingBasis === 'serving';
   const subtitle = [showKindLabel ? kindLabel : null, isSupplement ? 'добавка' : null]
     .filter(Boolean)
@@ -208,7 +226,7 @@ const FoodActionCard = ({
   // строкой ПОД именем (см. .kindLabel в nameCol). Раньше подпись подменяла ⓘ в
   // слоте у своих рядов — в режиме «Мое», где ВСЕ ряды свои, это давало колонку
   // курсива, переливавшуюся за экран (запрос юзера пофиксить).
-  const showSubtitleUnderName = Boolean(subtitle);
+  const showSubtitleUnderName = Boolean(subtitle) && !mineFilter;
 
   const richNutrientValue =
     richNutrientId && item.getTotalNutrients
@@ -237,9 +255,9 @@ const FoodActionCard = ({
       aria-selected={active || undefined}
       aria-haspopup="menu"
       data-pressed={pressed || undefined}
-      // Есть миниатюра → divider стартует под именем (за кружком); без неё
-      // (блюда, свои продукты, режим «Мое») — от page-gutter. См. .module.scss.
-      data-has-thumb={imageSrc ? '' : undefined}
+      // Есть миниатюра ИЛИ дуговой бейдж «Мое» → имя уезжает за слот, divider
+      // стартует от края (0); без них — от page-gutter. См. .module.scss.
+      data-has-thumb={imageSrc || kindBadge ? '' : undefined}
       {...liHandlers}
     >
       {richNutrientValue !== null && (
@@ -283,7 +301,7 @@ const FoodActionCard = ({
             onClick?.();
           }}
         >
-          {thumb}
+          {thumb ?? kindBadge}
           <span className={styles.nameCol}>
             <Text as="span" role="label" className={styles.name}>
               {item.name}
@@ -300,7 +318,7 @@ const FoodActionCard = ({
             onClick?.();
           }}
         >
-          {thumb}
+          {thumb ?? kindBadge}
           <span className={styles.nameCol}>
             <Text as="span" role="label" className={styles.name}>
               {item.name}
@@ -356,10 +374,11 @@ const FoodActionCard = ({
           )}
         </span>
       )}
-      {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки
-          (свои продукты + блюда, в обоих фильтрах). Не цветная — это признак
-          владения, а не данные (цвет несёт левый квадрат-гейдж richValue). */}
-      {userCreated && <span className={styles.ownerStripe} aria-hidden />}
+      {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки.
+          Не цветная — это признак владения, а не данные (цвет несёт левый квадрат-
+          гейдж richValue). В режиме «Мое» список целиком свой → маркер избыточен,
+          гасим (карточки читаются как обычные, вид несёт дуговой бейдж слева). */}
+      {userCreated && !mineFilter && <span className={styles.ownerStripe} aria-hidden />}
     </li>
   );
 };

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -16,6 +17,7 @@ import s from './SuggestIngredientsClarifyDrawer.module.scss';
 type Props = BaseDrawerProps<string>;
 
 export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
+  const { t } = useTranslation();
   const [comment, setComment] = useState('');
 
   return (
@@ -31,7 +33,7 @@ export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
           value={comment}
           onChange={setComment}
           onSubmit={() => onClose(comment)}
-          placeholder="Что уточнить? Например: вегетарианский, без молочного"
+          placeholder={t('food.freeText.clarifyPlaceholder')}
           singleLine
           autoFocus
         />

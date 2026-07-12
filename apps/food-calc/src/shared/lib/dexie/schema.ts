@@ -10,7 +10,6 @@ import Dexie, { type Table } from 'dexie';
 // See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md and the
 // merge-sync fix plan (.claude/ralph/fix_plan.md).
 
-// ─── per-table row interfaces ──────────────────────────────────────────────
 //
 // Every row carries two timestamps: `created_at` (stamped once at insert) and
 // `updated_at` (re-stamped on every write — the per-row LWW key merge()
@@ -168,8 +167,6 @@ export function stripLegacyHypothesisFields(row: Record<string, unknown>): void 
   delete row.note;
   delete row.saved_at;
 }
-
-// ─── DB ────────────────────────────────────────────────────────────────────
 
 export class DisherDB extends Dexie {
   products!: Table<ProductRow, string>;

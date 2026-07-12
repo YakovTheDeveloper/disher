@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Унифицированный чип — кнопка быстрого выбора текста.
 // Канон визуала: пилюля пикера нутриентов (вариант C) — БЕЛАЯ, мягкая тень,
 // БЕЗ рамки. Выбранный/нажатый (active) = plum-полюс (сливовый) + ink-текст.
@@ -28,7 +30,8 @@
   // border-color, геометрия между скинами стабильна (без прыжка 1px).
   border: 1px solid transparent;
   border-radius: var(--sys-radius-indicator);
-  background: var(--sys-color-surface-1);
+  // Фон по тиру хоста (onSurface) — общий маппинг Button/Chip/Choice. host 0 → surface-1.
+  @include bg-based-on-host-surface(0);
   color: var(--sys-chip-text, var(--sys-card-text-rest));
   // Дефолт — приподнят мягкой rest-тенью (raised), на ЛЮБОМ surface-тире (раньше
   // тень нёс только .floating для surface-2; теперь база — отрыв от хоста везде).
@@ -43,7 +46,7 @@
 // хост surface-1+ (лист/дровер): чип поднимается до белого (surface-2). Объявлено ДО
 // :hover/:active ниже — те (равная специфичность, позже в исходнике) перекрывают тень.
 .chip.onSheet {
-  background: var(--sys-color-surface-2);
+  @include bg-based-on-host-surface(1);
 }
 
 // flat-скин (плотные экраны): тень снята, вместо неё тонкая рамка. Объявлено ДО
@@ -111,13 +114,13 @@
 // press + select делят фон «покоя» (тот же тир) + гашение selected-цвета текста.
 .chip.outline:active,
 .chip.outline.active {
-  background: var(--sys-color-surface-1); // хост surface-0 (база)
+  @include bg-based-on-host-surface(0); // хост surface-0 (база)
   color: var(--sys-chip-text, var(--sys-card-text-rest));
 }
 
 .chip.outline.onSheet:active,
 .chip.outline.onSheet.active {
-  background: var(--sys-color-surface-2); // хост surface-1+ (лист/дровер)
+  @include bg-based-on-host-surface(1); // хост surface-1+ (лист/дровер)
 }
 
 // press: без заливки — компрессия тени + scale.

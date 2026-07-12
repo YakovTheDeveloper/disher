@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Screen } from '@/shared/ui/Screen';
 import { AppBottomBarShell } from '@/shared/ui/AppBottomBar/AppBottomBarShell';
@@ -44,25 +45,8 @@ const FILTER_OPTIONS: SelectOption[] = [
   { value: 'long', label: 'Длительные' },
 ];
 
-const EMPTY_COPY: Record<Filter, { title: string; description: string }> = {
-  all: {
-    title: 'Разборов пока нет',
-    description:
-      'Разбор смотрит на твою еду, события и выбранные гипотезы — за день или за 1–5 недель. Запусти первый кнопкой «Новый разбор».',
-  },
-  daily: {
-    title: 'Дневных разборов пока нет',
-    description:
-      'Разбор дня смотрит на одну дату — еду и события за неё. Запусти его кнопкой «Новый разбор».',
-  },
-  long: {
-    title: 'Длительных разборов пока нет',
-    description:
-      'Длительный разбор смотрит на 1–5 недель сразу. Запусти его кнопкой «Новый разбор».',
-  },
-};
-
 const AnalysesSlide = ({ topSlot }: Props) => {
+  const { t } = useTranslation();
   const { analyses, addOptimistic, deleteOne, loading, failedToLoad, refetch } =
     useAnalysesFeedContext();
   const [filter, setFilter] = useState<Filter>('all');
@@ -126,7 +110,10 @@ const AnalysesSlide = ({ topSlot }: Props) => {
     </AppBottomBarShell>
   );
 
-  const empty = EMPTY_COPY[filter];
+  const empty = {
+    title: t(`analyses.empty.list.${filter}.title`),
+    description: t(`analyses.empty.list.${filter}.description`),
+  };
 
   return (
     <Screen stickyTop={topSlot} headerOverlap topBarHide="settings" bottomBar={bottomBar}>
@@ -159,8 +146,8 @@ const AnalysesSlide = ({ topSlot }: Props) => {
         ) : failedToLoad ? (
           <EmptyState
             className={styles.empty}
-            title="Не удалось загрузить"
-            description="Список разборов не подгрузился — проверь сеть."
+            title={t('analyses.empty.loadFailed.title')}
+            description={t('analyses.empty.loadFailed.description')}
             action={
               <Button variant="system-secondary" onClick={() => refetch()}>
                 Повторить

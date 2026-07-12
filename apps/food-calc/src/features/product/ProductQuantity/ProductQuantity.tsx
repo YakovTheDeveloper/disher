@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import style from './ProductQuantity.module.scss';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
@@ -36,6 +36,20 @@ type Props = {
   onFinish: () => void;
   inputId?: string;
   isActive?: boolean;
+  /**
+   * Unit label shown next to the number. Food = «г» (default); a supplement
+   * (serving-based product) passes its servingUnit («шт»/«IU»/…) so the step no
+   * longer lies that a dose count is grams.
+   */
+  unit?: string;
+  /**
+   * Identity of the selected product/dish. When it changes, the internal grams
+   * value re-syncs to `content.quantity` (the new item's basis-appropriate
+   * default — 100 г for food, 1 шт for a supplement) WITHOUT remounting the
+   * <input>, so iOS `<label htmlFor>` focus delegation to this step is never
+   * interrupted. Untouched → the value never resets mid-edit.
+   */
+  resetKey?: string;
 };
 
 // Outer component: ALWAYS renders the hero <NumberInput id={inputId}> in the same
@@ -48,10 +62,24 @@ const ProductQuantity = ({
   content,
   inputId = 'quantity-input',
   isActive = true,
+  unit = 'г',
+  resetKey,
 }: Props) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [value, setValue] = useState(content.quantity);
   const [activePortion, setActivePortion] = useState<Portion | null>(null);
+
+  // Re-sync grams to the new product's default when the selected item changes.
+  // Guarded by a ref so a plain `content.quantity` change (e.g. re-memo) doesn't
+  // clobber a value the user is editing — only a resetKey (product identity)
+  // change resets. The <input> node is NOT remounted (see prop doc).
+  const prevResetKey = useRef(resetKey);
+  useEffect(() => {
+    if (prevResetKey.current === resetKey) return;
+    prevResetKey.current = resetKey;
+    setValue(content.quantity);
+    setActivePortion(null);
+  }, [resetKey, content.quantity]);
 
   const onBlur = () => {
     content.updateQuantity(value);
@@ -118,7 +146,7 @@ const ProductQuantity = ({
                 maxLength={4}
               />
             </span>
-            <Numeral as="span" size="md" weight="medium" className={style.unit}>{'г'}</Numeral>
+            <Numeral as="span" size="md" weight="medium" className={style.unit}>{unit}</Numeral>
           </div>
         </div>
 

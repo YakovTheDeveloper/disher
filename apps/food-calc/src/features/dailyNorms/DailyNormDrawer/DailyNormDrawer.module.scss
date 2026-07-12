@@ -24,3 +24,16 @@
     justify-content: center;
     padding: 40px 0;
 }
+
+// Пиновання полоса под скроллом (DrawerLayout `footer`) — «Пересчитать по анкете».
+// Вторичное действие → правый край, хагает свою ширину (chip-пилюля), а не растянута
+// на всю ширину как primary. Боковой инсет = sheet (24), под лид-крестом дровера.
+.recalcFooter {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-2) var(--sys-inset-sheet) var(--space-4);
+}
+
+.recalcGlyph {
+    line-height: 1;
+}

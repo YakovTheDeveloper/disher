@@ -1,6 +1,6 @@
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
-import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
+import { NutrientEditView } from '@/entities/nutrient/ui/NutrientEditView';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { formatAmount } from '@/shared/lib/formatNumber';
@@ -63,11 +63,7 @@ export const EditNutrientsModal = ({
               </Text>
             </div>
           )}
-          <NutrientTable
-            getValue={getValue}
-            variant="edit-values"
-            onValueChange={onValueChange}
-          />
+          <NutrientEditView getValue={getValue} onValueChange={onValueChange} />
         </ModalShell.Body>
       </ModalShell>
     }

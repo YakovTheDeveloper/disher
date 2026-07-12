@@ -48,14 +48,14 @@ describe('Chip', () => {
   });
 
   it('lifts the pill to white (onSheet) on a light host, surface={1}', () => {
-    render(<Chip surface={1}>Цинк</Chip>);
+    render(<Chip onSurface={1}>Цинк</Chip>);
     const cls = screen.getByRole('button').className.split(' ');
     expect(cls).toContain('onSheet');
     expect(cls).not.toContain('flat');
   });
 
   it('surface={2} stays onSheet — rest shadow now rides the base, not a class', () => {
-    render(<Chip surface={2}>Цинк</Chip>);
+    render(<Chip onSurface={2}>Цинк</Chip>);
     const cls = screen.getByRole('button').className.split(' ');
     expect(cls).toContain('onSheet');
     expect(cls).not.toContain('flat');

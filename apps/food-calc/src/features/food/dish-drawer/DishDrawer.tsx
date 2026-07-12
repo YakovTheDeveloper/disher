@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { useDishWithStatus, useDishItemsWithProducts, useDishNutrientTotals } from '@/entities/dish';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { EmptyState } from '@/shared/ui/EmptyState';
+import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
 import { RouterUrls } from '@/app/router';
 import type { BaseDrawerProps } from '@/shared/ui';
@@ -28,8 +31,6 @@ const ArrowRightGlyph = () => (
   </svg>
 );
 
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
 /**
  * Боковой дровер блюда — read-only превью, зеркало ProductDrawer. Открывается из
  * SearchFood / расписания вместо перехода на страницу `/dish/:id`. Оверлей не
@@ -42,9 +43,10 @@ const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
  * Открытие: `drawerStore.show(DishDrawer, { dishId, dishName }, { side: 'left', width: 'min(85vw, 360px)' })`.
  */
 export function DishDrawer({ dishId, dishName, onClose }: Props) {
+  const { t } = useTranslation();
   const { dish, loading } = useDishWithStatus(dishId);
   const items = useDishItemsWithProducts(dishId);
-  const totals = useDishNutrientTotals(dishId);
+  const { totals, missingNutrientNames } = useDishNutrientTotals(dishId);
 
   const heroName = dish?.name ?? dishName;
   // Та же раскадровка 'push', что и dish-инфо из FoodActionCard: новая страница
@@ -57,7 +59,7 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
     goToPage();
   };
 
-  const displayName = heroName ? capitalize(heroName) : undefined;
+  const displayName = heroName ? capitalizeFirst(heroName) : undefined;
 
   const pageArrow = (
     <IconButton
@@ -96,9 +98,7 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
         contentInset="panel"
       >
         <div className={s.body}>
-          <Text as="p" role="caption" className={s.empty}>
-            Блюдо не найдено — возможно, оно было удалено
-          </Text>
+          <EmptyState title={t('food.dish.notFound')} />
         </div>
       </DrawerLayout>
     );
@@ -120,7 +120,7 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
               {items.map((it) => (
                 <li key={it.id} className={s.ingredientRow}>
                   <Text as="span" role="body" className={s.ingredientName}>
-                    {it.product?.name ? capitalize(it.product.name) : 'Продукт'}
+                    {it.product?.name ? capitalizeFirst(it.product.name) : 'Продукт'}
                   </Text>
                   <Numeral as="span" size="sm" className={s.ingredientQty}>
                     {Math.round(it.quantity)}
@@ -130,9 +130,7 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
               ))}
             </ul>
           ) : (
-            <Text as="p" role="caption" className={s.empty}>
-              В блюде пока нет ингредиентов
-            </Text>
+            <EmptyState title={t('food.dish.emptyIngredients')} />
           )}
         </section>
 
@@ -141,7 +139,9 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
             (норма-кнопка сверху + таблица). Гейтим по наличию ингредиентов: у
             пустого блюда totals = {} → таблица нулей + «Моя норма» читались бы как
             «есть профиль из нулей». Пусто → только empty-state состава выше. */}
-        {items.length > 0 && <FoodsNutrients totals={totals} />}
+        {items.length > 0 && (
+          <FoodsNutrients totals={totals} missingNutrientNames={missingNutrientNames} />
+        )}
       </div>
     </DrawerLayout>
   );

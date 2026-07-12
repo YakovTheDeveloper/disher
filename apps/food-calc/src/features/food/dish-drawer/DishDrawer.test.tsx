@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
@@ -35,7 +36,7 @@ vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
 // DrawerLayout-заглушка: passthrough без Base UI Drawer-контекста. Экспонирует
 // title / topRight / body слоты, чтобы ассертить шапку и наличие стрелки.
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ title, topRight, children }: any) => (
+  DrawerLayout: ({ title, topRight, children }: { title?: ReactNode; topRight?: ReactNode; children?: ReactNode }) => (
     <div>
       <div data-testid="title">{title}</div>
       <div data-testid="top-right">{topRight}</div>
@@ -55,7 +56,7 @@ describe('DishDrawer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useDishItemsWithProducts.mockReturnValue([]);
-    useDishNutrientTotals.mockReturnValue({});
+    useDishNutrientTotals.mockReturnValue({ totals: {}, missingNutrientNames: [] });
   });
 
   it('loading → ghost (ни «нет ингредиентов», ни «не найдено»)', () => {
@@ -91,7 +92,7 @@ describe('DishDrawer', () => {
     useDishItemsWithProducts.mockReturnValue([
       { id: 'i1', quantity: 123.4, product: { name: 'свёкла' } },
     ]);
-    useDishNutrientTotals.mockReturnValue({ '1': 10 });
+    useDishNutrientTotals.mockReturnValue({ totals: { '1': 10 }, missingNutrientNames: [] });
     const { getByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
     const body = getByTestId('body').textContent ?? '';
     expect(body).toContain('Свёкла');

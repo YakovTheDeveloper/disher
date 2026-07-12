@@ -27,33 +27,35 @@ describe('suggestProductNutrients', () => {
       okResponse({ values: { protein: 16, fats: 9, water: 0, bogus: 5, iron: -1 } }),
     );
     // protein id=1, fats id=2 (water:0, iron:-1, bogus(unknown) all dropped).
-    expect(await suggestProductNutrients('творог')).toEqual({ '1': 16, '2': 9 });
+    expect(await suggestProductNutrients('творог', 'req-1')).toEqual({ '1': 16, '2': 9 });
   });
 
   it('returns an empty record when the LLM gives nothing (caller must not wipe)', async () => {
     authedFetchMock.mockResolvedValue(okResponse({ values: {} }));
-    expect(await suggestProductNutrients('пусто')).toEqual({});
+    expect(await suggestProductNutrients('пусто', 'req-1')).toEqual({});
   });
 
   it('tolerates a missing values field', async () => {
     authedFetchMock.mockResolvedValue(okResponse({}));
-    expect(await suggestProductNutrients('кривой ответ')).toEqual({});
+    expect(await suggestProductNutrients('кривой ответ', 'req-1')).toEqual({});
   });
 
   it('throws PaymentRequiredError on 402', async () => {
     authedFetchMock.mockResolvedValue(
       errResponse(402, { error: 'insufficient_balance', needKop: 50, haveKop: 0 }),
     );
-    await expect(suggestProductNutrients('дорого')).rejects.toBeInstanceOf(
+    await expect(suggestProductNutrients('дорого', 'req-1')).rejects.toBeInstanceOf(
       PaymentRequiredError,
     );
   });
 
-  it('POSTs the product name + a nutrient spec to the right endpoint', async () => {
+  it('POSTs the product name + a nutrient spec, forwarding the caller X-Request-Id', async () => {
     authedFetchMock.mockResolvedValue(okResponse({ values: {} }));
-    await suggestProductNutrients('куриная грудка');
+    await suggestProductNutrients('куриная грудка', 'req-stable');
     const [url, init] = authedFetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('http://test/api/suggestions/product-nutrients');
+    // Caller-owned idempotency key rides verbatim (fix #5).
+    expect((init.headers as Record<string, string>)['X-Request-Id']).toBe('req-stable');
     const body = JSON.parse(init.body as string);
     expect(body.productName).toBe('куриная грудка');
     expect(Array.isArray(body.nutrients)).toBe(true);

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WriteBarShell, WriteBarClip } from '@/shared/ui/WriteBarShell';
 import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
@@ -50,6 +51,7 @@ type Props = {
  * alone does not create a hypothesis.
  */
 const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Props) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -141,7 +143,7 @@ const HypothesisWriteBar = ({ onCreated, overlayContainer, showHint = true }: Pr
               <AutoGrowSearch
                 value={body}
                 onChange={setBody}
-                placeholder="Что именно проверяем? (необязательно)"
+                placeholder={t('analyses.hypotheses.detailsPlaceholder')}
                 maxRows={8}
                 maxLength={BODY_MAX}
                 collapseOnBlur={false}

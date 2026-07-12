@@ -1,11 +1,11 @@
 import clsx from 'clsx';
 import styles from './SearchFoodControls.module.scss';
-import { Text } from '@/shared/ui/atoms/Typography';
-import { IconButton } from '@/shared/ui/atoms/Button';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { Button, IconButton } from '@/shared/ui/atoms/Button';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { PopoverTrigger } from '@/shared/ui/popover/PopoverTrigger';
 import type { SearchFilter } from '../SearchFood';
-import { FILTER_LABELS } from '../searchFilterLabels';
+import { FILTER_LABELS, FILTER_HINTS } from '../searchFilterLabels';
 
 import SearchIcon from '@/shared/assets/icons/lupa.svg?react';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
@@ -62,11 +62,16 @@ const SearchFoodControls = ({
   // состояние с крестиком отмены.
   const filterPanel = (close: () => void) => (
     <div className={styles.filterPanel}>
-      {/* ✕ встаёт ТОЧНО на место кнопки-фильтра (panel overlaps trigger, 40px) —
-          закрывает popover, зеркаля глиф-кнопку под собой. */}
+      {/* Ряд-шапка панели: заголовок абсолютом ПО ЦЕНТРУ полосы (= центр экрана,
+          панель full-bleed), крестик у правого края под кнопкой-фильтром. ✕ tone=
+          "ghost" — голый глиф БЕЗ подложки-плитки (просьба 2026-07-12): в лёгкой
+          панели крестик читается штрихом, а не кнопкой. */}
       <div className={styles.filterPanelHeader}>
+        <Heading role="title" as="h2" className={styles.filterPanelTitle}>
+          Фильтры
+        </Heading>
         <IconButton
-          tone="soft"
+          tone="ghost"
           size={40}
           className={styles.filterCloseButton}
           aria-label="Закрыть фильтры"
@@ -78,19 +83,21 @@ const SearchFoodControls = ({
 
       {hasFilter && filterOptions && (
         <div className={styles.filterSection}>
-          <Text as="span" role="label" className={styles.filterSectionLabel}>
-            Показывать
-          </Text>
           <ChoiceGroup
-            variant="segmented"
+            onSurface={1}
             value={selectedFilter}
             onChange={(next) => onSelectFilter?.(next as SearchFilter)}
             aria-label="Фильтр поиска"
-            className={styles.segmented}
+            className={styles.filterChoices}
           >
             {filterOptions.map((opt) => (
-              <ChoiceItem key={opt} value={opt}>
-                {FILTER_LABELS[opt]}
+              <ChoiceItem key={opt} value={opt} stacked className={styles.filterChoiceCell}>
+                <Text as="span" role="label" className={styles.filterChoiceTitle}>
+                  {FILTER_LABELS[opt]}
+                </Text>
+                <Text as="span" role="caption" className={styles.filterChoiceHint}>
+                  {FILTER_HINTS[opt]}
+                </Text>
               </ChoiceItem>
             ))}
           </ChoiceGroup>
@@ -99,20 +106,16 @@ const SearchFoodControls = ({
 
       {showNutrientFilter && (
         <div className={styles.filterSection}>
-          <Text as="span" role="label" className={styles.filterSectionLabel}>
-            Богатая нутриентом
-          </Text>
           {!selectedNutrientLabel ? (
-            <button
-              type="button"
-              className={styles.nutrientPickRow}
+            <Button
+              onSurface={1}
+              fullWidth
+              icon={<NutrientIcon />}
+              trailingChevron
               onClick={onOpenNutrientPicker}
             >
-              <NutrientIcon />
-              <Text as="span" role="label">
-                Выбрать нутриент
-              </Text>
-            </button>
+              По нутриентам
+            </Button>
           ) : (
             <div className={styles.nutrientPill}>
               <button
@@ -183,6 +186,7 @@ const SearchFoodControls = ({
           <PopoverTrigger
             placement="bottom-end"
             overlapTrigger
+            surface={1}
             trigger={
               <IconButton
                 tone="soft"

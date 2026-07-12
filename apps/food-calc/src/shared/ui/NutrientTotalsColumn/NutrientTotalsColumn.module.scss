@@ -1,0 +1,40 @@
+// Выровненная 2-колоночная таблица «как gofmt», прижата вправо. `.cell:
+// display:contents` → подпись и значение становятся ячейками общей сетки
+// (DOM-порядок «подпись → значение» раскладывается auto-flow'ом в 2 колонки).
+// Числа ТЁМНЫЕ (--sys-color-text-primary), подписи СЕРЫЕ (--sys-color-text-secondary)
+// — цифра не сливается с сокращением. Единицы выравниваются друг под другом через
+// tnum (несёт <Numeral>) + justify-self:end. Хост может переопределить
+// justify-content через переданный className (бар держит дефолт `end`).
+.cells {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    justify-content: end;
+    align-items: baseline;
+    column-gap: var(--space-5);
+    row-gap: var(--space-2);
+}
+
+// Левая привязка (align="start"): та же таблица, но к левому краю. Специфичнее
+// не нужно — правило идёт ПОСЛЕ `.cells` в одном модуле, порядок перекрывает.
+.alignStart {
+    justify-content: start;
+}
+
+.cell {
+    display: contents;
+}
+
+.label {
+    // Капс-подпись = <Text role="caption">; типографику владеет примитив.
+    text-transform: uppercase;
+    color: var(--sys-color-text-secondary);
+    line-height: 1;
+}
+
+// Число — правым краем колонки → единицы выравниваются друг под другом.
+.value {
+    justify-self: end;
+    // Число = <Numeral size="md" weight="black"> (family/tnum/lnum от примитива).
+    color: var(--sys-color-text-primary);
+    line-height: 1;
+}

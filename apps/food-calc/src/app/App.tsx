@@ -15,6 +15,7 @@ import i18n from '@/app/i18n';
 import { AuthGate } from '@/features/auth';
 import { BackupGate } from '@/features/backup/BackupGate';
 import { StoragePressureBanner } from '@/features/storage-warning/StoragePressureBanner';
+import { PwaInstallGate } from '@/features/pwa-install';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 import { useApplyColorMode } from '@/shared/lib/color-mode';
 
@@ -59,6 +60,7 @@ export default function App() {
         }}
       />
       <div className={s.main}>
+        <PwaInstallGate />
         <StoragePressureBanner />
         <ModalManager />
         <DrawerManager />

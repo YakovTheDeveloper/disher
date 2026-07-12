@@ -64,20 +64,33 @@
     display: flex;
     align-items: baseline;
     gap: 3px;
+    // Правый жёлоб под юнит, свисающий вбок (.rightStacked .unit, left:100%) — как
+    // .valueRight в NutrientTable несёт margin-right под свисающий юнит. Локальный
+    // резерв 16 + 8 (padding .row) = 24px зеркалит valueRight (12 + 12); с боковым
+    // инсетом дровера самый широкий «ккал» не клипается.
+    margin-right: var(--space-4);
 }
 
-// Число — герой, юнит уходит ПОД него (absolute), чтобы правый край ЧИСЕЛ встал
-// в один ровный столбик независимо от ширины юнита (г / мг / ккал).
+// Число — герой; правый край ЧИСЕЛ встаёт в один ровный столбик (у row_right −
+// space-4), а юнит свисает ВБОК вправо (absolute, left:100%) в жёлоб .right —
+// зеркало .valueRight в NutrientTable (раньше юнит уходил ПОД число).
 .rightStacked {
     flex-direction: column;
     align-items: flex-end;
     gap: 0;
 
+    // Юнит уходит ВБОК вправо (не под число), зеркаля .valueRight .unit в
+    // NutrientTable: свисает за правый край числа в жёлоб .right (см. margin-right).
+    // Число — единственный элемент в потоке (юнит absolute и в старом, и в новом
+    // варианте), поэтому смена якоря top:100%→50% и right:0→left:100% его НЕ сдвигает.
     .unit {
         position: absolute;
-        top: 100%;
-        right: 0;
-        margin-top: 1px;
+        top: 50%;
+        left: 100%;
+        right: auto;
+        transform: translateY(-50%);
+        padding-left: var(--space-1);
+        white-space: nowrap;
         // size несёт <Text role="caption">; тут раскладка+opacity.
         opacity: 0.7;
     }

@@ -1,4 +1,5 @@
 import { useCallback, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createProduct } from '@/entities/product/api/mutations';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -45,6 +46,7 @@ export interface InlineWriteFoodReviewProps {
 }
 
 export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
+  const { t } = useTranslation();
   const {
     targetKind,
     state,
@@ -212,8 +214,8 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
       {isReviewEmpty ? (
         <EmptyState
           className={styles.empty}
-          title="Ничего не распозналось"
-          description="Попробуйте описать подробнее."
+          title={t('food.freeText.unrecognized.title')}
+          description={t('food.freeText.unrecognized.description')}
         />
       ) : (
         <div className={styles.sections}>

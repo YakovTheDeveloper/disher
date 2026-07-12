@@ -3,7 +3,7 @@
 // loading / loaded / failed render states. (scss module stubbed, как в
 // ProfileDrawer.test.tsx.)
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
 vi.mock('@/shared/lib/api/billing', () => ({
@@ -54,7 +54,7 @@ describe('BalanceSection', () => {
     expect(screen.getByText('…')).toBeInTheDocument();
   });
 
-  it('renders the balance, ledger rows and the disabled top-up button once loaded', async () => {
+  it('renders the balance, ledger rows and a quiet «coming soon» line (no dead CTA)', async () => {
     mockBalance.mockResolvedValue({ balanceKop: 12300, balanceRub: 123 });
     mockLedger.mockResolvedValue([charge, grant]);
     render(<BalanceSection />);
@@ -64,17 +64,26 @@ describe('BalanceSection', () => {
     expect(screen.getByText('Разбор еды')).toBeInTheDocument();
     expect(screen.getByText('Начисление')).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: 'Пополнить — скоро' })).toBeDisabled();
+    // The dead disabled top-up CTA is gone — top-up status is now a quiet line.
+    expect(screen.getByText('Пополнение — скоро')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /пополнить/i })).not.toBeInTheDocument();
   });
 
-  it('shows the failure hint (and hides the top-up button) when the balance fetch rejects', async () => {
-    mockBalance.mockRejectedValue(new Error('GET /api/balance 500'));
-    mockLedger.mockResolvedValue([]);
+  it('offers an inline retry when the balance fetch rejects, and re-fetches on tap', async () => {
+    mockBalance.mockRejectedValueOnce(new Error('GET /api/balance 500'));
+    mockLedger.mockResolvedValueOnce([]);
     render(<BalanceSection />);
 
-    expect(await screen.findByText('Не удалось загрузить баланс')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Пополнить — скоро' }),
-    ).not.toBeInTheDocument();
+    expect(await screen.findByText('Баланс недоступен')).toBeInTheDocument();
+    const retry = screen.getByRole('button', { name: 'Обновить' });
+    expect(retry).toBeInTheDocument();
+
+    // Second attempt succeeds → the error row is replaced by the balance.
+    mockBalance.mockResolvedValueOnce({ balanceKop: 5000, balanceRub: 50 });
+    mockLedger.mockResolvedValueOnce([]);
+    fireEvent.click(retry);
+
+    expect(await screen.findByText('50 ₽')).toBeInTheDocument();
+    expect(screen.queryByText('Баланс недоступен')).not.toBeInTheDocument();
   });
 });

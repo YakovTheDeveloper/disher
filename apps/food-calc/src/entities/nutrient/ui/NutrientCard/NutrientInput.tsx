@@ -8,11 +8,13 @@ interface NutrientInputProps {
   value: number;
   onChange: (value: number) => void;
   unit: string;
-  norm?: number;
 }
 
+// Авторинг состава: только значение + единица. Суточная норма («/ 90») здесь НЕ
+// показывается — это про потребление/анализ, а ты описываешь, что лежит в еде;
+// подмешивать норму в поле ввода = категориальная ошибка (снято 2026-07-11).
 const NutrientInput = forwardRef<HTMLInputElement, NutrientInputProps>(
-  ({ id, value, onChange, unit, norm }, ref) => (
+  ({ id, value, onChange, unit }, ref) => (
     <div className={styles.row}>
       <NumberInput
         ref={ref}
@@ -21,9 +23,6 @@ const NutrientInput = forwardRef<HTMLInputElement, NutrientInputProps>(
         onChange={onChange}
         className={styles.input}
       />
-      {norm !== undefined && (
-        <Text as="span" role="caption" className={styles.norm}>/ {norm}</Text>
-      )}
       <Text as="span" role="caption" className={styles.unit}>{unit}</Text>
     </div>
   )

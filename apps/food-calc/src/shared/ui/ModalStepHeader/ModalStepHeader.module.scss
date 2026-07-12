@@ -1,9 +1,17 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // ModalStepHeader = ModalHeader + ряд breadcrumbs. Липкость — на обёртке,
 // чтобы и заголовок, и крошки оставались видимыми при скролле тела модалки.
 .stepHeader {
   position: sticky;
   top: 0;
   z-index: 10;
+
+  // Divider-шов «шапка ↔ прокрученное тело» ниже ВСЕЙ шапки (заголовок + крошки).
+  // Внутренний шов ModalHeader тут погашен ([data-nav-tabs]); один механизм с
+  // дровером/модалкой (scroll-seam + data-scrolled от useScrollEdges). Тёмный +
+  // поздно-затухающий (0.28/8px) — паритет с ModalHeader и дровером.
+  @include scroll-seam($tip: 8px, $color: var(--sys-color-border-default));
 }
 
 .crumbs {

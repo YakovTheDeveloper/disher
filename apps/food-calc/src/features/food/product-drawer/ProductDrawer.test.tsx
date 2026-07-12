@@ -8,7 +8,7 @@
 //  • БАД: «Состав на одну единицу» + нет Select количества;
 //  • каталог: ни карандаша, ни «мой продукт».
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 const h = vi.hoisted(() => ({
@@ -56,8 +56,14 @@ vi.mock('@/entities/nutrient/ui/NutrientGroup/constants', async (importActual) =
   ...(await importActual<typeof import('@/entities/nutrient/ui/NutrientGroup/constants')>()),
   allNutrientsList: [],
 }));
-vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
-  NutrientTable: () => <div data-testid="nutrient-table" />,
+// Nutrient list boundaries (view + edit) — both stub to the same testid so the
+// «view vs edit vs empty-state» assertions stay unchanged after NutrientTable
+// dissolved into these entity compositions.
+vi.mock('@/entities/nutrient/ui/NutrientMeterView', () => ({
+  NutrientMeterView: () => <div data-testid="nutrient-table" />,
+}));
+vi.mock('@/entities/nutrient/ui/NutrientEditView', () => ({
+  NutrientEditView: () => <div data-testid="nutrient-table" />,
 }));
 vi.mock('@/shared/ui/atoms/input/NumberInput', () => ({
   NumberInput: () => <input data-testid="number-input" />,
@@ -88,7 +94,26 @@ vi.mock('@/features/shared/item-actions-drawer/ItemActionsDrawer', () => ({
   ItemActionsDrawer: () => null,
 }));
 vi.mock('@/shared/ui/SuggestActionButton', () => ({
-  SuggestActionButton: ({ label }: { label?: ReactNode }) => <button>{label}</button>,
+  SuggestActionButton: ({
+    label,
+    onClick,
+    disabled,
+  }: {
+    label?: ReactNode;
+    onClick?: () => void;
+    disabled?: boolean;
+  }) => (
+    <button onClick={onClick} disabled={disabled}>
+      {label}
+    </button>
+  ),
+}));
+// Suggest-nutrients call — hoisted so tests can drive its resolve/reject and
+// inspect the requestId each tap forwarded (fix D2: empty result must NOT reuse
+// the id, a lost response must).
+const suggestMock = vi.hoisted(() => vi.fn());
+vi.mock('./suggestProductNutrients', () => ({
+  suggestProductNutrients: suggestMock,
 }));
 vi.mock('@/shared/ui/drawer-store', () => ({ drawerStore: { show: vi.fn() } }));
 vi.mock('@/shared/lib', () => ({ isCreatedByUser: () => h.isUser }));
@@ -175,5 +200,49 @@ describe('ProductDrawer — chrome + edit menu', () => {
     const { queryByLabelText, getByTestId } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
     expect(queryByLabelText('Редактировать продукт')).toBeNull();
     expect(getByTestId('subtitle').textContent).toBe('');
+  });
+});
+
+// Fix D2: the suggest X-Request-Id must be reused only for a genuine same-request
+// retry (a LOST response after the server charged). An empty result is a
+// COMPLETED, already-charged run — the id must be dropped so the next tap is a
+// fresh billable request, not a free dedup.
+describe('ProductDrawer — suggest requestId lifecycle (D2)', () => {
+  beforeEach(() => {
+    h.product = { id: 'p1', name: 'магний', servingBasis: '100g' };
+    h.isUser = true;
+    h.nutrients = []; // empty state → showcase «Предложить нутриенты» CTA, confirm=false
+    suggestMock.mockReset();
+  });
+
+  it('mints a FRESH id on the next tap after an empty result (empty = charged, not lost)', async () => {
+    suggestMock.mockResolvedValue({}); // empty → no whole-replace, ref cleared
+    const { getByText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+
+    fireEvent.click(getByText('Предложить нутриенты'));
+    await waitFor(() => expect(suggestMock).toHaveBeenCalledTimes(1));
+    fireEvent.click(getByText('Предложить нутриенты'));
+    await waitFor(() => expect(suggestMock).toHaveBeenCalledTimes(2));
+
+    const id1 = suggestMock.mock.calls[0][1];
+    const id2 = suggestMock.mock.calls[1][1];
+    expect(id1).toBeTruthy();
+    expect(id2).toBeTruthy();
+    expect(id2).not.toBe(id1); // fresh billable request, not a free dedup
+  });
+
+  it('REUSES the id on the next tap after a thrown error (lost response → same-request retry)', async () => {
+    suggestMock.mockRejectedValue(new Error('network')); // response lost, charge may have landed
+    const { getByText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+
+    fireEvent.click(getByText('Предложить нутриенты'));
+    await waitFor(() => expect(suggestMock).toHaveBeenCalledTimes(1));
+    fireEvent.click(getByText('Предложить нутриенты'));
+    await waitFor(() => expect(suggestMock).toHaveBeenCalledTimes(2));
+
+    const id1 = suggestMock.mock.calls[0][1];
+    const id2 = suggestMock.mock.calls[1][1];
+    expect(id1).toBeTruthy();
+    expect(id2).toBe(id1); // idempotent retry — server dedups the charge
   });
 });

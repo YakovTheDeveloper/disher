@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useUserNormItems } from '@/entities/daily-norm';
-import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { DailyNormDrawer } from '@/features/dailyNorms/DailyNormDrawer';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
@@ -43,7 +42,7 @@ export const DailyNormButton = ({ className }: Props) => {
       className={className}
       onSurface={shout ? 2 : 1}
       icon={<FlagIcon width={25} height={25} />}
-      trailingIcon={<ChevronGlyph />}
+      trailingChevron
       onClick={open}
     >
       {label}

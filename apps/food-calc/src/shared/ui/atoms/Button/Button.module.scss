@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .button {
   padding: 5px 9px;
   background-color: transparent;
@@ -182,7 +184,9 @@
   padding: 0 18px;
   border: none;
   border-radius: var(--sys-radius-cta);
-  background: var(--sys-color-surface-2);
+  // Фон по тиру хоста (onSurface) — общий маппинг Button/Chip/Choice. База =
+  // host 1|2 → surface-2; .surfacePlane0 ниже опускает до surface-1 для host 0.
+  @include bg-based-on-host-surface(1);
   color: var(--sys-color-text-system);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -222,7 +226,7 @@
    карточку (surface-1), не до белого. Рамку несёт .surfaceBordered. Перебивает
    базовый surface-2 (равная специфичность, ниже по файлу). */
 .surfacePlane0 {
-  background: var(--sys-color-surface-1);
+  @include bg-based-on-host-surface(0);
 }
 
 /* lift на surface-2: цветом выше некуда → отделяемся тенью. Тень — action-рунг
@@ -346,6 +350,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* Первоклассный ведомый шеврон › (trailingChevron). Живёт в СВОЁМ слоте, НЕ в
+   `.icon` — поэтому tone-специфичные `.surface/.system/... .icon svg` (18/20) его
+   не трогают, а канонический размер 16px (ChevronGlyph «везде 16») задаётся тут
+   напрямую (0,1,0), без специфичность-войны. currentColor наследует цвет метки. */
+.chevron {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 /* Reduced-motion — глушим press-scale/переходы (новая моторная поверхность:

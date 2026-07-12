@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import clsx from 'clsx';
+import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import { Text } from '@/shared/ui/atoms/Typography';
 import styles from './Choice.module.scss';
 
@@ -28,7 +29,7 @@ type ChoiceContextValue = {
   value: string | null | undefined;
   select: (value: string) => void;
   variant: ChoiceVariant;
-  surface: ChoiceSurface;
+  onSurface: ChoiceSurface;
   elevation: ChoiceElevation;
 };
 
@@ -48,21 +49,24 @@ export type ChoiceGroupProps = {
   /** Раскладка группы — задаёт, какие стрелки навигируют (←/→ vs ↑/↓). */
   orientation?: Orientation;
   /**
-   * Презентация. `default` — отдельные chip-кромки с угловой галочкой-наклейкой.
+   * Презентация. `default` — отдельные chip-кромки; у `stacked`-вариантов сверху-
+   * справа угловой selection-well с галочкой (пустой well у невыбранного).
    * `segmented` — iOS-сегмент-контрол: общий трек-фон, активный сегмент = плашка-
    * заливка БЕЗ тика (токены `--sys-color-control-*`). a11y/стрелки общие.
    */
   variant?: ChoiceVariant;
   /**
    * Тир ХОСТА, на котором ЛЕЖИТ группа (0–2, = `--sys-color-surface-N`). Задаёт
-   * СВОЙ фон чипа: `0` (модалка/стол) → чип surface-1; `1|2` (лист/дровер) → чип
-   * surface-2. Дефолт `0`. Игнорируется в `segmented` (у него свой трек-фон).
+   * СВОЙ фон чипа через общий миксин `bg-based-on-host-surface`: `0`
+   * (модалка/стол) → чип surface-1; `1|2` (лист/дровер) → чип surface-2. Имя
+   * `onSurface` унифицировано с `Button`/`Chip`. Дефолт `0`. Игнорируется в
+   * `segmented` (у него свой трек-фон).
    */
-  surface?: ChoiceSurface;
+  onSurface?: ChoiceSurface;
   /**
    * Elevation-скин (см. {@link ChoiceElevation}). Дефолт `raised`. Комбинируется
-   * с `surface` по контексту: разреженная модалка → `surface={0}` + `raised`
-   * (surface-1 + тень); плотный дровер → `surface={2}` + `flat` (surface-2 + рамка).
+   * с `onSurface` по контексту: разреженная модалка → `onSurface={0}` + `raised`
+   * (surface-1 + тень); плотный дровер → `onSurface={2}` + `flat` (surface-2 + рамка).
    * Игнорируется в `segmented`.
    */
   elevation?: ChoiceElevation;
@@ -91,7 +95,7 @@ export function ChoiceGroup({
   onChange,
   orientation = 'horizontal',
   variant = 'default',
-  surface = 0,
+  onSurface = 0,
   elevation = 'raised',
   className,
   children,
@@ -150,7 +154,7 @@ export function ChoiceGroup({
       onKeyDown={onKeyDown}
       {...rest}
     >
-      <ChoiceContext.Provider value={{ value, select, variant, surface, elevation }}>
+      <ChoiceContext.Provider value={{ value, select, variant, onSurface, elevation }}>
         {children}
       </ChoiceContext.Provider>
     </div>
@@ -169,9 +173,9 @@ export type ChoiceItemProps = Omit<
 
 /**
  * ChoiceItem — один вариант одиночного выбора (`role=radio`). Только внутри
- * `ChoiceGroup`. Презентация: угловатая кромка, «выбрано» = заливка + обводка
- * цвета текста; поведение (немедленный коммит / toggle-off) задаёт `onChange`
- * группы у консумера.
+ * `ChoiceGroup`. Презентация: угловатая кромка, «выбрано» = plum-заливка + флип
+ * текста (у `stacked` дополнительно угловой well-маркер с галочкой); поведение
+ * (немедленный коммит / toggle-off) задаёт `onChange` группы у консумера.
  */
 export function ChoiceItem({
   value,
@@ -200,7 +204,7 @@ export function ChoiceItem({
         segmented && styles.segment,
         // surface/elevation-скины — только для default-варианта (segmented несёт
         // свой трек-фон + активную плашку, эти оси к нему не применяются).
-        !segmented && ctx.surface >= 1 && styles.onSheet,
+        !segmented && ctx.onSurface >= 1 && styles.onSheet,
         !segmented && ctx.elevation === 'flat' && styles.flat,
         stacked && styles.stacked,
         checked && (segmented ? styles.segmentChecked : styles.checked),
@@ -215,6 +219,13 @@ export function ChoiceItem({
       <Text role="label" as="span" className={styles.content}>
         {children}
       </Text>
+      {/* Selection-маркер — только для stacked default-варианта (segmented намеренно
+          без тика). Вдавленный well всегда виден; галочка проявляется у выбранного. */}
+      {stacked && !segmented && (
+        <span className={styles.marker} aria-hidden="true">
+          <TickIcon className={styles.markerTick} />
+        </span>
+      )}
     </button>
   );
 }

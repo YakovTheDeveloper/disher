@@ -2,6 +2,10 @@ import type { ReactNode } from 'react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { Heading, QuietLabel } from '@/shared/ui/atoms/Typography';
+import {
+  useScrollEdgesContext,
+  useHeaderCollapse,
+} from '@/shared/ui/hooks/scrollEdgesContext';
 import s from './ModalHeader.module.scss';
 
 export type ModalHeaderProps = {
@@ -50,6 +54,16 @@ export type ModalHeaderProps = {
    * --rail-text` считается от padding-box), двигает только back-кнопку и трейлинг.
    */
   className?: string;
+  /**
+   * Прилипает ли полоса-заголовок к верху при скролле (деф. `true` — текущее
+   * поведение, `position: sticky`). Передай `false`, чтобы заголовок УЕЗЖАЛ вместе
+   * с контентом: тогда back-стрелка ОТЦЕПЛЯЕТСЯ и висит абсолютом в левом верхнем
+   * углу (закрытие не теряется), а сама полоса становится `position: static`.
+   * Работает ТОЛЬКО когда header отрендерен ВНУТРИ `ModalShell.Body` (общий
+   * скроллер) — снаружи (соседом над `.body`) уезжать нечему. Заодно глушится
+   * scroll-seam: полоса уходит, а не оттеняет прилепленный бар.
+   */
+  sticky?: boolean;
 };
 
 /**
@@ -66,6 +80,7 @@ export const ModalHeader = ({
   titleAlign = 'center',
   titleMeta,
   className,
+  sticky = true,
 }: ModalHeaderProps) => {
   const split = titleMeta != null;
   const titleBlockClass = [
@@ -75,9 +90,26 @@ export const ModalHeader = ({
   ]
     .filter(Boolean)
     .join(' ');
+  // Divider-шов появляется, когда тело модалки прокручено (см. scrollEdgesContext).
+  // Null вне ModalShell (standalone) → шва нет. Внутри ModalStepHeader этот шов
+  // глушится CSS ([data-nav-tabs]) — там линию несёт внешний .stepHeader под крошками.
+  const edges = useScrollEdgesContext();
+  // Collapse-режим приходит из ModalShell (headerScroll="collapse") через контекст —
+  // полоса ОСТАЁТСЯ прилепленной, но ужимается по мере скролла (шов при этом уместен
+  // и сохраняется). Уезжающий режим (sticky=false) — ортогонален и задаётся пропом.
+  const { collapse } = useHeaderCollapse();
   return (
     <header
-      className={[s.header, size === 'compact' ? s.compact : '', className]
+      // Шов появляется только у ПРИЛЕПЛЕННОЙ полосы; у уезжающей (sticky=false)
+      // полоса уходит вместе с телом — оттенять нечего, поэтому data-scrolled не ставим.
+      data-scrolled={sticky && edges?.scrolled ? '' : undefined}
+      className={[
+        s.header,
+        size === 'compact' ? s.compact : '',
+        sticky ? '' : s.nonSticky,
+        collapse ? s.headerCollapse : '',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
     >

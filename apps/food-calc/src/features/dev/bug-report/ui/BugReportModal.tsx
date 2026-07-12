@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
 import { Text } from '@/shared/ui/atoms/Typography';
@@ -28,6 +29,7 @@ const BugReportModal = ({
   pwa,
   screenshotPromise,
 }: BugReportModalProps) => {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('new');
   const [zoomSrc, setZoomSrc] = useState<string | null>(null);
   const [text, setText] = useState('');
@@ -149,7 +151,7 @@ const BugReportModal = ({
               className={s.input}
               value={text}
               onChange={setText}
-              placeholder="Что не так? Шаги, ожидаемое, фактическое…"
+              placeholder={t('bugReport.placeholder')}
               maxRows={6}
               collapseOnBlur={false}
             />

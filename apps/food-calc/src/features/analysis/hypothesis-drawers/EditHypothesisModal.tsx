@@ -139,7 +139,7 @@ const EditHypothesisModal = ({
               />
             }
           />
-          <ModalShell.Body inset>
+          <ModalShell.Body>
             <div className={styles.fields}>
               {/* Видимые лейблы — без них непонятно, где название, где описание
                   (просьба 2026-06-13). htmlFor связывает с инпутом AutoGrowSearch. */}

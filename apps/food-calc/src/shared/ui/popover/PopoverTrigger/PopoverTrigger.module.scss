@@ -4,6 +4,8 @@
 }
 
 .content {
+    // Дефолт surface-2 (самый верхний тир). Консумер может опустить через `surface`
+    // проп → .surface1 / .surface0 перекрывают фон ниже.
     background: var(--sys-color-surface-2);
     border-radius: var(--sys-radius-container); /* was 8px — popover panel */
     box-shadow: var(--sys-elevation-overlay);
@@ -45,6 +47,16 @@
         opacity: 0;
         transform: translateY(-4px) scale(0.96);
     }
+}
+
+// Surface-тир панели (перекрывают дефолтный surface-2 .content). Объявлены ПОСЛЕ
+// .content → выигрывают по порядку исходника при равной специфичности.
+.surface1 {
+    background: var(--sys-color-surface-1);
+}
+
+.surface0 {
+    background: var(--sys-color-surface-0);
 }
 
 @media (prefers-reduced-motion: reduce) {

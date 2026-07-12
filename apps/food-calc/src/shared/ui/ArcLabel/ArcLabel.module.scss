@@ -1,0 +1,19 @@
+// ArcLabel — голая надпись по дуге (декор). Цвет наследуется через currentColor
+// (fill), размер задаёт консумер классом. Шрифт = display-голос (--heading-font),
+// как у дуг WriteBarMedal, чтобы штемпель звучал одним голосом с медалью.
+
+.arc {
+    display: block;
+    overflow: visible; // хвосты букв («р»/«у») не режутся краем viewBox
+    pointer-events: none;
+    user-select: none;
+
+    // font-size живёт SVG-атрибутом (геометрия viewBox, см. .tsx) — тут только голос.
+    text {
+        font-family: var(--heading-font);
+        font-style: normal;
+        font-weight: 600;
+        letter-spacing: 0;
+        fill: currentColor;
+    }
+}

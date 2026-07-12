@@ -1,0 +1,62 @@
+// Обход групп нутриентов: секция (заголовок + список рядов) на группу. Владеет
+// ТОЛЬКО раскладкой групп/секций/заголовков; вид самих рядов — в ряд-примитивах
+// (NutrientMeterRow / NutrientEditRow / NutrientRow), которые приходят через слот.
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-section);
+  padding: 0;
+}
+
+// ── variant='meter' (витрина / редактор) ─────────────────────────────────────
+// Нутриенты списком (одна колонка): над каждой группой тихий заголовок, ряды
+// впритык (разделитель — затухающая бровка ряда), воздух между группами.
+.section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0;
+  padding: var(--space-2) 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+// Заголовок группы — выравнен по левому краю содержимого ряда, воздух до первой
+// строки. Голос/цвет владеет <NutrientGroupTitle>; тут только раскладка.
+.sectionTitle {
+  padding-left: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+// Ряды идут прямыми соседями — ряд-примитив гасит бровку на :last-child.
+.rowList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+// ── variant='norms' («Моя норма») ────────────────────────────────────────────
+// Плотный inset-grouped список (канон NutrientPickerDrawer): между группами —
+// зазор (заголовок след. группы + воздух = граница).
+.containerNorms {
+  gap: var(--space-5);
+  padding: 0;
+}
+
+.normGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.normGroupTitle {
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.normList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}

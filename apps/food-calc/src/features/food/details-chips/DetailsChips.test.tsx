@@ -93,8 +93,6 @@ beforeEach(() => {
   setMockCustomTags([]);
 });
 
-// ── two-group layout ─────────────────────────────────────────────────────────
-
 describe('DetailsChips — two-group layout', () => {
   it('рендерит обе группы + подсказку когда есть и built-in, и custom', () => {
     setMockCustomTags([{ tag: 'с лимоном' }]);
@@ -119,8 +117,6 @@ describe('DetailsChips — two-group layout', () => {
     expect(screen.queryByText('Зажмите чтобы удалить')).not.toBeInTheDocument();
   });
 });
-
-// ── long-press → confirm → delete ────────────────────────────────────────────
 
 describe('DetailsChips — long-press на custom-чипе', () => {
   beforeEach(() => {

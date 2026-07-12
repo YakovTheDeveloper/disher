@@ -9,6 +9,7 @@ import {
   type HTMLAttributes,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import {
   addDays,
   differenceInCalendarDays,
@@ -212,12 +213,12 @@ const MonthCalendar = memo(function MonthCalendar({
   );
 });
 
-// ─── ScheduleNavigator ─────────────────────────────────────────────────────
 export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabPortal }: Props) => {
   const today = useToday();
   const filledKeys = useFilledDateKeys();
 
   // Дефолт — всегда «Быстрая навигация» (якоря). «Активные дни» — явный тап/свайп.
+  const { t } = useTranslation();
   const [tab, setTab] = useState<NavTab>('quick');
 
   // Слайдер = Embla (тот же движок, что во всём приложении — Swipeable). Клик по
@@ -268,6 +269,32 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabP
     if (!emblaApi) return;
     const id = requestAnimationFrame(() => emblaApi.reInit());
     return () => cancelAnimationFrame(id);
+  }, [emblaApi]);
+
+  // Глубина через per-slide непрозрачность по scrollProgress (возможность Embla):
+  // ушедший в сторону экран притушен — читается как «страница позади, её можно
+  // долистать»; на свайпе он ПЛАВНО разгорается до полной яркости, привязанно к
+  // пальцу, а не скачком на settle. Opacity не трогает layout → не спорит с
+  // «дыханием» высоты и замерами панелей.
+  useEffect(() => {
+    if (!emblaApi) return;
+    const NEIGHBOR_DIM = 0.55; // насколько гаснет полностью отъехавший слайд
+    const apply = () => {
+      const progress = emblaApi.scrollProgress();
+      const slides = emblaApi.slideNodes();
+      emblaApi.scrollSnapList().forEach((snap, i) => {
+        const dist = Math.min(1, Math.abs(snap - progress));
+        const node = slides[i];
+        if (node) node.style.opacity = String(1 - dist * NEIGHBOR_DIM);
+      });
+    };
+    apply();
+    emblaApi.on('scroll', apply);
+    emblaApi.on('reInit', apply);
+    return () => {
+      emblaApi.off('scroll', apply);
+      emblaApi.off('reInit', apply);
+    };
   }, [emblaApi]);
 
   const yesterdayStr = useMemo(() => format(subDays(today, 1), DATE_FORMAT), [today]);
@@ -383,6 +410,9 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabP
         className={s.viewport}
         ref={emblaRef}
         style={viewportH ? { height: `${viewportH}px` } : undefined}
+        // Сторона растворения = сторона выглядывающего соседа: на 'quick' сосед
+        // (активные дни) справа, на 'active' предыдущий экран слева.
+        data-peek={tab === 'quick' ? 'right' : 'left'}
         data-base-ui-swipe-ignore=""
       >
         <div className={s.track}>
@@ -433,7 +463,7 @@ export const ScheduleNavigator = ({ onSelect, selectedDate, align = 'left', tabP
               </div>
             ) : (
               <div className={s.empty} ref={activeInnerRef}>
-                <EmptyState title="Пока нет дней с записями" />
+                <EmptyState title={t('schedule.empty.days.title')} />
               </div>
             )}
           </section>

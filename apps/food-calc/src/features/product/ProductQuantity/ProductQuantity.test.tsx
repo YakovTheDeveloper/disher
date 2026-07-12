@@ -29,8 +29,6 @@ function renderQuantity({
   return { updateQuantity, onFinish };
 }
 
-// ─── portions carousel visibility ────────────────────────────────────────────
-
 describe('ProductQuantity — portions carousel', () => {
   it('always renders the quantity input', () => {
     renderQuantity();
@@ -55,8 +53,6 @@ describe('ProductQuantity — portions carousel', () => {
     expect(screen.getByRole('radio', { name: /среднее/ })).toBeInTheDocument();
   });
 });
-
-// ─── portion selection ───────────────────────────────────────────────────────
 
 describe('ProductQuantity — portion selection', () => {
   it('tapping a portion sets the quantity to its grams', async () => {

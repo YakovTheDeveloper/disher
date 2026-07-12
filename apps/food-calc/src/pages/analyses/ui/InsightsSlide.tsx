@@ -1,4 +1,5 @@
 import { memo, useCallback, useState, type FocusEvent, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/ui/Screen';
 import { useAllInsights, deleteInsight } from '@/entities/insight';
 import { InsightListPanel } from '@/features/analysis/InsightListPanel';
@@ -14,16 +15,13 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { SectionInfoDrawer } from './SectionInfoDrawer';
 import styles from './LabSlides.module.scss';
 
-// Копирайт объяснялки = тот же текст, что в EmptyState (единый источник «что это»).
-const INSIGHTS_INFO =
-  'Инсайты появляются на разборе дня или блюда — это связки и предостережения по твоей еде. Нажми «Сохранить» на разборе, и они окажутся здесь.';
-
 // Слайд «Инсайты» /analyses — read-only наблюдения, сохранённые с разборов
 // (deletable по long-press). Мигрировал со страницы «Открытий». Свой `<Screen>`
 // БЕЗ bottomBar (инсайты не пишутся от руки).
 type Props = { topSlot: ReactNode };
 
 const InsightsSlide = ({ topSlot }: Props) => {
+  const { t } = useTranslation();
   const insights = useAllInsights();
 
   // Edit modal step. label htmlFor → focus → onFocusCapture flips the step
@@ -46,8 +44,8 @@ const InsightsSlide = ({ topSlot }: Props) => {
 
   const openInfo = useCallback(() => {
     void drawerStore.show(SectionInfoDrawer, {
-      title: 'Инсайты',
-      description: INSIGHTS_INFO,
+      title: t('analyses.insights.infoTitle'),
+      description: t('analyses.insights.info'),
     });
   }, []);
 
@@ -71,8 +69,8 @@ const InsightsSlide = ({ topSlot }: Props) => {
         {insights.length === 0 ? (
           <EmptyState
             className={styles.empty}
-            title="Пока нет инсайтов"
-            description="Инсайты появляются на разборе дня или блюда — это связки и предостережения по твоей еде. Нажми «Сохранить» на разборе, и они окажутся здесь."
+            title={t('analyses.empty.insights.title')}
+            description={t('analyses.insights.info')}
           />
         ) : (
           <InsightListPanel

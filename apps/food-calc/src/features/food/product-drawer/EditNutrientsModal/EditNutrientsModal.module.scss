@@ -3,14 +3,16 @@
 // (как .massWarning), отделён снизу.
 .suggestRow {
     display: flex;
-    margin: 0 var(--space-4) var(--space-3);
+    // Боковой инсет отдан шеллу (`<ModalShell.Body inset>`); свой — только низ.
+    margin-block-end: var(--space-3);
 }
 
 // Семантический warning (масса нутриентов > 100 г) — амбер, единственный
 // «осторожно» акцент. Значения через `--sys-color-status-warning*` токены (token-gate).
 .massWarning {
     // font-size → внутренний <Text role="caption">; здесь layout + статус-цвета.
-    margin: 0 var(--space-4) var(--space-3);
+    // Боковой инсет отдан шеллу (`<ModalShell.Body inset>`); свой — только низ.
+    margin-block-end: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-radius: var(--sys-radius-container);
     background: var(--sys-color-status-warning-surface);

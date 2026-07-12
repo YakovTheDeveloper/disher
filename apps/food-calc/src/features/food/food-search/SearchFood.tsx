@@ -16,6 +16,10 @@ import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { WriteBarMedal } from '@/shared/ui/WriteBarShell/WriteBarMedal';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
+import {
+  useHeaderCollapse,
+  useScrollEdgesContext,
+} from '@/shared/ui/hooks/scrollEdgesContext';
 import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
 import { useDesignVariant } from '@/shared/lib/useDesignVariant';
@@ -107,22 +111,36 @@ const SearchFood = ({
   // скролл-контенту, поэтому и состояние скролла держим здесь.
   const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollerRef);
 
-  // FAB «наверх» — появляется, когда шапка поиска уехала за верх (scrollTop больше
-  // её высоты). Возврат скроллит контейнер к началу → шапка с полем поиска снова видна.
+  // FAB «наверх» — появляется, когда список прокручен на ~экран вниз. Возврат скроллит
+  // контейнер к началу. Шапка вынесена ИЗ скроллера (фиксированная обвязка сверху) →
+  // её высота больше не часть скролл-контента; порог = небольшая константа.
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const handleScroll = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    // Глушим клавиатуру на пользовательском скролле (mobile UX); программный — мимо.
-    if (!isProgrammaticScrollRef.current) {
-      const active = document.activeElement;
-      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
-        active.blur();
+  // Собственный скролл-рут SearchFood заменяет ModalShell.Body, поэтому механизм
+  // сворачивания заголовка (--header-collapse) не питается сам — прокидываем скролл
+  // в тот же collapse-контекст руками, иначе ModalShell.Header-сосед не ужимается.
+  const { onScroll: onCollapseScroll } = useHeaderCollapse();
+  // По той же причине не питается и верхний divider-шов ModalShell.Header: его
+  // `data-scrolled` идёт от useScrollEdges ModalShell, чей сентинел живёт в
+  // ModalShell.Body (тут не рендерится). Монтируем ЕГО верхний сентинел прямым
+  // ребёнком нашего `.scroller` — observer возьмёт скроллер за root, и шов оживёт.
+  // Null вне ModalShell (standalone) → ref undefined, сентинел безвреден.
+  const scrollEdges = useScrollEdgesContext();
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const el = scrollerRef.current;
+      if (!el) return;
+      onCollapseScroll?.(e);
+      // Глушим клавиатуру на пользовательском скролле (mobile UX); программный — мимо.
+      if (!isProgrammaticScrollRef.current) {
+        const active = document.activeElement;
+        if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+          active.blur();
+        }
       }
-    }
-    const threshold = headerRef.current?.offsetHeight ?? 72;
-    setShowScrollTop(el.scrollTop > threshold);
-  }, []);
+      setShowScrollTop(el.scrollTop > 72);
+    },
+    [onCollapseScroll]
+  );
   const handleScrollTop = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
@@ -224,6 +242,22 @@ const SearchFood = ({
         ref={scrollerRef}
         onScroll={handleScroll}
       >
+        {/* Верхний сентинел ModalShell (шов ModalHeader) — ПЕРВЫЙ ребёнок скроллера,
+            чтобы observer взял `.scroller` за root. Ушёл из вида при скролле → scrolled
+            → data-scrolled на ModalHeader → нижний divider-шов. 1px + отриц. margin =
+            нулевой вклад в поток. */}
+        <div
+          ref={scrollEdges?.topSentinelRef}
+          className={styles.topSentinel}
+          aria-hidden="true"
+        />
+        {/* Шапка поиска = первый ВИДИМЫЙ ребёнок скролл-рута (после zero-space
+            сентинела; просьба 2026-07-12: не липнет, уезжает вверх ВМЕСТЕ со списком).
+            В обычном потоке (НЕ position:sticky) →
+            прокручивается с контентом. Рендерится ВСЕГДА (вне showHeavy-гейта), чтобы
+            <input> оставался always-mounted — иначе ломается iOS label-focus caret-фикс
+            (см. шапку файла). Full-bleed `.bar::after` теперь inset (его -12px вылет
+            всё равно срезал бы горизонтальный overflow скролл-рута). */}
         <div className={styles.header} ref={headerRef}>
           <SearchFoodControls
             searchQuery={searchQuery}
@@ -238,7 +272,6 @@ const SearchFood = ({
             onClearNutrient={clearRichNutrient}
           />
         </div>
-
         {showHeavy && (
           <div key={openTicket} className={styles.heavyFade}>
             <SearchFoodHeavy
@@ -494,9 +527,10 @@ const SearchFoodHeavy = ({
         onClick={() => onDishAdd(item)}
         onInfoClick={onInfoClick ? () => onInfoClick('dish', item.id) : undefined}
         htmlFor={itemHtmlFor}
+        mineFilter={userOnlyProducts}
       />
     ),
-    [activeItemId, onDishAdd, onInfoClick, itemHtmlFor]
+    [activeItemId, onDishAdd, onInfoClick, itemHtmlFor, userOnlyProducts]
   );
 
   return (

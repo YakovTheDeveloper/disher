@@ -1,4 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────
 // INVARIANT — "no silent failures": every data-affecting async operation must
 // end with a visible signal (toaster / banner / inline field error) if it
 // fails. A swallowing `.catch(() => {})` is allowed ONLY on a best-effort path
@@ -8,7 +7,6 @@
 // module (`safeMutate`) is the load-bearing enforcer for user-triggered
 // mutations; fire-and-forget/background async is covered by the sync-status
 // store, the global unhandledrejection bridge, and per-feature toasters.
-// ─────────────────────────────────────────────────────────────────────────
 import toaster from '@/shared/lib/toaster/toaster';
 import { defaultUserMessage } from '@/shared/lib/errors/classify';
 import { reportError } from '@/shared/lib/errors/report';

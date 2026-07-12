@@ -193,8 +193,11 @@ export async function analyzeRoutes(
 
     if ((insert.rowCount ?? 0) > 0) {
       const row = insert.rows[0];
-      void runAnalysisJob(row.id, payload, opts.callLLM).catch((err) =>
-        updateAnalysisFailed(row.id, err),
+      // Pass user_id explicitly into the job (and its failure handler) so a
+      // failure refund never depends on the row still existing — the user may
+      // DELETE a pending analysis before its job fails (see refundAnalysis).
+      void runAnalysisJob(row.id, row.user_id, payload, opts.callLLM).catch(
+        (err) => updateAnalysisFailed(row.id, row.user_id, err),
       );
       return reply.send({ analysis: serialiseRow(row) });
     }

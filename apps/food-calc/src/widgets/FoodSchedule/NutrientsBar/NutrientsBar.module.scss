@@ -104,33 +104,6 @@
     flex-shrink: 0;
 }
 
-// Выровненная 2-колоночная таблица «как gofmt», прижата вправо. `.cell:
-// display:contents` → подпись и значение становятся ячейками общей сетки
-// (DOM-порядок «подпись → значение» раскладывается auto-flow'ом в 2 колонки).
-.cells {
-    display: grid;
-    grid-template-columns: max-content max-content;
-    justify-content: end; // прижата ВПРАВО, к шеврону
-    align-items: baseline;
-    column-gap: var(--space-5);
-    row-gap: var(--space-2);
-}
-
-.cell {
-    display: contents;
-}
-
-.label {
-    // Капс-подпись = <Text role="caption">; типографику владеет примитив.
-    text-transform: uppercase;
-    color: var(--sys-color-text-secondary);
-    line-height: 1;
-}
-
-// Число — правым краем колонки → единицы выравниваются друг под другом.
-.value {
-    justify-self: end;
-    // Число = <Numeral size="md" weight="black"> (family/tnum/lnum от примитива).
-    color: var(--sys-color-text-primary);
-    line-height: 1;
-}
+// Выровненная колонка чисел «как gofmt» вынесена в общий примитив
+// `NutrientTotalsColumn` (переиспользуется превью «Моя норма») — .cells/.cell/
+// .label/.value живут там.

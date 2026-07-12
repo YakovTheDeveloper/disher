@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
+import Button from '@/shared/ui/atoms/Button/Button';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { useUserNormItems, USER_NORM_NAME } from '@/entities/daily-norm';
 import CreateDailyNormModal from '@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal';
@@ -35,17 +36,33 @@ export function DailyNormDrawer({ onClose }: BaseDrawerProps) {
   const showCreate = !isLoading && (recalc || !hasNorm);
   // Back доступен только в анкете, открытой поверх существующей нормы.
   const canGoBack = recalc && hasNorm;
-  const title = isLoading
-    ? 'Дневная норма'
-    : showCreate
-      ? 'Подобрать норму'
-      : USER_NORM_NAME;
+  const title = isLoading ? 'Дневная норма' : showCreate ? 'Новая норма' : USER_NORM_NAME;
+
+  // «Пересчитать по анкете» — вторичное действие, живёт в ПИНОВАННОМ футере
+  // дровера (ниже скролл-области, вне scroll-fade-маски). Раньше кнопка была
+  // sticky ВНУТРИ скроллера и приходилось задирать её `bottom` на высоту фейда,
+  // чтобы маска её не глушила — из-за чего пилюля висела странно высоко над дном.
+  // В анкете свой футер «Готово» (внутри CreateDailyNormModal), поэтому здесь
+  // футер только во вью нормы.
+  const footer =
+    !isLoading && !showCreate ? (
+      <div className={s.recalcFooter}>
+        <Button
+          variant="system"
+          onClick={startRecalc}
+          icon={<span className={s.recalcGlyph} aria-hidden>↻</span>}
+        >
+          Пересчитать по анкете
+        </Button>
+      </div>
+    ) : undefined;
 
   return (
     <DrawerLayout
       title={title}
       onBack={canGoBack ? goBackToView : undefined}
       backLabel="Назад к норме"
+      footer={footer}
       className={s.surface}
       // Анкета подбора нормы имеет собственный footer («Готово»), который
       // отмечает конец формы — нижний scroll-fade там лишь размывает последнюю
@@ -63,7 +80,7 @@ export function DailyNormDrawer({ onClose }: BaseDrawerProps) {
           // hasNorm=true → показывается норма (а не закрывается весь drawer).
           <CreateDailyNormModal chrome="panel" onClose={goBackToView} />
         ) : (
-          <EditDailyNormModal chrome="panel" onClose={onClose} onRecalc={startRecalc} />
+          <EditDailyNormModal chrome="panel" onClose={onClose} />
         )}
       </div>
     </DrawerLayout>

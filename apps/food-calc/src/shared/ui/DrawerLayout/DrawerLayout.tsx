@@ -1,8 +1,10 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import styles from './DrawerLayout.module.scss';
 import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
 import { useTranslation } from 'react-i18next';
+import { useScrollEdges } from '@/shared/ui/hooks/useScrollEdges';
+import { useCollapsingHeader } from '@/shared/ui/hooks/useCollapsingHeader';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
@@ -86,11 +88,15 @@ type Props = {
    */
   header?: React.ReactNode;
   /**
-   * Top/bottom scroll-fade hints on the scroll area (the sticky white→transparent
-   * gradients that dissolve content at the edges to signal "more above/below").
-   * Defaults to `true`. Pass `false` for short form-style drawers whose own footer
-   * already marks the end — there the bottom fade washes the last row into the
-   * surface and reads as a render glitch rather than an affordance.
+   * Bottom scroll-fade hint on the scroll area — the `mask-image` dissolve that
+   * fades the last rows into transparency to signal "more below" (see
+   * `scroll-edge-fade` mixin; driven by `useScrollEdges` → `data-more-below`).
+   * Defaults to `true`. There is NO top fade: the top edge carries a fading
+   * divider seam instead (`.dragHandle::after`, `data-scrolled`), and this prop
+   * gates ONLY the bottom fade — the top seam always shows on scroll regardless.
+   * Pass `false` for short form-style drawers whose own footer already marks the
+   * end — there the bottom fade washes the last row into the surface and reads as
+   * a render glitch rather than an affordance.
    */
   scrollHints?: boolean;
   /**
@@ -108,6 +114,21 @@ type Props = {
    * want a body inset pass `'panel'`).
    */
   contentInset?: 'panel' | 'sheet' | 'none';
+  /**
+   * How the chrome header row reacts to body scroll (default `'collapse'`):
+   *   - `'pin'` — stays PINNED at full size (legacy behaviour; opt out here).
+   *   - `'collapse'` (default) — stays pinned but SHRINKS organically as you scroll down
+   *     (iOS large-title / Material 3 LargeTopAppBar): the title + leading/trailing
+   *     glyphs scale down and the bar slims, freeing vertical space, then re-expand
+   *     as you scroll back up (enterAlways — see `useCollapsingHeader`). The Close
+   *     cross / `onBack` arrow stay put, so closing is never lost. Best default for
+   *     content-first drawers where a full title bar eats room the body wants.
+   *   - `'scroll'` — the whole row SCROLLS AWAY with the content; the leading
+   *     control DETACHES and floats in the top-left corner (like `floatingClose`),
+   *     so closing survives. The title / `topRight` ride up out of view.
+   * Ignored under `hideTopChrome` / `floatingClose` (no chrome row to drive).
+   */
+  headerScroll?: 'pin' | 'collapse' | 'scroll';
 };
 
 const DrawerLayout = ({
@@ -125,6 +146,7 @@ const DrawerLayout = ({
   header,
   scrollHints = true,
   contentInset,
+  headerScroll = 'collapse',
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -132,6 +154,16 @@ const DrawerLayout = ({
   // component itself never has to know or forward them.
   const { side, width } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
+
+  // ─── Единый детектор краёв прокрутки (верхний шов + нижний fade) ───────────
+  // ОДИН механизм (useScrollEdges, IntersectionObserver на двух сентинелах)
+  // питает и верхний divider-шов (`.dragHandle[data-scrolled]`), и нижний
+  // fade-растворение (`.scrollableContent[data-more-below]`). Раньше это были
+  // ДВА независимых пути: JS-обсервер для шва + CSS scroll-timeline/@container
+  // scroll-state для fade. CSS-путь — Chrome-only, поэтому на iOS Safari (а это
+  // PWA на iOS) fade просто не появлялся. Теперь оба края через один JS-сигнал,
+  // работающий во всех браузерах → шов и fade больше не расходятся.
+  const { topSentinelRef, bottomSentinelRef, scrolled, moreBelow } = useScrollEdges();
 
   // The edge swipe-handle (side drawers) reads ModalShell's single fixed `mono`
   // field tokens (`--sys-field-*`) for its gradient + grip. Those tokens are now
@@ -145,6 +177,78 @@ const DrawerLayout = ({
   // `header` (custom center node) takes precedence over the built-in title path.
   const showVisibleTitle =
     title != null && !hideTopChrome && !floatingClose && header == null;
+
+  // Chrome row exists (title/subtitle/custom header + leading control) unless the
+  // consumer opted into a chromeless variant. `'scroll'` moves the row INTO the
+  // scroller (scrolls away, leading control floats); `'collapse'` keeps it pinned
+  // but shrinks it on scroll; `'pin'` (default) leaves it full-size.
+  const hasChromeRow = !hideTopChrome && !floatingClose;
+  const scrollAwayHeader = hasChromeRow && headerScroll === 'scroll';
+  const collapseHeader = hasChromeRow && headerScroll === 'collapse';
+
+  // Collapse progress (--header-collapse 0..1) is written on `.panel` from the
+  // scroller's onScroll; the pinned chrome row reads it via CSS. Inert unless
+  // `'collapse'` (hook early-returns when disabled).
+  const { targetRef: collapseRef, onScroll: onCollapseScroll } =
+    useCollapsingHeader(collapseHeader);
+
+  // Leading control (Close cross / `onBack` arrow) — ONE factory, so the pinned
+  // chrome-row slot and the floating (scroll-away) placement stay identical apart
+  // from their class. `.floatingClose` carries the corner geometry + quiet glyph.
+  const renderLeading = (className: string) =>
+    onBack ? (
+      <IconButton
+        className={className}
+        onClick={(e) => {
+          e.stopPropagation();
+          onBack();
+        }}
+        aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
+        icon={<ArrowLeftIcon width={16} height={16} />}
+      />
+    ) : (
+      <Drawer.Close
+        onClick={(e) => e.stopPropagation()}
+        render={
+          <IconButton
+            className={className}
+            aria-label={t('overlay.drawer.close', 'Закрыть')}
+            icon={<CrossIcon width={16} height={16} />}
+          />
+        }
+      />
+    );
+
+  // Center band of the chrome row (custom `header` / title / subtitle + `topRight`).
+  // Shared by both placements — only the leading control differs (in-row slot when
+  // pinned, floating when scroll-away), so the center content never forks.
+  const headerCenter = (
+    <>
+      {header != null && <div className={styles.headerSlot}>{header}</div>}
+      {showVisibleTitle &&
+        (subtitle != null ? (
+          <div className={styles.titleStack}>
+            <Drawer.Title
+              className={styles.titleCenter}
+              render={<Heading role="headline" as="h2">{title}</Heading>}
+            >
+              {title}
+            </Drawer.Title>
+            <Text as="p" role="caption" className={styles.titleSubtitle}>
+              {subtitle}
+            </Text>
+          </div>
+        ) : (
+          <Drawer.Title
+            className={styles.titleCenter}
+            render={<Heading role="headline" as="h2">{title}</Heading>}
+          >
+            {title}
+          </Drawer.Title>
+        ))}
+      <div className={clsx(styles.chromeSlot, styles.chromeSlotWrap, styles.topRight)}>{topRight}</div>
+    </>
+  );
 
   const style = width
     ? ({ '--side-drawer-width': width } as CSSProperties)
@@ -186,7 +290,7 @@ const DrawerLayout = ({
           aria-hidden="true"
         />
       )}
-      <div className={styles.panel}>
+      <div className={styles.panel} ref={collapseRef}>
         {/*
           floatingClose — chromeless layout: no drag-handle row, but the Close
           cross floats absolutely in the top-left corner over the body. Resolves
@@ -207,10 +311,19 @@ const DrawerLayout = ({
             }
           />
         )}
-        {!hideTopChrome && !floatingClose && (
+        {/*
+          scrollAwayHeader — non-sticky chrome: the leading control DETACHES and
+          floats in the top-left corner (like `floatingClose`), pinned above the
+          scroll body, while the title/topRight ride away with the content (row
+          rendered inside Drawer.Content below). Closing therefore never scrolls
+          out of reach. Rendered before Drawer.Content so it sits above via z-index.
+        */}
+        {scrollAwayHeader && renderLeading(styles.floatingClose)}
+        {hasChromeRow && !scrollAwayHeader && (
           <div
             className={clsx(
               styles.dragHandle,
+              collapseHeader && styles.dragHandleCollapse,
               showVisibleTitle && subtitle != null && styles.dragHandleStacked,
               header != null && styles.dragHandleHeader,
               // Заголовок ВСЕХ дроверов (нижних И боковых) центрируется по chrome-ряду
@@ -220,6 +333,7 @@ const DrawerLayout = ({
               // left-align боковых (.dragHandleSideTitle, a7637b4b) снят; длинные
               // подписи теперь переносятся на 2 строки, а не жмутся у креста.
             )}
+            data-scrolled={scrolled ? '' : undefined}
           >
             {/*
               Крест/стрелка/урна — ОДИН примитив IconButton (neutral/danger),
@@ -229,75 +343,79 @@ const DrawerLayout = ({
               floor). Оптическая кромка глифа держится на линии тела за счёт
               лево-джастификации в коробке (.chromeSlot.topLeft), независимо от 16.
             */}
-            {onBack ? (
-              <IconButton
-                className={clsx(styles.chromeSlot, styles.topLeft)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onBack();
-                }}
-                aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
-                icon={<ArrowLeftIcon width={16} height={16} />}
-              />
-            ) : (
-              <Drawer.Close
-                onClick={(e) => e.stopPropagation()}
-                render={
-                  <IconButton
-                    className={clsx(styles.chromeSlot, styles.topLeft)}
-                    aria-label={t('overlay.drawer.close', 'Закрыть')}
-                    icon={<CrossIcon width={16} height={16} />}
-                  />
-                }
-              />
-            )}
+            {renderLeading(clsx(styles.chromeSlot, styles.topLeft))}
             {/*
               Custom header center slot. Symmetric gutters (.headerSlot padding)
               keep the node truly centered on the row despite the absolute
               cross (left) / topRight (right). Exactly one Drawer.Title still
               exists — the sr-only one above (showVisibleTitle is false here).
             */}
-            {header != null && <div className={styles.headerSlot}>{header}</div>}
-            {showVisibleTitle &&
-              (subtitle != null ? (
-                <div className={styles.titleStack}>
-                  <Drawer.Title
-                    className={styles.titleCenter}
-                    render={<Heading role="headline" as="h2">{title}</Heading>}
-                  >
-                    {title}
-                  </Drawer.Title>
-                  <Text as="p" role="caption" className={styles.titleSubtitle}>
-                    {subtitle}
-                  </Text>
-                </div>
-              ) : (
-                <Drawer.Title
-                  className={styles.titleCenter}
-                  render={<Heading role="headline" as="h2">{title}</Heading>}
-                >
-                  {title}
-                </Drawer.Title>
-              ))}
-            <div className={clsx(styles.chromeSlot, styles.chromeSlotWrap, styles.topRight)}>{topRight}</div>
+            {headerCenter}
           </div>
         )}
         <Drawer.Content
           id="drawer-content-scrollable"
           className={clsx(
             styles.scrollableContent,
-            !scrollHints && styles.noScrollHints,
             contentInset === 'none' && styles.contentInsetNone,
             contentInset === 'panel' && styles.contentInsetPanel,
             contentInset === 'sheet' && styles.contentInsetSheet,
           )}
+          // Collapse-режим: прогресс сворочивания заголовка пишется из scrollTop
+          // (enterAlways, useCollapsingHeader). Инертно в 'pin'/'scroll' — хук
+          // early-return'ит, когда collapse выключен.
+          onScroll={onCollapseScroll}
+          // Нижний fade-растворение (scroll-edge-fade mask) включается ТОЛЬКО при
+          // переполнении (moreBelow) И когда consumer его не отключил (scrollHints
+          // false — короткие формы со своим footer, где fade размывал бы последний
+          // ряд и читался как глюк). Верхний шов — `data-scrolled` на .dragHandle.
+          data-more-below={scrollHints && moreBelow ? '' : undefined}
           // Touch swipe-to-close opts out of the scrollable body. For mouse/pen
           // Base UI already exempts `[data-drawer-content]`; for touch the only
           // hook is this attribute. Bottom drawers keep the default (swipe axis
           // == scroll axis, handled by Base UI's scroll-edge detection).
           data-base-ui-swipe-ignore={isSide ? '' : undefined}
         >
+          {/*
+            Верхний сентинел (шов заголовка) — ПЕРВЫЙ ребёнок, поэтому его parent =
+            сам скроллер, который useScrollEdges берёт как observer-root. 1px +
+            отрицательный margin ⇒ нулевой вклад в поток, не двигает первый ряд.
+          */}
+          <div
+            ref={topSentinelRef}
+            className={styles.scrollSentinel}
+            aria-hidden="true"
+          />
+          {/*
+            Non-sticky header lives HERE — inside the scroller, right after the
+            top sentinel — so it scrolls away with the body. No leading control
+            (it floats above, rendered before Drawer.Content) and no scroll-seam
+            (the row leaves rather than shadowing a pinned bar). `.dragHandleScroll`
+            neutralises the row's edge insets, which the scroller's own padding
+            already supplies.
+          */}
+          {scrollAwayHeader && (
+            <div
+              className={clsx(
+                styles.dragHandle,
+                styles.dragHandleScroll,
+                showVisibleTitle && subtitle != null && styles.dragHandleStacked,
+                header != null && styles.dragHandleHeader,
+              )}
+            >
+              {headerCenter}
+            </div>
+          )}
           {children}
+          {/*
+            Нижний сентинел (fade) — ПОСЛЕДНИЙ ребёнок: ушёл из вида ⇒ ниже есть
+            контент ⇒ moreBelow. 1px + отрицательный margin ⇒ не добавляет хвост.
+          */}
+          <div
+            ref={bottomSentinelRef}
+            className={styles.scrollSentinelBottom}
+            aria-hidden="true"
+          />
         </Drawer.Content>
         {footer != null && <div className={styles.footer}>{footer}</div>}
       </div>

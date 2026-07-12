@@ -123,7 +123,7 @@ const EditInsightModal = ({ insightId, isExpanded, onClose, overlayContainer }: 
               />
             }
           />
-          <ModalShell.Body inset>
+          <ModalShell.Body>
             <div className={styles.fields}>
               <div className={styles.field}>
                 <FieldLabel className={styles.labelInset} htmlFor={EDIT_INSIGHT_TITLE_INPUT_ID}>

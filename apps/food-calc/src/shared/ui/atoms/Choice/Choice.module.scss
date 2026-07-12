@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Choice — одиночный выбор (роль choice). Маркер «выбрано» = indicator-модель:
 // плоская заливка plum-полюса + флип текста на ink (как Chip.active, без glow).
 // Ink-кромки «выбрано» больше нет — сигнал несёт одна заливка (снята по фидбеку
@@ -18,7 +20,8 @@
   // перекрашивает border-color, геометрия между скинами стабильна (без прыжка 1px).
   border: 1px solid transparent;
   border-radius: var(--sys-radius-control);
-  background: var(--sys-color-surface-1);
+  // Фон по тиру хоста (onSurface) — общий маппинг Button/Chip/Choice. host 0 → surface-1.
+  @include bg-based-on-host-surface(0);
   color: var(--sys-color-text-primary);
   // Дефолт — приподнят мягкой rest-тенью (raised). flat-скин снимает её ниже,
   // выбранный (.checked) тоже снимает — сигнал «выбрано» несёт заливка.
@@ -35,7 +38,7 @@
 // surface-тир хоста: 1|2 (лист/дровер) → чип поднимается до белого surface-2.
 // Объявлено ДО .checked → выбранный (plum) перебивает фон по порядку исходника.
 .onSheet {
-  background: var(--sys-color-surface-2);
+  @include bg-based-on-host-surface(1);
 }
 
 // flat-скин (плотные экраны): тень снята, вместо неё ЯВНАЯ рамка. Средний рунг
@@ -72,10 +75,14 @@
   border-color: transparent;
 }
 
-// Колонка «заголовок + подпись» (sex / активность / цель).
+// Колонка «заголовок + подпись» (sex / активность / цель). Резервируем правый
+// жёлоб под угловой selection-маркер (.marker сидит absolute сверху-справа) —
+// чтобы заголовок/подпись не заезжали под кружок. padding-inline-end longhand
+// перебивает базовый `padding: 9px 14px` только по правой оси (объявлен позже).
 .stacked {
   align-items: flex-start;
   text-align: left;
+  padding-inline-end: 38px;
 }
 
 .content {
@@ -87,7 +94,61 @@
 .stacked .content {
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: var(--space-1);
+}
+
+// ─── Selection-маркер (stacked, default-вариант) ─────────────────────────────
+// Вдавленный well сверху-справа: пустой у невыбранного, с холодной галочкой у
+// выбранного (radio-аффорданс «1 из N» поверх plum-заливки). «Вдавленность» —
+// светлый диск (surface) + plum-ПРОИЗВОДНАЯ inset-тень/кант (color-mix на
+// --sys-color-bg-selected-plum), как утопленное поле наших инпутов. Диск светлый
+// в ОБОИХ состояниях — читается и на белом чипе (кант+тень), и на plum-заливке
+// выбранного (контраст «светлый диск на plum», галочка indigo внутри).
+.marker {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--sys-radius-indicator);
+  // «Вдавленность» — plum-производный inset-well токен (см. tokens.scss). У НЕвыбранного
+  // диск нейтральный (surface-1). У выбранного (.checked ниже) диск забирает бледно-
+  // сливовый тинт полюса — well читается «частью выбранного» и глубже вдавленным.
+  background: var(--sys-color-surface-1);
+  box-shadow: var(--sys-field-shadow-selected-well);
+}
+
+// Выбранный: well приобретает бледно-сливовый оттенок полюса (вдавленность «внутри»
+// plum-чипа). Диск держим светлым — холодная indigo-галочка остаётся читаемой.
+.checked .marker {
+  background: var(--sys-color-surface-well-selected-plum);
+}
+
+// Глиф галочки — ХОЛОДНАЯ indigo-искра (--sys-color-tick-selected), контрапункт
+// тёплому plum-полю. Проявляется только у выбранного (opacity+scale поп).
+.markerTick {
+  width: 15px;
+  height: 15px;
+  color: var(--sys-color-tick-selected);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity var(--press-out) ease,
+    transform var(--press-out) ease;
+}
+
+// Жирный штрих галочки — CSS перебивает inline stroke-width="1" пресентейшн-атрибута
+// tick.svg ЛОКАЛЬНО (только в маркере Choice; общий tick.svg не трогаем).
+.markerTick path {
+  stroke-width: 2.5px;
+}
+
+.checked .markerTick {
+  opacity: 1;
+  transform: scale(1);
 }
 
 // ─── Segmented variant (iOS-сегмент-контрол) ─────────────────────────────────

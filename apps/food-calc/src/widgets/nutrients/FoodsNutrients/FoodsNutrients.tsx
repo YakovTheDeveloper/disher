@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import NutrientTable from './NutrientTable';
+import { NutrientMeterView } from '@/entities/nutrient/ui/NutrientMeterView';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
@@ -26,7 +26,7 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props)
       <div className={styles.normRow}>
         <DailyNormButton />
       </div>
-      <NutrientTable getValue={getValue} />
+      <NutrientMeterView getValue={getValue} />
       {missingNutrientNames.length > 0 && (
         <Text role="caption" className={styles.missing}>
           Нет данных о нутриентах: {missingNutrientNames.join(', ')}

@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
@@ -23,6 +24,7 @@ type Props = BaseDrawerProps<void> & {
  * Selection commits live via `onChange` — the bar owns the source of truth.
  */
 const AttachHypothesesPicker = ({ hypotheses, initialSelectedIds, onChange, onClose }: Props) => {
+  const { t } = useTranslation();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelectedIds));
   const [query, setQuery] = useState('');
 
@@ -66,7 +68,7 @@ const AttachHypothesesPicker = ({ hypotheses, initialSelectedIds, onChange, onCl
     >
       <div className={s.body}>
         {hypotheses.length === 0 ? (
-          <EmptyState className={s.empty} title="Пока нет гипотез — создай их кнопкой «Гипотезы»." />
+          <EmptyState className={s.empty} title={t('analyses.hypotheses.pickerEmpty')} />
         ) : (
           <>
             <AutoGrowSearch

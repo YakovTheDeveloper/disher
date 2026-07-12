@@ -6,8 +6,12 @@ import type { ParseResponse } from './parseFreeTextFood';
 // Head A — "infer recipe": dish name → typical ingredients matched against the
 // catalog, returned in the SAME `ParseResponse` shape as `parseFreeTextFood`
 // (head B) so `useWriteFoodFlow` feeds both into one state machine + предложка.
+// `requestId` is the X-Request-Id idempotency key — caller-owned, reused across
+// a grace-resubmit / retry so the paid infer-recipe call debits at most once.
+// See parseFreeTextFood for the full contract (both heads share it).
 export async function parseDishName(
   dishName: string,
+  requestId: string,
   comment?: string,
   signal?: AbortSignal,
 ): Promise<ParseResponse> {
@@ -16,7 +20,7 @@ export async function parseDishName(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'X-Request-Id': crypto.randomUUID(),
+      'X-Request-Id': requestId,
     },
     // Omit `comment` entirely when empty so the no-clarification path hits the
     // same backend cache key it did before this feature existed.

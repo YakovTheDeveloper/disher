@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from './auth-store';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
@@ -6,17 +6,22 @@ import { WallpaperPicker } from '@/features/wallpaper';
 import { CardPalettePicker } from '@/features/card-palette';
 import { dump, apply, deleteBackup } from '@/shared/lib/snapshot';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
-import { HoldButton } from './HoldButton';
 import { BalanceSection } from './BalanceSection';
+import { SettingRow } from './SettingRow';
+import SignOutConfirmModal from './SignOutConfirmModal';
 import { Text } from '@/shared/ui/atoms/Typography';
-import { Button, IconButton } from '@/shared/ui/atoms/Button';
-import { QuietActionButton } from '@/shared/ui/atoms/Button/QuietActionButton';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import { Switch } from '@/shared/ui/atoms/Switch';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import MoonIcon from '@/shared/assets/icons/moon.svg?react';
 import SunIcon from '@/shared/assets/icons/sun.svg?react';
 import EyeIcon from '@/shared/assets/icons/eye.svg?react';
-import { Accordion } from '@/shared/ui/Accordion';
+import CloudIcon from '@/shared/assets/icons/cloud.svg?react';
+import DownloadIcon from '@/shared/assets/icons/download.svg?react';
+import UploadIcon from '@/shared/assets/icons/upload.svg?react';
+import LogoutIcon from '@/shared/assets/icons/logout.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { modalStore } from '@/shared/ui/modal-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 import { useColorModeStore } from '@/shared/lib/color-mode';
 import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
@@ -49,19 +54,6 @@ const pickJson = (): Promise<unknown> =>
     input.click();
   });
 
-// Sign-out must be held for 5s — a deliberately rare action (it wipes local
-// Dexie). See task #15.
-const HOLD_MS = 5000;
-
-type BackupState = 'idle' | 'saving' | 'done' | 'error';
-
-const BACKUP_LABEL: Record<BackupState, string> = {
-  idle: 'Сохранить в хранилище',
-  saving: 'Сохраняем…',
-  done: 'Сохранено ✓',
-  error: 'Не удалось — повторить',
-};
-
 // Closed via the DrawerLayout handle / swipe, or by `signOut` resetting the
 // overlay stores — so it never reads the injected `onClose`.
 export function ProfileDrawer() {
@@ -76,32 +68,6 @@ export function ProfileDrawer() {
   // стейт + DrawerLayout.onBack (крест → стрелка «Назад»). Свежий mount при
   // каждом drawerStore.show сбрасывает в 'root' — between-opens не храним.
   const [screen, setScreen] = useState<'root' | 'appearance'>('root');
-  // Sign-out lives behind a collapsed «Опасная зона» so it can't be hit by a
-  // stray tap — the user must expand the section first (see task #15).
-  const [dangerOpen, setDangerOpen] = useState(false);
-  // The data import/export section is an accordion, collapsed by default —
-  // a rarely-used backup primitive that shouldn't crowd the drawer at rest.
-  const [dataOpen, setDataOpen] = useState(false);
-  const [backupState, setBackupState] = useState<BackupState>('idle');
-  const [loggingOut, setLoggingOut] = useState(false);
-
-  const handleBackup = async () => {
-    // Route the manual backup through runSyncTracked so a failure is recorded in
-    // the sync-status store AND surfaced as a toaster (not just the button
-    // label) — a manual save that silently fails would be a no-silent-failure
-    // violation. runSyncTracked never throws; the boolean drives the label.
-    setBackupState('saving');
-    const ok = await runSyncTracked({ surfaceToast: true });
-    setBackupState(ok ? 'done' : 'error');
-  };
-
-  // Let the «Сохранено ✓» confirmation fade back to the idle label after a
-  // beat, so a second manual backup later in the session is still offerable.
-  useEffect(() => {
-    if (backupState !== 'done') return;
-    const t = setTimeout(() => setBackupState('idle'), 2000);
-    return () => clearTimeout(t);
-  }, [backupState]);
 
   // Cloud-sync toggle. Enabling is benign/immediate (re-push local via the
   // pull-first syncNow chokepoint — never a bare push that could clobber the
@@ -141,9 +107,13 @@ export function ProfileDrawer() {
   };
 
   const handleSignOut = async () => {
+    // The barrier against a stray tap is the typed-confirm modal («удалить»),
+    // not a collapsed section — so the danger row can sit open in the drawer.
+    // The modal is also where the sync-aware backup offer now lives.
+    const confirmed = await modalStore.show(SignOutConfirmModal, { syncEnabled });
+    if (confirmed !== true) return;
     // signOut wipes Dexie + idb-keyval and resets the overlay stores, which
     // unmounts this drawer — no explicit onClose() needed.
-    setLoggingOut(true);
     await signOut();
   };
 
@@ -153,7 +123,7 @@ export function ProfileDrawer() {
     // identity header, replacing the old centered avatar block. A soft peach→rose
     // ambient glow (`.surface`) sits behind that header, echoing HomeAmbient.
     <DrawerLayout
-      title={screen === 'root' ? 'Аккаунт' : 'Внешний вид'}
+      title={screen === 'root' ? 'Аккаунт' : 'Декор'}
       subtitle={screen === 'root' ? email : undefined}
       onBack={screen === 'root' ? undefined : () => setScreen('root')}
       className={styles.surface}
@@ -186,7 +156,9 @@ export function ProfileDrawer() {
               Разборы), выбор из общего каталога. Пишется в localStorage, сразу
               читается hero-обложками. */}
           <section className={styles.section}>
-            <Text as="h3" role="label" className={styles.sectionLabel}>Обои</Text>
+            <Text as="h3" role="label" className={styles.sectionLabel}>
+              Обои
+            </Text>
             <WallpaperPicker />
           </section>
 
@@ -194,140 +166,124 @@ export function ProfileDrawer() {
               расписания / события / ингредиенты блюда). Переехал сюда из dev-
               DesignBar. Пишется в localStorage, сразу читается поверхностями. */}
           <section className={styles.section}>
-            <Text as="h3" role="label" className={styles.sectionLabel}>Цвет карточек</Text>
+            <Text as="h3" role="label" className={styles.sectionLabel}>
+              Цвет карточек
+            </Text>
             <CardPalettePicker />
           </section>
         </div>
       ) : (
-      <div className={styles.container}>
-        <BalanceSection />
+        <div className={styles.container}>
+          <BalanceSection />
 
-        {/* Внешний вид — единственная nav-строка корня: высокие пикеры (обои +
-            палитра карточек) свёрнуты в под-экран, чтобы не раздувать скролл.
-            Reuse QuietActionButton (значок + label + шеврон); модификатор делает
-            её full-width settings-строкой с тающим hairline снизу. */}
-        <QuietActionButton
-          className={styles.appearanceRow}
-          icon={<EyeIcon width={18} height={18} />}
-          label="Внешний вид"
-          chevron
-          onClick={() => setScreen('appearance')}
-        />
+          {/* Внешний вид — СЕКЦИЯ (не аккордеон): дубль быстрого тумблера тёмной
+            темы из шапки + ряд-вход на под-экран декора. Пикеры (обои + палитра
+            карточек) высокие → уведены на под-экран, аккордеон вернул бы простыню.
+            Плоские ряды делятся тающей бровкой, БЕЗ плашки (канон paper-mono). */}
+          <section className={styles.section}>
+            <Text as="h2" role="label" className={styles.sectionLabel}>
+              Внешний вид
+            </Text>
+            <div className={styles.rows}>
+              <SettingRow
+                icon={<MoonIcon width={18} height={18} />}
+                label="Тёмная тема"
+                trailing={
+                  <Switch
+                    checked={colorMode === 'dark'}
+                    onChange={(next) => setColorMode(next ? 'dark' : 'light')}
+                    aria-label="Тёмная тема"
+                  />
+                }
+              />
+              <SettingRow
+                icon={<EyeIcon width={18} height={18} />}
+                label="Обои и цвет карточек"
+                trailing={<ChevronGlyph />}
+                onClick={() => setScreen('appearance')}
+                aria-label="Внешний вид: обои и цвет карточек"
+              />
+            </div>
+          </section>
 
-        {/* Тема (светлая / тёмная) переехала в chrome-слот шапки (topRight) —
-            быстрый тумблер одним тапом. См. DrawerLayout topRight выше. */}
-
-        {/*
+          {/*
           Синхронизация — облачный бэкап включён по умолчанию. Тумблер OFF ведёт
           через предупреждающий drawer (выгрузка + удаление серверной копии);
-          ON — мгновенный re-push через syncNow (pull-first).
+          ON — мгновенный re-push через syncNow (pull-first). Статус синхры —
+          отдельной строкой под рядом (не смешан с тумблером).
         */}
-        <section className={styles.section}>
-          <Text as="h2" role="label" className={styles.sectionLabel}>Синхронизация</Text>
-          <div className={styles.syncRow}>
-            <Text as="span" role="caption" className={styles.syncHint}>
-              Хранить копию данных в облаке и синхронизировать между устройствами.
+          <section className={styles.section}>
+            <Text as="h2" role="label" className={styles.sectionLabel}>
+              Синхронизация
             </Text>
-            <Switch
-              checked={syncEnabled}
-              onChange={handleSyncToggle}
-              aria-label="Облачная синхронизация"
-            />
-          </div>
-          {/* Ambient sync-status — переехал сюда из HomeTopBar. Ничего не рендерит
-              в покое; показывает «Офлайн» / «Синхронизирую…» / «Не сохранено ·
-              Повторить» (tap = retry). Обёртка hug-left, чтобы danger-фон не
-              растягивался на всю ширину секции. */}
-          <div className={styles.syncStatus}>
-            <SyncStatusChip />
-          </div>
-        </section>
+            <div className={styles.rows}>
+              <SettingRow
+                icon={<CloudIcon width={18} height={18} />}
+                label="Облачная копия"
+                sub="Хранить данные в облаке, синхронизировать между устройствами"
+                trailing={
+                  <Switch
+                    checked={syncEnabled}
+                    onChange={handleSyncToggle}
+                    aria-label="Облачная синхронизация"
+                  />
+                }
+              />
+            </div>
+            {/* Ambient sync-status — переехал сюда из HomeTopBar. Ничего не рендерит
+              в покое; показывает «Офлайн» / «Синхронизирую…» / «Не сохранено» +
+              иконку-повтор. Обёртка hug-left, чтобы danger-фон не растягивался на
+              всю ширину секции. */}
+            <div className={styles.syncStatus}>
+              <SyncStatusChip />
+            </div>
+          </section>
 
-        {/* Данные — accordion, collapsed by default (примитив Accordion). */}
-        <Accordion
-          open={dataOpen}
-          onToggle={setDataOpen}
-          bodyClassName={styles.dataBody}
-          title={
-            <Text as="span" role="label" className={styles.sectionLabel}>
+          {/* Данные — раскрыты рядами (аккордеон убран): два действия не стоят
+            свёртки. Действия = ряды-кнопки, не кнопки-плашки. */}
+          <section className={styles.section}>
+            <Text as="h2" role="label" className={styles.sectionLabel}>
               Данные
             </Text>
-          }
-        >
-          <Text as="p" role="caption" className={styles.dataHint}>
-            Скачать копию данных в файл или загрузить ранее сохранённую.
-          </Text>
-          <div className={styles.dataActions}>
-            <Button variant="system-secondary" flat onClick={handleExport}>
-              Скачать файл
-            </Button>
-            <Button variant="system-secondary" flat onClick={handleImport}>
-              Загрузить из файла
-            </Button>
-          </div>
-        </Accordion>
+            <div className={styles.rows}>
+              <SettingRow
+                icon={<DownloadIcon width={18} height={18} />}
+                label="Скачать копию в файл"
+                trailing={<ChevronGlyph />}
+                onClick={handleExport}
+              />
+              <SettingRow
+                icon={<UploadIcon width={18} height={18} />}
+                label="Загрузить из файла"
+                trailing={<ChevronGlyph />}
+                onClick={handleImport}
+              />
+            </div>
+          </section>
 
-        {/*
-          «Опасная зона» — last in the main flow, separated by a fading hairline.
-          Still collapsed behind a toggle so sign-out can't be hit by a stray
-          tap (task #15); the 5s hold is the second line of defence. Wrapper
-          `.danger` владеет parking (margin-top:auto) + красный hairline; сам
-          раскрывающийся блок — примитив Accordion (danger-тон через headerClassName).
+          {/*
+          «Опасная зона» — показана СРАЗУ (аккордеон убран): барьер от промаха
+          несёт модалка с типовым вводом «удалить», а не свёртка. Случайный тап
+          по ряду лишь открывает модалку. Sync-aware бэкап-оффер и предупреждение
+          «нет облачной копии» переехали внутрь модалки. Обёртка `.danger` держит
+          парковку снизу (margin-top:auto) + красную тающую бровку сверху.
         */}
-        <section className={styles.danger}>
-          <Accordion
-            open={dangerOpen}
-            onToggle={setDangerOpen}
-            headerClassName={styles.dangerHeader}
-            bodyClassName={styles.dangerBody}
-            title={
-              <Text as="span" role="label">
-                Опасная зона
-              </Text>
-            }
-          >
-            {/*
-              Sync-aware: the cloud safety net only exists when sync is ON. With
-              sync OFF, sign-out wipes Dexie with NO cloud restore — the old
-              «вернутся при входе» promise would be a lie, and the manual cloud
-              backup would no-op (and falsely flash «Сохранено ✓»), so it's hidden;
-              the file-export path («Данные» above) is the safe backup.
-            */}
-            {syncEnabled ? (
-              <>
-                <Text as="p" role="caption" className={styles.dangerHint}>
-                  При выходе данные на этом устройстве очищаются. Они хранятся в
-                  облаке и вернутся при следующем входе — но лучше сохранить
-                  свежую копию прямо сейчас.
-                </Text>
-                <Button
-                  variant="system-secondary"
-                  flat
-                  fullWidth
-                  onClick={handleBackup}
-                  disabled={backupState === 'saving'}
-                >
-                  {BACKUP_LABEL[backupState]}
-                </Button>
-              </>
-            ) : (
-              <Text as="p" role="caption" className={styles.dangerHint}>
-                При выходе данные на этом устройстве очищаются. Синхронизация
-                выключена — копии в облаке нет, восстановить их не получится.
-                Скачайте копию в разделе «Данные» перед выходом.
-              </Text>
-            )}
-            <HoldButton
-              holdMs={HOLD_MS}
-              onComplete={handleSignOut}
-              busy={loggingOut}
-              label="Удерживайте, чтобы выйти"
-              activeLabel="Не отпускайте…"
-              busyLabel="Выходим…"
-            />
-          </Accordion>
-        </section>
-      </div>
+          <section className={styles.danger}>
+            <Text as="h2" role="label" className={styles.dangerLabel}>
+              Опасная зона
+            </Text>
+            <div className={styles.rows}>
+              <SettingRow
+                danger
+                icon={<LogoutIcon width={18} height={18} />}
+                label="Выйти из аккаунта"
+                sub="Спросит подтверждение — ввод «удалить»"
+                trailing={<ChevronGlyph />}
+                onClick={handleSignOut}
+              />
+            </div>
+          </section>
+        </div>
       )}
     </DrawerLayout>
   );

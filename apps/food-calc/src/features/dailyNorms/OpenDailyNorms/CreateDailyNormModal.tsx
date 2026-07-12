@@ -18,8 +18,9 @@ import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { useFieldError } from '@/shared/ui/form/useFieldError';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FormLayout } from '@/shared/ui/form/FormLayout';
+import { NutrientTotalsColumn } from '@/shared/ui/NutrientTotalsColumn';
 import styles from './CreateDailyNormModal.module.scss';
-import { Text, Numeral, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 
 // Explanatory copy under the «Моя норма» title — shared verbatim by both chrome
@@ -60,7 +61,11 @@ const ACTIVITY_OPTIONS: Array<{ value: Activity; label: string; hint: string }> 
 // Оставляем один пункт с value 'health' (поддержание калорий + качественные микро).
 const GOAL_OPTIONS: Array<{ value: Goal; label: string; hint: string }> = [
   { value: 'lose', label: 'Худеть', hint: '−15% от поддержания' },
-  { value: 'health', label: 'Улучшить рацион (поддержание)', hint: 'держим вес + акцент на качестве' },
+  {
+    value: 'health',
+    label: 'Улучшить рацион (поддержание)',
+    hint: 'держим вес + акцент на качестве',
+  },
   { value: 'gain', label: 'Набирать', hint: '+15% к поддержанию' },
 ];
 
@@ -84,6 +89,10 @@ function clamp(v: number, min: number, max: number): number {
 
 const fmt = (v: number) => v.toLocaleString('ru-RU');
 
+// Значения сводки — как в NutrientsBar: голое округлённое целое (без разрядного
+// разделителя), чтобы облик итога совпадал с дневной сводкой на «Рационе».
+const fmtInt = (v: number) => String(Math.round(v));
+
 const isInRange = (v: number, range: { min: number; max: number }) =>
   Number.isFinite(v) && v >= range.min && v <= range.max;
 
@@ -99,24 +108,44 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
       isInRange(survey.age, LIMITS.age) &&
       isInRange(survey.weightKg, LIMITS.weightKg) &&
       isInRange(survey.heightCm, LIMITS.heightCm),
-    [survey],
+    [survey]
   );
 
   const { bmr, tdee, macros } = useMemo(
     () => ({
-      bmr: Math.round(
-        (10 * safeSurvey.weightKg + 6.25 * safeSurvey.heightCm - 5 * safeSurvey.age +
-          (safeSurvey.sex === 'male' ? 5 : -161)) / 5,
-      ) * 5,
+      bmr:
+        Math.round(
+          (10 * safeSurvey.weightKg +
+            6.25 * safeSurvey.heightCm -
+            5 * safeSurvey.age +
+            (safeSurvey.sex === 'male' ? 5 : -161)) /
+            5
+        ) * 5,
       tdee: Math.round(calcTdee(safeSurvey) / 10) * 10,
       macros: calcMacros(safeSurvey),
     }),
-    [safeSurvey],
+    [safeSurvey]
   );
+
+  // Итоговая сводка переиспользует облик дневной сводки нутриентов (экран
+  // «Рацион», NutrientsBar) через общий `NutrientTotalsColumn` — тот же набор
+  // Б·Ж·У·Кл·Ккал·Вода. Клетчатка/вода живут только в полной норме, поэтому
+  // считаем её здесь (макросы дают лишь Б/Ж/У/ккал).
+  const summaryCells = useMemo(() => {
+    const norm = generateNormFromSurvey(safeSurvey);
+    return [
+      { key: 'b', label: 'Б', value: fmtInt(macros.proteinG) },
+      { key: 'f', label: 'Ж', value: fmtInt(macros.fatG) },
+      { key: 'c', label: 'У', value: fmtInt(macros.carbsG) },
+      { key: 'fiber', label: 'Кл', value: fmtInt(norm['6']) },
+      { key: 'kcal', label: 'Ккал', value: fmtInt(macros.kcal) },
+      { key: 'water', label: 'Вода', value: fmtInt(norm['8']) },
+    ];
+  }, [safeSurvey, macros]);
 
   const patch = useCallback(
     (p: Partial<NormSurvey>) => setSurvey((prev) => ({ ...prev, ...p })),
-    [],
+    []
   );
 
   const handleCommit = useCallback(async () => {
@@ -125,10 +154,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
       return;
     }
     const items = generateNormFromSurvey(safeSurvey);
-    const result = await safeMutate(
-      () => upsertUserNorm(items),
-      'Не удалось сохранить норму',
-    );
+    const result = await safeMutate(() => upsertUserNorm(items), 'Не удалось сохранить норму');
     if (!result.ok) return;
     toaster.success('Норма подобрана');
     onClose();
@@ -137,12 +163,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
   const isPanel = chrome === 'panel';
 
   const commitButton = (
-    <Button
-      variant="system"
-      fullWidth
-      disabled={!isValid}
-      onClick={handleCommit}
-    >
+    <Button variant="system" fullWidth disabled={!isValid} onClick={handleCommit}>
       Готово
     </Button>
   );
@@ -154,6 +175,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
         <FormLayout.Group label="Пол">
           <ChoiceGroup
+            onSurface={2}
             className={styles.pillRow}
             aria-label="Пол"
             value={survey.sex}
@@ -196,14 +218,20 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           <ChoiceGroup
             className={styles.pillCol}
             orientation="vertical"
+            onSurface={2}
+            elevation="flat"
             aria-label="Активность"
             value={survey.activity}
             onChange={(v) => patch({ activity: v as Activity })}
           >
             {ACTIVITY_OPTIONS.map((o) => (
               <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
-                <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
+                <Text as="span" role="label" className={styles.pillTitle}>
+                  {o.label}
+                </Text>
+                <Text as="span" role="caption" className={styles.pillHint}>
+                  {o.hint}
+                </Text>
               </ChoiceItem>
             ))}
           </ChoiceGroup>
@@ -214,36 +242,47 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             className={styles.pillCol}
             orientation="vertical"
             aria-label="Цель"
+            onSurface={2}
+            elevation="flat"
             value={survey.goal}
             onChange={(v) => patch({ goal: v as Goal })}
           >
             {GOAL_OPTIONS.map((o) => (
               <ChoiceItem key={o.value} className={styles.choiceCellFull} value={o.value} stacked>
-                <Text as="span" role="label" className={styles.pillTitle}>{o.label}</Text>
-                <Text as="span" role="caption" className={styles.pillHint}>{o.hint}</Text>
+                <Text as="span" role="label" className={styles.pillTitle}>
+                  {o.label}
+                </Text>
+                <Text as="span" role="caption" className={styles.pillHint}>
+                  {o.hint}
+                </Text>
               </ChoiceItem>
             ))}
           </ChoiceGroup>
         </FormLayout.Group>
-      </FormLayout>
 
-          <div className={styles.preview}>
-            <div className={styles.previewKcal}>
-              <Numeral as="span" size="hero" weight="medium" className={styles.previewKcalValue}>{fmt(macros.kcal)}</Numeral>
-              <Text as="span" role="caption" className={styles.previewKcalUnit}>ккал в день</Text>
+        {/* Итог — секция-ровня прочим группам формы (тот же section-gap, левый
+            край). Заголовок несёт <Heading role="title"> (канон заголовка секции
+            нутриентов), сводка — общий NutrientTotalsColumn (облик «Рациона»). */}
+        <FormLayout.Group>
+          <Heading role="headline" as="h3">
+            Итог
+          </Heading>
+          {/* Две колонки: слева — выровненная сводка нутриентов, справа — тихая
+              оговорка про точность + провенанс без жаргона (BMR → «без активности
+              тратится», поддержание → «вес держится»). */}
+          <div className={styles.summaryRow}>
+            <NutrientTotalsColumn cells={summaryCells} align="start" />
+            <div className={styles.previewMeta}>
+              <Text as="p" role="caption" className={styles.previewMetaLine}>
+                Примерная норма — точные числа можно поправить.
+              </Text>
+              <Text as="p" role="caption" className={styles.previewMetaLine}>
+                Без активности тратится ~{fmt(bmr)} ккал, вес держится на ~{fmt(tdee)}
+              </Text>
             </div>
-            <div className={styles.macros}>
-              <MacroChip label="Б" value={macros.proteinG} />
-              <MacroChip label="Ж" value={macros.fatG} />
-              <MacroChip label="У" value={macros.carbsG} />
-            </div>
-            {/* Тихий ярус: «ориентир»-оговорка + провенанс (BMR/поддержание) — одна
-                строка, один разделитель «·». «ориентир» спущен сюда, к своей родне
-                (оговорка про точность), а не болтается сиротой у числа. */}
-            <Text as="p" role="caption" className={styles.previewMeta}>
-              ориентир · BMR ~{fmt(bmr)} · поддержание ~{fmt(tdee)} ккал
-            </Text>
           </div>
+        </FormLayout.Group>
+      </FormLayout>
     </>
   );
 
@@ -302,25 +341,12 @@ const NumberField = ({ unit, value, min, max, onChange }: NumberFieldProps) => {
     <label className={clsx(styles.numberField, invalid && styles.numberFieldInvalid)}>
       <div className={styles.numberInputRow}>
         <NumberInput value={value} onChange={handleChange} maxLength={3} error={error} />
-        <Text as="span" role="caption" className={styles.numberUnit}>{unit}</Text>
+        <Text as="span" role="caption" className={styles.numberUnit}>
+          {unit}
+        </Text>
       </div>
     </label>
   );
 };
-
-type MacroChipProps = {
-  label: string;
-  value: number;
-};
-
-// Б/Ж/У = группа «serif-label · число». Единица «г» убрана (для макросов граммы
-// подразумеваются — тройное «г» было шумом); разделитель «·» между группами
-// живёт в scss (::before), чтобы ряд читался как чистый триплет.
-const MacroChip = ({ label, value }: MacroChipProps) => (
-  <div className={styles.macroChip}>
-    <QuietLabel as="span" className={styles.macroLabel}>{label}</QuietLabel>
-    <Numeral as="span" size="base" weight="semibold" className={styles.macroValue}>{fmt(value)}</Numeral>
-  </div>
-);
 
 export default CreateDailyNormModal;

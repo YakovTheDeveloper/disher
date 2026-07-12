@@ -1,17 +1,66 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Ряд = «утопленный слот» (well): заливка + внутренняя тень читаются как
+// вдавленность. Тон/глубина берутся из surface-aware `--sys-field-*` (well
+// один шаг ниже поверхности хоста; хост объявляет её через @include
+// field-depth(<surface>)). Инпут внутри остаётся прозрачным/безрамочным —
+// well рисует сам .row, поэтому нет войны двух `.input`-классов (NumberInput +
+// этот) за фон/бордер.
 .row {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    padding: 4px 8px;
+    border-radius: var(--sys-field-radius, var(--radius-sm));
+    background: var(--sys-field-bg-from);
+    box-shadow: var(--sys-field-shadow);
     cursor: text;
+    transition: box-shadow 120ms ease;
+
+    // Фокус-бровка well'а = канон вдавленных полей (AutoGrowSearch/AuthForm/
+    // WriteBarShell): на focus-within проявляется нижний hairline (--sys-field-
+    // hairline-focus) и углубляется inset-тень (--sys-field-shadow-focus). В покое
+    // hairline прозрачный (в well-контексте field-depth зануляет --sys-field-
+    // hairline) — ряд остаётся тихой лункой без бровки, пока в него не встали.
+    &::after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        right: 6px;
+        bottom: 0;
+        height: 1px;
+        @include hairline(var(--sys-field-hairline));
+        pointer-events: none;
+        transition: background 120ms ease;
+    }
+
+    &:focus-within {
+        box-shadow: var(--sys-field-shadow-focus);
+
+        &::after {
+            @include hairline(var(--sys-field-hairline-focus));
+        }
+    }
 }
 
+// Число — ФИКСИРОВАННАЯ под-колонка (was max-width: гуляла по контенту). Вместе
+// с фикс-шириной .unit это держит well'ы одной ширины → правый край у края
+// карточки и левый край совпадают у всех рядов = колонка-таблица (не рваный
+// правый столбец). Right-align: цифры выстраиваются к единице, как в таблице.
 .input {
-    max-width: 48px;
+    width: 48px;
     background: transparent;
     border: none;
-    text-align: center;
+    box-shadow: none;
+    text-align: right;
     font-size: var(--sys-numeral-sm); /* was 13px — числовой ввод */
     font-weight: 600;
+    caret-color: var(--sys-field-caret, var(--color-ink)); /* тёплый видимый каретка в лунке */
+
+    &:focus {
+        box-shadow: none; /* фокус-бровка живёт на .row (well), не на input */
+    }
 
     &::selection {
         background-color: var(--sys-color-control-track);
@@ -19,10 +68,11 @@
     }
 }
 
-.norm {
-    opacity: 0.5;
-}
-
+// Единица — ФИКСИРОВАННАЯ под-колонка под самую длинную единицу («ккал», 4 симв.),
+// left-align. min-width задавал лишь пол → «ккал» распирал колонку и well «Энергии»
+// уезжал левее «г»-рядов (рельс ломался). Фикс-width держит ВСЕ well'ы одной ширины
+// (число 48 + gap + единица) → правый край у края карточки и левый край совпадают.
 .unit {
+    width: 36px;
     opacity: 0.5;
 }

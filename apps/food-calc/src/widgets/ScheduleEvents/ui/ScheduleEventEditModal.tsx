@@ -8,6 +8,7 @@ import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
 import { updateScheduleEvent } from '@/entities/schedule-event';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
@@ -71,6 +72,12 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     else if (id === EDIT_MODAL_INPUT_IDS.TEXT_INPUT) setStep('text');
     else if (id === EDIT_MODAL_INPUT_IDS.ATOMS_INPUT) setStep('atoms');
     else return;
+
+    // Медаль ItemActionsDrawer только что делегировала фокус сюда — дровер отработал,
+    // закрываем его (открыт с trapFocus:false, поэтому фокус смог уйти наружу портала).
+    // No-op, когда дровера нет (правка тапом по карточке) — closeLast закрывает лишь
+    // открытый инстанс.
+    drawerStore.closeLast();
 
     // Контейнер атомов — flex:1 во весь экран; scrollIntoView({block:'center'})
     // на нём тащит модалку / visual viewport на iOS. Скроллим только мелкие

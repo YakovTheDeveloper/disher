@@ -23,7 +23,9 @@ const DrawerManager = () => {
           // body scroll-lock (position: fixed на html/body). На iOS Safari
           // scroll-lock форсит full-document reflow при первом open и
           // блокирует main thread → 1s cold-start lag, см. vaul#318/#622.
-          modal="trap-focus"
+          // `trapFocus: false` (ItemActionsDrawer) снимает и focus-trap → medal
+          // `<label htmlFor>` может делегировать фокус edit-инпуту вне портала.
+          modal={options.trapFocus === false ? false : 'trap-focus'}
           // Swipe-to-dismiss direction follows the anchor edge: bottom drawers
           // swipe down, side drawers swipe toward their own edge.
           swipeDirection={options.side === 'bottom' ? 'down' : options.side}

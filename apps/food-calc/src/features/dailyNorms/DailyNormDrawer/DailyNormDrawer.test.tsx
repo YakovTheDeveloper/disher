@@ -15,16 +15,19 @@ vi.mock('@/entities/daily-norm', () => ({
   USER_NORM_NAME: 'Моя норма',
 }));
 vi.mock('@/shared/ui/DrawerLayout', () => ({
-  // The contextual back button lives in DrawerLayout (via `onBack`), not in the
-  // drawer's children — surface it here so the recalc↔back assertions hold.
+  // The contextual back button (`onBack`) and the «Пересчитать по анкете» action
+  // (`footer`) both live in DrawerLayout, not in the drawer's children — surface
+  // them here so the recalc↔back assertions hold.
   DrawerLayout: ({
     children,
     onBack,
     backLabel,
+    footer,
   }: {
     children: ReactNode;
     onBack?: () => void;
     backLabel?: string;
+    footer?: ReactNode;
   }) => (
     <div>
       {onBack && (
@@ -33,6 +36,7 @@ vi.mock('@/shared/ui/DrawerLayout', () => ({
         </button>
       )}
       {children}
+      {footer}
     </div>
   ),
 }));
@@ -42,9 +46,9 @@ vi.mock('@/features/dailyNorms/OpenDailyNorms/CreateDailyNormModal', () => ({
   ),
 }));
 vi.mock('@/features/dailyNorms/OpenDailyNorms/EditDailyNormModal', () => ({
-  default: ({ onRecalc }: { onRecalc?: () => void }) => (
-    <button data-testid="edit" onClick={onRecalc}>edit</button>
-  ),
+  // The recalc action no longer lives in the edit panel — it's the drawer's
+  // pinned footer button (rendered by DailyNormDrawer), so this mock is body-only.
+  default: () => <div data-testid="edit">edit</div>,
 }));
 
 const { DailyNormDrawer } = await import('./DailyNormDrawer');
@@ -75,7 +79,7 @@ describe('DailyNormDrawer', () => {
     h.items = { '1': 100 };
     render(<DailyNormDrawer onClose={noop} />);
 
-    fireEvent.click(screen.getByTestId('edit')); // onRecalc
+    fireEvent.click(screen.getByRole('button', { name: /Пересчитать по анкете/ }));
     expect(screen.getByTestId('create')).toBeInTheDocument();
     const back = screen.getByRole('button', { name: 'Назад к норме' });
     fireEvent.click(back);
@@ -98,7 +102,7 @@ describe('DailyNormDrawer', () => {
     h.items = { '1': 100 };
     render(<DailyNormDrawer onClose={noop} />);
 
-    fireEvent.click(screen.getByTestId('edit')); // onRecalc → survey
+    fireEvent.click(screen.getByRole('button', { name: /Пересчитать по анкете/ })); // → survey
     expect(screen.getByTestId('create')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('create')); // CreateModal onClose = goBackToView
     expect(screen.getByTestId('edit')).toBeInTheDocument();

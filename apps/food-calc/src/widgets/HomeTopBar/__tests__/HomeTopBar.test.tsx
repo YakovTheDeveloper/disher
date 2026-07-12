@@ -26,9 +26,6 @@ vi.mock('@/features/auth', () => ({ AccountPanel: () => null }));
 vi.mock('@/app/routing/useAppRoutes', () => ({
   useAppRoutes: () => ({ toScheduleBuilder: h.toScheduleBuilder }),
 }));
-vi.mock('@/shared/lib/useDesignVariant', () => ({
-  useDesignVariant: () => ({ variant: 'floating', anchor: {} }),
-}));
 
 const DATE = '15-05-2026';
 const NEW_DATE = '20-05-2026';
@@ -71,14 +68,15 @@ describe('HomeTopBar — noInterruptGuard', () => {
 });
 
 describe('HomeTopBar — date button content', () => {
-  it('shows the short weekday letters and NO dd.mm numbers', () => {
-    // DATE = 15-05-2026 → пятница (short «Пт»). Флип 2026-07-10: относительные слова
-    // (Сегодня/Вчера/Завтра) и мета dd.mm сняты — только буквы дня в силуэте календаря.
+  it('shows the short weekday plus the day-of-month as a small superscript', () => {
+    // DATE = 15-05-2026 → пятница (short «Пт», курсив) + мелкое тонкое число дня
+    // «15» надстрочником-«степенью» в углу (2026-07-12 — силуэт календаря снят).
     render(<HomeTopBar date={DATE} />);
     const btn = screen.getByLabelText('Выбрать дату');
 
     expect(btn.textContent).toContain('Пт');
-    // Guard против отката к старому рендеру с числом dd.mm (напр. «15.05»).
+    expect(btn.textContent).toContain('15');
+    // Guard против отката к старому мета dd.mm (напр. «15.05») — только день «степенью».
     expect(btn.textContent).not.toMatch(/\d\d\.\d\d/);
   });
 });

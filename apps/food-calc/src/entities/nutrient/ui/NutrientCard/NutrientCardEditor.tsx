@@ -41,7 +41,6 @@ const NutrientCardEditor: FC<Props> = ({
     id,
     unitRu,
     value,
-    norm,
     percentText,
     statusClass,
     progressPercent,
@@ -54,7 +53,6 @@ const NutrientCardEditor: FC<Props> = ({
   // --- product-edit: input focus via label ---
   const editInputId = useId();
 
-  // --- product-edit variant ---
   if (isProductEdit) {
     return (
       <label
@@ -68,7 +66,6 @@ const NutrientCardEditor: FC<Props> = ({
             value={editValue}
             onChange={(v) => onValueChange?.(id, v)}
             unit={unitRu}
-            norm={hasNorm ? norm : undefined}
           />
         </div>
       </label>

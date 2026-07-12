@@ -34,7 +34,7 @@ export function NutrientsDrawer({
   const title = viewTitle ?? 'Нутриенты';
 
   return (
-    <DrawerLayout title={title}>
+    <DrawerLayout title={title} contentInset="panel">
       <div className={styles.body}>
         <FeatureErrorBoundary label={title}>
           <FoodsNutrients

@@ -12,14 +12,7 @@ describe('NutrientInput', () => {
     expect(screen.getByText('г')).toBeInTheDocument();
   });
 
-  it('shows norm when provided', () => {
-    render(<NutrientInput value={25} onChange={() => {}} unit="г" norm={51} />);
-
-    expect(screen.getByText('/ 51')).toBeInTheDocument();
-    expect(screen.getByText('г')).toBeInTheDocument();
-  });
-
-  it('hides norm when not provided', () => {
+  it('never renders a daily-norm hint (composition authoring shows value + unit only)', () => {
     render(<NutrientInput value={25} onChange={() => {}} unit="мг" />);
 
     expect(screen.queryByText(/\//)).not.toBeInTheDocument();

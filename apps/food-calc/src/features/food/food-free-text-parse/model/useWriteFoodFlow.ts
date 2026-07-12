@@ -16,9 +16,12 @@ import {
   type ParseIntake,
 } from './parseStateStorage';
 import { targetId, type ParseTarget } from './target';
+import { matchLocalProduct, type LocalMatchCandidate } from './localMatch';
 import { db } from '@/shared/lib/dexie/schema';
 import { addScheduleFood } from '@/entities/schedule-food/api/mutations';
 import { addDishItem } from '@/entities/dish/api/mutations';
+import { useProducts } from '@/entities/product';
+import { isCatalogId } from '@/shared/data/catalog';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -148,6 +151,27 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const haptic = useHaptic();
   const hideTime = target.kind === 'dish';
 
+  // User's OWN products for the client-side local match (the backend matches
+  // only the system catalog and never sees these — см. localMatch.ts). Exclude
+  // catalog rows (already matched server-side) and, when building a dish,
+  // serving-basis supplements (per-100g dish math can't use them — same rule as
+  // SearchFood's ingredient mode).
+  const allProducts = useProducts();
+  const localMatchCandidates = useMemo<LocalMatchCandidate[]>(() => {
+    const userOnly = allProducts.filter((p) => !isCatalogId(p.id));
+    const base =
+      target.kind === 'dish'
+        ? userOnly.filter((p) => p.servingBasis !== 'serving')
+        : userOnly;
+    return base.map((p) => ({ id: p.id, name: p.name }));
+  }, [allProducts, target.kind]);
+  // applyResponse reads candidates via a ref so it needn't list them as a dep
+  // (which would churn its identity on every Dexie live-query tick).
+  const localMatchCandidatesRef = useRef<LocalMatchCandidate[]>([]);
+  useEffect(() => {
+    localMatchCandidatesRef.current = localMatchCandidates;
+  }, [localMatchCandidates]);
+
   const [state, setState] = useState<WriteFoodFlowState>('idle');
   const [parseResult, setParseResult] = useState<ParseResponse | null>(null);
   const [inputText, setInputText] = useState<string>('');
@@ -223,10 +247,15 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           ...EMPTY_FLAGS,
         };
       });
+      const cands = localMatchCandidatesRef.current;
       const unresolvedRows: UnresolvedRow[] = response.unresolved.map((u) => {
         const uid = makeUid();
         choices.set(uid, { originalName: u.originalName, matcherChoice: '' });
-        return { ...u, uid, manual: null, enabled: true, ...EMPTY_FLAGS };
+        // Local match against the user's OWN products — the ones the server-side
+        // catalog matcher can't see. A hit pre-fills `manual`, so the row renders
+        // like a manual rescue and rides the existing commit path (productId).
+        const local = cands.length > 0 ? matchLocalProduct(u.originalName, cands) : null;
+        return { ...u, uid, manual: local, enabled: true, ...EMPTY_FLAGS };
       });
 
       setResolved(resolvedRows);
@@ -277,8 +306,8 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       // Only head A carries the optional «Уточнения» comment.
       const parsePromise =
         intake === 'dishName'
-          ? parseDishName(text, comment, controller.signal)
-          : parseFreeTextFood(text, controller.signal);
+          ? parseDishName(text, requestId, comment, controller.signal)
+          : parseFreeTextFood(text, requestId, controller.signal);
       parsePromise.then(
         (response) => {
           if (controller.signal.aborted) return;
@@ -387,20 +416,22 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       return;
     }
 
-    // Within grace window — re-submit with new requestId, keep same inputText.
+    // Within grace window — re-submit REUSING persisted.requestId (fix #4). The
+    // original request may have reached the server and charged; a fresh id would
+    // slip past the X-Request-Id idempotency and debit a second time. Reusing it
+    // makes the resubmit a no-op charge server-side. Only the timeout clock
+    // (startedAt) is refreshed.
     setParseResult(null);
     setErrorMessage(null);
     setState('loading');
-    const newRequestId = makeRequestId();
     const refreshed: PersistedParseState = {
       ...persisted,
-      requestId: newRequestId,
       startedAt: Date.now(),
     };
     writeParseState(refreshed);
     startFetch(
       persisted.inputText,
-      newRequestId,
+      persisted.requestId,
       refreshed.startedAt,
       persisted.intake,
       persisted.comment,
@@ -423,7 +454,26 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     }
   }, [parseResult, applyResponse]);
 
-  // ─── Telemetry helpers ───
+  // Late-load catch-up for the local user-product match. applyResponse fills
+  // `manual` on a fresh parse, but on a cold restore the persisted parseResult
+  // can hydrate before the Dexie products live-query resolves, and the user may
+  // create a product while the review is open. Re-run the match whenever the
+  // candidate set changes, filling only rows the user hasn't resolved or touched.
+  // Functional update + changed-guard → no dep on `unresolved`, no render loop.
+  useEffect(() => {
+    if (localMatchCandidates.length === 0) return;
+    setUnresolved((prev) => {
+      let changed = false;
+      const next = prev.map((u) => {
+        if (u.manual || u.foodEdited) return u;
+        const local = matchLocalProduct(u.originalName, localMatchCandidates);
+        if (!local) return u;
+        changed = true;
+        return { ...u, manual: local };
+      });
+      return changed ? next : prev;
+    });
+  }, [localMatchCandidates]);
 
   const buildTelemetry = useCallback(
     (
@@ -547,16 +597,22 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     };
   }, []);
 
-  // ─── Parse-cycle actions ───
-
   const startIntake = useCallback(
-    (rawText: string, intake: ParseIntake, comment?: string) => {
+    (
+      rawText: string,
+      intake: ParseIntake,
+      comment?: string,
+      // When re-issuing the SAME logical parse (a manual retry), the caller
+      // passes the failed attempt's requestId so the server dedups the charge
+      // instead of debiting again. A brand-new intake mints a fresh id.
+      reuseRequestId?: string,
+    ) => {
       const trimmed = rawText.trim();
       if (!trimmed) return;
       lastIntakeRef.current = intake;
       lastCommentRef.current = comment;
       abortActive();
-      const requestId = makeRequestId();
+      const requestId = reuseRequestId ?? makeRequestId();
       const startedAt = Date.now();
       const persisted: PersistedParseState = {
         target,
@@ -594,8 +650,18 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       setState('idle');
       return;
     }
-    startIntake(inputText, lastIntakeRef.current, lastCommentRef.current);
-  }, [inputText, startIntake]);
+    // Reuse the failed attempt's requestId (fix #5): a manual retry of the same
+    // input must not mint a fresh X-Request-Id, or a request that already
+    // charged server-side (response lost) would be debited a second time.
+    // BUT only when the text is UNCHANGED (persisted inputText is trimmed, so
+    // compare against the trimmed current text). Edited text is a different
+    // logical request — reusing the id there would dedup the charge to zero and
+    // parse the new text for free; mint a fresh id instead.
+    const prev = readParseState(target);
+    const reuseRequestId =
+      prev && prev.inputText === inputText.trim() ? prev.requestId : undefined;
+    startIntake(inputText, lastIntakeRef.current, lastCommentRef.current, reuseRequestId);
+  }, [inputText, startIntake, target]);
 
   const resetAll = useCallback(() => {
     setState('idle');
@@ -622,7 +688,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     // Fetch keeps going.
   }, []);
 
-  // ─── Review: soft-delete toggle ───
   //
   // `toggle*` инвертит `enabled` на ряду; ряд остаётся в массиве, `commit` +
   // `totalToAdd` (`selectCommittable`) игнорируют `enabled === false`. UI
@@ -647,8 +712,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       prev.map((u) => (u.uid === uid ? { ...u, enabled: !u.enabled } : u)),
     );
   }, []);
-
-  // ─── Review: row updates ───
 
   const editFlagsFromUpdates = useCallback(
     (updates: Record<string, unknown>): Partial<EditFlags> => {
@@ -697,8 +760,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     },
     [editFlagsFromUpdates],
   );
-
-  // ─── Review: edit orchestration ───
 
   const findCategory = useCallback(
     (uid: string): ItemCategory | null => {
@@ -799,8 +860,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     },
     [editingUid, findCategory, updateResolved, updateAmbiguous, updateUnresolved],
   );
-
-  // ─── Review: commit ───
 
   const totalToAdd = useMemo(() => {
     const a = resolved.filter((r) => r.enabled).length;

@@ -3,13 +3,14 @@ import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 import Text from '@/shared/ui/atoms/Typography/Text/Text';
+import RefreshIcon from '@/shared/assets/icons/refresh.svg?react';
 import styles from './SyncStatusChip.module.scss';
 
 // Ambient sync-status chip. Renders NOTHING at rest (idle/synced, online) so it
 // never adds clutter — it only appears when there's something worth saying:
 //   • offline            → «Офлайн» (muted)
 //   • syncing            → «Синхронизирую…» (muted)
-//   • failed (online)    → «Не сохранено · Повторить» (danger, tap = retry)
+//   • failed (online)    → «Не сохранено» + круглая иконка-повтор (danger)
 // Signal is carried by BOTH colour AND text (WCAG 2.2 «color-not-only»). The
 // failure toaster (runSync.ts) is the loud, must-see channel; this chip is the
 // quiet persistent one for users who dismissed the toast.
@@ -38,15 +39,20 @@ export function SyncStatusChip() {
   }
 
   if (state === 'failed') {
+    // Статус несёт текст, действие — отдельная круглая иконка-повтор: у надписи
+    // и у кнопки разный вес и форма, они больше не сливаются в одну строку.
     return (
-      <button
-        type="button"
-        className={styles.chip}
-        data-tone="danger"
-        onClick={() => void runSyncTracked({ surfaceToast: true })}
-      >
-        <Text as="span" role="label">Не сохранено · Повторить</Text>
-      </button>
+      <span className={styles.chip} data-tone="danger" role="status">
+        <Text as="span" role="label">Не сохранено</Text>
+        <button
+          type="button"
+          className={styles.retry}
+          aria-label="Повторить синхронизацию"
+          onClick={() => void runSyncTracked({ surfaceToast: true })}
+        >
+          <RefreshIcon />
+        </button>
+      </span>
     );
   }
 

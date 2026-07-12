@@ -6,8 +6,6 @@ import {
   type NutrientEntry,
 } from './nutrients';
 
-// ─── calculateProductNutrients ───────────────────────────────────────────────
-
 describe('calculateProductNutrients', () => {
   it('scales nutrients by quantity / 100', () => {
     const nutrients: NutrientEntry[] = [
@@ -84,8 +82,6 @@ describe('calculateProductNutrients', () => {
   });
 });
 
-// ─── calculateDishNutrients ──────────────────────────────────────────────────
-
 describe('calculateDishNutrients', () => {
   const productMap = new Map<string, NutrientEntry[]>([
     ['apple', [{ nutrientId: 'kcal', quantity: 52 }]],
@@ -147,8 +143,6 @@ describe('calculateDishNutrients', () => {
     expect(result.kcal).toBeCloseTo(104);
   });
 });
-
-// ─── sumNutrients ────────────────────────────────────────────────────────────
 
 describe('sumNutrients', () => {
   it('sums values from multiple totals objects', () => {

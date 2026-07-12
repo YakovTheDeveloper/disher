@@ -30,12 +30,13 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ChipVariant;
   /**
    * Elevation-скин (см. {@link ChipElevation}). Дефолт `raised`. Комбинируется с
-   * `surface` по контексту: разреженная модалка → `surface={0}` + `raised`;
-   * плотный дровер → `surface={2}` + `flat` (surface-2 + рамка вместо тени).
+   * `onSurface` по контексту: разреженная модалка → `onSurface={0}` + `raised`;
+   * плотный дровер → `onSurface={2}` + `flat` (surface-2 + рамка вместо тени).
    */
   elevation?: ChipElevation;
   /**
-   * Surface-тир ХОСТА, на котором ЛЕЖИТ чип (0–2, = `--sys-color-surface-N`).
+   * Surface-тир ХОСТА, на котором ЛЕЖИТ чип (0–2, = `--sys-color-surface-N`). Фон
+   * задаёт общий миксин `bg-based-on-host-surface` (единый с Button/Choice).
    * Чип «возвышается» на тир ВЫШЕ хоста — имитирует приподнятость цветом (вызывающий
    * код знает свой хост, как `Button.flat`; авто-детект через `[data-surface]` запрещён):
    *   • 0 = бежевый стол (surface-0) → светлая пилюля surface-1 #fefcf9. Дефолт.
@@ -45,7 +46,7 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
    *     `elevation='raised'`); для плотных экранов переключи на `elevation='flat'`
    *     (тень → тонкая рамка).
    */
-  surface?: ChipSurface;
+  onSurface?: ChipSurface;
 };
 
 /**
@@ -61,7 +62,7 @@ export type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
  */
 export function Chip({
   active = false,
-  surface = 0,
+  onSurface = 0,
   variant = 'fill',
   elevation = 'raised',
   className,
@@ -74,7 +75,7 @@ export function Chip({
       type={type}
       className={clsx(
         styles.chip,
-        surface >= 1 && styles.onSheet,
+        onSurface >= 1 && styles.onSheet,
         elevation === 'flat' && styles.flat,
         variant === 'outline' && styles.outline,
         active && styles.active,

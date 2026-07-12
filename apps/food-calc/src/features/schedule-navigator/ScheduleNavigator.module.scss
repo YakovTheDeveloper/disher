@@ -50,6 +50,29 @@
   overflow: hidden;
   touch-action: pan-y;
   transition: height 0.28s var(--easing-default, ease);
+  // Ширина «выглядывающего» соседнего экрана: слайд уже вьюпорта на эту величину,
+  // и второй экран приоткрывается у края (containScroll:'trimSnaps' даёт симметрию —
+  // на втором слайде так же выглядывает первый слева).
+  --nav-peek: 76px;
+  // Растворение у того края, где выглядывает сосед: он «утекает» за границу, а не
+  // режется вертикальной линией. `--nav-edge-fade` < `--nav-peek` НАМЕРЕННО — тогда
+  // маска задевает только соседа (он в 0…56px от края), а активная панель (её ближний
+  // край в ≥56px) остаётся резкой на любом табе. Сторону задаёт data-peek (см. tsx).
+  --nav-edge-fade: 44px;
+}
+
+// Растворяем ТОТ край, где выглядывает соседний экран: right на «Навигации»
+// (сосед справа), left на «Активных днях» (сосед слева).
+.viewport[data-peek='right'] {
+  $mask-r: linear-gradient(to right, #000 0, #000 calc(100% - var(--nav-edge-fade)), transparent 100%);
+  mask-image: $mask-r;
+  -webkit-mask-image: $mask-r;
+}
+
+.viewport[data-peek='left'] {
+  $mask-l: linear-gradient(to left, #000 0, #000 calc(100% - var(--nav-edge-fade)), transparent 100%);
+  mask-image: $mask-l;
+  -webkit-mask-image: $mask-l;
 }
 
 .track {
@@ -58,7 +81,8 @@
 }
 
 .panel {
-  flex: 0 0 100%;
+  // Не 100%: слайд на `--nav-peek` уже вьюпорта, чтобы сосед выглядывал у края.
+  flex: 0 0 calc(100% - var(--nav-peek));
   min-width: 0;
   height: 100%;
   display: flex;

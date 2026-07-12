@@ -77,34 +77,11 @@
         display: none;
     }
 
-    // Первый ряд списка: без ВЕРХНЕЙ границы он сливается с полем поиска/фоном над
-    // ним и «не читается как айтем» (фидбек юзера). Рельсы-::after стоят МЕЖДУ
-    // рядами (last-child гасит нижний), поэтому у первого ряда верхний край голый.
-    // Даём ему верхний divider — зеркало нижнего ::after: тот же solid
-    // --sys-card-hairline, те же инсеты (left = начало имени, адаптивно под
-    // миниатюру; right flush). Рисуем на ::before — он свободен в покое (press-
-    // пилюля живёт на ::before ТОЛЬКО под [data-pressed]); `:not([data-pressed])`
-    // уступает ::before press-пилюле на тапе без драки за каскад.
-    // :not(:has(.item_active)) — у выбранного первого ряда ::before занят
-    // скруглённой plum-подложкой (ниже), верхний divider туда не лезет.
-    &:first-child:not([data-pressed]):not(:has(.item_active))::before {
-        content: '';
-        position: absolute;
-        left: var(--rail-gutter, var(--space-4));
-        right: 0;
-        top: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0,
-                var(--sys-card-hairline) 20px,
-                var(--sys-card-hairline) calc(100% - 20px),
-                transparent 100%);
-        pointer-events: none;
-    }
-
-    &:first-child[data-has-thumb]:not([data-pressed]):not(:has(.item_active))::before {
-        left: 0;
-    }
+    // Верхний divider ПЕРВОГО ряда СНЯТ (2026-07-11): линия стыка «поле поиска ↔
+    // первый ряд» переехала на само поле — SearchFoodControls `.bar::after` несёт
+    // теперь СПЛОШНОЙ divider во всю ширину (full-bleed за боковой инсет рамы).
+    // Так линия ОДНА (без дубля поле+ряд) и тянется шире вжатой группы. Разделитель
+    // МЕЖДУ рядами держит `.wrapper::after` (нижний hairline) — он НЕ тронут.
 
     &:hover {
         background: var(--sys-card-hover);
@@ -114,35 +91,21 @@
         transition-duration: var(--sys-duration-press-in);
     }
 
-    // Press/выбор — СКРУГЛЁННАЯ подложка-плитка, чуть уже краёв ряда (просьба
-    // 2026-07-10, разворот full-row-решения 2026-06-26). ::before под текстом
-    // (z-index 0 под контентом z-index 1), inset 4px + radius = «плитка под
-    // контентом». data-pressed (usePressFeedback) гарантирует отрисовку на тапе.
-    // Тот же inset/radius несёт selected-подложка ниже — press и выбор совпадают
-    // по форме. Внутри клипа inset-group, соседей не задевает.
-    &[data-pressed]::before {
-        content: '';
-        position: absolute;
-        // Плитка ВЫХОДИТ за ряд «чуть-чуть» (просьба 2026-07-10): по бокам flush
-        // к краю вжатой группы (горизонтальный bleed всё равно клипается
-        // overflow-x:hidden скроллера), сверху/снизу — bleed на 2px в зазор
-        // соседей. Скругление читается на всех углах (radius-container). Тот же
-        // inset/radius несёт selected-подложка ниже — press и выбор совпадают.
-        inset: 3px 6px;
-        border-radius: var(--sys-radius-container);
+    // Press — заливка ВСЕЙ карточки в near-black (просьба 2026-07-11: «карточка
+    // темнеет ЦЕЛИКОМ, а не отдельной чёрной плиткой»). Раньше press рисовался
+    // скруглённой inset-плиткой ::before (inset 3px 6px) — читался как отдельный
+    // чёрный прямоугольник внутри ряда; выпилен. radius наследуется от .wrapper
+    // (--sys-radius-control) → тёмный фон скруглён по всему ряду. Тап по ⓘ сюда НЕ
+    // доходит: .infoSlot гасит bubbling pointer-событий до `<li>` (stopRowPress),
+    // поэтому data-pressed по кнопке инфо не ставится — карточка не темнеет.
+    &[data-pressed] {
         background: var(--sys-card-press-bg);
-        z-index: 0;
-        pointer-events: none;
+        transition-duration: var(--sys-duration-press-in);
     }
 
-    // Плитка (press/выбор) перекрывает край ряда → нижний divider-::after режет её
-    // хайрлайном (::after красится ПОВЕРХ ::before). Гасим divider под плиткой.
+    // Нижний divider-::after прорезал бы тёмную заливку хайрлайном — гасим на press.
     &[data-pressed]::after {
         display: none;
-    }
-
-    &[data-pressed] {
-        transition-duration: var(--sys-duration-press-in);
     }
 }
 
@@ -180,7 +143,7 @@
     gap: var(--rail-gap, 14px);
     margin: 0;
     border-radius: inherit;
-    z-index: 1; // над press-инверсией ::before (z-index 0) — имя всегда читаемо
+    z-index: 1; // держим контент в своём stacking-context — имя всегда читаемо
 }
 
 .categoryIcon {
@@ -214,21 +177,49 @@
     @include framed-plate;
 }
 
+// Дуговой вид-бейдж режима «Мое» — в слоте миниатюры (см. kindBadge в .tsx).
+// Занимает тот же слот, что и .thumb (rail-thumb), поэтому имя сдвигается ровно
+// так же (data-has-thumb). Цвет несёт вид: блюдо = тёплый sepia, продукт =
+// холодный indigo-accent — два контрастных чернильных штемпеля на бумаге.
+.kindBadge {
+    width: var(--rail-thumb, 36px);
+    height: var(--rail-thumb, 36px);
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.kindBadge_dish {
+    color: var(--sys-color-text-sepia);
+}
+
+.kindBadge_product {
+    color: var(--sys-color-text-accent);
+}
+
+// «Выбрано» (plum-заливка ряда) → бейдж на светлый on-plum, иначе тёмная сепия/
+// индиго на плюме тонет.
+.wrapper:has(.item_active):not([data-pressed]) .kindBadge {
+    color: var(--sys-color-text-on-selected-plum);
+}
+
+// Press (тёмная заливка всего ряда) → бейдж на светлый press-fg, как имя/ⓘ.
+.wrapper[data-pressed] .kindBadge {
+    color: var(--sys-card-press-fg);
+}
+
 // «Выбрано» = канон-indicator (как выбранные чипы / Choice): плоский plum + флип
 // текста. Полюс «выбрано» = plum читается ПРЯМО из своей sys-пары
 // (--sys-color-bg-selected-plum / --sys-color-text-on-selected-plum), а НЕ через
 // scope-override семантического --sys-color-*-selected (тот остаётся глобально cool
 // для не-choice consumers).
 //
-// Форма (2026-07-10, разворот ::before-плитки того же дня): заливка ВСЕГО ряда,
-// «как раньше» (до 2026-07-10 full-row держался на этом же .wrapper). Ряд скруглён —
-// .wrapper несёт border-radius: --sys-radius-control (стр. 29), поэтому plum ложится
-// скруглённым, без inset-плитки. Специфичность (0,2,0) = как :hover, но правило стоит
-// ПОЗЖЕ hover в файле → выигрывает (ховер выбранного ряда остаётся plum). НЕ gated на
-// :not([data-pressed]): press-пилька (::before near-black inset) ложится ПОВЕРХ plum-
-// ряда — тап по выбранному = near-black плитка внутри plum-строки (press-фидбэк виден,
-// принято осознанно).
-.wrapper:has(.item_active) {
+// Форма: заливка ВСЕГО ряда plum. Ряд скруглён — .wrapper несёт border-radius:
+// --sys-radius-control (стр. 29), поэтому plum ложится скруглённым. Gated на
+// :not([data-pressed]) (2026-07-11): press теперь тоже полная заливка .wrapper той
+// же специфичности (0,2,0), поэтому без gate плюм (позже в файле) перебивал бы
+// тёмный press на выбранном ряду. Гейт снимает plum на время тапа → выбранный ряд
+// на press темнеет ЦЕЛИКОМ, как и любой другой (press-фидбэк виден).
+.wrapper:has(.item_active):not([data-pressed]) {
     background: var(--sys-color-bg-selected-plum);
 }
 
@@ -249,13 +240,13 @@
 }
 
 // Press-инверсия: на тёмном фоне имя/инфо-иконка перекрашиваются в светлый.
-// richValue НЕ инвертируется — у квадрата свой светлый фон поверх press-пилюли,
+// richValue НЕ инвертируется — у квадрата свой светлый фон поверх тёмной заливки,
 // тёмные числа на нём читаемы. Специфичность (0,3,0) перебивает `.item_active`.
 .wrapper[data-pressed] {
 
 
 
-    // Имя + тихий вид-подпись под ним + ⓘ на тёмной press-пилюле → светлые
+    // Имя + тихий вид-подпись под ним + ⓘ на тёмной press-заливке → светлые
     // (faint kindLabel иначе исчез бы на dark).
     .name,
     .kindLabel,
@@ -263,7 +254,7 @@
         color: var(--sys-card-press-fg);
     }
 
-    // Утопленная плашка гаснет на тёмной press-пилюле — светлый 6% прямоугольник
+    // Утопленная плашка гаснет на тёмной press-заливке — светлый 6% прямоугольник
     // на dark читался бы паразитно.
     .infoBtn::before {
         opacity: 0;
@@ -379,8 +370,8 @@
 // Маркер «своё» — нейтральная вертикальная полоска у самого правого края карточки
 // (свои продукты + блюда, в обоих фильтрах). Нейтральный ink-faint: это признак
 // владения, а не данные (цвет на карточке несёт только левый квадрат-гейдж
-// richValue). Absolute, поверх press-пилюли (::before z-index 0), с лёгким
-// вертикальным инсетом. На тёмной press-пилюле перекрашиваем в светлый.
+// richValue). Absolute, с лёгким вертикальным инсетом. На тёмной press-заливке
+// перекрашиваем в светлый.
 .ownerStripe {
     position: absolute;
     top: 8px;
@@ -414,7 +405,7 @@
     // active/press-инверсии ниже (0,3,0) и `:active` (0,1,1) перебивают quiet штатно.
     position: relative;
     z-index: 1; // stacking-context: утопленная плашка (::before z-index:-1) садится
-    //           ПОД глиф, но НАД фоном ряда; сам слот остаётся над press-пилюлей.
+    //           ПОД глиф, но НАД фоном ряда.
 
     // КРУГЛАЯ подложка-плитка (inset 8px в 56px-слоте → ~40px кружок), тот же токен
     // --sys-color-surface-icon-tile, что у кнопки Назад/фильтра — ⓘ читается как та же

@@ -7,6 +7,7 @@ import { clear as idbKeyvalClear } from 'idb-keyval';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { useSyncPrefStore } from '@/shared/lib/sync-pref';
+import { syncNow } from '@/shared/lib/snapshot';
 import { resetSessionExpired } from './handleSessionExpired';
 
 // Wipe every Dexie store + the parallel idb-keyval namespace (Zustand persist
@@ -201,6 +202,20 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signOut: async () => {
+    // Best-effort FINAL sync before anything is torn down. There is no sync
+    // scheduler or beforeunload flush, so edits made since the last push live
+    // only in Dexie — and the wipe below clears Dexie. Push them first while
+    // the session is still valid (this MUST run before the server revoke, which
+    // would 401 the push). syncNow() is a no-op when cloud sync is OFF and
+    // self-serializes on the 'disher-sync' lock. Best-effort by decision: on the
+    // forced 401-funnel path the bearer is already dead (this throws, caught),
+    // and an online server error must not trap the user in a session they asked
+    // to leave — we proceed to wipe regardless (unconditional-local signOut).
+    try {
+      await syncNow();
+    } catch (e) {
+      console.error('final sync before signOut failed; wiping anyway', e);
+    }
     // Server revoke is best-effort — if the server is unreachable we still
     // want to drop the local session so the user isn't stuck logged-in over
     // wiped Dexie. Local wipe is the load-bearing step.

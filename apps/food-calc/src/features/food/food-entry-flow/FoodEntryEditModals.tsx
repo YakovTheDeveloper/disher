@@ -8,6 +8,7 @@ import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
 import { RouterUrls } from '@/app/router';
 import { pushNavigate } from '@/shared/lib/viewTransition';
+import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
 import { InfoIcon } from '@/shared/ui/atoms/icons/InfoIcon';
@@ -72,7 +73,7 @@ const FoodEntryEditModals = ({ flow }: Props) => {
   const detailsTitle =
     kind === 'schedule'
       ? draft.foodName
-        ? draft.foodName.charAt(0).toUpperCase() + draft.foodName.slice(1)
+        ? capitalizeFirst(draft.foodName)
         : STEP_LABELS.details
       : ((editingItem as DishEditItem | null)?.product?.name ?? 'Уточнение к ингредиенту');
 
@@ -118,6 +119,8 @@ const FoodEntryEditModals = ({ flow }: Props) => {
                 <>
                   <ProductQuantity
                     content={quantityContent}
+                    unit={quantityContent.unit}
+                    resetKey={draft.productId ?? draft.dishId ?? ''}
                     onFinish={() => {}}
                     inputId={QUANTITY_INPUT}
                     isActive={step === 'quantity'}

@@ -9,7 +9,7 @@
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px var(--sys-field-inset-x);
     border-radius: var(--sys-field-radius, var(--radius-sm)); /* was 18px — snap to field family */
     background: linear-gradient(
         90deg,
@@ -63,6 +63,26 @@
     }
 }
 
+// «Голый» ряд (проп bare): галочка хостится в чужом well'е (напр. .compositionBlock)
+// — снимаем собственную пилюлю/тень/скругление/бровку, чтобы ряд наследовал chrome
+// контейнера. Гасим и rest, и :hover/:focus-within (их box-shadow-focus/hairline-focus
+// перебили бы одиночный none). Раньше это делал внешний тип-селектор `.compositionBlock
+// > label` — переехало в опт-ин проп примитива (без brittle-связи с тем, что root = label).
+.bare {
+    background: transparent;
+    border-radius: 0;
+
+    &,
+    &:hover,
+    &:focus-within {
+        box-shadow: none;
+    }
+
+    &::after {
+        display: none;
+    }
+}
+
 .checkbox {
     appearance: none;
     width: 20px;
@@ -102,4 +122,10 @@
 
 .label {
     color: var(--sys-card-text-rest);
+}
+
+// Тихий базис-суффикс в правом крае пилюли (margin-left:auto отжимает вправо).
+.trailing {
+    margin-left: auto;
+    color: var(--sys-color-text-tertiary);
 }

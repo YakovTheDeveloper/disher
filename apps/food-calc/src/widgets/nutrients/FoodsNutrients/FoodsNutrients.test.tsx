@@ -4,9 +4,10 @@ import '@testing-library/jest-dom/vitest';
 import FoodsNutrients from './FoodsNutrients';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 
-// Mock NutrientTable to expose getValue() resolution per nutrient id.
-vi.mock('./NutrientTable', () => ({
-  default: ({ getValue }: { getValue: (id: string) => number }) => (
+// Mock NutrientMeterView (the widget's nutrient boundary — receives getValue
+// directly) to expose getValue() resolution per nutrient id.
+vi.mock('@/entities/nutrient/ui/NutrientMeterView', () => ({
+  NutrientMeterView: ({ getValue }: { getValue: (id: string) => number }) => (
     <div data-testid="nutrients-list">
       <div data-testid="nutrient-card-7" data-value={String(getValue('7'))} />
       <div data-testid="nutrient-card-1" data-value={String(getValue('1'))} />

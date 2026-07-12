@@ -1,54 +1,97 @@
-// Holds the input + hint below ModalShell.Title. Horizontal padding only —
-// the title brings its own top offset, vertical rhythm is the Body's gap.
-// padding-bottom: оставляем зазор под высоту sticky ActionButtons («Создать»)
-// плюс iOS safe-area (~34px на iPhone 14+, 0 на Android/desktop), иначе
-// раскрытая последняя группа («Аминокислоты») уезжает за бар и становится
-// некликабельной.
-.createBody {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
-}
+@import '@/shared/assets/style/mixin.scss';
+
+// Тело создания = примитив FormLayout (владеет вертикальным ритмом на --sys-stack-*),
+// боковой инсет — шелл (`<ModalShell.Body inset>`). Нижний резерв под фикс-бар
+// «Создать» несёт канонический ModalShell.Spacer в конце body — не padding здесь.
 
 .createHint {
   margin: 0;
   color: var(--sys-color-text-secondary);
 }
 
-// Сегмент «Продукт | Блюдо» на всю ширину модалки: трек тянется по инпуту имени,
-// оба сегмента равной доли. Базовый .segmentedGroup — inline-flex; здесь делаем
-// его полноширинным flex, дети (.segment) делят ширину поровну.
-.variantSegment {
+// ─── Тип еды (Продукт | Блюдо) ───────────────────────────────────────────────
+// Обёртка «лейбл + чипы» переведена на FormLayout.Group (label="Какая это еда?" —
+// FieldLabel + свой row-зазор). Здесь остаётся только раскладка ряда чипов.
+// Горизонтальный ряд равной ширины: каждый вариант делит половину.
+.variantRow {
   display: flex;
-  width: 100%;
+  gap: var(--space-2);
+}
 
-  >* {
-    flex: 1;
-  }
+.variantCell {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+// Заголовок чипа наследует цвет кнопки (флип на on-selected-plum при выборе).
+.variantTitle {
+  color: inherit;
+}
+
+// Подпись-пример под заголовком — mirror .createHint (тот же secondary-тон).
+.variantHint {
+  color: var(--sys-color-text-secondary);
+  line-height: 1.25;
+}
+
+// «Выбрано» = plum-заливка чипа: подпись флипается на on-selected-plum (тише через
+// opacity), иначе secondary-серый сливается с заливкой. aria-checked живёт на самом
+// ChoiceItem (role=radio); scope через .variantRow — не течёт наружу.
+.variantRow [aria-checked='true'] .variantHint {
+  color: var(--sys-color-text-on-selected-plum);
+  opacity: 0.82;
 }
 
 // Чекбокс «Таблетка / лекарство / БАД» — warm-pill блок шириной с инпут.
-// Горизонтальный отступ задаёт createBody (padding: 0 16px); сам LabeledCheckbox
+// Горизонтальный инсет несёт шелл (ModalShell.Body inset); сам LabeledCheckbox
 // растягивается на 100% ширины, поэтому его рамка садится ровно под рамку
 // инпута имени сверху.
 .createSupplementRow {
   display: flex;
 }
 
-// Блок дополнительных полей БАД: подпись «1 приём = 1 шт» и раскрывающийся
-// аккордеон нутриентов. Появляется только при checked isSupplement.
-.supplementBlock {
+// Контейнер «Состав» = ОДНО вдавленное поле: галочка (верхний ряд) и панель групп
+// живут в одном well'е стола surface-0 (тот же тон, что у пилюль-полей). Красится
+// плоским field-градиентом (как AutoGrowSearch/LabeledCheckbox — едет по gradient-
+// исключению strict-value). field-depth(--panel-well) даёт ВЛОЖЕННЫМ инпутам
+// нутриентов тон на ШАГ НИЖЕ панели (well-в-well одного тона слился бы — решение
+// юзера: инпуты глубже). Одна inset-тень на весь блок — не по пилюле на каждую часть.
+.compositionBlock {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 0 4px;
-  margin-top: 4px;
+  border-radius: var(--sys-field-radius, var(--radius-sm));
+  --panel-well: color-mix(in oklch, var(--sys-color-surface-0), var(--sys-field-well-shade) var(--sys-field-well-depth));
+  background: linear-gradient(90deg, var(--panel-well) 0%, var(--panel-well) 100%);
+  @include field-depth(--panel-well);
+  box-shadow: var(--sys-field-shadow);
 }
 
-.supplementUnit {
-  margin: 0;
-  color: var(--sys-color-text-secondary);
+// Галочка «Указать состав» = верхний ряд контейнера, а не своя пилюля: фон/тень/
+// скругление/бровку снимает опт-ин проп `bare` на самом LabeledCheckbox (well рисует
+// контейнер). Раньше это делал внешний тип-селектор `.compositionBlock > label` —
+// хрупкая связь с тем, что root примитива = <label>; переехало внутрь примитива.
+
+// Панель групп внутри контейнера — плоская (well несёт контейнер), только раскладка.
+// Горизонтальный инсет читает системный `--sys-field-inset-x` — тот же рельс, что
+// несёт .container галочки (padding-inline из того же токена), поэтому весь контент
+// блока сидит на ОДНОМ левом рельсе by construction, без прыжка 16↔12.
+.supplementBlock {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sys-field-inset-x) 6px;
+}
+
+// Шов «галочка ↔ список групп» — rail-divider во всю ширину (как между рядами).
+.compositionOpen .supplementBlock::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  @include rail-divider(var(--sys-card-hairline));
+  pointer-events: none;
 }
 
 .nutrientsToggle {
@@ -56,12 +99,9 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-  // padding-left чуть больше — оставляем место под 3px vertical accent.
-  padding: 14px 16px 14px 18px;
+  padding: 14px 0;
   background: transparent;
   border: none;
-  // Source Serif italic голос section-title живёт в <QuietLabel> (текст внутри).
-  color: var(--sys-color-text-system);
   cursor: pointer;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
@@ -75,53 +115,53 @@
   }
 }
 
+// Заголовок группы = uppercase-sans (канон «нутриентные подписи — uppercase-sans,
+// serif туда НЕ заводить»). Кликабельность несёт вращающийся шеврон (Accordion),
+// не типографика.
+.nutrientsToggleTitle {
+  text-transform: uppercase;
+  color: var(--sys-color-text-secondary);
+}
+
 .nutrientsToggleHint {
   color: var(--sys-color-text-tertiary);
 }
 
-.nutrientGroupsList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-// Группа аккордеона = stripe-fork surface: палитра, vertical accent слева,
-// fading hairline-разделитель при раскрытии, Source Serif italic в header'е.
-// Каждая группа — своя палитра (см. data-group ниже), без этого пять
-// одинаковых pills тянут на «Laboratory trap» из project_design_dna.
+// Группа-ряд. Между рядами — rail-divider «на всю длину» (правило Divider в
+// плотном варианте); у последней снят. Список групп = прямые дети .supplementBlock
+// (тот уже flex-column) — отдельная обёртка .nutrientGroupsList снята как scaffolding.
 .nutrientGroupItem {
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--sys-radius-container);
-  /* was 14px */
-  overflow: hidden;
-
-  // Surface + hairline follow the app-wide tone (--sys-card-*); folded into the
-  // ModalShell «law-giver» 2026-06-13 (was per-group honey/green/orange/purple
-  // backgrounds that fought the global tone). Поверхность общая по тону; бывший
-  // per-category 3px accent-stripe (--group-accent) удалён 2026-06-25 — не нужен.
-  background: var(--sys-card-bg);
   --group-hairline: var(--sys-card-hairline);
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    @include rail-divider(var(--group-hairline));
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
-// Fading hairline-разделитель (правило 2 stripe-fork) появляется только
-// когда группа раскрыта. Без сплошной линии — затухает к краям.
+// Внутренний rail между тоглом и телом раскрытой группы — та же линия-рельс,
+// отделяет заголовок группы от её нутриент-полей.
 .nutrientGroupOpen .nutrientsToggle {
   position: relative;
 
   &::after {
     content: '';
     position: absolute;
-    left: 14px;
-    right: 14px;
+    left: 0;
+    right: 0;
     bottom: 0;
     height: 1px;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        var(--group-hairline) 18%,
-        var(--group-hairline) 82%,
-        transparent 100%);
+    @include rail-divider(var(--group-hairline));
     pointer-events: none;
   }
 }
@@ -129,11 +169,12 @@
 .nutrientsGrid {
   // Одна колонка: карточка NutrientCardEditor (product-edit variant)
   // проектировалась под full-width ряд на ProductPage. На узком экране
-  // модалки 2-колоночная сетка обрезала label/значение.
+  // модалки 2-колоночная сетка обрезала label/значение. Ряды разделены
+  // rail-divider'ом (см. .inlineCard), поэтому gap нулевой — линия сама
+  // отбивает ряды.
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px 6px 10px;
+  padding: 6px 0 10px;
 }
 
 // Override стилей NutrientCardEditor при использовании внутри warm-stripe
@@ -145,7 +186,20 @@
   background: transparent !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  padding: 8px 12px !important;
+  padding: 8px 0 !important;
+
+  // Ряды нутриентов отбиты rail-divider'ом (как SearchFood-карточки); у
+  // последнего в группе снят. Карточка = position:relative (NutrientCardEditor).
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    @include rail-divider(var(--group-hairline, var(--sys-card-hairline)));
+    pointer-events: none;
+  }
 
   // span внутри product-edit карточки = .name (см. NutrientCardEditor.tsx).
   // Hashed CSS module class не таргетируется, используем тип-селектор.

@@ -1,4 +1,3 @@
-@import '@/shared/assets/style/design-variant-palettes.scss';
 @import '@/shared/assets/style/mixin.scss';
 
 // Destructive delete lives in DrawerLayout's top-right chrome slot (the
@@ -22,68 +21,27 @@
   padding-bottom: 12px;
 }
 
-// Секция правок = фирменная бровка (тающий hairline, канон Divider) отделяет её
-// от инфо-кнопки стека, затем центрованный заголовок «Редактировать» (ярус ниже
-// заголовка дровера) с воздухом, затем ряд чипов. Вертикальный ритм: воздух над
-// заголовком (--space-5, под бровкой) + воздух под заголовком (--space-4).
 .editSection {
   position: relative;
 }
 
-
-
-// Ряд правок (Кол-во · Уточнения · Время) — три равные квадратные кнопки-чипа
-// (Button variant="system-secondary"). Боковой инсет — у DrawerLayout (нижний
-// дровер, default 24).
+// Ряд правок (количество · уточнения · время) — три голые круглые медали
+// (WriteBarMedal look="bare"): дуговая подпись сверху + иконка по центру, тонкий
+// круговой контур, без подложки. Боковой инсет — у DrawerLayout (нижний дровер,
+// default 24). `--medal-size` задаём здесь: вне WriteBarShell медаль не наследует
+// `--pill-h`, поэтому её геометрию несёт этот токен.
 .editRow {
+  --medal-gap: var(--space-3);
+  // Медали несжимаемы (flex-shrink:0) и фикс-размера — 3×84 + gaps на узком
+  // дровере (или при крупном системном шрифте) распирали ряд за боковой инсет
+  // тела дровера. Кап под долю ряда держит их ВНУТРИ инсета: на широком экране —
+  // прежние 84, на узком — ужимаются под (ширина − 2 gap)/3.
+  --medal-size: min(84px, calc((100% - 2 * var(--medal-gap) - 1px) / 3));
+
   display: flex;
-  gap: var(--space-2);
+  justify-content: space-between;
+  gap: var(--medal-gap);
   padding-bottom: 12px;
-
-  // Сливовая (plum) расцветка чипов — 6 форков через DesignBar
-  // (`useDesignVariant('ItemActionsEdit', PLUM_EDIT_VARIANTS)`, анкор на этом
-  // ряду). Значения + gated `border-color`/`color` живут в exempt-палитре
-  // (design-variant-palettes.scss `@mixin plum-edit-chips`); здесь только @include,
-  // поэтому sys-only gate тронутого файла не задет. Форки бьют по `&[data-dv-v]`.
-  @include plum-edit-chips;
-}
-
-// Чип = КВАДРАТ: подпись отцентрована в теле, иконка прижата в правый верхний
-// угол (абсолютом, вне потока — не толкает текст). Три равные колонки, каждая
-// сама себе квадрат (aspect-ratio). Тон — secondary; рамку (когда её несёт форк)
-// красит `plum-edit-chips` через `border-color` поверх прозрачного каркас-бордюра
-// `.systemSecondary` (`border: 1px solid transparent`). Селектор `.editRow .editBtn`
-// (0,2,0) бьёт раскладку Button (.systemSecondary, 0,1,0) независимо от порядка
-// модулей.
-.editRow .editBtn {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  aspect-ratio: 1;
-  padding: var(--space-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-// Ведомая иконка (тематический глиф) — в правый верхний угол, холодный серый,
-// приглушённая. aria-hidden — единственный маркер icon-span'а Button'а (метка =
-// <Text as="span"> без него).
-.editRow .editBtn>span[aria-hidden='true'] {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  color: var(--sys-color-icon);
-  opacity: 0.7;
-}
-
-// Размер глифа задаём здесь — Button-примитив зажимает свой `.icon svg` в 18px
-// (.systemSecondary), а чипу нужен крупный акцент. Селектор бьёт по специфичности
-// (0,3,1 > 0,2,1 примитива).
-.editRow .editBtn>span[aria-hidden='true']>svg {
-  width: 30px;
-  height: 30px;
 }
 
 // Подпись в верхнем стеке (Информация о продукте/блюде) — центрируется в кнопке.

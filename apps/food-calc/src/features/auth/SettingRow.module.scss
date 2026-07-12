@@ -1,0 +1,97 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// ─── Плоский ряд настроек (ProfileDrawer корень) ────────────────
+// leading icon + label(+sub) + trailing. Тач-пол 48. Кнопка и div делят вид;
+// фон прозрачный — структуру группы держит бровка между рядами, НЕ подложка.
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  width: 100%;
+  padding: var(--space-2) 0;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--sys-color-text-primary);
+}
+
+// Пресс-отклик только на ряду-кнопке (div-контейнер не жмётся).
+button.row {
+  cursor: pointer;
+  transition: background var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--sys-color-bg-press);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+// Тающая бровка (design-DNA Divider) СНИЗУ у каждого ряда — не только между.
+// Каждая строка-кнопка получает свою нижнюю границу (запрос 2026-07-12).
+.row::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+  @include hairline(var(--sys-color-divider));
+}
+
+.icon {
+  flex: 0 0 auto;
+  display: flex;
+  color: var(--sys-color-icon); // холодный серый (cold-icon-palette)
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.label {
+  color: var(--sys-color-text-primary);
+}
+
+.sub {
+  color: var(--sys-color-text-secondary);
+}
+
+.trail {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--sys-color-icon);
+}
+
+// ChevronGlyph не несёт своего размера — задаём тут (как прочие консумеры «везде 16»).
+.trail svg {
+  width: 16px;
+  height: 16px;
+}
+
+// ─── Danger-тон (ряд «Выйти из аккаунта») ───────────────────────
+.danger .label {
+  color: var(--sys-color-status-danger);
+}
+
+.danger .sub {
+  color: var(--sys-color-status-danger);
+  opacity: 0.75;
+}
+
+.danger .trail {
+  color: var(--sys-color-status-danger);
+}
+
+.danger .icon {
+  color: var(--sys-color-status-danger);
+}

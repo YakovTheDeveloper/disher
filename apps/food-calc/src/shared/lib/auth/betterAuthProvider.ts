@@ -195,10 +195,38 @@ export const betterAuthProvider: AuthProvider = {
       return cachedUser;
     }
     const { data, error } = getSessionResult;
-    if (error || !data?.user) {
-      // 401 / expired / revoked — server explicitly says this token is dead,
-      // so wipe both the bearer and the last-known user (don't let a future
-      // network-flake resurrect a revoked session).
+    if (error) {
+      // Only an EXPLICIT auth rejection means the token is truly dead: 401
+      // (expired/revoked) or 403 (forbidden). Wipe the bearer + last-known user
+      // so a later network-flake can't resurrect a revoked session.
+      //
+      // Any OTHER error — 5xx, 429, or a network-shaped error better-fetch
+      // surfaced as `{ error }` (no numeric status) — is TRANSIENT. Keep the
+      // token and boot local-first from readLastUser, exactly like the
+      // network-throw (catch) and timeout branches above. Before this, ANY error
+      // logged the user out, so a fast 500/502/429 in the 1s boot window (deploy,
+      // pg-pool restart, proxy) bounced a signed-in user to AuthScreen — and the
+      // re-login cascaded a wipeLocalData that dropped unsynced edits.
+      const status =
+        typeof (error as { status?: unknown }).status === 'number'
+          ? (error as { status: number }).status
+          : undefined;
+      if (status === 401 || status === 403) {
+        localStorage.removeItem(BEARER_KEY);
+        persistLastUser(null);
+        cachedUser = null;
+        return null;
+      }
+      console.warn(
+        'betterAuthProvider.bootstrap: getSession error, treating as transient (token kept)',
+        error,
+      );
+      cachedUser = readLastUser();
+      return cachedUser;
+    }
+    if (!data?.user) {
+      // 200 with no session for this token — the server explicitly says it's
+      // dead (not a transport failure). Wipe, same as a 401.
       localStorage.removeItem(BEARER_KEY);
       persistLastUser(null);
       cachedUser = null;

@@ -100,11 +100,52 @@ export const allNutrientsList = nutrientGroups.flatMap((item) => {
     return item.content.map(content => content)
 })
 
+// Быстрый lookup нутриента по id (id → метаданные). Строится один раз — питает
+// `useNutrientReadout` (norm-glue) без O(n)-скана на каждый ряд.
+export const nutrientById: Record<string, Nutrient> = Object.fromEntries(
+    allNutrientsList.map((n) => [n.id, n]),
+)
+
+// Курированный порядок ПЕРВОЙ группы (БЖУ) на витринах: protein/fats/carbs/fiber/
+// energy/sugar/water — БЕЗ starch и в явном доменном порядке (не `content[0]`,
+// где starch есть и порядок иной). Это доменные данные представления; вынесены
+// сюда, чтобы `NutrientGroupedList` оставался чистым обходом без спец-логики
+// первой группы.
+const MAIN_DISPLAY_ORDER = [
+    'protein',
+    'fats',
+    'carbohydrates',
+    'fiber',
+    'energy',
+    'sugar',
+    'water',
+] as const
+
+const nutrientByName: Record<string, Nutrient> = Object.fromEntries(
+    allNutrientsList.map((n) => [n.name, n]),
+)
+
+/**
+ * Группы нутриентов в порядке ПОКАЗА: курированная первая группа (БЖУ по
+ * MAIN_DISPLAY_ORDER) + остальные группы как есть. Единый источник обхода для
+ * всех витрин нутриентов (`NutrientGroupedList`).
+ */
+export const nutrientDisplayGroups: NutrientGroup[] = [
+    {
+        name: 'main',
+        displayName: nutrientGroups[0].displayName,
+        content: MAIN_DISPLAY_ORDER.map((name) => nutrientByName[name]),
+    },
+    ...nutrientGroups.slice(1),
+]
+
 export const nutrientsHaveDailyNorm: Record<number, boolean> = {
     1: true,   // protein
     2: true,   // fats
     3: true,   // carbohydrates
-    4: false,  // sugar
+    4: true,   // sugar — полноценная норма: мастер всегда пишет цель ('4' в
+               //   generate-norm/DEFAULT_NORM_ITEMS), поэтому %/бар в мере И
+               //   значение в «Моей норме» согласованы (решение 2026-07-11).
     5: false,  // starch
     6: true,   // fiber
     7: true,   // energy
@@ -168,9 +209,9 @@ export const defaultDailyNorms: Record<number, number> = {
     7: 2000,
     8: 2000,
     9: 18,
-    10: 1000,
-    11: 350,
-    12: 700,
+    10: 400,  // magnesium — RDA ~400 мг (было 1000, явно завышено; = DEFAULT_NORM_ITEMS)
+    11: 700,  // phosphorus — RDA 700 мг (было 350; = DEFAULT_NORM_ITEMS)
+    12: 1000, // calcium — RDA 1000 мг (было 700; = DEFAULT_NORM_ITEMS)
     13: 3500,
     14: 2300,
     15: 15,

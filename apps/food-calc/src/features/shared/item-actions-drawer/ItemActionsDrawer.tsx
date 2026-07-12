@@ -1,21 +1,8 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
+import { WriteBarMedal } from '@/shared/ui/WriteBarShell';
 import type { BaseDrawerProps } from '@/shared/ui';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
 import s from './ItemActionsDrawer.module.scss';
-
-// Сливовая (plum) расцветка ряда правок — 6 форков, играем осями заливка/рамка/
-// текст+иконка. Форк-SCSS в ItemActionsDrawer.module.scss бьёт по [data-dv-v],
-// перекрывая опубликованные Button'ом --sec-* локали. Дефолт (index 0) =
-// plum-soft: тональная сливовая заливка без рамки.
-const PLUM_EDIT_VARIANTS = [
-  'plum-soft', // тональная лиловая заливка, без рамки
-  'plum-outline', // прозрачный фон + сливовая рамка (воздушный)
-  'plum-soft-border', // заливка + рамка (и то, и другое)
-  'plum-deep', // плотнее хрома заливки, глубже ink
-  'plum-frame', // бледный фон + сильная 1.5px рамка (frame-forward)
-  'plum-bold', // сплошной глубокий plum + светлый текст (инверсия)
-] as const;
 
 export type ItemAction = {
   label: string;
@@ -62,8 +49,6 @@ interface Props extends BaseDrawerProps<void> {
 // an info-action that navigates must not leave the drawer mounted over the new
 // page (see spec Edge cases).
 export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActions }: Props) => {
-  const editVariant = useDesignVariant('ItemActionsEdit', PLUM_EDIT_VARIANTS);
-
   const handleDelete = () => {
     onClose();
     onDelete?.();
@@ -80,8 +65,11 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
       a11yLabel={title ?? 'Действия'}
       topRight={
         onDelete ? (
+          // tone="soft" даёт постоянную ink-подложку (плитка) под глифом урны —
+          // раньше danger был без idle-фона. Разрушительность держит placement
+          // (угол, вне стека действий), не цвет — доп. confirm нет.
           <IconButton
-            tone="danger"
+            tone="soft"
             className={s.deleteBtn}
             onClick={handleDelete}
             aria-label="Удалить"
@@ -90,42 +78,50 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
         ) : undefined
       }
     >
-      <div className={s.actions}>
-        {actions.map((action, i) => (
-          <Button
-            key={`${action.label}-${i}`}
-            variant={'system-secondary'}
-            flat
-            fullWidth
-            icon={action.icon}
-            onClick={() => handleAction(action)}
-          >
-            <span className={s.editBtnLabel}>{action.label}</span>
-          </Button>
-        ))}
-      </div>
+      {actions.length > 0 && (
+        <div className={s.actions}>
+          {actions.map((action, i) => (
+            <Button
+              key={`${action.label}-${i}`}
+              variant={'system'}
+              flat
+              fullWidth
+              icon={action.icon}
+              onClick={() => handleAction(action)}
+            >
+              <span className={s.editBtnLabel}>{action.label}</span>
+            </Button>
+          ))}
+        </div>
+      )}
       {editActions && editActions.length > 0 && (
         <div className={s.editSection}>
-          <div className={s.editRow} {...editVariant.anchor}>
-            {editActions.map((action, i) => (
-              <Button
-                key={`${action.label}-${i}`}
-                className={s.editBtn}
-                variant="system-secondary"
-                trailingIcon={action.icon}
-                // htmlFor → label-режим: тап фокусирует целевой input, хостовый
-                // onFocusCapture флипает шаг (iOS поднимает клавиатуру). onClick
-                // только праймит (primeEdit) — НЕ closes/setStep, иначе label
-                // размонтируется до делегирования фокуса (CLAUDE.md «Label focus
-                // delegation»); дровер закроется сам по уходу фокуса. Без htmlFor
-                // — обычная кнопка: закрыть-и-выполнить (навигация).
-                {...(action.htmlFor
-                  ? { as: 'label' as const, htmlFor: action.htmlFor, onClick: action.onClick }
-                  : { onClick: () => handleAction(action) })}
-              >
-                {action.label}
-              </Button>
-            ))}
+          <div className={s.editRow}>
+            {editActions.map((action, i) =>
+              action.htmlFor ? (
+                // Медаль = `<label htmlFor>`: тап фокусирует целевой edit-input,
+                // хостовый onFocusCapture флипает шаг (iOS поднимает клавиатуру) и
+                // закрывает дровер. onClick только праймит — НЕ closes/setStep,
+                // иначе label размонтируется до делегирования (CLAUDE.md «Label
+                // focus delegation»). Дровер открыт с trapFocus:false, иначе
+                // focus-trap завернул бы делегацию назад.
+                <WriteBarMedal
+                  key={`${action.label}-${i}`}
+                  look="bare"
+                  floating={false}
+                  htmlFor={action.htmlFor}
+                  onClick={action.onClick}
+                  ariaLabel={action.label}
+                  arcTop={action.label}
+                  centerNode={action.icon}
+                />
+              ) : (
+                // Без htmlFor — обычная кнопка: закрыть-и-выполнить (навигация).
+                <Button key={`${action.label}-${i}`} variant="system" onClick={() => handleAction(action)}>
+                  {action.label}
+                </Button>
+              )
+            )}
           </div>
         </div>
       )}

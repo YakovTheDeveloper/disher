@@ -26,14 +26,12 @@ import styles from './FoodEntryCard.module.scss';
 type CardRootProps = Omit<ComponentProps<typeof Card.Root>, 'children'>;
 
 export type FoodEntryCardProps = CardRootProps & {
-  // ── qty (левый столбик) ──
   quantity: number;
   unit: string;
   onCommitQuantity: (quantity: number) => void;
   /** Screen прячет нижний бар на время инлайн-правки количества (только расписание). */
   qtyDataEntityEdit?: boolean;
 
-  // ── имя ──
   name: { name: string } | null;
   /** Голос/цвет имени по типу записи (dishTitle/foodTitle/customTitle/nameOriginal). */
   nameClassName?: string;

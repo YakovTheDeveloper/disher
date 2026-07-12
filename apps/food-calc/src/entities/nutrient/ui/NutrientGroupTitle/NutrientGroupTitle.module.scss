@@ -4,6 +4,7 @@
 // объявляем (typo-encapsulation gate: голос роли живёт в примитиве). Раскладку
 // (margin/padding) задаёт консумер.
 .title {
+  display: none;
   text-transform: uppercase;
-  color: var(--sys-color-text-quiet);
+  color: var(--sys-color-text-accent);
 }

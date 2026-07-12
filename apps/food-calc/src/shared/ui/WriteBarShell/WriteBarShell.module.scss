@@ -412,6 +412,9 @@
     width: calc(var(--coin-size) - var(--space-1));
     height: calc(var(--coin-size) - var(--space-1));
     margin-left: var(--space-2);
+    // Небольшой отступ монеты от правой кромки пилюли (мессенджер-канон: send
+    // «утоплен» в пилюлю, не приклеен к её краю). Раньше монета садилась вплотную.
+    margin-right: var(--space-2);
     border: none;
     border-radius: var(--radius-full);
     // send = «отправить» → фирменный чёрный (та же ink-поверхность, что и плавающая

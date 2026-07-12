@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, type FocusEvent } from 'react';
+import { useState, useMemo, useCallback, useRef, type FocusEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import {
   useProduct,
@@ -10,7 +11,8 @@ import {
   deleteProducts,
 } from '@/entities/product';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientTable } from '@/widgets/nutrients/FoodsNutrients';
+import { NutrientMeterView } from '@/entities/nutrient/ui/NutrientMeterView';
+import { NutrientEditView } from '@/entities/nutrient/ui/NutrientEditView';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 import { Select } from '@/shared/ui/atoms/Select';
 import { Button } from '@/shared/ui/atoms/Button';
@@ -27,6 +29,7 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { formatAmount } from '@/shared/lib/formatNumber';
+import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
@@ -145,6 +148,7 @@ const PortionsAccordion = ({
  * Открытие: `drawerStore.show(ProductDrawer, { productId, productName }, { side: 'left', width: 'min(85vw, 360px)' })`.
  */
 export function ProductDrawer({ productId, productName, onClose }: Props) {
+  const { t } = useTranslation();
   const food = useProduct(productId);
   const portionsRaw = useProductPortions(productId);
   const { results: nutrientsRaw } = useProductNutrients(productId);
@@ -156,6 +160,13 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [portionsOpen, setPortionsOpen] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+
+  // X-Request-Id for the suggest charge. Minted once and REUSED across retries
+  // of the SAME product (a lost response would otherwise double-debit 0.5 ₽ on
+  // the next tap); cleared on a successful whole-replace so a later deliberate
+  // re-suggest starts a fresh billable request. Declared with the other hooks —
+  // above the `if (!food)` early return — to satisfy rules-of-hooks.
+  const suggestRequestIdRef = useRef<string | null>(null);
 
   // Rename триггерится `<label htmlFor>` в меню → focus-делегация на input
   // (iOS открывает клавиатуру ТОЛЬКО так, см. feedback_ios_focus). DropdownMenu
@@ -190,11 +201,14 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
     // user-продукт грузится из Dexie (useLiveQuery → undefined первый тик).
     // Показываем имя-«призрак» из productName в родной обвязке DrawerLayout
     // (× в углу + заголовок по центру), пока не подъедет реальная строка.
-    const ghostName = productName
-      ? productName.charAt(0).toUpperCase() + productName.slice(1)
-      : undefined;
+    const ghostName = productName ? capitalizeFirst(productName) : undefined;
     return (
-      <DrawerLayout title={ghostName} a11yLabel={productName ?? 'Продукт'} contentInset="panel">
+      <DrawerLayout
+        title={ghostName}
+        subtitle={isCreatedByUser(productId) ? 'мой продукт' : undefined}
+        a11yLabel={productName ?? 'Продукт'}
+        contentInset="panel"
+      >
         <div className={s.body} />
       </DrawerLayout>
     );
@@ -311,15 +325,24 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       if (!proceed) return;
     }
     setSuggesting(true);
+    const requestId = (suggestRequestIdRef.current ??= crypto.randomUUID());
     try {
-      const record = await suggestProductNutrients(food.name);
+      const record = await suggestProductNutrients(food.name, requestId);
       // Empty result (LLM returned all-zero / nothing mapped): do NOT wipe the
       // existing nutrients with `{}`. Keep prior data, tell the user it failed.
       if (Object.keys(record).length === 0) {
+        // Empty is a COMPLETED (already-charged) LLM run, not a lost response —
+        // the server debited for it. Drop the id so the next tap is a fresh
+        // billable request; keeping it would let the reuse dedup that charge to
+        // zero (a re-suggest for free). Lost responses go through catch below,
+        // which keeps the id for the genuine same-request retry.
+        suggestRequestIdRef.current = null;
         toaster.error('Не удалось подобрать состав, попробуй ещё раз');
         return;
       }
       await setProductNutrients(food.id, JSON.stringify(record));
+      // Success — the next suggest is a new logical request.
+      suggestRequestIdRef.current = null;
       toaster.success('Состав обновлён');
     } catch (e) {
       const kind = classifyError(e);
@@ -331,7 +354,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
 
   // Имя в шапке: первая буква в верхний регистр (имена приходят строчными,
   // напр. «абрикос»).
-  const displayName = food.name.charAt(0).toUpperCase() + food.name.slice(1);
+  const displayName = capitalizeFirst(food.name);
 
   return (
     <DrawerLayout
@@ -405,9 +428,8 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                 </Text>
               </p>
             )}
-            <NutrientTable
+            <NutrientEditView
               getValue={getNutrientValue}
-              variant="edit-values"
               onValueChange={handleNutrientValueChange}
             />
           </section>
@@ -434,7 +456,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
               // ручного ввода (открывает инлайн-режим правки).
               <EmptyState
                 className={s.emptyNutrients}
-                title="У продукта пока нет состава"
+                title={t('food.product.emptyComposition')}
                 action={
                   <>
                     <SuggestActionButton
@@ -498,7 +520,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
                   </>
                 )}
 
-                <NutrientTable getValue={getScaledValue} />
+                <NutrientMeterView getValue={getScaledValue} />
               </>
             )}
           </>

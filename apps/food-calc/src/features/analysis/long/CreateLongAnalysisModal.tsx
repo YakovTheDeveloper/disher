@@ -1,4 +1,5 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { BaseModalProps } from '@/shared/ui';
 import { ModalLayout } from '@/shared/ui/ModalLayout';
@@ -29,6 +30,7 @@ type Props = BaseModalProps<Analysis | null>;
 // ModalShell chrome (header + body + fixed ActionButtons) with its daily sibling
 // AnalysisClarificationModal.
 const CreateLongAnalysisModal = ({ onClose }: Props) => {
+  const { t } = useTranslation();
   const hypotheses = useAllHypotheses();
   const [range, setRange] = useState<DateRange>(defaultRange);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -56,14 +58,27 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
     [hypotheses, selectedIds],
   );
 
+  // The analysis id doubles as the X-Request-Id idempotency key. Mint it once
+  // per attempt and REUSE it when the user resubmits after an error (the first
+  // POST may have created the row + charged 5 ₽ before the response was lost —
+  // reusing the id makes the retry dedup instead of double-charging). Reset it
+  // whenever the inputs change, so an EDITED resubmit is a genuinely new
+  // analysis with a fresh id (a reused id would dedup to the old window).
+  const requestIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    requestIdRef.current = null;
+  }, [range.start, range.end, snapshot]);
+
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
+    const requestId = (requestIdRef.current ??= crypto.randomUUID());
     try {
       const { analysis } = await startAnalysis({
         windowStart: range.start,
         windowEnd: range.end,
         dayKeys: rangeDayKeys(range),
+        requestId,
         ...(snapshot.length > 0 ? { hypotheses: snapshot } : {}),
       });
       toast.success('Разбор запущен');
@@ -92,8 +107,8 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
             // Панель при пустом списке возвращает null (намеренно — общий
             // консумер). Здесь держим аффорданс «гипотезы опциональны».
             <EmptyState
-              title="Гипотез пока нет"
-              description="Разбор можно запустить и без них."
+              title={t('analyses.hypotheses.longEmpty.title')}
+              description={t('analyses.hypotheses.longEmpty.description')}
             />
           ) : (
             <HypothesisListPanel

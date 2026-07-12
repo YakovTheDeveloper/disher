@@ -4,7 +4,8 @@ import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { addDishItem, updateDishItem, createDish, useDishPortions } from '@/entities/dish';
-import { createProduct, setProductNutrients, useProductPortions } from '@/entities/product';
+import { createProduct, setProductNutrients, useProductPortions, useProducts } from '@/entities/product';
+import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -133,6 +134,19 @@ export function useFoodEntryFlow({
     }
     setVisitedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
   }, [step]);
+
+  // Все продукты (каталог + user) — уже загружены к моменту выбора из поиска.
+  // Нужны, чтобы синхронно (на клике по карточке) узнать basis/serving-unit
+  // выбранного продукта: БАД (servingBasis='serving') считается в дозах, поэтому
+  // его дефолт-количество = 1, а не 100 г, а юнит шага = «шт», не «г».
+  const allProducts = useProducts();
+  const selectedProduct = useMemo(
+    () =>
+      draft.variant === 'product' && draft.productId
+        ? (allProducts.find((p) => p.id === draft.productId) ?? null)
+        : null,
+    [allProducts, draft.variant, draft.productId],
+  );
 
   const foodPortions = useProductPortions(
     draft.variant === 'product' ? (draft.productId ?? undefined) : undefined,
@@ -299,6 +313,16 @@ export function useFoodEntryFlow({
     if (kind === 'dish' && payload.variant === 'dish') return;
 
     if (mode === 'create') {
+      // Дефолт количества зависит от basis выбранного продукта: БАД (serving)
+      // считается в дозах → 1; еда/блюдо → 100 г. allProducts уже в памяти (это
+      // те же строки, что показал поиск), поэтому basis резолвится синхронно на
+      // клике — новая порция-дефолт попадает в draft ДО того, как ProductQuantity
+      // ре-синкнет своё значение по resetKey (гонки нет).
+      const selected =
+        payload.variant === 'product'
+          ? allProducts.find((p) => p.id === payload.id)
+          : undefined;
+      const defaultQty = selected?.servingBasis === 'serving' ? 1 : 100;
       // Только пишем draft — НЕ зовём setStep. Переход на 'quantity' делает
       // делегирование фокуса (карточка SearchFood = `<label htmlFor=
       // {QUANTITY_INPUT}>`). Синхронный setStep размонтировал бы SearchFood до
@@ -309,6 +333,7 @@ export function useFoodEntryFlow({
         productId: payload.variant === 'product' ? payload.id : null,
         dishId: payload.variant === 'dish' ? payload.id : null,
         foodName: payload.name ?? null,
+        quantity: defaultQty,
       }));
       return;
     }
@@ -458,10 +483,12 @@ export function useFoodEntryFlow({
     () => ({
       quantity: draft.quantity,
       updateQuantity,
+      // Юнит шага количества: еда/блюдо → «г», БАД → его servingUnit («шт»/…).
+      unit: draft.variant === 'product' ? getQtyUnit(selectedProduct) : 'г',
       product: draft.variant === 'product' ? { portions: foodPortions ?? [] } : undefined,
       dish: draft.variant === 'dish' ? { portions: dishPortions ?? [] } : undefined,
     }),
-    [draft.quantity, draft.variant, updateQuantity, foodPortions, dishPortions],
+    [draft.quantity, draft.variant, updateQuantity, foodPortions, dishPortions, selectedProduct],
   );
 
   return {

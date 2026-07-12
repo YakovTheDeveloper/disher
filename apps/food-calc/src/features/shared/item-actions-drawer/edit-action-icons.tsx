@@ -13,11 +13,15 @@ const ICON_PROPS = {
   'aria-hidden': true,
 } as const;
 
+// Тонкий изящный штрих. `non-scaling-stroke` держит обводку константной в
+// экранных px, невзирая на 1.5× scale медали (иначе штрих толстел бы вместе с
+// глифом). Цвет — currentColor (медаль bare красит центр в ink `--sys-color-text-system`).
 const STROKE = {
   stroke: 'currentColor',
-  strokeWidth: 1.5,
+  strokeWidth: 1.1,
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
+  vectorEffect: 'non-scaling-stroke',
 } as const;
 
 /** Количество — гиря (вес/граммы). */
@@ -44,5 +48,15 @@ export const ClockIcon = () => (
   <svg {...ICON_PROPS}>
     <circle cx="12" cy="12" r="8.5" {...STROKE} />
     <path d="M12 7.5V12l3 1.8" {...STROKE} />
+  </svg>
+);
+
+/** Особенности — ползунки-регуляторы (три дорожки с бегунками): «параметры события». */
+export const FeaturesIcon = () => (
+  <svg {...ICON_PROPS}>
+    <path d="M4 7h4M12 7h8M4 12h10M18 12h2M4 17h6M14 17h6" {...STROKE} />
+    <circle cx="10" cy="7" r="2" {...STROKE} />
+    <circle cx="16" cy="12" r="2" {...STROKE} />
+    <circle cx="12" cy="17" r="2" {...STROKE} />
   </svg>
 );

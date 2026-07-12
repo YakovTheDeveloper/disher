@@ -1,6 +1,6 @@
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
-import { Numeral, Text } from '@/shared/ui/atoms/Typography';
+import { NutrientTotalsColumn } from '@/shared/ui/NutrientTotalsColumn';
 import s from './NutrientsBar.module.scss';
 
 type Props = {
@@ -38,14 +38,7 @@ export const NutrientsBar = ({ totals, onOpen }: Props) => {
         onClick={onOpen}
         aria-label="Показать все нутриенты за день"
       >
-        <div className={s.cells}>
-          {cells.map((c) => (
-            <span key={c.key} className={s.cell}>
-              <Text as="span" role="caption" className={s.label}>{c.label}</Text>
-              <Numeral as="span" size="md" weight="black" className={s.value}>{c.value}</Numeral>
-            </span>
-          ))}
-        </div>
+        <NutrientTotalsColumn cells={cells} />
         <ChevronGlyph className={s.chevron} />
       </button>
     </div>

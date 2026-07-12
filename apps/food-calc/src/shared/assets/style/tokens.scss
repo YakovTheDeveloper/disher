@@ -146,6 +146,7 @@
   // которые раньше были magic-px (50px) в DrawerLayout.
   --sys-size-control: 44px; // квадратная хит-арея chrome icon-button (крест/урна дровера)
   --sys-size-drawer-chrome: 56px; // высота верхней обвязки дровера (drag-handle row)
+  --sys-size-scroll-fade: 44px; // высота нижнего fade-растворения скролла (mask-image, scroll-edge-fade)
 
   // --sys-field-* (типографика) — ПОЛЯ ВВОДА, стилизованные КЛАССОМ (input/textarea/
   // select-триггер): голый тег `input` гейт exempt'ит, но class-styled поле — нет,
@@ -184,6 +185,11 @@
   --sys-numeral-display: 31px; // BalanceSection баланс (≈2xl)
   --sys-numeral-hero: 48px; // крупный числовой герой
   --sys-numeral-loader-day: clamp(28px, 16vw, 62px); // FabricLoader fallback day-digit (responsive)
+  // Межстрочный числового голоса — ОДИН на все размеры (число не переносится → воздух
+  // между строк не нужен; тугой бокс = компактный табличный ридаут, ср. --sys-text-display-line
+  // 1.05). Дом = примитив <Numeral>; консументы, которым надо сесть на строку числа
+  // (юнит/знак, что аннотируют ридаут), равняются на этот же токен.
+  --sys-numeral-line: 1.1;
 
   // Mono — hero numerals + tabular — #mono
   // Dial-ярус числового примитива: крупный циферблат (TimeChoose) + big quantity
@@ -454,7 +460,7 @@
 
   --sys-color-text-primary: var(--text-primary); // бренд-primary (станет амброй в будущем) — НЕ для нейтрального чёрного текста
   --sys-color-text-system: var(--ref-color-neutral-900); // нейтральный чёрный/ink текст (текстовый парный к surface-action-system); #221f19
-  --sys-color-text-accent: var(--ref-color-indigo-600); // акцентный (холодный) текст — indigo
+  --sys-color-text-accent: var(--ref-color-indigo-700); // акцентный (холодный) текст — indigo
   --sys-color-text-secondary: var(--text-secondary);
   --sys-color-text-tertiary: var(--text-tertiary);
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
@@ -541,6 +547,20 @@
   // на-заливке остаются amber, холодает ТОЛЬКО глиф. Един для всех тиков app-wide
   // (FoodActionCard tick-бейдж, Choice markerTick, HypothesisListItem чекбокс).
   --sys-color-tick-selected: var(--sys-color-text-accent); // indigo-600 #3a2d6b
+  // Inset-«well» selection-маркера (Choice stacked): вдавленный кружок с/без галочки.
+  // «Вдавленность» — ПРОИЗВОДНАЯ от полюса plum (color-mix плюс --color-ink для
+  // тени, кант — полупрозрачный plum). В семье field-shadow (утопленное поле, как
+  // --sys-field-shadow инпутов). plum и ink оба тема-адаптивны → авто-флип в dark.
+  --sys-field-shadow-selected-well:
+    inset 0 1px 1px color-mix(in srgb, var(--sys-color-bg-selected-plum) 100%, var(--color-ink)),
+    inset 0 1px 0 1px color-mix(in srgb, var(--sys-color-bg-selected-plum) 55%, transparent);
+  // Диск selection-well у ВЫБРАННОГО (Choice stacked): бледно-сливовый тинт полюса
+  // plum в surface-1 — well читается «частью выбранного» и вдавленным (против
+  // нейтрального surface-1 у невыбранного). Держим достаточно светлым: холодный
+  // indigo-тик (--sys-color-tick-selected) остаётся читаем на диске. plum и surface
+  // тема-адаптивны (var-рефы резолвятся в scope) → авто-флип в dark, как well-тень.
+  --sys-color-surface-well-selected-plum:
+    color-mix(in srgb, var(--sys-color-bg-selected-plum) 70%, var(--sys-color-surface-1));
   --sys-color-bg-hover: rgba(34, 31, 25, 0.04); // warm-coal state-layer
   --sys-color-bg-press: var(--press-tint-bg); // alias 1:1
   // Утопленная плашка (6% warm-ink wash) — глобальный спутник scoped --sys-card-bg-sunk

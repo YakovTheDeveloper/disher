@@ -18,8 +18,6 @@ const BODY_PLACEHOLDER: Record<NonDone, string> = {
   failed: 'Разбор не удался',
 };
 
-// ─── Component ────────────────────────────────────────────────────────────
-
 type Props = {
   analysis: Analysis;
   onOpen: (id: string) => void;

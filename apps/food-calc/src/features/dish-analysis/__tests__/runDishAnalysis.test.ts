@@ -136,7 +136,6 @@ describe('buildDishAnalysisPayload', () => {
 
 // ── billing surface: 402 → PaymentRequiredError + idempotency header ──────────
 const mockFetch = vi.mocked(authedFetch);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function jsonRes(status: number, body: unknown): Response {
   return {
@@ -159,17 +158,18 @@ describe('requestDishAnalysis — billing surface', () => {
 
   it('throws PaymentRequiredError on 402 (carries need/have)', async () => {
     mockFetch.mockResolvedValue(jsonRes(402, { needKop: 200, haveKop: 0 }));
-    const err = await requestDishAnalysis({ payload }).catch((e) => e);
+    const err = await requestDishAnalysis({ payload, requestId: 'req-1' }).catch((e) => e);
     expect(err).toBeInstanceOf(PaymentRequiredError);
     expect(err.message).toBe('Недостаточно средств — пополните баланс');
     expect(err.needKop).toBe(200);
   });
 
-  it('sends an X-Request-Id header on the POST', async () => {
+  it('forwards the caller-owned X-Request-Id on the POST (idempotency key)', async () => {
     mockFetch.mockResolvedValue(jsonRes(402, {}));
-    await requestDishAnalysis({ payload }).catch(() => {});
+    await requestDishAnalysis({ payload, requestId: 'req-stable' }).catch(() => {});
     const headers = mockFetch.mock.calls[0]?.[1]?.headers as Record<string, string>;
-    expect(headers['X-Request-Id']).toMatch(UUID_RE);
+    // No longer a fresh mint — the store owns the id and reuses it on retry.
+    expect(headers['X-Request-Id']).toBe('req-stable');
   });
 
   it('returns the structured {summary, insights} on success', async () => {
@@ -190,7 +190,7 @@ describe('requestDishAnalysis — billing surface', () => {
         },
       }),
     );
-    const out = await requestDishAnalysis({ payload });
+    const out = await requestDishAnalysis({ payload, requestId: 'req-1' });
     expect(out.summary).toBe('Сытно и сбалансированно.');
     expect(out.insights).toHaveLength(1);
     expect(out.insights[0]).toMatchObject({

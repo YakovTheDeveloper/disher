@@ -9,8 +9,6 @@ export type Atom =
   | TagAtom
   | RelationAtom;
 
-// ─── Type guards ───
-
 export const isScaleAtom = (a: Atom): a is ScaleAtom => a.kind === "scale";
 export const isTagAtom = (a: Atom): a is TagAtom => a.kind === "tag";
 export const isRelationAtom = (a: Atom): a is RelationAtom => a.kind === "relation";

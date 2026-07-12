@@ -168,48 +168,100 @@
     // }
 }
 
-// ─── Бровка под chrome-рядом (ВСЕ дроверы) ──────────────────────────────────
+// ─── Бровка-шов под chrome-рядом (ВСЕ дроверы, ТОЛЬКО на скролле) ────────────
 // Затухающий hairline у нижней кромки заголовка — тихо отделяет chrome-ряд
 // (заголовок/крест) от прокручиваемого тела (canon rule 1 — затухающий hairline,
-// НЕ сплошной border). На ВСЕХ дроверах с chrome-рядом — нижних И боковых
-// (боковые вдобавок несут вертикальную бровку у edge-handle; горизонтальная
-// бровка под заголовком — отдельный аффорданс, просьба 2026-07-05). floatingClose /
-// hideTopChrome вовсе не рендерят .dragHandle → там бровки нет по построению.
-// База .dragHandle всегда присутствует (title / title+subtitle / кастомный
-// header — все три несут её), так что одно правило кроет все хедер-пути.
-// Джустуется по --drawer-inset = боковой линии тела.
+// НЕ сплошной border). Теперь это scroll-shadow / sticky-header шов: линия
+// ПОЯВЛЯЕТСЯ, только когда тело прокручено (в покое шва нет — заголовок сливается
+// с первым экраном контента). На ВСЕХ дроверах с chrome-рядом — нижних И боковых
+// (боковые вдобавок несут вертикальную бровку у edge-handle; эта горизонтальная —
+// отдельный аффорданс). floatingClose / hideTopChrome вовсе не рендерят
+// .dragHandle → там шва нет по построению. База .dragHandle всегда присутствует
+// (title / title+subtitle / кастомный header) → одно правило кроет все хедер-пути
+// И оба якоря (нижний/боковой): прежнее .content_bottom-гашение линии снято, шов
+// теперь единый на всех дроверах. Джустуется по --drawer-inset = боковой линии тела.
 //
-// Цвет = --sys-color-divider (единый ХОЛОДНЫЙ divider-токен, унификация бровок
-// 2026-06-26). НЕ --sys-field-hairline: тот — field-well токен, на дровер-
-// поверхности РАЗВЁРНУТ в `transparent` (rest-бровки у поля нет, field-depth), и
-// бровка была невидима.
-.dragHandle::after {
-    content: '';
-    position: absolute;
-    left: var(--drawer-inset);
-    right: var(--drawer-inset);
-    bottom: 0;
-    height: 1px;
-    background: linear-gradient(90deg,
-            transparent 0%,
-            var(--sys-color-divider) 18%,
-            var(--sys-color-divider) 82%,
-            transparent 100%);
-    pointer-events: none;
+// Управление — JS IntersectionObserver (DrawerLayout.tsx ставит `data-scrolled` на
+// .dragHandle, когда верхний сентинел тела ушёл из вида), НЕ CSS scroll-timeline /
+// @container scroll-state (см. .scrollableContent ниже): те — Chrome-only, а это
+// PWA на iOS Safari, где CSS-путь молчит и линия не появлялась бы вовсе. Цвет =
+// --sys-color-divider (единый ХОЛОДНЫЙ divider-токен). НЕ --sys-field-hairline: тот
+// на дровер-поверхности развёрнут в `transparent` (field-depth) и был бы невидим.
+// Тело прокручено (верхний сентинел ушёл из вида) → проявить шов. `data-scrolled`
+// ставит единый IntersectionObserver в DrawerLayout.tsx — на ВСЕХ дроверах
+// (нижних И боковых), поэтому спец-правил под якорь тут больше нет. Джустуется по
+// --drawer-inset = боковой линии тела. Тот же scroll-seam, что несут модалки.
+.dragHandle {
+    // Дровер несёт СВОЙ шов, отличный от модалочного (просьба 2026-07-12): та же
+    // затухающая-по-кончикам линия, но 1) темнее (--sys-color-border-default,
+    // средний рунг 0.28/0.22 — против воздушного --sys-color-divider 0.11) и
+    // 2) затухает ПОЗЖЕ — сплошная почти до кромки, фейд только по 8px у кончиков
+    // (модалка держит дефолтный воздушный 20px). Оба параметра — аргументы
+    // scroll-seam, так что расхождение живёт в одной строке, а не в форке миксина.
+    @include scroll-seam(var(--drawer-inset), $tip: 8px, $color: var(--sys-color-border-default));
 }
 
-// Боковые дроверы наследуют БАЗОВУЮ симметричную бровку (тает с обоих концов,
-// inset по --drawer-inset). Прежний left:0 + fade-вправо был подогнан под ЛЕВЫй
-// заголовок (.dragHandleSideTitle); теперь заголовок центрирован (2026-07-10) —
-// симметричная бровка снова под ним, спец-кейс снят.
+// ─── Non-sticky (scroll-away) header row ─────────────────────────────────────
+// headerScroll="scroll": the chrome row is rendered INSIDE the scroller (so it
+// scrolls out of view) instead of pinned above it. The leading control floats
+// (`.floatingClose`), so no in-row `.topLeft` slot exists; the trailing slot
+// drops its own `--drawer-inset` because the scroller's `padding-inline` already
+// insets the whole row from the panel edge (otherwise topRight would double-inset).
+// The seam never fires here — the row leaves rather than shadowing a pinned bar,
+// so `data-scrolled` is intentionally not set in TSX.
+.dragHandleScroll {
+    .topRight {
+        right: 0;
+    }
+}
 
-// Нижние дроверы (.content_bottom на popup-root) ГАСЯТ header-hairline (запрос
-// 2026-07-10 — под заголовком нижнего дровера линия не нужна). Боковые
-// (.content_left/.content_right) её сохраняют. Базовый .dragHandle всегда в clsx
-// (DrawerLayout.tsx) → один селектор кроет все варианты шапки
-// (.dragHandleStacked/.dragHandleHeader).
-.content_bottom .dragHandle::after {
-    display: none;
+// ─── Collapsing (shrinking) header — transform-only, косметический ────────────
+// headerScroll="collapse": полоса ОСТАЁТСЯ прилепленной; при скролле вниз заголовок и
+// глифы органично УЖИМАЮТСЯ масштабом (enterAlways / quick-return — копится дельта,
+// вверх раскрывает; см. useCollapsingHeader). Крест/стрелка/заголовок НЕ уезжают —
+// закрытие не теряется. В покое (var=0) всё тождественно обычному прилепленному ряду.
+//
+// ТОЛЬКО transform (composite) — height НЕ анимируем (решение 2026-07-12: плавность
+// важнее возврата места). 0 reflow → ровно даже на тяжёлой сцене (ModalByLabel со
+// стеком backdrop-filter, где height-версия джанчила). РАСПЛАТА: место телу этим НЕ
+// возвращается — коробка ряда той же высоты, это косметическое «оседание» заголовка.
+// Реальный возврат вертикали = zero-reflow-рефактор (tds) ИЛИ статический трим
+// chrome-высоты — оба вне этого блока (тут только per-frame часть, она композитная).
+//
+// `transition: 120ms` — НАМЕРЕННЫЙ демпфер рваной rAF-величины (сглаживание + мягкая
+// доводка на остановке; снятие 2026-07-12 дало сырое дёрганье, вернули). На composite-
+// свойстве идёт на компоситоре — почти бесплатен.
+.dragHandleCollapse {
+    $collapse: var(--header-collapse, 0);
+
+    // Заголовок ужимается ТОЛЬКО при скролле (c=0 → scale 1 = норма). origin center —
+    // центрированный заголовок дровера уменьшается «на месте» (канон 2026-07-10).
+    .titleCenter {
+        transform: scale(calc(1 - 0.28 * #{$collapse}));
+        transform-origin: center;
+        transition: transform 120ms linear;
+    }
+
+    // Ведущий/замыкающий контрол: hit-area (--sys-size-control=44) НЕ трогаем
+    // (touch-floor ≥40 + WCAG 2.5.5) — ужимаем визуально ТОЛЬКО глиф. c=0 → scale 1.
+    .chromeSlot svg {
+        transform: scale(calc(1 - 0.18 * #{$collapse}));
+        transition: transform 120ms linear;
+    }
+}
+
+// Ряд с ДВУСТРОЧНЫМ (title+subtitle) или КАСТОМНЫМ header'ом: масштаб заголовка/глифа
+// гасим, чтобы не ломать раскладку. Collapse на таких рядах = no-op (высоту база больше
+// не трогает — transform-only).
+.dragHandleCollapse.dragHandleStacked,
+.dragHandleCollapse.dragHandleHeader {
+    .titleCenter {
+        transform: none;
+    }
+
+    .chromeSlot svg {
+        transform: none;
+    }
 }
 
 // ─── Bottom drawer (default) ────────────────────────────────────
@@ -629,6 +681,18 @@
     justify-content: flex-start;
 }
 
+// Zero-space пробники краёв тела для useScrollEdges (IntersectionObserver):
+// верхний = ПЕРВЫЙ ребёнок (ушёл из вида ⇒ тело прокручено ⇒ шов `.dragHandle
+// [data-scrolled]`), нижний = ПОСЛЕДНИЙ ребёнок (ушёл из вида ⇒ ниже есть контент
+// ⇒ fade `.scrollableContent[data-more-below]`). Оба aria-hidden в TSX.
+.scrollSentinel {
+    @include scroll-sentinel(top);
+}
+
+.scrollSentinelBottom {
+    @include scroll-sentinel(bottom);
+}
+
 .scrollableContent {
     display: flex;
     flex-direction: column;
@@ -641,71 +705,20 @@
     padding-inline: var(--drawer-content-inset);
     padding-block-start: var(--drawer-content-pad-top);
     -webkit-overflow-scrolling: touch;
-    transition: max-height 0.2s ease-out;
 
     // Isolate scroll-induced repaints from the drawer surface — combined with the
     // .content `contain` above this stops scroll repainting the chrome/handle.
     contain: layout paint;
 
-    // Named scroll timeline for the top/bottom fade hints. Browsers that don't
-    // support scroll-driven animations ignore this property — hints fall back to
-    // invisible (opacity:0 default), which is the safe degradation. Both ::before
-    // and ::after are descendants, so they resolve --scrollerY directly — no
-    // timeline-scope needed.
-    scroll-timeline: --scrollerY block;
-
-    // Scroll-state query container — lets descendant drawers react to sticky
-    // headers being held by their `top` constraint via `@container
-    // scroll-state(stuck: top)`. Modern path of the two-tier scroll-seam
-    // affordance (see NutrientsDrawer.header for the canonical consumer).
-    // Chrome 133+; Safari ≤18.x / Firefox silently ignore the unsupported value
-    // and fall back to the scroll-driven `--scrollerY` path. `scroll-state`
-    // adds no layout/style/paint containment side effects (CSS Containment 3).
-    container-type: scroll-state;
-
-    // Bottom scroll-hint: a sticky white→transparent gradient — the last rows dissolve
-    // into the surface, signalling «ниже есть ещё» at the bottom edge where there's no
-    // footer. Pure CSS scroll-driven animation (industry 2026 pattern, CSS-Tricks
-    // "Modern Scroll Shadows"). When there's no overflow the scroll timeline is inactive
-    // → keyframe sits at 0% → opacity 0 (hint hidden).
-    //
-    // NB: there is intentionally NO top hint. A top fade under the always-present drawer
-    // chrome (`.headerSlot`, same white surface) signals nothing — it only ghosts the top
-    // row into a white haze on scroll, reading as an unnatural gap from the header. The
-    // header↔content seam is already carried by the chrome's own fading hairline «бровка»
-    // (`.dragHandle::after`, --sys-color-divider) — a content-side veil on top of it is
-    // pure liability. (Removed 2026-07-10.)
-    position: relative;
-
-    // Bottom hint: visible while there's more content below.
-    &::after {
-        content: '';
-        position: sticky;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        margin-top: -50px;
-        background: linear-gradient(to top, white 30%, rgba(255, 255, 255, 0));
-        pointer-events: none;
-        flex-shrink: 0;
-        z-index: 2;
-
-        // Same as the top hint: no `forwards` fill, so an inactive timeline
-        // (non-overflowing content) degrades to base opacity:0, not a filled keyframe.
-        opacity: 0;
-        animation: scroll-fade-hint linear;
-        animation-timeline: --scrollerY;
-    }
-}
-
-// Opt-out (DrawerLayout `scrollHints={false}`): drop the bottom edge-fade for short
-// form drawers whose own footer marks the end — there the fade dissolves the last row
-// into the surface and reads as a glitch, not a hint.
-.noScrollHints {
-    &::after {
-        content: none;
-    }
+    // Нижний fade = маска-растворение (scroll-edge-fade), включается по
+    // `data-more-below` от useScrollEdges (JS). Раньше тут жили CSS scroll-timeline
+    // (--scrollerY) + @container scroll-state + sticky `::after`-градиент — весь
+    // путь Chrome-only, поэтому на iOS Safari (PWA на iOS) fade не появлялся вовсе.
+    // Верхнего fade намеренно НЕТ — шов заголовка несёт `.dragHandle::after`.
+    // Opt-out `scrollHints={false}` реализован в TSX (не ставит data-more-below),
+    // поэтому отдельного .noScrollHints-класса больше не нужно. Маска фон-
+    // агностична — dark-двойник (бывший `::after` перекрас) тоже снят.
+    @include scroll-edge-fade;
 }
 
 // Проп contentInset переопределяет БОКОВОЙ инсет тела точечно (через var, а не
@@ -732,26 +745,6 @@
     flex-shrink: 0;
 }
 
-@keyframes scroll-fade-hint {
-
-    // 0% (top of scroll) → invisible
-    // small range (~3%) to fade in
-    // hold visible while there's more to scroll
-    // last 5% fades back out as user approaches bottom
-    0% {
-        opacity: 0;
-    }
-
-    3%,
-    95% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0;
-    }
-}
-
 .srOnly {
     position: absolute;
     width: 1px;
@@ -764,18 +757,11 @@
     border: 0;
 }
 
-// ─── Dark: scroll-hint ──────────────────────────────────────────────────────
-// Glass-кант краевого дровера теперь токенизирован — его dark-двойник (светлый rim +
-// тёмная ambient) живёт как override --sys-elevation-drawer-glint-* в theme-dark.scss,
-// поэтому базовые .content_bottom/_left/_right box-shadow: var(…) сами берут dark-значение.
-// Здесь остаётся только перекрас scroll-hint: он хардкодит `white` (растворял контент в
-// белую surface-2) → на тёмной surface-2 это была бы светлая дымка; красим в дровер-
-// поверхность (#2a251d), чтобы фейд растворял, а не подсвечивал.
-:root[data-theme-mode='dark'] {
-    .scrollableContent::after {
-        background: linear-gradient(to top, #2a251d 30%, rgba(42, 37, 29, 0));
-    }
-}
+// ─── Dark: scroll-fade ──────────────────────────────────────────────────────
+// Раньше нижний fade хардкодил `white` (растворял в surface-2) и требовал
+// dark-двойника (перекрас `::after` в #2a251d). Теперь fade = mask-image
+// (scroll-edge-fade) — растворяет в ПРОЗРАЧНОСТЬ, фон-агностично, поэтому
+// отдельного dark-правила больше нет: маска одинаково корректна на любой теме.
 
 @media (prefers-reduced-motion: reduce) {
     .content {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- lightweight test-mock props */
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import FoodEntryCreateModals from './FoodEntryCreateModals';
@@ -10,7 +10,6 @@ import { isJustAdded, takeJustAdded } from '@/shared/model/recentlyAddedStore';
 // jsdom doesn't implement scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
-// ── mocks ─────────────────────────────────────────────────────────────────────
 vi.mock('@/shared/ui/Swipeable/SwipeableLockContext', () => ({
   useSwipeableLock: vi.fn(),
 }));
@@ -28,8 +27,17 @@ vi.mock('@/entities/dish', () => ({
   createDish: vi.fn().mockResolvedValue('new-dish-id'),
   useDishPortions: () => [],
 }));
+// useProducts feeds the synchronous basis-lookup added for finding 1 (a
+// serving-basis product must default qty=1 / unit «шт», food → 100 / «г»).
+// Без него useFoodEntryFlow бросал бы на useProducts() (regression guard).
+const mockProducts = [
+  { id: 'prod-1', name: 'Яблоко', servingBasis: '100g', servingUnit: null },
+  { id: 'prod-2', name: 'Молоко', servingBasis: '100g', servingUnit: null },
+  { id: 'supp-1', name: 'Витамин D', servingBasis: 'serving', servingUnit: 'шт' },
+];
 vi.mock('@/entities/product', () => ({
   useProductPortions: () => [],
+  useProducts: () => mockProducts,
   createProduct: vi.fn().mockResolvedValue('new-product-id'),
   setProductNutrients: vi.fn().mockResolvedValue(undefined),
 }));
@@ -67,6 +75,10 @@ vi.mock('@/features/food/details-chips', () => ({
 // The step transition is then driven by the host's onFocusCapture — NOT by a
 // setStep inside onSelectFood (regression guard for the focus-delegation canon).
 vi.mock('@/features/food/food-search', () => ({
+  // Header hook + styles were lifted into the host (d485b793) — mock alongside
+  // SearchFood so the module resolves under vitest.
+  useSearchHeaderContent: (title: any, meta?: any) => ({ title, titleMeta: meta }),
+  searchFoodStyles: { railHost: 'railHost' },
   SearchFood: (props: any) => {
     const select = (variant: string, id: string, name: string) => {
       props.onSelectFood({ variant, id, name });
@@ -110,7 +122,6 @@ vi.mock('@/features/product/ProductQuantity', () => ({
   },
 }));
 
-// ── harness ───────────────────────────────────────────────────────────────────
 const Harness = ({ target }: { target: FoodEntryTarget }) => {
   const flow = useFoodEntryFlow({ mode: 'create', target });
   return <FoodEntryCreateModals flow={flow} />;
@@ -152,7 +163,6 @@ beforeEach(() => {
   takeJustAdded('new-dish-item-id');
 });
 
-// ── schedule: time = «сейчас», no time step ──────────────────────────────────
 describe('FoodEntryCreateModals (schedule) — commit stamps current time', () => {
   it('selecting a food then finishing commits with the current HH:MM', async () => {
     const { addScheduleFood } = await import('@/entities/schedule-food');
@@ -206,7 +216,6 @@ describe('FoodEntryCreateModals (schedule) — commit stamps current time', () =
   });
 });
 
-// ── schedule: create-new variant label literals ──────────────────────────────
 describe('FoodEntryCreateModals (schedule) — create-step header literal', () => {
   it('shows "Новое блюдо" (no БАД) when creating a dish', () => {
     render(<Harness target={SCHEDULE} />);
@@ -228,7 +237,6 @@ describe('FoodEntryCreateModals (schedule) — create-step header literal', () =
   });
 });
 
-// ── dish: focus-delegation + commit ──────────────────────────────────────────
 describe('FoodEntryCreateModals (dish) — select → quantity → commit', () => {
   it('advances to quantity via focus delegation after selecting a product', () => {
     render(<Harness target={DISH} />);
@@ -353,7 +361,30 @@ describe('FoodEntryCreateModals — supplement (БАД) offered on schedule only
   });
 });
 
-// ── back-correctness (shared) ────────────────────────────────────────────────
+// ── finding 1: existing БАД from search → «шт» + default 1, not «100 г» ───────
+// Логика фикса живёт в хуке (handleFoodSelect резолвит basis синхронно из
+// useProducts; quantityContent.unit = getQtyUnit(selectedProduct)). Тестим
+// контракт напрямую через renderHook, чтобы возврат хардкода 100/«г» падал.
+describe('useFoodEntryFlow — finding 1: existing supplement unit & default qty', () => {
+  it('serving-basis product → default qty 1, unit «шт»', async () => {
+    const { result } = renderHook(() => useFoodEntryFlow({ mode: 'create', target: SCHEDULE }));
+    await act(async () => {
+      await result.current.handleFoodSelect({ variant: 'product', id: 'supp-1', name: 'Витамин D' });
+    });
+    expect(result.current.draft.quantity).toBe(1);
+    expect(result.current.quantityContent.unit).toBe('шт');
+  });
+
+  it('100g-basis product → default qty 100, unit «г»', async () => {
+    const { result } = renderHook(() => useFoodEntryFlow({ mode: 'create', target: SCHEDULE }));
+    await act(async () => {
+      await result.current.handleFoodSelect({ variant: 'product', id: 'prod-1', name: 'Яблоко' });
+    });
+    expect(result.current.draft.quantity).toBe(100);
+    expect(result.current.quantityContent.unit).toBe('г');
+  });
+});
+
 describe('FoodEntryCreateModals — header back steps to previous step', () => {
   it('(dish) back from quantity returns to search, no commit', () => {
     render(<Harness target={DISH} />);

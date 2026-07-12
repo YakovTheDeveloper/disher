@@ -18,11 +18,83 @@
   // на 8: один компонент, два x-офсета. Теперь 0 по бокам → хедер всегда встаёт
   // ровно на инсет обёртки, консистентно и в ModalShell, и в ModalStepHeader.
   padding: var(--space-4) 0 var(--space-1);
+
+  // Divider-шов «заголовок ↔ прокрученное тело» — единый механизм с дровером
+  // (scroll-seam + data-scrolled от useScrollEdges). Полоса-заголовок position:
+  // sticky → сама себе containing block для ::after. Инсет 0: хедер уже сидит на
+  // колее обёртки, а затухающий градиент hairline сам отводит линию от краёв.
+  // Тёмный + поздно-затухающий (0.28/8px, тот же, что у дровера — просьба
+  // 2026-07-12): сплошная почти до кромок, темнее воздушного дефолта divider 0.11.
+  @include scroll-seam($tip: 8px, $color: var(--sys-color-border-default));
+}
+
+// Внутри ModalStepHeader шов несёт ВНЕШНИЙ .stepHeader (под рядом крошек) — иначе
+// линия легла бы МЕЖДУ заголовком и крошками. Глушим шов внутренней полосы по
+// маркеру [data-nav-tabs] (тот же cross-module хук, что и прочие step-оверрайды).
+:global([data-nav-tabs]) .header::after {
+  display: none;
 }
 
 // compact — вложенные мелкие панели (atom-панели): меньше вертикали.
 .compact {
   padding: var(--space-2) var(--space-4);
+}
+
+// ─── Non-sticky (scroll-away) header ─────────────────────────────────────────
+// sticky={false}: полоса перестаёт липнуть — `position: static`, поэтому уезжает
+// вместе с телом (работает, когда header отрендерен ВНУТРИ ModalShell.Body =
+// общего скроллера). Чтобы закрытие не уехало, back-стрелка ОТЦЕПЛЯЕТСЯ и висит
+// абсолютом в левом верхнем углу: её containing-block — ModalShell `.wrapper`
+// (position: relative), а left:0 садится на его контент-инсет (padding-inline
+// wrapper'а), так что стрелка встаёт на ту же боковую колею, что и pinned-режим.
+// Шов не рисуем (TSX не ставит data-scrolled) — полоса уходит, а не оттеняет бар.
+.nonSticky {
+  position: static;
+
+  .backButton {
+    position: absolute;
+    top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+    left: 0;
+    z-index: 11; // над прокручиваемым телом (полоса .header = z-index 10)
+  }
+}
+
+// ─── Collapsing (shrinking) header — transform-only, косметический ────────────
+// headerScroll="collapse" (ModalShell → контекст): полоса ОСТАЁТСЯ sticky; при скролле
+// заголовок и стрелка органично УЖИМАЮТСЯ масштабом (enterAlways / quick-return; см.
+// useCollapsingHeader). Прогресс — `--header-collapse` (0…1), пишется на .wrapper из
+// scrollTop тела, наследуется сюда. В покое (var=0) всё тождественно обычной sticky-полосе.
+//
+// ТОЛЬКО transform (composite) — padding/height НЕ анимируем (решение 2026-07-12:
+// плавность важнее возврата места). 0 reflow → ровно на тяжёлой сцене (ModalByLabel со
+// стеком backdrop-filter). РАСПЛАТА: место телу НЕ возвращается — полоса той же высоты,
+// это косметическое «оседание». Реальный возврат = zero-reflow-рефактор (tds) или
+// статический трим паддинга полосы, оба вне этого блока. NB: коллапс срабатывает лишь
+// когда скроллит сам ModalShell.Body; в пути ModalLayout скроллит внешний motion.main →
+// там заголовок не сжимается вовсе (непоследовательно, но косметика — приемлемо).
+//
+// `transition: 120ms` — НАМЕРЕННЫЙ демпфер рваной rAF-величины; на composite-свойстве
+// почти бесплатен. Снимали 2026-07-12 — сырое дёрганье, вернули.
+//
+// .titleBlock НЕ трогаем: там базовый `translateX(-50%)` (центровка) + варианты
+// rail/split с `transform:none`. Двигать заголовок для центровки не нужно — высота
+// полосы постоянна, `justify-content:center` держит его сам.
+.headerCollapse {
+  $collapse: var(--header-collapse, 0);
+
+  // Заголовок ужимается ТОЛЬКО при скролле (c=0 → scale 1 = норма), origin center.
+  .title {
+    transform: scale(calc(1 - 0.22 * #{$collapse}));
+    transform-origin: center;
+    transition: transform 120ms linear;
+  }
+
+  // Back-кнопка: hit-area (40px) НЕ трогаем (touch-floor ≥40 + WCAG 2.5.5) — ужимаем
+  // визуально ТОЛЬКО глиф. c=0 → scale 1 = норма.
+  .backButton svg {
+    transform: scale(calc(1 - 0.18 * #{$collapse}));
+    transition: transform 120ms linear;
+  }
 }
 
 // Back-кнопка модалки = примитив IconButton tone="soft": покойная ink-подложка

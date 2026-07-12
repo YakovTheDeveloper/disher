@@ -17,7 +17,7 @@ const WallpaperPicker = () => (
         <Text as="span" role="caption" className={styles.screenLabel}>
           {screen.label}
         </Text>
-        <WallpaperStrip screen={screen.key} className={styles.bleed} />
+        <WallpaperStrip screen={screen.key} layout="columns" className={styles.bleed} />
       </div>
     ))}
   </div>

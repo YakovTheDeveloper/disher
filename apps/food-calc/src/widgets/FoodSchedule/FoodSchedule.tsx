@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -57,6 +58,7 @@ const FoodSchedule = ({
   topContent,
   topBarHide,
 }: CommonProps) => {
+  const { t } = useTranslation();
   const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'schedule', date } });
   const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'schedule', date } });
   const editIds = editFlow.inputIds;
@@ -95,12 +97,26 @@ const FoodSchedule = ({
   const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
-      if (target.id !== editIds.DETAILS_INPUT) return;
-      const itemId = target.dataset.activeItemId;
-      if (!itemId) return;
-      const item = itemsRef.current.find((it) => it.id === itemId);
-      if (!item) return;
-      primeEdit(item);
+      const { QUANTITY_INPUT, DETAILS_INPUT, TIME_INPUT } = editIds;
+      if (
+        target.id !== QUANTITY_INPUT &&
+        target.id !== DETAILS_INPUT &&
+        target.id !== TIME_INPUT
+      ) {
+        return;
+      }
+      // Медаль ItemActionsDrawer только что делегировала фокус сюда — дровер
+      // отработал, закрываем его (открыт с trapFocus:false, поэтому фокус смог
+      // уйти наружу портала). No-op, когда дровера нет (правка из тапа по имени
+      // ряда), — closeLast закрывает лишь открытый инстанс.
+      drawerStore.closeLast();
+      if (target.id === DETAILS_INPUT) {
+        const itemId = target.dataset.activeItemId;
+        if (!itemId) return;
+        const item = itemsRef.current.find((it) => it.id === itemId);
+        if (!item) return;
+        primeEdit(item);
+      }
     },
     [primeEdit, editIds]
   );
@@ -135,42 +151,48 @@ const FoodSchedule = ({
   // rows with no productId/dishId show delete only).
   const openActionsDrawer = useCallback(
     (item: ScheduleFoodWithRelations) => {
-      void drawerStore.show(ItemActionsDrawer, {
+      void drawerStore.show(
+        ItemActionsDrawer,
+        {
         title: item.product?.name ?? item.dish?.name ?? 'Еда',
         onDelete: async () => {
           const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
           if (res.ok) toaster.success('Удалено');
         },
         actions: buildInfoActions(item),
-        // Ряд правок под «Информация…»: каждая кнопка = `<label htmlFor>` на
-        // соответствующий edit-input (как имя ряда — паттерн HomePage). Тап
-        // фокусирует input → onFocusCapture FoodEntryEditModals флипает шаг и iOS
-        // поднимает клавиатуру (императивный startEdit её не поднимал). onClick
-        // только праймит (primeEdit ставит editingItem + draft, БЕЗ setStep —
-        // шаг ставит focus-событие); дровер закрывается сам по уходу фокуса.
-        // Иконка тематическая (гиря/выноска/часы). Ряд только у расписания — у
-        // ингредиента блюда «Время» нет.
+        // Ряд правок под «Информация…» = три голые медали (WriteBarMedal): дуговая
+        // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
+        // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
+        // поднимает клавиатуру (императивный startEdit её не поднимал); handleEdit-
+        // FocusCapture закрывает этот дровер. onClick только праймит (primeEdit ставит
+        // editingItem + draft, БЕЗ setStep — шаг ставит focus-событие; синхронный
+        // setStep/close размонтировал бы label до делегирования). Подпись = arcTop
+        // (строчными на дуге). Ряд только у расписания — у ингредиента блюда «Время» нет.
         editActions: [
           {
-            label: 'Кол-во',
+            label: 'количество',
             icon: <QuantityIcon />,
             htmlFor: editIds.QUANTITY_INPUT,
             onClick: () => primeEdit(item),
           },
           {
-            label: 'Уточнения',
+            label: 'уточнения',
             icon: <NoteIcon />,
             htmlFor: editIds.DETAILS_INPUT,
             onClick: () => primeEdit(item),
           },
           {
-            label: 'Время',
+            label: 'время',
             icon: <ClockIcon />,
             htmlFor: editIds.TIME_INPUT,
             onClick: () => primeEdit(item),
           },
         ],
-      });
+        },
+        // trapFocus:false — иначе focus-trap дровера завернул бы делегацию медали
+        // назад, и фокус не дошёл бы до edit-инпута (он вне портала дровера).
+        { trapFocus: false }
+      );
     },
     [primeEdit, editIds]
   );
@@ -215,8 +237,8 @@ const FoodSchedule = ({
         {isEmpty ? (
           <EmptyState
             className={styles.empty}
-            title="Начните заполнять"
-            description="Напишите в поле ниже, что вы ели. Или просто выберете из списка еды по кнопке."
+            title={t('schedule.empty.food.title')}
+            description={t('schedule.empty.food.description')}
           />
         ) : (
           <ItemsList>

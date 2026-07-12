@@ -40,9 +40,12 @@ export interface WriteBarMedalProps {
    *   • `elevated` — «висит в воздухе»: sys-elevation важного объекта
    *     (`--sys-elevation-action-raised`) БЕЗ бордер-обводки + яркий холодный текст
    *     дуг (`--sys-color-text-cold-strong`). Парящий FAB «Новая еда» в поиске.
+   *   • `bare` — «голая»: без диска, плашки и тени, только дуговой текст + глиф на
+   *     прозрачном + тонкий круговой контур (`--sys-color-border-default`). Ряд
+   *     правок ItemActionsDrawer — медаль как воздушная опция-кнопка внутри дровера.
    * Раньше называлось `coin`/`paper`; развели на два семантических режима 2026-07-10.
    */
-  look?: 'elevated' | 'flat';
+  look?: 'elevated' | 'flat' | 'bare';
 }
 
 /**

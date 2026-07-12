@@ -15,6 +15,13 @@
   // (mixin.scss · #field-depth) — поле узнаётся inset-тенью + фокус-бровкой.
   @include field-depth(--sys-color-surface-0);
 
+  // ВЛАДЕЛЕЦ бокового инсета для всего IN-FLOW контента ModalShell (canon
+  // 2026-07-11). Wrapper — самый крайний контейнер: держит боковую колею, а все
+  // потомки в нормальном потоке (.body/.title/.hint/.atomsBody/.actionButtonsFlow)
+  // идут с нулевым горизонтальным padding и выравниваются по ней.
+  // ИСКЛЮЧЕНИЕ — фикс-бар `.actionButtons` (`position: fixed`): его left:0 садится
+  // на КРАЙ ЭКРАНА (containing-block = паддинг-бокс wrapper'а, грань которого на
+  // border-edge = экран), не на контент-инсет — поэтому он несёт свою колею сам.
   padding-inline: var(--sys-inset-modal-fullscreen);
 }
 
@@ -161,7 +168,44 @@
   gap: var(--sys-stack-section);
   min-height: 0;
   overflow-y: auto;
-  padding: var(--space-3) var(--space-1) 0;
+  // Боковой инсет держит .wrapper — здесь только вертикальный ярус.
+  padding: var(--space-3) 0 0;
+
+  // Единый нижний fade-растворение (тот же mask-механизм, что в DrawerLayout),
+  // включается по data-more-below от useScrollEdges. Модалки раньше вовсе не имели
+  // аффорданса «есть ещё ниже» — теперь гарантирован на уровне шелла.
+  @include scroll-edge-fade;
+}
+
+// Нижний сентинел useScrollEdges — прямой ребёнок gapped flex-скроллера: flex-`gap`
+// добавил бы фантомный отступ ПЕРЕД ним, поэтому гасим его на gap своего контейнера
+// (мимо базового -1px по специфичности). Формула гашения — в самом миксине; контейнер
+// отдаёт только свой gap-токен.
+.scrollSentinel {
+  @include scroll-sentinel(bottom);
+}
+
+.body > .scrollSentinel {
+  @include scroll-sentinel(bottom, $gap: var(--sys-stack-section));
+}
+
+.atomsBody > .scrollSentinel {
+  @include scroll-sentinel(bottom, $gap: var(--sys-stack-row));
+}
+
+// Верхний сентинел — ПЕРВЫЙ ребёнок скроллера; его уход из вида питает divider-шов
+// под хедером (`scrolled`). Как и нижний, гасит фантомный flex-`gap` ПОСЛЕ себя,
+// чтобы не отодвинуть первый ряд контента вниз на величину зазора скроллера.
+.scrollSentinelTop {
+  @include scroll-sentinel(top);
+}
+
+.body > .scrollSentinelTop {
+  margin-bottom: calc(-1 * var(--sys-stack-section));
+}
+
+.atomsBody > .scrollSentinelTop {
+  margin-bottom: calc(-1 * var(--sys-stack-row));
 }
 
 // Снимает дефолтные 2rem сверху, но сохраняет cushion под вырез экрана —
@@ -169,18 +213,6 @@
 // в верх экрана (модалка без ModalStepHeader).
 .bodyFlush {
   padding-top: env(safe-area-inset-top, 0px);
-}
-
-// Боковой отступ контента для модалок РЕДАКТИРОВАНИЯ сущностей
-// (Hypothesis / Dish / Product). Дефолтные --space-1 (4px) по бокам у `.body`
-// читаются как «без отступов» — пилюли упираются в края. Опт-ин через
-// `<ModalShell.Body inset>`; значение из семантического --sys-inset-panel.
-// Longhand left/right переопределяют только горизонталь shorthand'а `.body`
-// (top --space-3 и bottom 0 остаются); идёт ПОСЛЕ `.body` — равная
-// специфичность, побеждает порядком.
-.bodyInset {
-  padding-left: var(--sys-inset-panel);
-  padding-right: var(--sys-inset-panel);
 }
 
 // Layout shell for ModalShell.Title — typography comes from the <Heading>
@@ -195,14 +227,18 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-4);
+  // Боковой инсет держит .wrapper — только вертикальный ярус здесь.
   padding-top: var(--modal-title-offset);
   padding-bottom: var(--space-1);
-  padding-left: var(--space-1);
 }
 
+// Внутри ModalShell первым ребёнком тела идёт .scrollSentinelTop, поэтому «title
+// ведёт тело» = title СРАЗУ за сентинелом; :first-child оставлен для standalone
+// (без контекста → сентинела нет).
 .body:not(.bodyFlush):has(> .title:first-child),
-.atomsBody:has(> .title:first-child) {
+.body:not(.bodyFlush):has(> .scrollSentinelTop + .title),
+.atomsBody:has(> .title:first-child),
+.atomsBody:has(> .scrollSentinelTop + .title) {
   padding-top: 0;
 }
 
@@ -211,7 +247,7 @@
 // .body `gap` (20px) so the hint reads as part of the header block, not a
 // detached paragraph. Intended placement is right after ModalShell.Title.
 .hint {
-  padding-inline: var(--space-4);
+  // Боковой инсет держит .wrapper.
   margin-top: calc(var(--space-2) - var(--space-5));
 }
 
@@ -231,7 +267,12 @@
   width: 100%;
   left: 0;
   right: 0;
-  padding: var(--sys-inset-page);
+  // ЕДИНСТВЕННОЕ исключение из «боковой инсет держит только .wrapper»: этот бар
+  // `position: fixed`, а его containing-block (заведён `backdrop-filter` wrapper'а)
+  // — это ПАДДИНГ-БОКС wrapper'а, чья грань лежит на КРАЮ ЭКРАНА (у wrapper'а нет
+  // рамки), не на его контент-инсете. Значит left:0 = край экрана, и бар обязан
+  // нести свою боковую колею сам. Тот же токен, что у wrapper'а → одно значение.
+  padding: var(--sys-inset-page) var(--sys-inset-modal-fullscreen);
 }
 
 // 'flow' архетип — терминальный бар В ПОТОКЕ (для панелей/дроверов со своим
@@ -247,7 +288,8 @@
   right: auto;
   transform: none;
   width: 100%;
-  padding: var(--sys-stack-section) var(--sys-inset-page)
+  // Боковой инсет держит .wrapper — здесь только верхний зазор + safe-area снизу.
+  padding: var(--sys-stack-section) 0
     max(var(--sys-inset-page), env(safe-area-inset-bottom));
   background: transparent;
   -webkit-backdrop-filter: none;
@@ -291,7 +333,11 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--sys-stack-row);
-  padding: var(--space-2);
+  // Боковой инсет держит .wrapper — только вертикальный ярус здесь.
+  padding-block: var(--space-2);
   min-height: 0;
   overflow-y: auto;
+
+  // Единый нижний fade-растворение (см. .body). data-more-below от useScrollEdges.
+  @include scroll-edge-fade;
 }

@@ -1,8 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ─── mocks ────────────────────────────────────────────────────────────────────
-
 const mockUseScheduleFoods = vi.fn();
 const mockUseDishItemsByDishIds = vi.fn();
 const mockUseNutrientsByProductIds = vi.fn();
@@ -22,8 +20,6 @@ vi.mock('@/entities/product', () => ({
 }));
 
 import { useScheduleNutrientTotals } from './useScheduleNutrientTotals';
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 
 function makeScheduleFood(overrides: {
   id: string;
@@ -70,14 +66,10 @@ function setupMocks(opts: {
   mockUseBasisByProductIds.mockReturnValue(basisMap);
 }
 
-// ─── setup ────────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
   vi.clearAllMocks();
   setupMocks({});
 });
-
-// ─── tests ────────────────────────────────────────────────────────────────────
 
 describe('useScheduleNutrientTotals', () => {
   describe('empty states', () => {
@@ -88,8 +80,6 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.isLoading).toBe(false);
     });
   });
-
-  // ─── Query wiring ──────────────────────────────────────────────────────────
 
   describe('query wiring', () => {
     it('passes correct date to useScheduleFoods', () => {
@@ -156,8 +146,6 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.missingNutrientNames).toEqual([]);
     });
   });
-
-  // ─── Single food item calculations ──────────────────────────────────────────
 
   describe('food item calculations', () => {
     it('calculates nutrients for a single food item', () => {
@@ -242,8 +230,6 @@ describe('useScheduleNutrientTotals', () => {
     });
   });
 
-  // ─── Dish calculations ──────────────────────────────────────────────────────
-
   describe('dish calculations', () => {
     it('calculates nutrients for a dish schedule item', () => {
       const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'salad', quantity: 300 });
@@ -315,9 +301,30 @@ describe('useScheduleNutrientTotals', () => {
       const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
       expect(result.current.totals).toEqual({});
     });
-  });
 
-  // ─── Mixed food + dish ─────────────────────────────────────────────────────
+    it('flags a dish with 0 resolved items (deleted/empty) as missing', () => {
+      // Блюдо стоит в расписании, но его dish_items не резолвятся (удалено на
+      // другом устройстве до мёржа тумбстоуна ИЛИ пустое). Раньше молча выпадало
+      // из тотала и не попадало в missing → съеденные ккал исчезали без сигнала.
+      const sf = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'ghost-dish', quantity: 200 });
+
+      setupMocks({ scheduleFoods: [sf], dishItems: [] });
+
+      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
+      expect(result.current.totals).toEqual({});
+      expect(result.current.missingNutrientNames).toEqual(['ghost-dish']);
+    });
+
+    it('does not double-flag the same missing dish added twice', () => {
+      const sf1 = makeScheduleFood({ id: 'sf1', type: 'dish', dishId: 'ghost-dish', quantity: 100 });
+      const sf2 = makeScheduleFood({ id: 'sf2', type: 'dish', dishId: 'ghost-dish', quantity: 200 });
+
+      setupMocks({ scheduleFoods: [sf1, sf2], dishItems: [] });
+
+      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
+      expect(result.current.missingNutrientNames).toEqual(['ghost-dish']);
+    });
+  });
 
   describe('mixed food and dish items', () => {
     it('handles mix of food and dish items', () => {
@@ -355,8 +362,6 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.totals.kcal).toBeCloseTo(156);
     });
   });
-
-  // ─── Missing nutrients ──────────────────────────────────────────────────────
 
   describe('missing nutrients', () => {
     it('reports missing when product has no nutrients in map', () => {
@@ -452,8 +457,6 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.missingNutrientNames).toContain('salad');
     });
   });
-
-  // ─── Edge cases ─────────────────────────────────────────────────────────────
 
   describe('edge cases', () => {
     it('handles zero quantity food item (contributes 0 to totals)', () => {

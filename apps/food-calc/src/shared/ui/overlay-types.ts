@@ -35,10 +35,23 @@ export interface DrawerOptions {
    * Ignored when `side` is `'bottom'`.
    */
   width?: string;
+  /**
+   * Trap focus inside the drawer (default). Set `false` for drawers whose
+   * content delegates focus to a `<label htmlFor>` target OUTSIDE the drawer
+   * portal (ItemActionsDrawer edit medals → FoodEntryEditModals inputs): a
+   * focus trap would bounce the delegation back and the drawer could never
+   * hand off / close. `false` maps to Base UI `modal={false}` — scroll-lock is
+   * already off under `trap-focus`, so this only releases the focus trap;
+   * outside-click dismissal still fires.
+   * @default true
+   */
+  trapFocus?: boolean;
 }
 
 /** Drawer options after defaults are applied — what the manager/context carry. */
 export interface ResolvedDrawerOptions {
   side: DrawerSide;
   width?: string;
+  /** Undefined ⇒ trap focus (default). Only an explicit `false` releases it. */
+  trapFocus?: boolean;
 }

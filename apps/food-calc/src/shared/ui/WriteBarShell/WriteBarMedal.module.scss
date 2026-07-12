@@ -225,6 +225,41 @@
     box-shadow: none;
 }
 
+// Bare-режим — «голая» медаль: прозрачный фон, БЕЗ диска/плашки/тени, только
+// тонкий круговой контур. Дуговой текст + глиф лежат прямо на поверхности
+// дровера. Спецификость 0,2,0 бьёт дефолт `.writeBarList` (фон/тень, 0,1,0).
+.writeBarList[data-look='bare'] {
+    // Дугу ужимаем к центру (scale ниже) → текст дальше от рамки; размер шрифта
+    // подымаем, чтобы он остался прежним (17 / 0.88 ≈ 19).
+    --wb-arc-size: 19px;
+
+    margin: 0; // ряд-контейнер держит отступы через gap, не coin-margin бара
+    background: transparent;
+    border: 1px solid var(--sys-color-border-strong); // рамка темнее дефолта
+    box-shadow: none;
+}
+
+// Диск-монету убираем — контур медали несёт сам border.
+.writeBarList[data-look='bare']::before {
+    display: none;
+}
+
+// Дуговой текст: темнее (ink) + отодвинут от рамки (арка ужата к центру на 12%).
+.writeBarList[data-look='bare'] .writeBarListArc {
+    transform: scale(0.88);
+}
+
+.writeBarList[data-look='bare'] .writeBarListArc text {
+    fill: var(--sys-color-text-system);
+}
+
+// Центральный глиф крупнее в 1.5× (translate сохраняет центрирование базы) +
+// чёрный ink (currentColor у edit-глифов → тянет отсюда).
+.writeBarList[data-look='bare'] .writeBarListCenter {
+    color: var(--sys-color-text-system);
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
 // Яркий ХОЛОДНЫЙ текст дуг + глиф-нода (cold near-black, парный к воздушному подъёму).
 .writeBarList[data-look='elevated'] .writeBarListArc text {
     fill: var(--sys-color-text-cold-strong);

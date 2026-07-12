@@ -1,4 +1,5 @@
 import { memo, useCallback, useRef, useState, type FocusEvent, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/ui/Screen';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import {
@@ -32,6 +33,7 @@ const HYPOTHESES_INFO = (
 type Props = { topSlot: ReactNode };
 
 const HypothesesSlide = ({ topSlot }: Props) => {
+  const { t } = useTranslation();
   const hypotheses = useAllHypotheses();
 
   // Edit modal step. label htmlFor → focus → onFocusCapture flips the step.
@@ -90,7 +92,7 @@ const HypothesesSlide = ({ topSlot }: Props) => {
         {hypotheses.length === 0 ? (
           <EmptyState
             className={styles.empty}
-            title="Пока нет гипотез"
+            title={t('analyses.empty.hypotheses.title')}
             description={
               <>
                 Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}

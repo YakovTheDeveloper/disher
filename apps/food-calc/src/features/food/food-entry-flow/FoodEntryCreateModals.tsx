@@ -7,12 +7,13 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
+import { FormLayout } from '@/shared/ui/form/FormLayout';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
 import { Accordion } from '@/shared/ui/Accordion';
-import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import {
   type FoodEntryFlow,
   CREATE_STEPS_WITH_DETAILS,
@@ -98,12 +99,26 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // затирать редактирование внутри той же сессии шага).
   const [createName, setCreateName] = useState('');
   const [isSupplement, setIsSupplement] = useState(false);
-  // БАД-only: введённые в модалке нутриенты per 1 шт. Аккордеоны single-open.
+  // Состав создаваемого продукта: nutrient-id → количество на базис. Базис задаёт
+  // галочка «Таблетка»: снята → на 100 г (еда), стоит → на 1 шт (приём). Блок
+  // общий для любого продукта — состав больше НЕ привязан к таблетке (2026-07-11).
+  // Аккордеоны групп single-open.
   const [openGroup, setOpenGroup] = useState<string | null>(null);
-  const [supplementNutrients, setSupplementNutrients] = useState<Record<string, number>>({});
+  const [draftNutrients, setDraftNutrients] = useState<Record<string, number>>({});
+  // Опт-ин раскрытия блока состава: секция нутриентов не громоздится всегда, а
+  // появляется по галочке «Указать состав» (прогрессивное раскрытие).
+  const [wantComposition, setWantComposition] = useState(false);
 
   const toggleGroup = (name: string) => {
     setOpenGroup((prev) => (prev === name ? null : name));
+  };
+
+  const handleToggleComposition = (next: boolean) => {
+    setWantComposition(next);
+    if (!next) {
+      setDraftNutrients({});
+      setOpenGroup(null);
+    }
   };
   const prevStepRef = useRef(step);
   useEffect(() => {
@@ -111,13 +126,14 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
       setCreateName(draft.foodName ?? '');
       setIsSupplement(false);
       setOpenGroup(null);
-      setSupplementNutrients({});
+      setDraftNutrients({});
+      setWantComposition(false);
     }
     prevStepRef.current = step;
   }, [step, draft.foodName]);
 
   const handleNutrientChange = (nutrientId: string, value: number) => {
-    setSupplementNutrients((prev) => {
+    setDraftNutrients((prev) => {
       const next = { ...prev };
       if (value === 0) delete next[nutrientId];
       else next[nutrientId] = value;
@@ -132,6 +148,13 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // бы неверную сумму → БАД не создаём и не ищем в блюде (2026-06-20).
   const showSupplementOption = kind === 'schedule' && draft.variant !== 'dish';
 
+  // Блок «Состав» — для ЛЮБОГО создаваемого продукта (еда per-100 г или таблетка
+  // per-1 шт), не только для БАД. У блюда прямого состава нет (оно считается из
+  // ингредиентов) → только вариант 'product'. Работает на обоих таргетах: продукт
+  // в блюде тоже получает состав per-100 г (dish-калькулятор его суммирует).
+  const canComposition = draft.variant === 'product';
+  const compositionBasisLabel = isSupplement ? '1 приём = 1 шт' : 'на 100 г';
+
   // Сегмент «Продукт | Блюдо» в модалке создания — только в расписании. В блюдо
   // блюдо не вкладывается → на dish-таргете (DishBuilderPage) вариант всегда
   // product, сегмент не рендерим. Смена типа сбрасывает БАД-конфиг: он валиден
@@ -142,8 +165,9 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
     const variant = next === 'dish' ? 'dish' : 'product';
     setDraft((d) => ({ ...d, variant, productId: null, dishId: null }));
     setIsSupplement(false);
-    setSupplementNutrients({});
+    setDraftNutrients({});
     setOpenGroup(null);
+    setWantComposition(false);
   };
 
   return (
@@ -192,24 +216,9 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
         isExpanded={step === 'create'}
         content={
           <ModalShell>
-            <ModalShell.Header
-              title={createVariantLabel === 'блюдо' ? 'Новое блюдо' : 'Новый продукт'}
-              onBack={handleBackToSearch}
-            />
+            <ModalShell.Header title="Создать еду" onBack={handleBackToSearch} />
             <ModalShell.Body>
-              <div className={styles.createBody}>
-                {showVariantSegment && (
-                  <ChoiceGroup
-                    variant="segmented"
-                    value={draft.variant}
-                    onChange={handleVariantChange}
-                    aria-label="Тип: продукт или блюдо"
-                    className={styles.variantSegment}
-                  >
-                    <ChoiceItem value="product">Продукт</ChoiceItem>
-                    <ChoiceItem value="dish">Блюдо</ChoiceItem>
-                  </ChoiceGroup>
-                )}
+              <FormLayout>
                 <AutoGrowSearch
                   singleLine
                   id={CREATE_INPUT}
@@ -218,9 +227,36 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                   placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
                   autoComplete="off"
                 />
-                <Text as="p" role="caption" className={styles.createHint}>
-                  Сейчас создадим — детали можно будет добавить позже.
-                </Text>
+
+                {showVariantSegment && (
+                  <FormLayout.Group label="Какая это еда?">
+                    <ChoiceGroup
+                      orientation="horizontal"
+                      elevation="raised"
+                      value={draft.variant}
+                      onChange={handleVariantChange}
+                      aria-label="Тип: продукт или блюдо"
+                      className={styles.variantRow}
+                    >
+                      <ChoiceItem className={styles.variantCell} value="product" stacked>
+                        <Text as="span" role="label" className={styles.variantTitle}>
+                          Продукт
+                        </Text>
+                        <Text as="span" role="caption" className={styles.variantHint}>
+                          Отдельная еда с единым составом: яблоко, миндаль, карп
+                        </Text>
+                      </ChoiceItem>
+                      <ChoiceItem className={styles.variantCell} value="dish" stacked>
+                        <Text as="span" role="label" className={styles.variantTitle}>
+                          Блюдо
+                        </Text>
+                        <Text as="span" role="caption" className={styles.variantHint}>
+                          Рецепт из нескольких продуктов: салат, суп
+                        </Text>
+                      </ChoiceItem>
+                    </ChoiceGroup>
+                  </FormLayout.Group>
+                )}
                 {showSupplementOption && (
                   <div className={styles.createSupplementRow}>
                     <LabeledCheckbox
@@ -230,42 +266,54 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                     />
                   </div>
                 )}
-                {showSupplementOption && isSupplement && (
-                  <div className={styles.supplementBlock}>
-                    <QuietLabel as="p" className={styles.supplementUnit}>
-                      1 приём = 1 шт
-                    </QuietLabel>
-                    <div className={styles.nutrientGroupsList}>
+                {canComposition && (
+                  // Галочка + панель состава = ОДНО целое: единый well-контейнер,
+                  // галочка = его верхний ряд (без своей пилюли), список групп течёт
+                  // ниже через rail-шов, без зазора. Базис («на 100 г» / «1 шт») — в
+                  // правом крае галочки, только когда включено.
+                  <div
+                    className={`${styles.compositionBlock} ${wantComposition ? styles.compositionOpen : ''}`}
+                  >
+                    <LabeledCheckbox
+                      bare
+                      checked={wantComposition}
+                      onChange={handleToggleComposition}
+                      label="Указать состав"
+                      trailing={wantComposition ? compositionBasisLabel : undefined}
+                    />
+                    {wantComposition && (
+                      <div className={styles.supplementBlock}>
                       {nutrientGroups.map((group) => {
                         const isOpen = openGroup === group.name;
                         const filledCount = group.content.filter(
-                          (n) => (supplementNutrients[n.id] ?? 0) > 0
+                          (n) => (draftNutrients[n.id] ?? 0) > 0
                         ).length;
                         return (
-                          // Примитив Accordion. hideChevron — индикатор несёт сам
-                          // тайтл (+/−). lazyMount — тело монтируется только пока
-                          // открыто: групп 4 (до 19 карточек каждая) и always-mount
-                          // всех сразу зря крутил бы ~54 NutrientCardEditor; iOS-
-                          // делегация тут не страдает (тоггл — button, label→input
-                          // самодостаточны внутри карточки), поэтому lazy безопасен.
+                          // Примитив Accordion. lazyMount — тело монтируется только
+                          // пока открыто: групп 4 (до 19 карточек каждая) и always-
+                          // mount всех сразу зря крутил бы ~54 NutrientCardEditor;
+                          // iOS-делегация тут не страдает (тоггл — button, label→
+                          // input самодостаточны внутри карточки), поэтому lazy
+                          // безопасен. Кликабельность несёт вращающийся шеврон.
                           <Accordion
                             key={group.name}
                             open={isOpen}
                             onToggle={() => toggleGroup(group.name)}
-                            hideChevron
                             lazyMount
                             className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
                             headerClassName={styles.nutrientsToggle}
                             bodyClassName={styles.nutrientsGrid}
                             title={
-                              <QuietLabel as="span">
-                                {isOpen ? '−' : '+'} {group.displayName}
-                              </QuietLabel>
+                              <Text as="span" role="label" className={styles.nutrientsToggleTitle}>
+                                {group.displayName}
+                              </Text>
                             }
                             trailing={
-                              <Text as="span" role="caption" className={styles.nutrientsToggleHint}>
-                                {filledCount > 0 ? `${filledCount} запис.` : 'per 1 шт'}
-                              </Text>
+                              filledCount > 0 ? (
+                                <Text as="span" role="caption" className={styles.nutrientsToggleHint}>
+                                  {filledCount} запис.
+                                </Text>
+                              ) : null
                             }
                           >
                             {group.content.map((nutrientData) => (
@@ -274,17 +322,22 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                                 content={nutrientData}
                                 variant="product-edit"
                                 className={styles.inlineCard}
-                                editValue={supplementNutrients[nutrientData.id] ?? 0}
+                                editValue={draftNutrients[nutrientData.id] ?? 0}
                                 onValueChange={handleNutrientChange}
                               />
                             ))}
                           </Accordion>
                         );
                       })}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
+              </FormLayout>
+              {/* Резерв прокрутки под фикс-бар «Создать» (keyboard-stick) —
+                  канонический примитив ModalShell.Spacer, а не хардкод-padding
+                  в этой имплементации (величина резерва живёт в шелле). */}
+              <ModalShell.Spacer />
               <ModalShell.ActionButtons
                 debugId="create-name"
                 right={
@@ -295,7 +348,10 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                       onClick={() =>
                         handleConfirmCreate(createName, {
                           isSupplement,
-                          nutrients: isSupplement ? supplementNutrients : undefined,
+                          // Состав пишется для любого продукта (базис задаёт
+                          // isSupplement: 100 г / 1 шт), не только для БАД.
+                          nutrients:
+                            Object.keys(draftNutrients).length > 0 ? draftNutrients : undefined,
                         })
                       }
                       label="Создать"
@@ -334,6 +390,8 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                   <ProductQuantity
                     key={sessionKey}
                     content={quantityContent}
+                    unit={quantityContent.unit}
+                    resetKey={draft.productId ?? draft.dishId ?? ''}
                     onFinish={() => {}}
                     inputId={QUANTITY_INPUT}
                     isActive={step === 'quantity'}

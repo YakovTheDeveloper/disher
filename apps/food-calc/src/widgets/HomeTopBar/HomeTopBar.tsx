@@ -7,6 +7,7 @@ import { useAppRoutes } from '@/app/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import { HubButton } from '@/shared/ui/HubButton';
+import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import styles from './HomeTopBar.module.scss';
 
 type Props = {
@@ -73,27 +74,18 @@ type Props = {
   hubAriaLabel?: string;
 };
 
-const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
-
-// Подпись пилюли-навигации — ВСЕГДА короткий день недели буквами («Вс» / «Пн» /
-// «Вт»), без чисел и без относительных слов (Сегодня/Вчера/Завтра сняты 2026-07-10).
-// Контекст даты несёт лист (крупный заголовок «Воскресенье, 5 июля»); пилюле хватает
-// буквенного дня внутри силуэта календаря.
-const formatWeekday = (input: string): string => {
+// Подпись пилюли-навигации — короткий день недели («Пт») обычным текстом по центру +
+// мелкое тонкое число месяца `dd` надстрочником-«степенью» (стиль в `.dateDay`). dd.mm
+// целиком не влезает, не смещая текст с центра, поэтому только день. Относительные слова
+// сняты 2026-07-10; силуэт-графика календаря и DesignBar-варианты сняты 2026-07-12.
+const formatDateParts = (input: string): { weekday: string; day: string } => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
-  if (!isValid(date)) return input;
-  return cap(new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date));
+  if (!isValid(date)) return { weekday: input, day: '' };
+  const weekday = capitalizeFirst(
+    new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date),
+  );
+  return { weekday, day: String(date.getDate()).padStart(2, '0') };
 };
-
-// Контент пилюли-навигации: буквы дня недели внутри тонкого силуэта календаря
-// (рамка + две «пружинки» сверху, чуть диагонально — весь вид в `.dateCalendar`).
-const DateButtonContent = ({ weekday }: { weekday: string }) => (
-  <span className={styles.dateCalendar}>
-    <Text as="span" role="label" className={styles.dateWeekday}>
-      {weekday}
-    </Text>
-  </span>
-);
 
 const HomeTopBar = ({
   date,
@@ -111,7 +103,7 @@ const HomeTopBar = ({
   hubAriaLabel = 'Разбор — открытия и анализ',
 }: Props) => {
   const { toScheduleBuilder } = useAppRoutes();
-  const weekday = useMemo(() => formatWeekday(date), [date]);
+  const dateParts = useMemo(() => formatDateParts(date), [date]);
   const openHub = useCallback(() => {
     if (!hubDate) return;
     void drawerStore.show(AnalysisHubDrawer, { date: hubDate });
@@ -185,7 +177,10 @@ const HomeTopBar = ({
           {dateButtonLabel != null ? (
             <span className={styles.dateLabel}>{dateButtonLabel}</span>
           ) : (
-            <DateButtonContent weekday={weekday} />
+            <Text as="span" role="label" className={styles.dateWeekday}>
+              {dateParts.weekday}
+              {dateParts.day && <sup className={styles.dateDay}>{dateParts.day}</sup>}
+            </Text>
           )}
         </button>
       </div>

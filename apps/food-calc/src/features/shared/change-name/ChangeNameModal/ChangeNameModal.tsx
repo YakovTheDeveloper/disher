@@ -68,7 +68,7 @@ const ChangeNameModal = ({
               ) : undefined
             }
           />
-          <ModalShell.Body inset>
+          <ModalShell.Body>
             <AutoGrowSearch
               singleLine
               id={CHANGE_NAME_INPUT_ID}

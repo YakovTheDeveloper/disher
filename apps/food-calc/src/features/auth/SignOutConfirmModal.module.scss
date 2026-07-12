@@ -1,0 +1,101 @@
+// ─── Sign-out confirm modal (typed «удалить» barrier) ───────────
+// Едет через ModalShell (канон modalStore-модалки): короб/инсет/скролл держит
+// шелл, здесь — только слоты (message / поле-барьер / actions). Типографику
+// несут Heading/Text.
+
+// Text(caption) несёт типографику; тут только зазор под заголовком.
+.message {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--sys-color-text-secondary);
+}
+
+// ─── Поле-барьер ────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fieldLabel {
+  color: var(--sys-color-text-secondary);
+}
+
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--sys-field-hairline, transparent);
+  border-radius: var(--sys-radius-cta);
+  background: var(--sys-field-bg-from, #f4efe6);
+  color: var(--sys-field-text, var(--sys-color-text-primary));
+  caret-color: var(--sys-field-caret);
+  font-family: var(--sys-field-font-family);
+  font-size: var(--sys-field-font-size);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-default);
+
+  &:focus {
+    border-color: var(--sys-field-hairline-focus, var(--sys-color-status-danger-border));
+  }
+}
+
+// ─── Кнопки (зеркало ConfirmModal) ──────────────────────────────
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.cancel,
+.confirmDanger {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--sys-radius-cta);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--press-out) var(--easing-default),
+    background var(--press-out) var(--easing-default),
+    border-color var(--press-out) var(--easing-default),
+    color var(--press-out) var(--easing-default),
+    filter var(--press-out) var(--easing-default);
+
+  &:active {
+    transform: scale(0.97);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+.cancel {
+  border: 1px solid var(--sys-color-border-subtle);
+  background: transparent;
+  color: var(--sys-color-text-secondary);
+
+  &:active {
+    background: var(--sys-color-surface-action-system);
+    border-color: var(--sys-color-border-action-system);
+    color: var(--sys-color-text-on-accent);
+  }
+}
+
+.confirmDanger {
+  border: none;
+  background: var(--sys-color-status-danger);
+  color: var(--sys-color-text-on-accent);
+
+  &:active {
+    filter: brightness(0.9);
+  }
+
+  // Заблокирована, пока не введено точное слово «удалить».
+  &:disabled {
+    background: var(--sys-color-surface-action-disabled);
+    color: var(--sys-color-text-tertiary);
+    cursor: default;
+
+    &:active {
+      transform: none;
+      filter: none;
+    }
+  }
+}

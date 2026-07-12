@@ -96,8 +96,6 @@ describe('InlineTimeEditor — commit on blur', () => {
   });
 });
 
-// ─── escape cancels ──────────────────────────────────────────────────────────
-
 describe('InlineTimeEditor — escape', () => {
   it('reverts and exits edit mode on Escape without committing', async () => {
     const { hoursInput, onCommit } = renderEditor('17:22');

@@ -46,8 +46,6 @@ const matcher = (await import("../food-matcher.js")) as unknown as {
 };
 const { suggestionsRoutes } = await import("./suggestions.js");
 
-// ── Helpers ──
-
 function setAlias(key: string, value: { id: string; name: string; score?: number }) {
   matcher.__state.aliases.set(key.toLowerCase().trim(), {
     id: value.id,

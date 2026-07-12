@@ -4,9 +4,14 @@
 // `onSuccess`, persist to localStorage, and `fetchOptions.auth.token` reads
 // it back to attach `Authorization: Bearer <token>` on subsequent calls.
 //
-// Sessions are opaque server-side, NOT JWTs — there is no client-side
-// refresh; the token lives ~7 days (better-auth default) and a 401 means
-// "sign out" (handled by betterAuthProvider).
+// Sessions are opaque server-side, NOT JWTs — there is no client-side refresh,
+// and a 401 means "sign out" (handled by betterAuthProvider). The server sets
+// `expiresIn` to 365 days with a sliding `updateAge` of 1 day (see
+// apps/disher-backend-3.0/src/auth/server.ts) — NOT the ~7 days this comment
+// used to claim. That long lifetime is why an offline signOut whose server
+// revoke never lands leaves the token valid for up to a year: the "the server
+// session expires on its own" assurance in betterAuthProvider.signOut leans on
+// this value, so keep the two in sync (a leaked bearer's lifetime = this).
 
 import { createAuthClient } from 'better-auth/react';
 import { genericOAuthClient } from 'better-auth/client/plugins';

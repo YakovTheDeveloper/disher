@@ -3,7 +3,9 @@ import {
     nutrientsHaveDailyNorm,
     Nutrient,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { useUserNormItems } from '@/entities/daily-norm';
+// Чужая сущность (`daily-norm`) — ТОЛЬКО через @x-public-API (единственный
+// санкционированный cross-entity стык слайса, как в useNutrientReadout).
+import { useUserNormItems } from '@/entities/daily-norm/@x/nutrient';
 import { formatPercent } from '@/shared/lib/formatNumber';
 
 export interface UseNutrientCardProps {

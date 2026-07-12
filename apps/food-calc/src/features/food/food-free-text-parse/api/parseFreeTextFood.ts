@@ -40,15 +40,21 @@ export interface ParseResponse {
   unresolved: UnresolvedItem[];
 }
 
+// `requestId` is the X-Request-Id idempotency key. The CALLER owns it and MUST
+// reuse the same value when re-issuing the same logical parse (grace-resubmit
+// after a reload, or a manual retry) — the server dedups the 0.5 ₽ charge by
+// (user, charge, request_id), so a stable id is what prevents a double debit.
+// Minting a fresh UUID here (the old behaviour) silently broke that contract.
 export async function parseFreeTextFood(
   text: string,
+  requestId: string,
   signal?: AbortSignal,
 ): Promise<ParseResponse> {
   const res = await authedFetch(`${API_BASE}/api/free-text-food/parse`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'X-Request-Id': crypto.randomUUID(),
+      'X-Request-Id': requestId,
     },
     body: JSON.stringify({ text }),
     signal,

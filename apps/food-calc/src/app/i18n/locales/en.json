@@ -1,7 +1,4 @@
 {
-    "common": {
-        "frequent": "Frequent"
-    },
     "overlay": {
         "modal": {
             "defaultA11yLabel": "Modal dialog"
@@ -10,325 +7,81 @@
             "defaultA11yLabel": "Drawer"
         }
     },
-    "category": {
-        "physical": "Physical",
-        "mental": "Mental",
-        "activity": "Activity",
-        "social": "Social",
-        "notes": "Notes"
-    },
-    "event": {
-        "custom": "Event",
-        "gratitude": "Gratitude",
-        "idea": "Idea",
-        "task": "Task",
-        "goal": "Goal",
-        "sleep": "Sleep",
-        "weight": "Weight",
-        "vitals": "Vitals",
-        "hydration": "Hydration",
-        "mood": "Mood",
-        "energy": "Energy",
-        "stress": "Stress",
-        "focus": "Focus",
-        "illness": "Illness",
-        "digestion": "Digestion",
-        "medication": "Medication",
-        "activity": "Activity",
-        "social": "Social",
-        "note": "Note"
-    },
-    "field": {
-        "sleep": {
-            "quality": "Quality",
-            "duration": "Duration"
-        },
-        "weight": {
-            "value": "Weight"
-        },
-        "vitals": {
-            "subtype": "Vital type",
-            "value": "Value"
-        },
-        "hydration": {
-            "subtype": "Beverage",
-            "volume": "Volume"
-        },
-        "mood": {
-            "value": "Mood"
-        },
-        "energy": {
-            "value": "Energy"
-        },
-        "stress": {
-            "subtype": "Stress source",
-            "level": "Level"
-        },
-        "focus": {
-            "value": "Focus",
-            "duration": "Duration"
-        },
-        "illness": {
-            "subtype": "Illness type",
-            "intensity": "Intensity",
-            "notes": "Notes"
-        },
-        "digestion": {
-            "subtype": "Symptom",
-            "intensity": "Intensity"
-        },
-        "medication": {
-            "subtype": "Medication type",
-            "name": "Name",
-            "dosage": "Dosage"
-        },
-        "activity": {
-            "subtype": "Activity type",
-            "duration": "Duration",
-            "intensity": "Intensity"
-        },
-        "social": {
-            "subtype": "Activity type",
-            "duration": "Duration",
-            "notes": "Notes"
-        },
-        "note": {
-            "content": "Content"
-        }
-    },
-    "subtype": {
-        "selectCategory": "Select category",
-        "maxDepthReached": "Maximum selection depth reached",
-        "selectionComplete": "Selection complete",
-        "illness": {
-            "headache": "Headache",
-            "cold": "Cold",
-            "fever": "Fever",
-            "cough": "Cough",
-            "nausea": "Nausea",
-            "allergy": "Allergy",
-            "pain": "Pain",
-            "fatigue": "Fatigue"
-        },
-        "digestion": {
-            "bloating": "Bloating",
-            "stomach_pain": "Stomach pain",
-            "heartburn": "Heartburn",
-            "constipation": "Constipation",
-            "diarrhea": "Diarrhea"
-        },
-        "medication": {
-            "pill": "Pills",
-            "drops": "Drops",
-            "injection": "Injection",
-            "syrup": "Syrup",
-            "topical": "Topical",
-            "other": "Other"
-        },
-        "vitals": {
-            "blood_pressure": "Blood pressure",
-            "heart_rate": "Heart rate",
-            "temperature": "Temperature",
-            "blood_sugar": "Blood sugar",
-            "oxygen": "Oxygen"
-        },
-        "hydration": {
-            "water": "Water",
-            "tea": "Tea",
-            "coffee": "Coffee",
-            "juice": "Juice",
-            "energy_drink": "Energy drink",
-            "smoothie": "Smoothie"
-        },
-        "stress": {
-            "work": "Work",
-            "personal": "Personal",
-            "financial": "Financial",
-            "health": "Health",
-            "relationship": "Relationship"
-        },
-        "anxiety": {
-            "mild": "Mild",
-            "moderate": "Moderate",
-            "severe": "Severe",
-            "panic": "Panic",
-            "general": "General",
-            "social": "Social"
-        },
-        "relaxation": {
-            "breathing": "Breathing",
-            "stretching": "Stretching",
-            "bath": "Bath",
-            "reading": "Reading",
-            "music": "Music",
-            "massage": "Massage",
-            "nature": "Nature"
-        },
-        "meditation": {
-            "mindfulness": "Mindfulness",
-            "guided": "Guided",
-            "body_scan": "Body scan",
-            "yoga_nidra": "Yoga nidra",
-            "loving_kindness": "Loving kindness",
-            "transcendental": "Transcendental"
-        },
-        "creativity": {
-            "drawing": "Drawing",
-            "writing": "Writing",
-            "music": "Music",
-            "crafts": "Crafts",
-            "cooking": "Cooking",
-            "photography": "Photography",
-            "diy": "DIY"
-        },
-        "activity": {
-            "category": {
-                "basic_mobility": "Basic Mobility",
-                "fitness_gym": "Fitness/Gym",
-                "mind_and_body": "Mind and Body",
-                "cyclic_sports": "Cyclic Sports",
-                "team_and_games": "Team and Games",
-                "martial_arts": "Martial Arts",
-                "active_recreation": "Active Recreation",
-                "daily_routine": "Daily Routine"
+    "schedule": {
+        "empty": {
+            "food": {
+                "title": "Start logging",
+                "description": "Type what you ate in the field below. Or just pick from the food list with the button."
             },
-            "walking": "Walking",
-            "steps": "Steps",
-            "light_stretching": "Light Stretching",
-            "joint_gymnastics": "Joint Gymnastics",
-            "morning_exercise": "Morning Exercise",
-            "strength_training": "Strength Training",
-            "cardio": "Cardio",
-            "crossfit": "Crossfit",
-            "bodyweight": "Bodyweight Training",
-            "home_workout": "Home Workout",
-            "hiit": "HIIT",
-            "yoga": "Yoga",
-            "pilates": "Pilates",
-            "meditation": "Meditation",
-            "breathing_practice": "Breathing Practice",
-            "qigong": "Qigong",
-            "stretching": "Stretching",
-            "running": "Running",
-            "cycling": "Cycling",
-            "swimming": "Swimming",
-            "nordic_walking": "Nordic Walking",
-            "skiing": "Skiing",
-            "rowing": "Rowing",
-            "football": "Football",
-            "basketball": "Basketball",
-            "volleyball": "Volleyball",
-            "tennis": "Tennis",
-            "badminton": "Badminton",
-            "table_tennis": "Table Tennis",
-            "boxing": "Boxing",
-            "karate_taekwondo": "Karate/Taekwondo",
-            "bjj_wrestling": "BJJ/Wrestling",
-            "muay_thai": "Muay Thai",
-            "dancing": "Dancing",
-            "hiking": "Hiking",
-            "skating": "Skating",
-            "horse_riding": "Horse Riding",
-            "climbing": "Climbing",
-            "housework": "Housework",
-            "gardening": "Gardening",
-            "shopping": "Shopping",
-            "playing_with_kids": "Playing with Kids"
-        },
-        "hobby": {
-            "gaming": "Gaming",
-            "gardening": "Gardening",
-            "knitting": "Knitting",
-            "photography": "Photography",
-            "collecting": "Collecting",
-            "astronomy": "Astronomy",
-            "bird_watching": "Bird watching",
-            "fishing": "Fishing"
-        },
-        "chores": {
-            "cleaning": "Cleaning",
-            "laundry": "Laundry",
-            "shopping": "Shopping",
-            "errands": "Errands",
-            "cooking": "Cooking",
-            "dishwashing": "Dishwashing",
-            "organizing": "Organizing",
-            "home_repair": "Home repair"
-        },
-        "transport": {
-            "walking": "Walking",
-            "cycling": "Cycling",
-            "driving": "Driving",
-            "public_transit": "Public transit",
-            "taxi": "Taxi",
-            "running": "Running"
-        },
-        "social": {
-            "friends": "Friends",
-            "family": "Family",
-            "partner": "Partner",
-            "work_meeting": "Work meeting",
-            "party": "Party",
-            "call": "Call",
-            "date": "Date"
-        },
-        "online": {
-            "video_call": "Video call",
-            "messenger": "Messenger",
-            "social_media": "Social media",
-            "email": "Email",
-            "gaming": "Gaming",
-            "forum": "Forum",
-            "streaming": "Streaming"
-        },
-        "family": {
-            "kids": "Kids",
-            "parents": "Parents",
-            "siblings": "Siblings",
-            "extended_family": "Extended family",
-            "pets": "Pets",
-            "quality_time": "Quality time"
-        },
-        "partner": {
-            "date_night": "Date night",
-            "conversation": "Conversation",
-            "intimacy": "Intimacy",
-            "shared_activity": "Shared activity",
-            "support": "Support",
-            "conflict": "Conflict"
-        },
-        "task": {
-            "priority_low": "Low priority",
-            "priority_medium": "Medium priority",
-            "priority_high": "High priority",
-            "urgent": "Urgent",
-            "delegated": "Delegated",
-            "recurring": "Recurring"
-        },
-        "goal": {
-            "daily": "Daily",
-            "weekly": "Weekly",
-            "monthly": "Monthly",
-            "quarterly": "Quarterly",
-            "long_term": "Long term",
-            "milestone": "Milestone"
+            "events": {
+                "title": "No events yet",
+                "description": "Note how you feel, symptoms, sleep — anything you noticed during the day. It later feeds into the analysis."
+            },
+            "days": {
+                "title": "No days with entries yet"
+            }
         }
     },
-    "common": {
-        "showAdvanced": "Show advanced",
-        "hideAdvanced": "Hide advanced"
+    "analyses": {
+        "empty": {
+            "list": {
+                "all": {
+                    "title": "No analyses yet",
+                    "description": "An analysis looks at your food, events and chosen hypotheses — over a day or 1–5 weeks. Start your first one with the «New analysis» button."
+                },
+                "daily": {
+                    "title": "No daily analyses yet",
+                    "description": "A daily analysis looks at a single date — its food and events. Start one with the «New analysis» button."
+                },
+                "long": {
+                    "title": "No long analyses yet",
+                    "description": "A long analysis looks at 1–5 weeks at once. Start one with the «New analysis» button."
+                }
+            },
+            "loadFailed": {
+                "title": "Couldn't load",
+                "description": "The analyses list didn't load — check your connection."
+            },
+            "insights": {
+                "title": "No insights yet"
+            },
+            "hypotheses": {
+                "title": "No hypotheses yet"
+            }
+        },
+        "insights": {
+            "infoTitle": "Insights",
+            "info": "Insights appear on a day or dish analysis — they're the connections and cautions about your food. Tap «Save» on an analysis and they'll show up here."
+        },
+        "hypotheses": {
+            "pickerEmpty": "No hypotheses yet — create them with the «Hypotheses» button.",
+            "detailsPlaceholder": "What exactly are we checking? (optional)",
+            "longEmpty": {
+                "title": "No hypotheses yet",
+                "description": "You can run an analysis without them."
+            }
+        },
+        "clarification": {
+            "placeholder": "Anything to consider for the analysis? (optional)"
+        }
     },
-    "validation": {
-        "required": "Required field",
-        "min": "Minimum {min}",
-        "max": "Maximum {max}",
-        "minLength": "Minimum {minLength} characters",
-        "maxLength": "Maximum {maxLength} characters",
-        "rating_1_to_10": "Rating from 1 to 10",
-        "max_24_hours": "Maximum 24 hours",
-        "max_12_hours": "Maximum 12 hours",
-        "max_8_hours": "Maximum 8 hours",
-        "select_type": "Select type",
-        "enter_name": "Enter name"
+    "food": {
+        "freeText": {
+            "unrecognized": {
+                "title": "Nothing recognised",
+                "description": "Try describing it in more detail."
+            },
+            "clarifyPlaceholder": "Anything to clarify? For example: vegetarian, dairy-free"
+        },
+        "dish": {
+            "notFound": "Dish not found — it may have been deleted",
+            "emptyIngredients": "No ingredients in the dish yet"
+        },
+        "product": {
+            "emptyComposition": "The product has no composition yet"
+        }
+    },
+    "bugReport": {
+        "placeholder": "What's wrong? Steps, expected, actual…"
     }
 }

@@ -1,7 +1,8 @@
 import React, { ButtonHTMLAttributes } from 'react';
-import s from './Button.module.css';
+import s from './Button.module.scss';
 import clsx from 'clsx';
 import { Text } from '@/shared/ui/atoms/Typography/Text';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 
 // Ось ТОНА × ось ГРОМКОСТИ. Тона: system (уголь, строгий монохром) · accent
 // (индиго, холодный). Громкость: filled (сплошная) и `-secondary` (тихий
@@ -48,6 +49,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: React.ReactNode;
   /** Ведомая иконка — в span справа от метки (напр. стрелка «Далее» в футере). */
   trailingIcon?: React.ReactNode;
+  /**
+   * Первоклассный ведомый шеврон › — affordance «откроет детали / следующий шаг».
+   * Рендерится КАНОНИЧЕСКИМ размером 16px (ChevronGlyph «везде 16px»), currentColor,
+   * в своём `.chevron`-слоте ВНЕ `.icon` — поэтому `.surface .icon svg` (18) его НЕ
+   * форс-сайзит, и специфичность-война не нужна. Смыслово взаимоисключающ с
+   * `trailingIcon` (оба технически могут сосуществовать: сперва icon, потом шеврон).
+   */
+  trailingChevron?: boolean;
   center?: boolean;
   /**
    * Render-тег. `label` + `htmlFor` — для ModalByLabel focus-делегации
@@ -75,6 +84,7 @@ const Button: ButtonComponent = ({
   before,
   icon,
   trailingIcon,
+  trailingChevron = false,
   children,
   variant = 'system',
   onSurface,
@@ -152,6 +162,7 @@ const Button: ButtonComponent = ({
           {trailingIcon}
         </span>
       )}
+      {trailingChevron && <ChevronGlyph className={s.chevron} aria-hidden="true" />}
     </>
   );
 

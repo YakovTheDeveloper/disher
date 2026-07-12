@@ -1,5 +1,6 @@
 import styles from './ScheduleEvents.module.scss';
 import React, { memo, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TimeGroup } from '@/features/time-group';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { removeScheduleEvents } from '@/entities/schedule-event';
@@ -43,6 +44,7 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
   // (ProfileDrawer → «Цвет карточек»). Дефолт amber. Раньше был общий контрол в
   // dev-DesignBar (единый ключ на еду/блюдо/события).
   const palette = useCardPalette('events');
+  const { t } = useTranslation();
 
   const [editingItem, setEditingItem] = useState<ScheduleEvent | null>(null);
   const [editingStep, setEditingStep] = useState<'idle' | 'time' | 'text' | 'atoms'>('idle');
@@ -57,17 +59,34 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
     setEditingStep(step);
   };
 
-  // Long-press → per-item action drawer: delete (top-right) + the three field
-  // editors (events have no detail page, so these replace the «info» action).
+  // Праймит item БЕЗ шага (шаг ставит focus-делегация медали) — модалка монтируется
+  // свёрнутой, её always-input'ы существуют для `<label htmlFor>`. Синхронный setStep
+  // здесь размонтировал бы label дровера до делегирования (CLAUDE.md «Label focus
+  // delegation»); шаг флипает handleFocusCapture модалки, оно же закрывает дровер.
+  const primeEditEvent = (item: ScheduleEvent) => {
+    setEditingItem(item);
+    setEditingStep('idle');
+  };
+
+  // Long-press → per-item action drawer: delete (top-right) + ряд из трёх круглых
+  // медалей (тот же WriteBarMedal, что у еды): Особенности · Описание · Время. У
+  // события нет detail-страницы, поэтому ряд заменяет «info»-действие.
   const openActionsDrawer = (item: ScheduleEvent) => {
-    void drawerStore.show(ItemActionsDrawer, {
-      title: item.text || 'Событие',
-      onDelete: async () => {
-        const res = await safeMutate(() => removeScheduleEvents([item.id]), 'Не удалось удалить');
-        if (res.ok) toaster.success('Удалено');
+    void drawerStore.show(
+      ItemActionsDrawer,
+      {
+        title: item.text || 'Событие',
+        onDelete: async () => {
+          const res = await safeMutate(() => removeScheduleEvents([item.id]), 'Не удалось удалить');
+          if (res.ok) toaster.success('Удалено');
+        },
+        actions: [],
+        editActions: buildEventEditActions(() => primeEditEvent(item)),
       },
-      actions: buildEventEditActions((step) => openEditModal(item, step)),
-    });
+      // trapFocus:false — иначе focus-trap дровера завернул бы делегацию медали
+      // назад, и фокус не дошёл бы до input'а edit-модалки (он вне портала дровера).
+      { trapFocus: false }
+    );
   };
 
   return (
@@ -94,8 +113,8 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
       {events.length === 0 ? (
         <EmptyState
           className={styles.empty}
-          title="Событий пока нет"
-          description="Отмечайте самочувствие, симптомы, сон — всё, что заметили за день. Потом это ложится в разбор."
+          title={t('schedule.empty.events.title')}
+          description={t('schedule.empty.events.description')}
         />
       ) : (
       <section data-dv-v={palette} className={clsx(['builder__time-groups', styles.eventsBuilder])}>

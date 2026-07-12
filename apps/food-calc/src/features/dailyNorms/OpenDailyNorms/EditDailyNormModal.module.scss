@@ -17,35 +17,6 @@
   padding: var(--space-1) var(--space-2);
 }
 
-// «Пересчитать по анкете» — вторичное действие (перезапуск всей анкеты), теперь
-// полноценная chip-кнопка справа, а не подчёркнутая ghost-сноска. Живёт между
-// header (или drawer-handle в panel-режиме) и body — отдельная полоса, не
-// конкурирует с primary-action футером.
-.recalcBar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 4px 16px 8px;
-  flex-shrink: 0;
-}
-
-// Panel-режим (drawer «Моя норма»): кнопка пересчёта ПАРИТ справа-снизу над
-// списком — sticky к низу скролл-области (DrawerLayout .scrollableContent),
-// хагает свою ширину (align-self) и не перехватывает скролл мимо себя. Сама
-// кнопка — общий `Button.bottomActionBar` (матовая ActionBar-пилюля, как на
-// HomePage). Зазор сверху отрывает её от последней строки в состоянии покоя.
-.recalcBarFloat {
-  position: sticky;
-  bottom: var(--space-3);
-  // Над нижним scroll-fade хинтом DrawerLayout (`.scrollableContent::after`,
-  // z-index 2): тот в порядке дерева красится последним и при равном z-index
-  // забеливал бы парящую CTA. Поднимаем кнопку выше, чтобы fade оставался под ней.
-  z-index: 3;
-  align-self: flex-end;
-  width: auto;
-  padding: 0;
-  margin-top: var(--sys-stack-row);
-}
-
 .recalcGlyph {
   line-height: 1;
 }

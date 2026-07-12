@@ -1,6 +1,7 @@
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs';
 import { ModalHeader, type ModalHeaderProps } from '@/shared/ui/ModalHeader';
 import { useStepEnterAnimation } from '@/shared/lib/hooks/useStepEnterAnimation';
+import { useScrollEdgesContext } from '@/shared/ui/hooks/scrollEdgesContext';
 import s from './ModalStepHeader.module.scss';
 
 type Props<T extends string> = ModalHeaderProps & {
@@ -42,11 +43,14 @@ function ModalStepHeader<T extends string>({
   // так что CSS-анимация стартует заново на КАЖДЫЙ вход — шаги через ModalByLabel
   // всегда в DOM, mount-триггер тут бы не сработал (см. useStepEnterAnimation).
   const enter = useStepEnterAnimation(active);
+  // Divider-шов несёт ВНЕШНИЙ контейнер (под крошками), а не полоса-заголовок —
+  // внутренний шов ModalHeader глушится по [data-nav-tabs]. См. scrollEdgesContext.
+  const edges = useScrollEdgesContext();
   return (
     // data-nav-tabs — постоянный маркер «таб-метафора шапки»: заголовок шага =
     // активный таб (жирный sans), крошки = тихие serif-italic. CSS-оверрайды в
     // ModalHeader/Breadcrumbs цепляются за него (cross-module через :global).
-    <div className={s.stepHeader} data-nav-tabs>
+    <div className={s.stepHeader} data-nav-tabs data-scrolled={edges?.scrolled ? '' : undefined}>
       <div key={enter.replayKey} className={enter.className}>
         <ModalHeader title={title} onBack={onBack} backLabel={backLabel} trailing={trailing} />
         <div className={s.crumbs}>

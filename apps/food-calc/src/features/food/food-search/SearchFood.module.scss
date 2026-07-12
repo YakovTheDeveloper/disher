@@ -84,16 +84,16 @@
     --rail-icon-lg: calc(var(--rail-icon) * 1.5); // 27 — лупа ×1.5 (rail / pill-flush)
 }
 
-// Скролл-рут: шапка `.header` (в потоке) + список уезжают вместе. Живёт в outer,
-// оборачивает и шапку, и Heavy. `display:flex column` → шапка (shrink:0) сверху,
-// `.heavyFade` (grow) тянется и при длинном контенте распирает рут → скролл.
+// Скролл-рут: шапка `.header` (ПЕРВЫЙ ребёнок) + поток результатов — всё скроллится
+// вместе (шапка уезжает вверх, просьба 2026-07-12). `display:flex column` →
+// `.heavyFade` (grow) распирает рут при длинном контенте → вертикальный скролл.
+//
+// `overflow-y:auto` вынуждает `overflow-x` из visible в auto → горизонтальный вылет
+// клипается. Поэтому full-bleed `SearchFoodControls .bar::after` переведён в inset
+// (left/right:0) — его −12px bleed тут всё равно срезался бы. Возвращать overflow-x:clip
+// + clip-margin смысла нет (clip при auto-Y вычисляется в hidden, clip-margin не действует).
 .scroller {
     overflow-y: auto;
-    // Список вертикальный — панорама вбок запрещена. overflow-y:auto в паре с
-    // overflow-x:visible по спеке форсит overflow-x в AUTO → любой суб-пиксельный
-    // горизонтальный bleed ряда даёт паразитную полосу (раньше его клипил
-    // `overflow:hidden` у `.sheet`, теперь снятый). Явный hidden возвращает клип.
-    overflow-x: hidden;
     position: relative;
     flex-grow: 1;
     min-height: 0;
@@ -103,6 +103,12 @@
     // 60px = .actions min-height в FoodSearchEmpty; +8px воздуха — контент не прячется
     // под нижний док.
     padding-bottom: calc(60px + env(safe-area-inset-bottom) + 8px);
+}
+
+// Zero-space верхний сентинел: питает divider-шов ModalShell.Header (observer берёт
+// `.scroller` за root). 1px + margin-bottom:-1px → нулевой вклад в flex-поток.
+.topSentinel {
+    @include scroll-sentinel(top);
 }
 
 // В create-флоу внизу-справа парит круглая монета «Новая еда» (.createFab, ~64px
@@ -141,24 +147,22 @@
     }
 }
 
-// Шапка поиска лежит В ПОТОКЕ первым ребёнком скролл-рута и ЛИПНЕТ к верху при
-// прокрутке (position:sticky, запрос 2026-07-10 — вернуть «прилипание» бара под
-// ModalHeader). Это НЕ прежняя `position:absolute`-плавающая полка (до 2026-06-27:
-// парила поверх списка со скруглённым низом + тенью; список скроллился под ней) —
-// геометрия/фон/поток не тронуты, добавлен ТОЛЬКО sticky. `flex-shrink:0` — бар в
-// flex-руте не сжимается.
+// Шапка поиска = ПЕРВЫЙ ребёнок скролл-рута `.scroller` (просьба 2026-07-12: не
+// липнет — уезжает вверх ВМЕСТЕ со списком). Обычный поток, НЕ position:sticky →
+// прокручивается с контентом. `flex-shrink:0` держит её высоту (flex-column скроллер
+// не сжимает её под длинным списком). (История: до 2026-07-12 была `flex-shrink:0`
+// соседом-НАД скроллера = фиксированной обвязкой; ещё раньше — sticky-первым-ребёнком
+// / absolute-полкой.)
 .header {
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     border: none;
-    background: var(--sys-color-surface-0); // opaque → ряды не просвечивают под баром
+    background: var(--sys-color-surface-0);
     // padding-left СНЯТ (inset-grouped 2026-07-10): боковой инсет теперь несёт
     // рама ModalShell.wrapper на всю `.content`. Пилюля поля больше не откручивает
     // его отрицательным margin — она flush к краю вжатой группы, ровно над рядами.
-    position: sticky; // липнет к верху скролл-рута .scroller (первый ребёнок, top-pad 0)
-    top: 0;
-    z-index: 5; // ряды уходят под бар; ниже ModalHeader (z-index 10)
+    position: relative;
 }
 
 .bottomLeft {

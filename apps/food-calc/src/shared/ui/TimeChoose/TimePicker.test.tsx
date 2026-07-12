@@ -19,8 +19,6 @@ function renderPicker(initialTime = '00:00', onFinish = vi.fn()) {
   };
 }
 
-// ─── focus flow ──────────────────────────────────────────────────────────────
-
 describe('TimePicker — focus flow', () => {
   it('jumps to minutes after two digits in hours', async () => {
     const { hoursInput, minutesInput } = renderPicker();
@@ -95,8 +93,6 @@ describe('TimePicker — focus flow', () => {
   });
 });
 
-// ─── onFinish callback ───────────────────────────────────────────────────────
-
 describe('TimePicker — onFinish callback', () => {
   it('calls onFinish with correct HH:MM after two digits in minutes', async () => {
     const { hoursInput, minutesInput, onFinish } = renderPicker();
@@ -150,8 +146,6 @@ describe('TimePicker — onFinish callback', () => {
   });
 });
 
-// ─── blur normalization ──────────────────────────────────────────────────────
-
 describe('TimePicker — blur normalization', () => {
   it('sets hours to "00" on blur when field is empty', () => {
     const { hoursInput } = renderPicker();
@@ -181,8 +175,6 @@ describe('TimePicker — blur normalization', () => {
   });
 });
 
-// ─── initialTime prop ────────────────────────────────────────────────────────
-
 describe('TimePicker — initialTime prop', () => {
   it('initializes inputs with the provided time', () => {
     renderPicker('08:45');
@@ -202,8 +194,6 @@ describe('TimePicker — initialTime prop', () => {
     expect(screen.getByLabelText('Minute')).toHaveValue('59');
   });
 });
-
-// ─── mode toggle ─────────────────────────────────────────────────────────────
 
 describe('TimePicker — native/manual mode toggle', () => {
   it('switches to native mode when "Другой вид" button is clicked', async () => {

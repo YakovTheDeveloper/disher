@@ -62,6 +62,9 @@ export type DishAnalysisResult = {
 
 type RequestArgs = {
   payload: DishAnalysisPayload;
+  /** X-Request-Id idempotency key — caller-owned, reused on retry (dish has no
+   *  server cache, so a stable id is the only guard against a double 2 ₽ debit). */
+  requestId: string;
   signal?: AbortSignal;
 };
 
@@ -72,13 +75,13 @@ type RequestArgs = {
 export async function requestDishAnalysis(
   args: RequestArgs,
 ): Promise<DishAnalysisResult> {
-  const { payload, signal } = args;
+  const { payload, requestId, signal } = args;
 
   const res = await authedFetch(ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Request-Id': crypto.randomUUID(),
+      'X-Request-Id': requestId,
     },
     body: JSON.stringify({
       dishName: payload.dishName,
@@ -103,13 +106,16 @@ export async function requestDishAnalysis(
 }
 
 // Convenience wrapper: hydrate + request + persist. Called from the screen
-// when the user taps «Проанализировать» or «Перезапустить».
+// when the user taps «Проанализировать» or «Перезапустить». `requestId` is the
+// idempotency key — the store mints it once per attempt and reuses it on a
+// retry so a lost response can't re-charge.
 export async function runDishAnalysis(args: {
   dishId: string;
+  requestId: string;
   signal?: AbortSignal;
 }): Promise<DishAnalysisResult> {
   const payload = await buildDishAnalysisPayload(args.dishId);
-  const result = await requestDishAnalysis({ payload, signal: args.signal });
+  const result = await requestDishAnalysis({ payload, requestId: args.requestId, signal: args.signal });
   if (args.signal?.aborted) return result;
   await saveDishAnalysis({
     dishId: args.dishId,

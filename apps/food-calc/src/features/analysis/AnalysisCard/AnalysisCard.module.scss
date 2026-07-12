@@ -149,7 +149,7 @@
 // ── действие «Сохранить» (variant='not-added') ───────────────────────────────
 // Белая плитка-кнопка <Button variant="surface" onSurface={1}> на холодном wash.
 // Класс .add — редуктор размера (48px → компактная плашка). Селектор `.footer .add`
-// (0,2,0) перебивает `.surface` (0,1,0) из Button.module.css.
+// (0,2,0) перебивает `.surface` (0,1,0) из Button.module.scss.
 .footer .add {
     min-height: 40px;
     padding: 0 var(--space-4);

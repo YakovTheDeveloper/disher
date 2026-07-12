@@ -1,7 +1,4 @@
 {
-    "common": {
-        "frequent": "Частые"
-    },
     "overlay": {
         "modal": {
             "defaultA11yLabel": "Модальное окно"
@@ -10,326 +7,81 @@
             "defaultA11yLabel": "Панель"
         }
     },
-    "category": {
-        "physical": "Физическое",
-        "mental": "Ментальное",
-        "activity": "Активность",
-        "social": "Социальное",
-        "notes": "Заметки"
-    },
-    "event": {
-        "custom": "Событие",
-        "gratitude": "Благодарность",
-        "idea": "Идея",
-        "task": "Задача",
-        "goal": "Цель",
-        "sleep": "Сон",
-        "weight": "Вес",
-        "vitals": "Показатели",
-        "hydration": "Гидратация",
-        "mood": "Настроение",
-        "energy": "Энергия",
-        "stress": "Стресс",
-        "focus": "Фокус",
-        "illness": "Недуг",
-        "digestion": "Пищеварение",
-        "medication": "Лекарства",
-        "activity": "Активность",
-        "social": "Социальное",
-        "note": "Заметка"
-    },
-    "field": {
-        "sleep": {
-            "quality": "Качество",
-            "duration": "Продолжительность"
-        },
-        "weight": {
-            "value": "Вес"
-        },
-        "vitals": {
-            "subtype": "Тип показателя",
-            "value": "Значение"
-        },
-        "hydration": {
-            "subtype": "Напиток",
-            "volume": "Объём"
-        },
-        "mood": {
-            "value": "Настроение"
-        },
-        "energy": {
-            "value": "Энергия"
-        },
-        "stress": {
-            "subtype": "Источник стресса",
-            "level": "Уровень"
-        },
-        "focus": {
-            "value": "Фокус",
-            "duration": "Продолжительность"
-        },
-        "illness": {
-            "subtype": "Тип недуга",
-            "intensity": "Интенсивность",
-            "notes": "Заметки"
-        },
-        "digestion": {
-            "subtype": "Симптом",
-            "intensity": "Интенсивность"
-        },
-        "medication": {
-            "subtype": "Тип лекарства",
-            "name": "Название",
-            "dosage": "Дозировка"
-        },
-        "activity": {
-            "subtype": "Тип активности",
-            "duration": "Продолжительность",
-            "intensity": "Интенсивность"
-        },
-        "social": {
-            "subtype": "Тип активности",
-            "duration": "Продолжительность",
-            "notes": "Заметки"
-        },
-        "note": {
-            "content": "Содержание"
-        }
-    },
-    "subtype": {
-        "lastTypeSelected": "Отлично!",
-        "selectCategory": "Выберите категорию",
-        "maxDepthReached": "Достигнута максимальная глубина выбора",
-        "selectionComplete": "Выбор завершён",
-        "illness": {
-            "headache": "Головная боль",
-            "cold": "Простуда",
-            "fever": "Жар",
-            "cough": "Кашель",
-            "nausea": "Тошнота",
-            "allergy": "Аллергия",
-            "pain": "Боль",
-            "fatigue": "Усталость"
-        },
-        "digestion": {
-            "bloating": "Вздутие",
-            "stomach_pain": "Боль в желудке",
-            "heartburn": "Изжога",
-            "constipation": "Запор",
-            "diarrhea": "Диарея"
-        },
-        "medication": {
-            "pill": "Таблетки",
-            "drops": "Капли",
-            "injection": "Инъекции",
-            "syrup": "Сироп",
-            "topical": "Наружные",
-            "other": "Другое"
-        },
-        "vitals": {
-            "blood_pressure": "Давление",
-            "heart_rate": "Пульс",
-            "temperature": "Температура",
-            "blood_sugar": "Сахар",
-            "oxygen": "Кислород"
-        },
-        "hydration": {
-            "water": "Вода",
-            "tea": "Чай",
-            "coffee": "Кофе",
-            "juice": "Сок",
-            "energy_drink": "Энергетик",
-            "smoothie": "Смузи"
-        },
-        "stress": {
-            "work": "Работа",
-            "personal": "Личное",
-            "financial": "Финансы",
-            "health": "Здоровье",
-            "relationship": "Отношения"
-        },
-        "anxiety": {
-            "mild": "Лёгкая",
-            "moderate": "Умеренная",
-            "severe": "Сильная",
-            "panic": "Паника",
-            "general": "Общая",
-            "social": "Социальная"
-        },
-        "relaxation": {
-            "breathing": "Дыхание",
-            "stretching": "Растяжка",
-            "bath": "Ванна",
-            "reading": "Чтение",
-            "music": "Музыка",
-            "massage": "Массаж",
-            "nature": "Природа"
-        },
-        "meditation": {
-            "mindfulness": "Осознанность",
-            "guided": "Направленная",
-            "body_scan": "Сканирование тела",
-            "yoga_nidra": "Йога-нидра",
-            "loving_kindness": "Любящая доброта",
-            "transcendental": "Трансцендентальная"
-        },
-        "creativity": {
-            "drawing": "Рисование",
-            "writing": "Письмо",
-            "music": "Музыка",
-            "crafts": "Ремесло",
-            "cooking": "Готовка",
-            "photography": "Фотография",
-            "diy": "Своими руками"
-        },
-        "activity": {
-            "category": {
-                "basic_mobility": "Базовая мобильность",
-                "fitness_gym": "Фитнес/спортзал",
-                "mind_and_body": "Разум и тело",
-                "cyclic_sports": "Циклические виды спорта",
-                "team_and_games": "Командные игры",
-                "martial_arts": "Единоборства",
-                "active_recreation": "Активный отдых",
-                "daily_routine": "Повседневные дела"
+    "schedule": {
+        "empty": {
+            "food": {
+                "title": "Начните заполнять",
+                "description": "Напишите в поле ниже, что вы ели. Или просто выберите из списка еды по кнопке."
             },
-            "walking": "Ходьба",
-            "steps": "Шаги",
-            "light_stretching": "Лёгкая растяжка",
-            "joint_gymnastics": "Суставная гимнастика",
-            "morning_exercise": "Утренняя зарядка",
-            "strength_training": "Силовые тренировки",
-            "cardio": "Кардио",
-            "crossfit": "Кроссфит",
-            "bodyweight": "Тренировки с весом",
-            "home_workout": "Домашние тренировки",
-            "hiit": "Высокоинтенсивные интервалы",
-            "yoga": "Йога",
-            "pilates": "Пилас",
-            "meditation": "Медитация",
-            "breathing_practice": "Дыхательные практики",
-            "qigong": "Цигун",
-            "stretching": "Стретчинг",
-            "running": "Бег",
-            "cycling": "Велосипед",
-            "swimming": "Плавание",
-            "nordic_walking": "Скандинавская ходьба",
-            "skiing": "Лыжи",
-            "rowing": "Гребля",
-            "football": "Футбол",
-            "basketball": "Баскетбол",
-            "volleyball": "Волейбол",
-            "tennis": "Теннис",
-            "badminton": "Бадминтон",
-            "table_tennis": "Настольный теннис",
-            "boxing": "Бокс",
-            "karate_taekwondo": "Карате/Тхэквондо",
-            "bjj_wrestling": "БЖЖ/Борьба",
-            "muay_thai": "Муай-тай",
-            "dancing": "Танцы",
-            "hiking": "Пеший туризм",
-            "skating": "Катание на коньках",
-            "horse_riding": "Верховая езда",
-            "climbing": "Скалолазание",
-            "housework": "Домашние дела",
-            "gardening": "Садоводство",
-            "shopping": "Покупки",
-            "playing_with_kids": "Игры с детьми"
-        },
-        "hobby": {
-            "gaming": "Игры",
-            "gardening": "Садоводство",
-            "knitting": "Вязание",
-            "photography": "Фотография",
-            "collecting": "Коллекционирование",
-            "astronomy": "Астрономия",
-            "bird_watching": "Наблюдение за птицами",
-            "fishing": "Рыбалка"
-        },
-        "chores": {
-            "cleaning": "Уборка",
-            "laundry": "Стирка",
-            "shopping": "Покупки",
-            "errands": "Поручения",
-            "cooking": "Готовка",
-            "dishwashing": "Мытьё посуды",
-            "organizing": "Организация",
-            "home_repair": "Ремонт"
-        },
-        "transport": {
-            "walking": "Пешком",
-            "cycling": "Велосипед",
-            "driving": "За рулём",
-            "public_transit": "Общественный транспорт",
-            "taxi": "Такси",
-            "running": "Бег"
-        },
-        "social": {
-            "friends": "Друзья",
-            "family": "Семья",
-            "partner": "Партнёр",
-            "work_meeting": "Рабочая встреча",
-            "party": "Вечеринка",
-            "call": "Звонок",
-            "date": "Свидание"
-        },
-        "online": {
-            "video_call": "Видеозвонок",
-            "messenger": "Мессенджер",
-            "social_media": "Соцсети",
-            "email": "Почта",
-            "gaming": "Игры",
-            "forum": "Форум",
-            "streaming": "Стриминг"
-        },
-        "family": {
-            "kids": "Дети",
-            "parents": "Родители",
-            "siblings": "Братья/сёстры",
-            "extended_family": "Расширенная семья",
-            "pets": "Питомцы",
-            "quality_time": "Качественное время"
-        },
-        "partner": {
-            "date_night": "Свидание",
-            "conversation": "Разговор",
-            "intimacy": "Интимность",
-            "shared_activity": "Совместное занятие",
-            "support": "Поддержка",
-            "conflict": "Конфликт"
-        },
-        "task": {
-            "priority_low": "Низкий приоритет",
-            "priority_medium": "Средний приоритет",
-            "priority_high": "Высокий приоритет",
-            "urgent": "Срочно",
-            "delegated": "Делегировано",
-            "recurring": "Повторяется"
-        },
-        "goal": {
-            "daily": "Дневная",
-            "weekly": "Недельная",
-            "monthly": "Месячная",
-            "quarterly": "Квартальная",
-            "long_term": "Долгосрочная",
-            "milestone": "Веха"
+            "events": {
+                "title": "Начните заполнять",
+                "description": "Напишите в поле ниже о вашем самочувствии, симптомах, сне — всё, что заметили за день. Это потом пойдёт в разбор."
+            },
+            "days": {
+                "title": "Пока нет дней с записями"
+            }
         }
     },
-    "common": {
-        "showAdvanced": "Показать расширенные",
-        "hideAdvanced": "Скрыть расширенные"
+    "analyses": {
+        "empty": {
+            "list": {
+                "all": {
+                    "title": "Можно анализировать данные, которые вы трекаете",
+                    "description": "Анализ ищет закономерности в твоей еде, событиях и выбранных гипотезах — за день или за 1–5 недель. Запусти первый анализ кнопкой «Новый разбор»."
+                },
+                "daily": {
+                    "title": "Дневных анализов пока нет",
+                    "description": "Анализ дня смотрит на одну дату — еду и события за неё. Запусти его кнопкой «Новый разбор»."
+                },
+                "long": {
+                    "title": "Длительных анализов пока нет",
+                    "description": "Длительный анализ смотрит на 1–5 недель сразу. Запусти его кнопкой «Новый разбор»."
+                }
+            },
+            "loadFailed": {
+                "title": "Не удалось загрузить",
+                "description": "Список анализов не подгрузился — проверь сеть."
+            },
+            "insights": {
+                "title": "Пока нет инсайтов"
+            },
+            "hypotheses": {
+                "title": "Пока нет гипотез"
+            }
+        },
+        "insights": {
+            "infoTitle": "Инсайты",
+            "info": "Инсайты появляются на анализе дня или блюда — это связки и предостережения по твоей еде. Нажми «Сохранить» на анализе, и они окажутся здесь."
+        },
+        "hypotheses": {
+            "pickerEmpty": "Пока нет гипотез — создай их кнопкой «Гипотезы».",
+            "detailsPlaceholder": "Что именно проверяем? (необязательно)",
+            "longEmpty": {
+                "title": "Гипотез пока нет",
+                "description": "Анализ можно запустить и без них."
+            }
+        },
+        "clarification": {
+            "placeholder": "Что учесть при анализе? (необязательно)"
+        }
     },
-    "validation": {
-        "required": "Обязательное поле",
-        "min": "Минимум {min}",
-        "max": "Максимум {max}",
-        "minLength": "Минимум {minLength} символов",
-        "maxLength": "Максимум {maxLength} символов",
-        "rating_1_to_10": "Оценка от 1 до 10",
-        "max_24_hours": "Максимум 24 часа",
-        "max_12_hours": "Максимум 12 часов",
-        "max_8_hours": "Максимум 8 часов",
-        "select_type": "Выберите тип",
-        "enter_name": "Введите название"
+    "food": {
+        "freeText": {
+            "unrecognized": {
+                "title": "Ничего не распозналось",
+                "description": "Попробуйте описать подробнее."
+            },
+            "clarifyPlaceholder": "Что уточнить? Например: вегетарианский, без молочного"
+        },
+        "dish": {
+            "notFound": "Блюдо не найдено — возможно, оно было удалено",
+            "emptyIngredients": "В блюде пока нет ингредиентов"
+        },
+        "product": {
+            "emptyComposition": "У продукта пока нет состава"
+        }
+    },
+    "bugReport": {
+        "placeholder": "Что не так? Шаги, ожидаемое, фактическое…"
     }
 }
