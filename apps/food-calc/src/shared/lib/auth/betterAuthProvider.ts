@@ -25,9 +25,15 @@ import { classifyError } from '@/shared/lib/errors/classify';
 
 // Map better-auth user shape onto our AppUser. The anonymous plugin is not
 // loaded on the backend, so every user is "real" — no anon filtering needed.
-function toAppUser(user: { id?: string; email?: string | null } | null | undefined): AppUser | null {
+function toAppUser(
+  user: { id?: string; email?: string | null; role?: string | null } | null | undefined,
+): AppUser | null {
   if (!user || !user.id) return null;
-  return { id: user.id, email: user.email ?? null };
+  // The better-auth client session type may not surface `role` (it's added by
+  // the server-side admin plugin), so read it defensively rather than trusting
+  // the static shape.
+  const role = (user as { role?: string | null }).role ?? null;
+  return { id: user.id, email: user.email ?? null, role };
 }
 
 // Maps better-auth error codes (from BASE_ERROR_CODES on the server) onto
@@ -112,8 +118,12 @@ function readLastUser(): AppUser | null {
       typeof parsed === 'object' &&
       typeof (parsed as { id?: unknown }).id === 'string'
     ) {
-      const obj = parsed as { id: string; email?: unknown };
-      return { id: obj.id, email: typeof obj.email === 'string' ? obj.email : null };
+      const obj = parsed as { id: string; email?: unknown; role?: unknown };
+      return {
+        id: obj.id,
+        email: typeof obj.email === 'string' ? obj.email : null,
+        role: typeof obj.role === 'string' ? obj.role : null,
+      };
     }
     return null;
   } catch {
@@ -127,7 +137,10 @@ function persistLastUser(user: AppUser | null) {
     return;
   }
   try {
-    localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: user.id, email: user.email }));
+    localStorage.setItem(
+      LAST_USER_KEY,
+      JSON.stringify({ id: user.id, email: user.email, role: user.role }),
+    );
   } catch {
     // Quota / private mode — ignore; next successful bootstrap will retry.
   }
@@ -340,6 +353,32 @@ export const betterAuthProvider: AuthProvider = {
     }
   },
 
+  async linkOAuth(providerId, callbackURL = '/') {
+    // Same redirect shape as signInWithOAuth, but better-auth attaches the
+    // provider to the CURRENT session's user instead of resolving/creating one.
+    try {
+      const { data, error } = await authClient.oauth2.link({ providerId, callbackURL });
+      if (error) {
+        return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
+      }
+      if (data?.url && typeof window !== 'undefined') {
+        window.location.href = data.url;
+      }
+      return undefined;
+    } catch (e) {
+      return { ok: false, error: classifyError(e) };
+    }
+  },
+
+  async listLinkedProviders() {
+    try {
+      const { data } = await authClient.listAccounts();
+      return (data ?? []).map((a) => a.providerId);
+    } catch {
+      return [];
+    }
+  },
+
   onAuthChange(cb) {
     // better-auth exposes session as a nanostore atom on $store.atoms.session.
     // Subscribe to it; on each tick, diff the user id against the previous
@@ -347,7 +386,7 @@ export const betterAuthProvider: AuthProvider = {
     // hook (we have our own Zustand store driving UI; one subscription is
     // enough).
     type SessionAtomValue = {
-      data?: { user?: { id?: string; email?: string | null } | null } | null;
+      data?: { user?: { id?: string; email?: string | null; role?: string | null } | null } | null;
     } | null | undefined;
 
     const atom = (authClient as unknown as { $store?: { atoms?: { session?: { subscribe: (cb: (v: SessionAtomValue) => void) => () => void } } } })

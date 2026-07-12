@@ -1,0 +1,34 @@
+// ActionList — раскладка «списка действий» на stack-токенах. Только пространство,
+// без цвета/типографики: layout-слой, gate-чистый (одни var(--sys-stack-*)).
+// Брат FormLayout.module.scss, но для групп-действий, а не полей формы.
+
+// Верхний уровень. Контейнер владеет зазором МЕЖДУ секциями (owl-паттерн, не
+// `gap`, — чтобы будущий тесный сосед мог получить свой зазор, как капшен формы).
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--sys-stack-row);
+
+  // Не owl: первая секция тоже отбивается сверху — иначе её заголовок прилипает
+  // к тому, что стоит над списком (title-ряд chrome'а дровера).
+  >* {
+    margin-block-start: var(--sys-stack-section);
+  }
+}
+
+// Секция: заголовок → контент тесно (row-ярус — подпись принадлежит группе). Если
+// контент — несколько блоков, тот же row-зазор ложится между ними.
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-row);
+  min-width: 0;
+}
+
+// Типографику несёт <Text role="label"> (sans label-ярус). Класс — layout-слот +
+// явный цвет (роль сама цвет не несёт).
+.sectionLabel {
+  margin: 0;
+  color: var(--sys-color-text-primary);
+}

@@ -9,11 +9,13 @@ import { suggestionsRoutes } from "./routes/suggestions.js";
 import { freeTextFoodRoutes } from "./routes/free-text-food.js";
 import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
+import { userReportsRoutes } from "./routes/user-reports.js";
 import { diagLogsRoutes } from "./routes/diag-logs.js";
 import { backupRoutes } from "./routes/backup.js";
 import { analyzeRoutes } from "./routes/analyze.js";
 import { analyzeDishRoutes } from "./routes/analyze-dish.js";
 import { billingRoutes } from "./routes/billing.js";
+import { adminRoutes } from "./routes/admin.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator, requireUser } from "../auth/require-user.js";
@@ -220,9 +222,16 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // disk-write surface without breaking the beacon.
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
+  // Prod-safe user-facing bug reports (text + metadata → pg, auth-gated). The
+  // dev disk sink (bugReportRoutes below) stays dev-only; this durable store is
+  // the one real users reach from the settings drawer.
+  await app.register(userReportsRoutes, { prefix: "/api/user-reports" });
   await app.register(analyzeRoutes, { prefix: "/api" });
   await app.register(analyzeDishRoutes, { prefix: "/api" });
   await app.register(billingRoutes, { prefix: "/api" });
+  // Admin panel (topup + roles). NOT dev-gated — it's a production feature; the
+  // requireAdmin preHandler (self-applied in the module) is the security gate.
+  await app.register(adminRoutes, { prefix: "/api/admin" });
 
   // Dev/test-only routes. Each handler also 404s when NODE_ENV === 'production'
   // as a second line of defense, but skip registration entirely in prod so the

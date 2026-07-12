@@ -77,6 +77,13 @@ vi.mock('@/shared/lib/safeMutate', () => ({
   safeMutate: async (fn: () => Promise<unknown>) => ({ ok: true, value: await fn() }),
 }));
 
+// Удаление тега теперь идёт через переиспользуемый ConfirmDrawer (drawerStore),
+// а не window.confirm. Мокаем drawerStore.show — управляем ответом confirm'а per
+// test — и глушим сам ConfirmDrawer в null (не тащим DrawerLayout в юнит).
+const { mockDrawerShow } = vi.hoisted(() => ({ mockDrawerShow: vi.fn() }));
+vi.mock('@/shared/ui', () => ({ drawerStore: { show: mockDrawerShow } }));
+vi.mock('@/shared/ui/ConfirmDrawer', () => ({ ConfirmDrawer: () => null }));
+
 const renderChips = (override?: Partial<React.ComponentProps<typeof DetailsChips>>) =>
   render(
     <DetailsChips
@@ -135,29 +142,34 @@ describe('DetailsChips — long-press на custom-чипе', () => {
     return btn as HTMLButtonElement;
   };
 
-  it('500мс удержания + OK в confirm → вызывает removeCustomTag', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('500мс удержания + OK в confirm → вызывает removeCustomTag', async () => {
+    mockDrawerShow.mockResolvedValue(true);
     renderChips();
 
     const chip = getCustomChip();
     fireEvent.pointerDown(chip, { pointerType: 'touch', clientX: 100, clientY: 100 });
 
-    // Под капотом — setTimeout(500ms). Прокручиваем таймеры.
-    act(() => {
+    // Под капотом — setTimeout(500ms) → drawerStore.show (async). Прокручиваем
+    // таймеры внутри async act, чтобы промис confirm'а + safeMutate доехали.
+    await act(async () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(confirmSpy).toHaveBeenCalledWith('Удалить тег «с лимоном»?');
+    expect(mockDrawerShow).toHaveBeenCalledWith(expect.anything(), {
+      title: 'Удалить тег «с лимоном»?',
+      confirmLabel: 'Удалить',
+      tone: 'danger',
+    });
     expect(mockRemoveCustomTag).toHaveBeenCalledWith('prod-1', 'с лимоном');
   });
 
-  it('Cancel в confirm → removeCustomTag НЕ вызывается', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+  it('Cancel в confirm → removeCustomTag НЕ вызывается', async () => {
+    mockDrawerShow.mockResolvedValue(false);
     renderChips();
 
     const chip = getCustomChip();
     fireEvent.pointerDown(chip, { pointerType: 'touch', clientX: 100, clientY: 100 });
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(500);
     });
 
@@ -165,7 +177,7 @@ describe('DetailsChips — long-press на custom-чипе', () => {
   });
 
   it('быстрый тап (<500мс) → toggle, не удаление', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    mockDrawerShow.mockResolvedValue(true);
     const onChange = vi.fn();
     renderChips({ onChange });
 
@@ -178,7 +190,7 @@ describe('DetailsChips — long-press на custom-чипе', () => {
     fireEvent.pointerUp(chip);
     fireEvent.click(chip);
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(mockDrawerShow).not.toHaveBeenCalled();
     expect(mockRemoveCustomTag).not.toHaveBeenCalled();
     expect(onChange).toHaveBeenCalledWith('с лимоном'); // toggle добавил тег в details
   });
@@ -198,7 +210,7 @@ describe('DetailsChips — long-press на custom-чипе', () => {
   };
 
   it('сдвиг пальца >8px отменяет long-press (скролл-защита)', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    mockDrawerShow.mockResolvedValue(true);
     renderChips();
 
     const chip = getCustomChip();
@@ -208,26 +220,28 @@ describe('DetailsChips — long-press на custom-чипе', () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(mockDrawerShow).not.toHaveBeenCalled();
     expect(mockRemoveCustomTag).not.toHaveBeenCalled();
   });
 
-  it('сдвиг ≤8px не отменяет long-press (мелкий tremor)', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('сдвиг ≤8px не отменяет long-press (мелкий tremor)', async () => {
+    mockDrawerShow.mockResolvedValue(true);
     renderChips();
 
     const chip = getCustomChip();
     firePointerDownAt(chip, 100, 100);
     firePointerMoveAt(chip, 103, 104); // sqrt(3²+4²)=5 < 8
-    act(() => {
+    // async act: таймер откроет confirm, а флаш промиса/re-render (удаление тега)
+    // не протечёт вне act.
+    await act(async () => {
       vi.advanceTimersByTime(500);
     });
 
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(mockDrawerShow).toHaveBeenCalled();
   });
 
   it('Cancel в confirm + trailing click → onToggle НЕ срабатывает (firedRef держит подавление)', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    mockDrawerShow.mockResolvedValue(false);
     const onChange = vi.fn();
     renderChips({ onChange });
 
@@ -243,8 +257,8 @@ describe('DetailsChips — long-press на custom-чипе', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('OK в confirm → чип исчезает из DOM (store-driven re-render)', () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('OK в confirm → чип исчезает из DOM (store-driven re-render)', async () => {
+    mockDrawerShow.mockResolvedValue(true);
     setMockCustomTags([{ tag: 'с лимоном' }, { tag: 'без соли' }]);
     renderChips();
 
@@ -256,14 +270,11 @@ describe('DetailsChips — long-press на custom-чипе', () => {
       (b) => b.textContent === 'с лимоном',
     )!;
     fireEvent.pointerDown(chip, { pointerType: 'touch', clientX: 100, clientY: 100 });
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
 
-    // Mutation выполнена синхронно (Promise.resolve), но React-update — внутри
-    // act'а: оборачиваем явно чтобы flush'ы прошли.
-    act(() => {
-      vi.runAllTimers();
+    // Async act прокручивает таймер long-press + флашит промис confirm'а и
+    // safeMutate, после чего store-driven re-render убирает чип из DOM.
+    await act(async () => {
+      vi.advanceTimersByTime(500);
     });
 
     // Чип «с лимоном» исчез, остался только «без соли». Это и есть UI-feedback,

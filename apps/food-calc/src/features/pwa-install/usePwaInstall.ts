@@ -112,7 +112,9 @@ export function usePwaInstall(): PwaInstallState {
     return outcome;
   }, []);
 
-  const shouldShow = isMobile && !isStandalone() && !installed && !dismissed;
+  // В деве (LAN-тест с телефона) гейт не встречает — иначе каждый HMR-заход
+  // упирается в экран установки. Прод-поведение не трогаем.
+  const shouldShow = !import.meta.env.DEV && isMobile && !isStandalone() && !installed && !dismissed;
 
   return {
     shouldShow,

@@ -69,6 +69,14 @@
     color: var(--sys-color-text-secondary);
 }
 
+// Описание продукта под шапкой — тихий body-ярус. pre-line сохраняет переводы
+// строк, которые юзер ввёл в мультилайн-поле.
+.description {
+    margin: 0 0 var(--sys-stack-row);
+    color: var(--sys-color-text-secondary);
+    white-space: pre-line;
+}
+
 // ─── Ряд «количество (50% слева) + норма (50% справа)» — продукт-еда ──
 .measureRow {
     display: flex;

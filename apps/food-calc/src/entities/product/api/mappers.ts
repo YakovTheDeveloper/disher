@@ -17,6 +17,9 @@ export function mapProductRow(row: ProductRow): Product {
     categories: stringifyJson(row.categories, '[]'),
     servingBasis: row.serving_basis ?? '100g',
     servingUnit: row.serving_unit ?? null,
+    // `?? ''` covers snapshot pulls from devices that dumped before `description`
+    // existed. Local writes always include it.
+    description: row.description ?? '',
     createdAt: row.created_at,
   };
 }

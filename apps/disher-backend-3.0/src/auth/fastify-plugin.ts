@@ -37,6 +37,19 @@ export const betterAuthPlugin: FastifyPluginAsync = async (fastify) => {
     );
 
     scope.all("/api/auth/*", async (request, reply) => {
+      // The admin() plugin (auth/server.ts) is registered ONLY to surface
+      // `role` on the session (verify-bearer reads it) and to seed env-bootstrap
+      // admins. Its bundled RPC surface — /api/auth/admin/* (impersonate-user,
+      // ban-user, remove-user, set-user-password, set-role, list-users, …) — is
+      // OUT of the MVP scope and would enable explicit anti-goals (impersonation,
+      // ban) for any admin/env-admin over curl, unaudited and untested. The app
+      // uses none of it (no adminClient); all admin HTTP is our own /api/admin
+      // routes behind requireAdmin. Fail-closed on the whole subtree so the
+      // plugin's role plumbing can't drag its capability surface in with it.
+      const pathname = request.url.split("?", 1)[0];
+      if (pathname === "/api/auth/admin" || pathname.startsWith("/api/auth/admin/")) {
+        return reply.code(404).send({ error: "Not found" });
+      }
       reply.raw.setHeaders(mapHeaders(reply.getHeaders()));
       await authHandler(request.raw, reply.raw);
     });

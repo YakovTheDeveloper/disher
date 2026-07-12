@@ -1,4 +1,4 @@
-import { format, isBefore, isValid, parse, subDays } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { DateStr } from './model';
 
@@ -36,16 +36,6 @@ export function parseKeys(keys: DateStr[] | undefined): ParsedDay[] {
     .map((dateStr) => ({ date: parse(dateStr, DATE_FORMAT, new Date()), dateStr }))
     .filter((d) => isValid(d.date))
     .sort((a, b) => a.date.getTime() - b.date.getTime());
-}
-
-/**
- * Days strictly before yesterday — sorted asc. Yesterday itself is always
- * rendered in the anchor block (yesterday/today/tomorrow), never duplicated
- * in the past list.
- */
-export function computePastFilledAsc(filledAsc: ParsedDay[], today: Date): ParsedDay[] {
-  const yesterday = subDays(today, 1);
-  return filledAsc.filter((d) => isBefore(d.date, yesterday));
 }
 
 /**

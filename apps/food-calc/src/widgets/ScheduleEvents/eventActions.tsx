@@ -3,7 +3,7 @@ import { NoteIcon, ClockIcon, FeaturesIcon } from '@/features/shared/item-action
 import { EDIT_MODAL_INPUT_IDS } from './ui/ScheduleEventEditModal.constants';
 
 /**
- * Ряд правок дровера события = три круглые медали (тот же WriteBarMedal, что у
+ * Ряд правок дровера события = три круглые медали (тот же RoundButton, что у
  * еды в расписании): дуговая подпись + иконка по центру. Порядок — Особенности ·
  * Описание · Время. У события нет detail-страницы, поэтому этот ряд заменяет
  * «Информация о…».

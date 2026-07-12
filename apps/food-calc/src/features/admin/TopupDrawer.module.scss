@@ -1,0 +1,37 @@
+// Top-up form. Surface owns bg + side inset (DrawerLayout); content owns only
+// the vertical rhythm + bottom padding (drawer-layout canon).
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+    padding-block-end: 24px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-field);
+}
+
+.fieldLabel {
+    color: var(--sys-color-text-secondary);
+}
+
+.centered {
+    text-align: center;
+    text-wrap: balance;
+}
+
+.balance {
+    text-align: center;
+    color: var(--sys-color-text-primary);
+}
+
+.note {
+    text-align: center;
+    color: var(--sys-color-text-secondary);
+}
+
+.error {
+    color: var(--sys-color-status-danger);
+}

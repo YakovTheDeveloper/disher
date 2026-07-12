@@ -183,4 +183,53 @@ describeIfReady("wallet", () => {
     // welcome + promo
     expect(await ledgerByKind(user.userId, "grant")).toHaveLength(2);
   });
+
+  it("grant without requestId reports alreadyApplied:false (back-compat)", async () => {
+    // Amount deliberately ≠ WELCOME_GRANT_KOP so the find() below can't match the
+    // welcome grant (same-amount collision would pick welcome's request_id).
+    const res = await wallet.grant(user.userId, 6_000, "no-req");
+    expect(res.alreadyApplied).toBe(false);
+    expect(res.balanceKop).toBe(WELCOME_GRANT_KOP + 6_000);
+    // request_id stays null on the legacy path.
+    const grants = await ledgerByKind(user.userId, "grant");
+    const promo = grants.find((g) => Number(g.amount_kop) === 6_000);
+    expect(promo?.request_id).toBeNull();
+  });
+
+  it("grant is idempotent for the same requestId — one credit only", async () => {
+    const a = await wallet.grant(user.userId, 7_000, "topup", "grant-dup");
+    const b = await wallet.grant(user.userId, 7_000, "topup", "grant-dup");
+
+    expect(a.alreadyApplied).toBe(false);
+    expect(b.alreadyApplied).toBe(true);
+    expect(b.balanceKop).toBe(a.balanceKop);
+    expect(await wallet.getBalance(user.userId)).toBe(WELCOME_GRANT_KOP + 7_000);
+    // welcome + the single idempotent grant.
+    expect(await ledgerByKind(user.userId, "grant")).toHaveLength(2);
+  });
+
+  it("concurrent grants (same requestId) credit only once", async () => {
+    const results = await Promise.allSettled([
+      wallet.grant(user.userId, 3_000, "race", "grant-same"),
+      wallet.grant(user.userId, 3_000, "race", "grant-same"),
+    ]);
+
+    expect(results.every((r) => r.status === "fulfilled")).toBe(true);
+    expect(await wallet.getBalance(user.userId)).toBe(WELCOME_GRANT_KOP + 3_000);
+    // welcome + one race-winning grant (the 23505 loser re-selected the winner).
+    expect(await ledgerByKind(user.userId, "grant")).toHaveLength(2);
+  });
+
+  it("grant records meta.reason readable via listLedger", async () => {
+    await wallet.grant(user.userId, 2_500, "birthday bonus", "grant-meta");
+    const items = await wallet.listLedger(user.userId, 50);
+    const row = items.find((i) => i.amountKop === 2_500);
+    expect(row?.meta).toMatchObject({ reason: "birthday bonus" });
+  });
+
+  it("grant rejects the reserved 'welcome' requestId", async () => {
+    await expect(
+      wallet.grant(user.userId, 1_000, "nope", "welcome"),
+    ).rejects.toThrow(/welcome/);
+  });
 });

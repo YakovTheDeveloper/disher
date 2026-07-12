@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import styles from './BalanceSection.module.scss';
 import { fetchBalance, fetchLedger, type LedgerEntry } from '@/shared/lib/api/billing';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { rub } from '@/shared/lib/money';
 
 // Balance + recent transactions, shown in the ProfileDrawer. Fetched fresh each
 // time the drawer opens (balance only changes on spend/top-up — no live bus).
-
-const rub = (kop: number) =>
-  (kop / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 });
+// The ₽ formatter (`rub`) lives in shared/lib/money — the same one the admin
+// top-up panel uses, so a kopeck renders identically everywhere.
 
 const KIND_LABEL: Record<LedgerEntry['kind'], string> = {
   grant: 'Начисление',

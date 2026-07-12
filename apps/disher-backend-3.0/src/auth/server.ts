@@ -37,9 +37,10 @@
 // (email-verification.test.ts) still asserts better-auth's wiring.
 
 import { betterAuth } from "better-auth";
-import { bearer, genericOAuth } from "better-auth/plugins";
+import { admin, bearer, genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
+import { getAdminUserIds } from "./admin-ids.js";
 import { telegramGenericOAuthConfig } from "./telegram.js";
 
 const connectionString = process.env.LOCAL_DATABASE_URL;
@@ -166,7 +167,7 @@ function dispatchVerificationEmail(args: {
 // registered when both TELEGRAM_CLIENT_ID and TELEGRAM_CLIENT_SECRET are set,
 // so dev/test/prod without a bot boot exactly as before. When ON, better-auth
 // mounts the callback at ${BETTER_AUTH_URL}/api/auth/oauth2/callback/telegram —
-// register that as the Redirect URI in @BotFather (see tds/telegram-auth.md).
+// register that as the Redirect URI in @BotFather (see apps/food-calc/tds/telegram-auth.md).
 const telegramOAuthConfig = telegramGenericOAuthConfig();
 console.log(
   telegramOAuthConfig
@@ -196,9 +197,10 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    // Synced with frontend AuthForm.tsx MIN_PASSWORD. NIST 800-63-4 minimum
-    // is 8; 12 is plan default (recommended for personal app, no HIBP check).
-    minPasswordLength: 12,
+    // Synced with frontend AuthForm.tsx MIN_PASSWORD — менять ТОЛЬКО парой,
+    // иначе форма и сервер разойдутся в валидации. NIST 800-63-4 floor is 8,
+    // so 11 stays above it (no HIBP check here either way).
+    minPasswordLength: 11,
     // Email verification is opt-IN: default is OFF (signIn doesn't 403,
     // signUp auto-issues a session). Tests that exercise the gated flow
     // (auth-routes.test.ts, auth-helpers.ts, dev:e2e in package.json,
@@ -240,6 +242,13 @@ export const auth = betterAuth({
   },
   plugins: [
     bearer(),
+    // Roles (admin/user). adminUserIds seeds bootstrap admins from env (they
+    // keep role='user' in the DB but are treated as admin) — see admin-ids.ts.
+    // No createAccessControl: the app has no fine-grained permissions, just the
+    // admin flag, and all admin HTTP surface is custom routes (requireAdmin),
+    // not better-auth admin-RPC. Read at construction time, so env changes need
+    // a restart.
+    admin({ adminUserIds: getAdminUserIds() }),
     ...(telegramOAuthConfig
       ? [genericOAuth({ config: [telegramOAuthConfig] })]
       : []),

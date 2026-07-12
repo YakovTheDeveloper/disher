@@ -17,7 +17,7 @@
     position: relative;
     // Воздух ДО бровки (отрыв от последней строки еды) + отступ снизу перед
     // предложкой. Бровка — на ::before (top:0); padding-top блока = воздух ПОСЛЕ.
-    margin: var(--space-10) 0 var(--space-2);
+    margin: var(--space-8) 0 var(--space-2);
     margin-left: auto;
     width: fit-content;
 

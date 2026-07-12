@@ -69,7 +69,7 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
   };
 
   // Long-press → per-item action drawer: delete (top-right) + ряд из трёх круглых
-  // медалей (тот же WriteBarMedal, что у еды): Особенности · Описание · Время. У
+  // медалей (тот же RoundButton, что у еды): Особенности · Описание · Время. У
   // события нет detail-страницы, поэтому ряд заменяет «info»-действие.
   const openActionsDrawer = (item: ScheduleEvent) => {
     void drawerStore.show(

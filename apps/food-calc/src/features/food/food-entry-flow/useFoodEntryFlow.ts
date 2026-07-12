@@ -254,7 +254,11 @@ export function useFoodEntryFlow({
   const handleConfirmCreate = useCallback(
     (
       name: string,
-      opts?: { isSupplement?: boolean; nutrients?: Record<string, number> },
+      opts?: {
+        isSupplement?: boolean;
+        nutrients?: Record<string, number>;
+        description?: string;
+      },
     ) => {
       if (mode !== 'create') return;
       const trimmed = name.trim();
@@ -284,8 +288,14 @@ export function useFoodEntryFlow({
         variant === 'product' ? 'Не удалось создать продукт' : 'Не удалось создать блюдо';
       const mutation =
         variant === 'product'
-          ? () => createProduct({ id, name: trimmed, isSupplement: opts?.isSupplement })
-          : () => createDish(trimmed, id);
+          ? () =>
+              createProduct({
+                id,
+                name: trimmed,
+                isSupplement: opts?.isSupplement,
+                description: opts?.description,
+              })
+          : () => createDish(trimmed, id, opts?.description);
       void safeMutate(mutation, errorMsg).then((res) => {
         if (!res.ok) {
           rollback();

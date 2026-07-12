@@ -12,7 +12,12 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 const h = vi.hoisted(() => ({
-  product: { id: 'p1', name: 'магний', servingBasis: '100g' as '100g' | 'serving' },
+  product: {
+    id: 'p1',
+    name: 'магний',
+    servingBasis: '100g' as '100g' | 'serving',
+    description: '',
+  },
   isUser: true,
   // Непустой состав по умолчанию → дровер в filled-режиме (measureRow + таблица).
   // Пустой состав теперь показывает empty-state CTA (см. отдельный кейс).
@@ -89,6 +94,12 @@ vi.mock('@/features/shared/change-name', () => ({
       <input id="change-name-input" data-testid="rename-input" />
     </div>
   ),
+  CHANGE_DESCRIPTION_INPUT_ID: 'change-description-input',
+  ChangeDescriptionModal: ({ isExpanded }: { isExpanded?: boolean }) => (
+    <div data-testid="description-modal" data-expanded={String(isExpanded)}>
+      <input id="change-description-input" data-testid="description-input" />
+    </div>
+  ),
 }));
 vi.mock('@/features/shared/item-actions-drawer/ItemActionsDrawer', () => ({
   ItemActionsDrawer: () => null,
@@ -128,7 +139,7 @@ import { ProductDrawer } from './ProductDrawer';
 
 describe('ProductDrawer — chrome + edit menu', () => {
   beforeEach(() => {
-    h.product = { id: 'p1', name: 'магний', servingBasis: '100g' };
+    h.product = { id: 'p1', name: 'магний', servingBasis: '100g', description: '' };
     h.isUser = true;
     h.nutrients = [{ nutrientId: '1', quantity: 10 }];
   });
@@ -171,13 +182,38 @@ describe('ProductDrawer — chrome + edit menu', () => {
     expect(getByTestId('rename-modal').getAttribute('data-expanded')).toBe('true');
   });
 
+  it('renders the description in view mode; hides it when empty', () => {
+    h.product = { id: 'p1', name: 'магний', servingBasis: '100g', description: 'сорт Гала' };
+    const { getByText, unmount } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+    expect(getByText('сорт Гала')).not.toBeNull();
+    unmount();
+    h.product = { id: 'p1', name: 'магний', servingBasis: '100g', description: '' };
+    const { queryByText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+    expect(queryByText('сорт Гала')).toBeNull();
+  });
+
+  it('description menu item is a <label htmlFor> (iOS keyboard contract, как rename)', () => {
+    const { getByLabelText, getByText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+    fireEvent.click(getByLabelText('Редактировать продукт'));
+    const descLabel = getByText('Редактировать описание').closest('label');
+    expect(descLabel).not.toBeNull();
+    expect(descLabel!.getAttribute('for')).toBe('change-description-input');
+  });
+
+  it('focusing the description input opens ChangeDescriptionModal (focus-delegation handler)', () => {
+    const { getByTestId } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
+    expect(getByTestId('description-modal').getAttribute('data-expanded')).toBe('false');
+    fireEvent.focus(getByTestId('description-input'));
+    expect(getByTestId('description-modal').getAttribute('data-expanded')).toBe('true');
+  });
+
   it('food (user) renders the quantity Select (50/50 measure row)', () => {
     const { getByLabelText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
     expect(getByLabelText('Способ измерения количества')).not.toBeNull();
   });
 
   it('supplement shows «Состав на одну единицу» and no quantity Select', () => {
-    h.product = { id: 'p1', name: 'витамин д', servingBasis: 'serving' };
+    h.product = { id: 'p1', name: 'витамин д', servingBasis: 'serving', description: '' };
     const { getByText, queryByLabelText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
     expect(getByText('Состав на одну единицу:')).not.toBeNull();
     expect(queryByLabelText('Способ измерения количества')).toBeNull();
@@ -209,7 +245,7 @@ describe('ProductDrawer — chrome + edit menu', () => {
 // fresh billable request, not a free dedup.
 describe('ProductDrawer — suggest requestId lifecycle (D2)', () => {
   beforeEach(() => {
-    h.product = { id: 'p1', name: 'магний', servingBasis: '100g' };
+    h.product = { id: 'p1', name: 'магний', servingBasis: '100g', description: '' };
     h.isUser = true;
     h.nutrients = []; // empty state → showcase «Предложить нутриенты» CTA, confirm=false
     suggestMock.mockReset();

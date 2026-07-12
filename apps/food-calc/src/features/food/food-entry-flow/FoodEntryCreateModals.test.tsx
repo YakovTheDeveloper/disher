@@ -361,6 +361,66 @@ describe('FoodEntryCreateModals — supplement (БАД) offered on schedule only
   });
 });
 
+// ── описание при создании → доезжает до мутации (общее для продукта и блюда) ──
+describe('FoodEntryCreateModals — описание при создании', () => {
+  const typeDescription = (createInputId: string, text: string) => {
+    const descEl = document.getElementById(`${createInputId}-desc`);
+    expect(descEl).not.toBeNull();
+    fireEvent.change(descEl!, { target: { value: text } });
+  };
+
+  it('(product) прокидывает описание в createProduct', async () => {
+    const { createProduct } = await import('@/entities/product');
+    render(<Harness target={SCHEDULE} />);
+    focusInput(SCH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('pick-create-product'));
+    focusInput(SCH_IDS.CREATE_INPUT);
+    typeDescription(SCH_IDS.CREATE_INPUT, 'сорт Гала');
+
+    const createBtn = expanded().querySelector(`label[for="${SCH_IDS.QUANTITY_INPUT}"]`);
+    fireEvent.click(createBtn!);
+
+    await waitFor(() =>
+      expect(createProduct).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Морковь', description: 'сорт Гала' }),
+      ),
+    );
+  });
+
+  it('(dish) прокидывает описание в createDish третьим аргументом', async () => {
+    const { createDish } = await import('@/entities/dish');
+    render(<Harness target={SCHEDULE} />);
+    focusInput(SCH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('pick-create-dish'));
+    focusInput(SCH_IDS.CREATE_INPUT);
+    typeDescription(SCH_IDS.CREATE_INPUT, 'на говяжьем бульоне');
+
+    const createBtn = expanded().querySelector(`label[for="${SCH_IDS.QUANTITY_INPUT}"]`);
+    fireEvent.click(createBtn!);
+
+    await waitFor(() =>
+      expect(createDish).toHaveBeenCalledWith('Борщ', expect.any(String), 'на говяжьем бульоне'),
+    );
+  });
+
+  it('пустое описание не прокидывается (undefined)', async () => {
+    const { createProduct } = await import('@/entities/product');
+    render(<Harness target={SCHEDULE} />);
+    focusInput(SCH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('pick-create-product'));
+    focusInput(SCH_IDS.CREATE_INPUT);
+
+    const createBtn = expanded().querySelector(`label[for="${SCH_IDS.QUANTITY_INPUT}"]`);
+    fireEvent.click(createBtn!);
+
+    await waitFor(() =>
+      expect(createProduct).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Морковь', description: undefined }),
+      ),
+    );
+  });
+});
+
 // ── finding 1: existing БАД from search → «шт» + default 1, not «100 г» ───────
 // Логика фикса живёт в хуке (handleFoodSelect резолвит basis синхронно из
 // useProducts; quantityContent.unit = getQtyUnit(selectedProduct)). Тестим

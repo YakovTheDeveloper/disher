@@ -1,15 +1,17 @@
-// WriteBarMedal — the round "coin / stamp" affordance that rides at the right
-// edge of a WriteBarShell pill. Extracted 2026-06-09 from WriteFoodInput's
-// `.writeBarList`. Shared by the Food bar (центр = клош-png, дуги «выбрать из /
-// списка еды») and the Analysis bar (центр = колба-иконка, дуги «выбрать /
-// гипотезы»). Collapses on focus via the row's `[data-expanded]` plain attribute.
+// RoundButton — the round "coin / stamp" affordance. Extracted 2026-07-12 from
+// the WriteBarShell medal (itself lifted 2026-06-09 from WriteFoodInput's round
+// coin). Shared by the Food bar (центр = клош-png, дуги «выбрать из /
+// списка еды»), the Analysis bar (центр = колба-иконка), the ItemActions edit row
+// (look="bare") and the schedule-navigator quick anchors (standalone button-mode).
+// Collapses on focus via the row's `[data-expanded]` plain attribute (bar only).
 //
-// Геометрию (`--pill-h`, `--coin-size`) наследует от WriteBarShell `.wrap`; цвета
-// диска/глифа — sys-роли напрямую (`--wb-tile-*`-алиасы распущены 2026-06-25).
+// Геометрию (`--pill-h`, `--medal-size`) наследует от WriteBarShell `.wrap` внутри
+// бара; standalone-потребители задают `--medal-size` на своём контейнере. Цвета
+// диска/глифа — sys-роли напрямую.
 
 @import '@/shared/assets/style/mixin.scss';
 
-.writeBarList {
+.roundButton {
     --press-fg-invert: #ffffff;
     --tile-img-opacity: 0.85;
     // Дуговая подпись в единицах viewBox(100) → ≈11.6px на 68px-медальоне.
@@ -104,16 +106,16 @@
             transform: scale(1);
         }
 
-        .writeBarListImg {
+        .roundButtonImg {
             filter: invert(1);
             mix-blend-mode: screen;
         }
 
-        .writeBarListCenter {
+        .roundButtonCenter {
             color: var(--press-fg-invert);
         }
 
-        .writeBarListArc text {
+        .roundButtonArc text {
             fill: var(--press-fg-invert);
         }
     }
@@ -149,7 +151,7 @@
 //
 // ⚠️ Анкор — на АТРИБУТ `[data-write-bar]` (он на `.wrap`), НЕ на хэш-класс.
 // Cross-module хэш-классы (`.wrap`/`.barLine`) в этой сборке получают РАЗНЫЙ хэш
-// в каждом .module.scss-файле → селектор `.wrap .writeBarList` молча не матчился,
+// в каждом .module.scss-файле → селектор `.wrap .roundButton` молча не матчился,
 // и медаль падала в поток (в колонке `.wrap` → стек ВНИЗ, контейнер распирало).
 // Атрибут не хэшится → надёжный cross-module анкор (как у collapse-правила
 // `[data-expanded]` ниже). `.wrap` = positioned ancestor (position:relative).
@@ -159,7 +161,7 @@
 // `.wrap`, чья верхняя кромка на --space-2 выше пилюли — компенсируем, чтобы
 // перекрытие осталось ~25%. Без transform (не конфликтовать с collapse ниже).
 // Перебивает `.lifted` top по специфичности (атрибут + класс = 0,2,0 > 0,1,0).
-[data-write-bar] .writeBarList {
+[data-write-bar] .roundButton {
     position: absolute;
     right: var(--sys-inset-page);
     top: -60px;
@@ -168,7 +170,7 @@
 
 // Collapse on focus — the row carries the `[data-expanded]` plain attribute, so
 // this cross-module descendant selector resolves against any expanded ancestor.
-[data-expanded] .writeBarList {
+[data-expanded] .roundButton {
     width: 0;
     margin-left: 0;
     padding-left: 0;
@@ -184,7 +186,7 @@
 // = 0,3,0) beats the float (0,2,0) and collapse (0,2,0) rules regardless of order.
 // РАСКЛАДКА только (позиция/поток); ОБЛИК переехал в `[data-look='flat'|'elevated']`
 // ниже (flat = панель HomePage, elevated = плавающий FAB SearchFood).
-[data-write-bar] .writeBarList[data-inline] {
+[data-write-bar] .roundButton[data-inline] {
     position: static;
     top: auto;
     right: auto;
@@ -194,8 +196,8 @@
 // Flat-режим — «часть панели»: «лист над листом» (внешняя «монета» surface-2,
 // внутренний диск surface-0) + тонкий внешний бордер, плоская (float-тень снята).
 // Край на одноцветной плашке дока определяет внешний бордер (Food-бар HomePage,
-// `floating={false}` в потоке). Спецификость 0,2,0 бьёт дефолт `.writeBarList` (0,1,0).
-.writeBarList[data-look='flat'] {
+// `floating={false}` в потоке). Спецификость 0,2,0 бьёт дефолт `.roundButton` (0,1,0).
+.roundButton[data-look='flat'] {
     --medal-plate: var(--sys-color-surface-2);
     --medal-coin: var(--sys-color-surface-0);
     box-shadow:
@@ -204,7 +206,7 @@
 }
 
 // Внутренний диск тоже без лифт-тени (плоская медаль).
-.writeBarList[data-look='flat']::before {
+.roundButton[data-look='flat']::before {
     box-shadow: none;
 }
 
@@ -212,7 +214,7 @@
 // важного объекта (`--sys-elevation-action-raised`, shadow-2). 3px-spread оставляем
 // — это ПЛАШКА-подложка дуг (тот же цвет surface-2, не видимый кант), НЕ обводка.
 // Плавающий FAB «Новая еда» в поиске (`.createFab`, вне бара).
-.writeBarList[data-look='elevated'] {
+.roundButton[data-look='elevated'] {
     --medal-plate: var(--sys-color-surface-2);
     --medal-coin: var(--sys-color-surface-0);
     box-shadow:
@@ -221,55 +223,57 @@
 }
 
 // Внутренний диск без собственной лифт-тени — подъём несёт вся медаль.
-.writeBarList[data-look='elevated']::before {
+.roundButton[data-look='elevated']::before {
     box-shadow: none;
 }
 
-// Bare-режим — «голая» медаль: прозрачный фон, БЕЗ диска/плашки/тени, только
-// тонкий круговой контур. Дуговой текст + глиф лежат прямо на поверхности
-// дровера. Спецификость 0,2,0 бьёт дефолт `.writeBarList` (фон/тень, 0,1,0).
-.writeBarList[data-look='bare'] {
+// Bare-режим — «голая» медаль: прозрачный фон, БЕЗ диска/плашки, только тонкий
+// круговой контур + лёгкий подъём. Дуговой текст + глиф лежат прямо на поверхности
+// дровера. Спецификость 0,2,0 бьёт дефолт `.roundButton` (фон/тень, 0,1,0).
+.roundButton[data-look='bare'] {
     // Дугу ужимаем к центру (scale ниже) → текст дальше от рамки; размер шрифта
     // подымаем, чтобы он остался прежним (17 / 0.88 ≈ 19).
     --wb-arc-size: 19px;
 
     margin: 0; // ряд-контейнер держит отступы через gap, не coin-margin бара
     background: transparent;
-    border: 1px solid var(--sys-color-border-strong); // рамка темнее дефолта
-    box-shadow: none;
+    // Тихий контур (subtle) + подъём важного объекта — медаль «висит» над телом
+    // дровера, а не вырезана линией.
+    border: 1px solid var(--sys-color-border-subtle);
+    box-shadow: var(--sys-elevation-action-raised);
 }
 
 // Диск-монету убираем — контур медали несёт сам border.
-.writeBarList[data-look='bare']::before {
+.roundButton[data-look='bare']::before {
     display: none;
 }
 
 // Дуговой текст: темнее (ink) + отодвинут от рамки (арка ужата к центру на 12%).
-.writeBarList[data-look='bare'] .writeBarListArc {
+.roundButton[data-look='bare'] .roundButtonArc {
     transform: scale(0.88);
 }
 
-.writeBarList[data-look='bare'] .writeBarListArc text {
+.roundButton[data-look='bare'] .roundButtonArc text {
     fill: var(--sys-color-text-system);
 }
 
 // Центральный глиф крупнее в 1.5× (translate сохраняет центрирование базы) +
 // чёрный ink (currentColor у edit-глифов → тянет отсюда).
-.writeBarList[data-look='bare'] .writeBarListCenter {
+.roundButton[data-look='bare'] .roundButtonCenter {
     color: var(--sys-color-text-system);
     transform: translate(-50%, -50%) scale(1.5);
 }
 
 // Яркий ХОЛОДНЫЙ текст дуг + глиф-нода (cold near-black, парный к воздушному подъёму).
-.writeBarList[data-look='elevated'] .writeBarListArc text {
+.roundButton[data-look='elevated'] .roundButtonArc text {
     fill: var(--sys-color-text-cold-strong);
 }
 
-.writeBarList[data-look='elevated'] .writeBarListCenter {
+.roundButton[data-look='elevated'] .roundButtonCenter {
     color: var(--sys-color-text-cold-strong);
 }
 
-[data-expanded] .writeBarList[data-inline] {
+[data-expanded] .roundButton[data-inline] {
     width: var(--medal-size, calc(var(--pill-h) - var(--space-1)));
     border-width: 0;
     opacity: 1;
@@ -284,7 +288,7 @@
 //    светлый (#f3efe7). Значит press-пилюля СВЕТЛАЯ → глиф обязан стать ТЁМНЫМ
 //    (в light он белый). Перекрашиваем `--press-fg-invert` в тёмный и снимаем
 //    invert(1)/screen с png (тёмная гравюра остаётся тёмной на светлой пилюле).
-:root[data-theme-mode='dark'] .writeBarList {
+:root[data-theme-mode='dark'] .roundButton {
     --press-fg-invert: #1a1712; // тёмный глиф на светлой press-пилюле
     --medal-shadow:
         0 6px 16px rgba(0, 0, 0, 0.5),
@@ -294,7 +298,7 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
     }
 
-    &[data-pressed] .writeBarListImg {
+    &[data-pressed] .roundButtonImg {
         filter: none;
         mix-blend-mode: multiply;
     }
@@ -307,7 +311,7 @@
 }
 
 // Center glyph — engraving png (Food) ghosted by the coin.
-.writeBarListImg {
+.roundButtonImg {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -325,15 +329,15 @@
 // ниже и крупнее плейт-клоша: art-специфичная посадка под новые картинки. Анкор =
 // плоский `[data-dv='SearchFoodMedal']` (на `.createFab`, cross-module — как
 // `[data-write-bar]`); img-класс хешируется в ЭТОМ модуле → descendant матчится.
-// Спецификость 0,2,0 бьёт base `.writeBarListImg` (0,1,0). Без ghost-opacity.
-[data-dv='SearchFoodMedal'] .writeBarListImg {
+// Спецификость 0,2,0 бьёт base `.roundButtonImg` (0,1,0). Без ghost-opacity.
+[data-dv='SearchFoodMedal'] .roundButtonImg {
     top: 68%;
     width: 85%;
     opacity: 1;
 }
 
 // Center node — icon variant (Analysis flask). Glyph = text-secondary (sys).
-.writeBarListCenter {
+.roundButtonCenter {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -348,7 +352,7 @@
 }
 
 // Two arc captions (top + bottom) — SVG textPath along semicircles.
-.writeBarListArc {
+.roundButtonArc {
     position: absolute;
     inset: 0;
     z-index: 3;

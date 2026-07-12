@@ -33,6 +33,12 @@ type GroupProps = {
   /** Если задан — заголовок становится `<label htmlFor>`, связанным с инпутом. */
   htmlFor?: string;
   /**
+   * Правый слот в ряду лейбла (напр. кнопка-подсказка ⓘ). Лежит СИБЛИНГОМ
+   * `FieldLabel` (не внутри `<label>`), чтобы клик по кнопке не делегировал фокус
+   * инпуту. Ряд-заголовок появляется только при заданном `trailing`.
+   */
+  trailing?: ReactNode;
+  /**
    * Раскладка полей ВНУТРИ группы:
    *   'vertical' (деф.) — столбик, зазор `--sys-stack-field` (12);
    *   'horizontal'      — ряд равной ширины (напр. Возраст · Вес · Рост).
@@ -46,10 +52,17 @@ type GroupProps = {
  * Владеет зазорами ВНУТРИ себя: лейбл → контент = `--sys-stack-row` (8, тесно —
  * подпись принадлежит группе), между полями = `--sys-stack-field` (12).
  */
-function Group({ children, label, htmlFor, direction = 'vertical', className }: GroupProps) {
+function Group({ children, label, htmlFor, trailing, direction = 'vertical', className }: GroupProps) {
   return (
     <div className={clsx(styles.group, className)}>
-      {label != null && <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>}
+      {trailing != null ? (
+        <div className={styles.groupHeader}>
+          {label != null && <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>}
+          <div className={styles.groupTrailing}>{trailing}</div>
+        </div>
+      ) : (
+        label != null && <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
+      )}
       <div className={clsx(styles.content, direction === 'horizontal' && styles.horizontal)}>
         {children}
       </div>

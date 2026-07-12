@@ -12,6 +12,13 @@ vi.mock('../auth-store', () => ({
   useAuthStore: (selector: (s: typeof mockAuth) => unknown) => selector(mockAuth),
 }));
 
+// The «Админка» entry pulls in useNavigate + useIsAdmin + RouterLinks. Stub them
+// so this test stays isolated (no Router provider, no probe): the admin row is
+// hidden (useIsAdmin → false), leaving the rows under test unchanged.
+vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
+vi.mock('@/app/router', () => ({ RouterLinks: { Root: '/', Admin: '/admin' } }));
+vi.mock('@/features/admin/useIsAdmin', () => ({ useIsAdmin: () => false }));
+
 const mockSyncPref = { syncEnabled: true, setSyncEnabled: vi.fn() };
 vi.mock('@/shared/lib/sync-pref', () => ({
   useSyncPrefStore: (selector: (s: typeof mockSyncPref) => unknown) => selector(mockSyncPref),
@@ -44,6 +51,9 @@ vi.mock('@/shared/ui/DrawerLayout', () => ({
 }));
 
 vi.mock('../BalanceSection', () => ({ BalanceSection: () => <div data-testid="balance" /> }));
+// Иначе ряд «Привязать Telegram» подтянул бы настоящий authProvider (сетевой
+// listAccounts) в jsdom — эти тесты про раскладку дровера, не про линковку.
+vi.mock('../TelegramLinkRow', () => ({ TelegramLinkRow: () => null }));
 vi.mock('../SignOutConfirmModal', () => ({ default: () => null }));
 vi.mock('@/features/wallpaper', () => ({ WallpaperPicker: () => <div /> }));
 vi.mock('@/features/card-palette', () => ({ CardPalettePicker: () => <div /> }));
@@ -52,7 +62,7 @@ vi.mock('@/features/sync-status/SyncStatusChip', () => ({ SyncStatusChip: () => 
 vi.mock('../ProfileDrawer.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `pd-${String(p)}` }),
 }));
-vi.mock('../SettingRow.module.scss', () => ({
+vi.mock('@/shared/ui/atoms/SettingRow/SettingRow.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `sr-${String(p)}` }),
 }));
 

@@ -20,7 +20,12 @@ import { Accordion } from '@/shared/ui/Accordion';
 import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
-import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
+import {
+  ChangeNameModal,
+  CHANGE_NAME_INPUT_ID,
+  ChangeDescriptionModal,
+  CHANGE_DESCRIPTION_INPUT_ID,
+} from '@/features/shared/change-name';
 // Импорт из конкретного файла, не из barrel: barrel реэкспортит buildInfoActions,
 // который импортит ProductDrawer → иначе цикл product-drawer ↔ item-actions-drawer.
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
@@ -158,6 +163,7 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   const [isCustom, setIsCustom] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [portionsOpen, setPortionsOpen] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
 
@@ -173,8 +179,11 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   // закрывается сам (focus-out при делегации; finalFocus={false} оставляет фокус
   // на инпуте) — здесь только разворачиваем rename-модалку.
   const handleNameFocusCapture = useCallback((e: FocusEvent) => {
-    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
+    const id = (e.target as HTMLElement).id;
+    if (id === CHANGE_NAME_INPUT_ID) {
       setRenameOpen(true);
+    } else if (id === CHANGE_DESCRIPTION_INPUT_ID) {
+      setDescriptionOpen(true);
     }
   }, []);
 
@@ -381,6 +390,12 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
             >
               <Text as="span" role="body">Редактировать название</Text>
             </DropdownMenuItem>
+            <DropdownMenuItem
+              closeOnClick={false}
+              render={<label htmlFor={CHANGE_DESCRIPTION_INPUT_ID} />}
+            >
+              <Text as="span" role="body">Редактировать описание</Text>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setEditOpen(true)}>
               <Text as="span" role="body">Редактировать нутриенты</Text>
             </DropdownMenuItem>
@@ -435,6 +450,11 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
           </section>
         ) : (
           <>
+            {food.description && (
+              <Text as="p" role="body" className={s.description}>
+                {food.description}
+              </Text>
+            )}
             {/* Порции — только свой продукт-еда (каталог read-only, БАД без порций) */}
             {isUserCreated && !isSupplement && (
               <PortionsAccordion
@@ -537,6 +557,21 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
             }}
             onDelete={handleDeleteProduct}
             deleteLabel="Удалить продукт"
+          />
+        )}
+
+        {isUserCreated && (
+          <ChangeDescriptionModal
+            currentDescription={food.description}
+            isExpanded={descriptionOpen}
+            onClose={() => setDescriptionOpen(false)}
+            onChangeDescription={(description) => {
+              void safeMutate(
+                () => updateProduct(food.id, { description }),
+                'Не удалось изменить описание',
+              );
+              setDescriptionOpen(false);
+            }}
           />
         )}
       </div>

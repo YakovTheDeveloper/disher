@@ -149,7 +149,7 @@ describe('betterAuthProvider.bootstrap', () => {
 
     const user = await betterAuthProvider.bootstrap();
 
-    expect(user).toEqual({ id: 'u1', email: 'u1@example.com' });
+    expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
     // Critical: do NOT wipe the bearer on a network throw — the session may
     // still be valid, the backend is just unreachable right now.
     expect(localStorage.getItem(BEARER_KEY)).toBe('opaque-token');
@@ -189,7 +189,7 @@ describe('betterAuthProvider.bootstrap', () => {
 
     const user = await betterAuthProvider.bootstrap();
 
-    expect(user).toEqual({ id: 'u1', email: 'u1@example.com' });
+    expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
     expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
   });
@@ -201,7 +201,7 @@ describe('betterAuthProvider.bootstrap', () => {
 
     const user = await betterAuthProvider.bootstrap();
 
-    expect(user).toEqual({ id: 'u2', email: 'u2@example.com' });
+    expect(user).toEqual({ id: 'u2', email: 'u2@example.com', role: null });
     expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
   });
 
@@ -212,7 +212,7 @@ describe('betterAuthProvider.bootstrap', () => {
 
     const user = await betterAuthProvider.bootstrap();
 
-    expect(user).toEqual({ id: 'u3', email: 'u3@example.com' });
+    expect(user).toEqual({ id: 'u3', email: 'u3@example.com', role: null });
     expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
   });
 
@@ -249,9 +249,9 @@ describe('betterAuthProvider.bootstrap', () => {
 
     const user = await betterAuthProvider.bootstrap();
 
-    expect(user).toEqual({ id: 'u9', email: 'u9@example.com' });
+    expect(user).toEqual({ id: 'u9', email: 'u9@example.com', role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBe(
-      JSON.stringify({ id: 'u9', email: 'u9@example.com' }),
+      JSON.stringify({ id: 'u9', email: 'u9@example.com', role: null }),
     );
   });
 });

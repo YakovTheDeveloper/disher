@@ -14,7 +14,7 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientPickerDrawer } from './NutrientPickerDrawer';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
-import { WriteBarMedal } from '@/shared/ui/WriteBarShell/WriteBarMedal';
+import { RoundButton } from '@/shared/ui/RoundButton';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import {
   useHeaderCollapse,
@@ -310,7 +310,7 @@ const SearchFood = ({
         </button>
       )}
 
-      {/* Плавающая круглая монета «Новая еда» внизу-справа — тот же WriteBarMedal,
+      {/* Плавающая круглая монета «Новая еда» внизу-справа — тот же RoundButton,
           что Food-бар на HomePage: дуга «Новая еда» сверху + гравюра-клош в центре
           (не плюс — тот читался убого) + paper-облик. Сама по себе `<label
           htmlFor={CREATE_INPUT}>` — делегирует фокус инпуту имени в модалке
@@ -321,7 +321,7 @@ const SearchFood = ({
           (useKeyboardStick). */}
       {showCreateDock && createInputHtmlFor && (
         <div ref={setCreateFabRef} className={styles.createFab} {...medalDataAttrs}>
-          <WriteBarMedal
+          <RoundButton
             htmlFor={createInputHtmlFor}
             ariaLabel="Создать новую еду"
             arcTop="Новая еда"

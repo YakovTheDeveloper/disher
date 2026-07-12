@@ -33,6 +33,7 @@
   --sys-inset-page: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
   --sys-inset-modal-fullscreen: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
   --sys-inset-card: var(--space-4); // 16 — гор. инсет контента карточки-плитки (еда/анализ)
+  --sys-bottom-drawer-inset: var(--space-6); // 24 — краевой инсет нижнего дровера (full-width лист)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
   --sys-stack-row: var(--space-2); // 8 — tight pair: rows/fields/cards in one list; label → its control

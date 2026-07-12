@@ -1,0 +1,15 @@
+// Модалка открывается ИЗ дровера настроек (Drawer popup z-index 5001+), а
+// ModalByLabel по умолчанию порталится в #modal-by-label-root с z-index 1000 —
+// то есть ПОД дровером. Поднимаем ТОЛЬКО этот экземпляр на модальный ярус (6001,
+// как ModalManager popup), не трогая общий `.expanded` (иначе взлетели бы все
+// ModalByLabel). `!important` бьёт двухклассовую специфичность `.container.expanded`
+// из чужого CSS-модуля без гонки source-order. Портал остаётся body-уровневым
+// (не клипится `contain:paint` дровера) → модалка полноэкранная.
+.overlay {
+  z-index: 6001 !important;
+}
+
+.error {
+  margin: var(--space-2) 0 0;
+  color: var(--sys-color-status-danger);
+}

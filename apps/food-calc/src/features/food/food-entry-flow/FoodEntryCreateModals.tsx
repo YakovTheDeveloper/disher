@@ -8,6 +8,7 @@ import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FormLayout } from '@/shared/ui/form/FormLayout';
+import { FoodHintButton } from '@/shared/ui/FoodHintButton';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
@@ -98,6 +99,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // каждом входе в 'create' (свежий prefill из handlePickCreate не должен
   // затирать редактирование внутри той же сессии шага).
   const [createName, setCreateName] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
   const [isSupplement, setIsSupplement] = useState(false);
   // Состав создаваемого продукта: nutrient-id → количество на базис. Базис задаёт
   // галочка «Таблетка»: снята → на 100 г (еда), стоит → на 1 шт (приём). Блок
@@ -124,6 +126,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   useEffect(() => {
     if (prevStepRef.current !== 'create' && step === 'create') {
       setCreateName(draft.foodName ?? '');
+      setCreateDescription('');
       setIsSupplement(false);
       setOpenGroup(null);
       setDraftNutrients({});
@@ -219,14 +222,42 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
             <ModalShell.Header title="Создать еду" onBack={handleBackToSearch} />
             <ModalShell.Body>
               <FormLayout>
-                <AutoGrowSearch
-                  singleLine
-                  id={CREATE_INPUT}
-                  value={createName}
-                  onChange={setCreateName}
-                  placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
-                  autoComplete="off"
-                />
+                <FormLayout.Group label="Название" htmlFor={CREATE_INPUT}>
+                  <AutoGrowSearch
+                    singleLine
+                    id={CREATE_INPUT}
+                    value={createName}
+                    onChange={setCreateName}
+                    placeholder={`Название ${createVariantLabel === 'блюдо' ? 'блюда' : 'продукта'}`}
+                    autoComplete="off"
+                  />
+                </FormLayout.Group>
+
+                {/* Описание — общее для продукта и блюда, необязательное. id вне
+                    INPUT_TO_STEP → фокус на нём не переключает шаг (early-return
+                    в handleFocusCapture). Мультилайн: без singleLine. Кнопка-инфо
+                    в трейлинге лейбла — только где еда МОЖЕТ быть БАД
+                    (showSupplementOption): в блюде/ингредиенте БАД нет. */}
+                <FormLayout.Group
+                  label="Описание"
+                  htmlFor={`${CREATE_INPUT}-desc`}
+                  trailing={
+                    showSupplementOption ? (
+                      // Размер плитки ⓘ = высота строки лейбла (16px × 1.2 ≈ 20),
+                      // иначе тайл выше текста и распирает ряд-заголовок группы.
+                      <FoodHintButton tone="soft" size={20} glyphSize={15} />
+                    ) : undefined
+                  }
+                >
+                  <AutoGrowSearch
+                    id={`${CREATE_INPUT}-desc`}
+                    value={createDescription}
+                    onChange={setCreateDescription}
+                    placeholder="Подробности (необяз.)"
+                    maxLength={2000}
+                    autoComplete="off"
+                  />
+                </FormLayout.Group>
 
                 {showVariantSegment && (
                   <FormLayout.Group label="Какая это еда?">
@@ -352,6 +383,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
                           // isSupplement: 100 г / 1 шт), не только для БАД.
                           nutrients:
                             Object.keys(draftNutrients).length > 0 ? draftNutrients : undefined,
+                          description: createDescription.trim() || undefined,
                         })
                       }
                       label="Создать"

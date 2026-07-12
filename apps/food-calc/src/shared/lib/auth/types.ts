@@ -7,6 +7,14 @@ import type { ErrorKind } from '@/shared/lib/errors/classify';
 export type AppUser = {
   id: string;
   email: string | null;
+  /**
+   * Coarse authorization role from the auth provider (better-auth `admin`
+   * plugin: 'admin' | 'user' | null). Drives the client-side admin gate ONLY —
+   * env-admins carry role 'user' in the DB and are recognized via a server
+   * probe (`GET /api/admin/me`), so a null/'user' role is NOT proof of
+   * non-admin. Never a security boundary (the server guards every admin route).
+   */
+  role: string | null;
 };
 
 // Provider-neutral auth error shape. Reuses the project-wide ErrorKind so
@@ -65,6 +73,25 @@ export interface AuthProvider {
     providerId: string,
     callbackURL?: string,
   ): Promise<{ ok: false; error: AuthError } | undefined>;
+
+  /**
+   * Attach a provider identity (e.g. Telegram) to the ALREADY signed-in user.
+   * The only safe way to reach one account from both email and Telegram:
+   * Telegram returns no email, so better-auth cannot link by email and a plain
+   * `signInWithOAuth` would mint a SECOND user (separate wallet). Same redirect
+   * shape as `signInWithOAuth` — the browser navigates away on success.
+   */
+  linkOAuth(
+    providerId: string,
+    callbackURL?: string,
+  ): Promise<{ ok: false; error: AuthError } | undefined>;
+
+  /**
+   * providerIds already attached to the signed-in user ('credential' for the
+   * email/password one, 'telegram', …). Returns [] on any failure — callers use
+   * it to hide an already-done "link" affordance, never to gate access.
+   */
+  listLinkedProviders(): Promise<string[]>;
 
   /**
    * Re-send the email-verification link for an account that signed up but

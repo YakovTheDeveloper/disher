@@ -457,15 +457,27 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   // Late-load catch-up for the local user-product match. applyResponse fills
   // `manual` on a fresh parse, but on a cold restore the persisted parseResult
   // can hydrate before the Dexie products live-query resolves, and the user may
-  // create a product while the review is open. Re-run the match whenever the
-  // candidate set changes, filling only rows the user hasn't resolved or touched.
-  // Functional update + changed-guard → no dep on `unresolved`, no render loop.
+  // create (or delete) a product while the review is open. Re-run the match
+  // whenever the candidate set changes. Functional update + changed-guard → no
+  // dep on `unresolved`, no render loop.
   useEffect(() => {
     if (localMatchCandidates.length === 0) return;
+    const candidateIds = new Set(localMatchCandidates.map((c) => c.id));
     setUnresolved((prev) => {
       let changed = false;
       const next = prev.map((u) => {
-        if (u.manual || u.foodEdited) return u;
+        // Never touch a row the user hand-picked (`foodEdited`) or dismissed
+        // (`enabled === false` — it can't commit, so a fill/re-check is moot and
+        // would only flash a product onto a struck-through row).
+        if (u.foodEdited || !u.enabled) return u;
+        // An auto-matched row is kept only while its product still exists. A
+        // product deleted elsewhere while the review is open would otherwise
+        // ride into commit as an orphan `productId` — re-match (or clear).
+        if (u.manual) {
+          if (candidateIds.has(u.manual.id)) return u;
+          changed = true;
+          return { ...u, manual: matchLocalProduct(u.originalName, localMatchCandidates) };
+        }
         const local = matchLocalProduct(u.originalName, localMatchCandidates);
         if (!local) return u;
         changed = true;

@@ -4,6 +4,6 @@
 
 module.exports = [
   "src/shared/ui/Swipeable/Swipeable.module.scss",
-  "src/shared/ui/WriteBarShell/WriteBarMedal.module.scss",
+  "src/shared/ui/RoundButton/RoundButton.module.scss",
   "src/shared/ui/WriteBarShell/WriteBarShell.module.scss"
 ];

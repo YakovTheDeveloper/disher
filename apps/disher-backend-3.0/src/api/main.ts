@@ -5,12 +5,18 @@
 // fully-populated process.env. (Static imports are hoisted, so this could not
 // live in server.ts alongside a conditional dotenv load.)
 import { buildApp } from "./buildApp.js";
+import { pool } from "./db.js";
 import { initMatcher } from "./food-matcher.js";
 import { sweepStaleAnalyses } from "./routes/analyze.runJob.js";
+import { seedAdminUser } from "../auth/seed-admin.js";
 
 initMatcher().catch((err) => {
   console.error("initMatcher failed:", err);
 });
+
+// Idempotent admin seed (no-op unless ADMIN_SEED_EMAIL + ADMIN_SEED_PASSWORD are
+// set). Best-effort + non-blocking — a seed failure must never delay listen().
+void seedAdminUser();
 
 // Startup-sweep: a deploy/restart/crash while a paid long-analysis job was in
 // flight would otherwise burn the user's charge and leave the row pending
@@ -42,10 +48,15 @@ app.listen({ host: HOST, port: PORT }, (err) => {
 
 // Graceful shutdown: every deploy sends SIGTERM. Without this, in-flight requests
 // — including paid LLM analysis jobs mid-charge — are killed mid-connection and
-// the client sees a raw 500. app.close() stops accepting new connections, drains
-// in-flight ones, and runs onClose hooks (pool teardown lives there). compose's
-// default 10s stop_grace_period covers a normal drain; bump it if long analyses
-// legitimately hold a request longer. Guarded so a second signal can't re-enter.
+// the client sees a raw 500. app.close() stops accepting new connections and
+// drains in-flight ones; then we end the shared PG pool. Pool teardown lives HERE,
+// not in a buildApp onClose hook, because buildApp imports the pool as a shared
+// module singleton it does not own — tests build/close many apps against that one
+// pool, and ending it on close double-ends it. main.ts is the sole process owner
+// (never imported by tests), so it owns the pool's lifetime. (better-auth owns a
+// separate internal pool; the OS reclaims its sockets on the exit that follows.)
+// compose's default 10s stop_grace_period covers a normal drain; bump it if long
+// analyses legitimately hold a request longer. Guarded against a re-entrant signal.
 let shuttingDown = false;
 for (const sig of ["SIGTERM", "SIGINT"] as const) {
   process.on(sig, () => {
@@ -54,7 +65,8 @@ for (const sig of ["SIGTERM", "SIGINT"] as const) {
     console.log(`[shutdown] ${sig} received, draining…`);
     app
       .close()
-      .then(() => {
+      .then(async () => {
+        if (pool) await pool.end();
         console.log("[shutdown] drained cleanly");
         process.exit(0);
       })

@@ -4,16 +4,23 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { auth } from "./server.js";
 
+export interface BearerUser {
+  userId: string;
+  /** better-auth `user.role` (added by the admin plugin); null when unset. */
+  role: string | null;
+}
+
 /**
  * Verify the `Authorization: Bearer <token>` header against the better-auth
- * session store. Returns the user UUID on success, or sends 401 and returns
+ * session store. Returns `{userId, role}` on success, or sends 401 and returns
  * null. The bearer plugin in auth/server.ts converts the token into a session
- * lookup transparently.
+ * lookup transparently. Exactly ONE getSession call — callers that need the
+ * role (requireAdmin) reuse this result rather than looking it up again.
  */
 export async function verifyUserBearer(
   req: FastifyRequest,
   reply: FastifyReply,
-): Promise<string | null> {
+): Promise<BearerUser | null> {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     reply.status(401).send({ error: "No token provided" });
@@ -29,5 +36,6 @@ export async function verifyUserBearer(
     return null;
   }
 
-  return session.user.id;
+  const role = (session.user as { role?: string | null }).role ?? null;
+  return { userId: session.user.id, role };
 }

@@ -1,0 +1,82 @@
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+    padding: var(--sys-inset-page);
+    padding-block-end: 0;
+}
+
+.search {
+    width: 100%;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+    padding: var(--sys-inset-page);
+}
+
+.hint {
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+    padding-block: var(--space-4);
+}
+
+.gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sys-stack-row);
+    padding: var(--space-8) var(--sys-inset-page);
+}
+
+.retry {
+    border: none;
+    background: none;
+    padding: var(--space-1) var(--space-3);
+    color: var(--sys-color-text-secondary);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: var(--sys-stack-row);
+    padding: var(--space-3);
+    background: var(--sys-color-surface-1);
+    border: 1px solid var(--sys-color-border-default);
+    border-radius: var(--sys-radius-container);
+}
+
+.identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+}
+
+.email {
+    color: var(--sys-color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.role {
+    color: var(--sys-color-text-secondary);
+}
+
+.balance {
+    flex: 0 0 auto;
+    color: var(--sys-color-text-primary);
+}
+
+.actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: var(--space-2);
+}

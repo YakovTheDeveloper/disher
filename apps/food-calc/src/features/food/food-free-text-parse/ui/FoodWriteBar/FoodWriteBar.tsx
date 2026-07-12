@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
-import { WriteBarShell, WriteBarMedal } from '@/shared/ui/WriteBarShell';
+import { WriteBarShell } from '@/shared/ui/WriteBarShell';
 import type { SendState } from '@/shared/ui/WriteBarShell';
+import { RoundButton } from '@/shared/ui/RoundButton';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -60,14 +61,14 @@ export interface FoodWriteBarProps {
 /**
  * Нижний док добавления еды для двух экранов (Рацион `FoodSchedule` + блюдо
  * `DishBuilderPage`): free-text write-бар над общим `WriteBarShell` + медаль-
- * печать «Список еды / вручную» (`WriteBarMedal`), открывающая каталог. Поглотил
+ * печать «Список еды / вручную» (`RoundButton`), открывающая каталог. Поглотил
  * бывший `WriteFoodInput` (нет второго потребителя → слой-индирекция убран,
  * 2026-06-25) и редундантную пару `AppBottomBar`(write) + `raisedFoodDock`.
  *
  * Весь облик и тексты вшиты (максимальная конвергенция экранов); наружу торчат
  * только функциональные пропы. Вход «список еды» едет в `trailingSlot` высокого
  * бара (в потоке, за фейдинг-дивайдером, не перекрывает список) — облик = монета-
- * печать `WriteBarMedal` (канон-медальон «Список еды / вручную»).
+ * печать `RoundButton` (канон-медальон «Список еды / вручную»).
  * Caller обязан НЕ монтировать `<WriteFoodModals>` overlay — иначе дубль `inputId`.
  *
  * Док = бар + панель предложки (`InlineWriteFoodReview`), по паттерну Событий
@@ -202,9 +203,9 @@ export const FoodWriteBar = ({
           // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,
           // не перекрывает список). Монета-печать в потоке (floating={false} → не
           // уезжает в плавающий режим, не сворачивается на фокусе). Режим flat —
-          // «часть панели»: внешний бордер, плоская (без тени) — задаётся в WriteBarMedal.
+          // «часть панели»: внешний бордер, плоская (без тени) — задаётся в RoundButton.
           <div className={s.listCtaTrail}>
-            <WriteBarMedal
+            <RoundButton
               htmlFor={searchHtmlFor}
               ariaLabel={SEARCH_LABEL}
               img={FOOD_TILE_IMG}

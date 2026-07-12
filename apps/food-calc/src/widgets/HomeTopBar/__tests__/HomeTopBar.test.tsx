@@ -20,7 +20,14 @@ vi.mock('../HomeTopBar.module.scss', () => ({
 vi.mock('@/shared/ui', () => ({
   drawerStore: { show: h.drawerShow },
 }));
-vi.mock('@/features/schedule-navigator', () => ({ ScheduleNavigatorDrawer: () => null }));
+vi.mock('@/features/schedule-navigator', () => ({
+  ScheduleNavigatorDrawer: () => null,
+  // Detent'ы шторки навигации — HomeTopBar передаёт их третьим аргументом
+  // drawerStore.show. Мок обязан отдать их: vitest бросает на отсутствующий
+  // named-export.
+  SCHEDULE_NAV_SNAP_POINTS: [0.5, 1],
+  SCHEDULE_NAV_DEFAULT_SNAP: 0.5,
+}));
 vi.mock('@/features/analysis/AnalysisHubDrawer', () => ({ AnalysisHubDrawer: () => null }));
 vi.mock('@/features/auth', () => ({ AccountPanel: () => null }));
 vi.mock('@/app/routing/useAppRoutes', () => ({

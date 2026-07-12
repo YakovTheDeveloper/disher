@@ -4,6 +4,7 @@ import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import DishBuilderPage from '@/pages/dish/DishBuilderPage.tsx';
 import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
+import AdminPage from '@/pages/admin/AdminPage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
 import RouteError from '@/shared/ui/error/RouteError.tsx';
 
@@ -20,6 +21,7 @@ export enum RouterLinks {
   Dish = '/dish/:id',
   ScheduleBuilder = '/schedule',
   Analyses = '/analyses',
+  Admin = '/admin',
   VerifyEmail = '/auth/verify-email',
 }
 
@@ -57,6 +59,12 @@ export const router = createBrowserRouter([
           {
             path: RouterLinks.Analyses,
             element: <AnalysesPage />,
+          },
+          {
+            // Client gate is UX only (AdminPage bounces non-admins) — the server
+            // guards every /api/admin route, so an unguarded static route is safe.
+            path: RouterLinks.Admin,
+            element: <AdminPage />,
           },
           {
             path: RouterLinks.VerifyEmail,

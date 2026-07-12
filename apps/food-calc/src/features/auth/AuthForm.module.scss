@@ -219,8 +219,7 @@
 }
 
 // ─── Alt auth (Telegram OIDC) ─────────────────────────────────
-// Passwordless "Log in with Telegram" (redirect-based OIDC). Rendered under the
-// email step only when VITE_TELEGRAM_LOGIN=1. Styled as a secondary/outline CTA
+// Passwordless "Log in with Telegram" (redirect-based OIDC). Styled as a secondary/outline CTA
 // so it doesn't compete with the dark primary submit; no raw brand colour (тон
 // через sys-токены, канон button-tone-names).
 

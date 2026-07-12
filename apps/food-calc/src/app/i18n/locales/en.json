@@ -49,11 +49,24 @@
                 "title": "No hypotheses yet"
             }
         },
+        "filter": {
+            "label": "Filter analyses",
+            "all": "All",
+            "daily": "Daily",
+            "long": "Long"
+        },
+        "newAnalysis": "New analysis",
+        "openAnalysis": "Open analysis",
+        "retry": "Retry",
         "insights": {
             "infoTitle": "Insights",
+            "infoAria": "What insights are",
             "info": "Insights appear on a day or dish analysis — they're the connections and cautions about your food. Tap «Save» on an analysis and they'll show up here."
         },
         "hypotheses": {
+            "title": "Hypotheses",
+            "infoAria": "What hypotheses are",
+            "info": "A hypothesis is something you want to test over a couple of weeks. For example: <em>«Headache after dairy»</em>. Write your first one in the field below.",
             "pickerEmpty": "No hypotheses yet — create them with the «Hypotheses» button.",
             "detailsPlaceholder": "What exactly are we checking? (optional)",
             "longEmpty": {

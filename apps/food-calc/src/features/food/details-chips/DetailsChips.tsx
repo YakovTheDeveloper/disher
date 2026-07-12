@@ -5,6 +5,8 @@ import { useCustomTagsByProduct, removeCustomTag } from '@/entities/custom-tag';
 import { useProduct } from '@/entities/product';
 import { hasTag, normalizeTag, toggleTag } from '@/shared/lib/details/tags';
 import { safeMutate } from '@/shared/lib/safeMutate';
+import { drawerStore } from '@/shared/ui';
+import { ConfirmDrawer } from '@/shared/ui/ConfirmDrawer';
 import styles from './DetailsChips.module.scss';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { Text } from '@/shared/ui/atoms/Typography';
@@ -82,10 +84,14 @@ export function DetailsChips({
     onChange(toggleTag(value, tag));
   };
 
-  const handleDeleteCustom = (tag: string) => {
+  const handleDeleteCustom = async (tag: string) => {
     if (!productId) return;
-    const confirmed = window.confirm(`Удалить тег «${tag}»?`);
-    if (!confirmed) return;
+    const ok = await drawerStore.show(ConfirmDrawer, {
+      title: `Удалить тег «${tag}»?`,
+      confirmLabel: 'Удалить',
+      tone: 'danger',
+    });
+    if (!ok) return;
     void safeMutate(() => removeCustomTag(productId, tag), 'Не удалось удалить тег');
   };
 

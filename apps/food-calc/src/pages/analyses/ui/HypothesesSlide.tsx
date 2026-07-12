@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState, type FocusEvent, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/ui/Screen';
 import { useAllHypotheses } from '@/entities/hypothesis';
 import {
@@ -17,12 +17,10 @@ import { drawerStore } from '@/shared/ui/drawer-store';
 import { SectionInfoDrawer } from './SectionInfoDrawer';
 import styles from './LabSlides.module.scss';
 
-// Объяснялка «что такое гипотеза» за ⓘ листа — тот же смысл, что EmptyState-копирайт.
-const HYPOTHESES_INFO = (
-  <>
-    Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
-    <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.
-  </>
+// Объяснялка «что такое гипотеза» за ⓘ листа — тот же ключ, что EmptyState-копирайт.
+// `<em>` в строке ru.json рендерится через <Trans components>.
+const hypothesesInfo = (
+  <Trans i18nKey="analyses.hypotheses.info" components={{ em: <em /> }} />
 );
 
 // Слайд «Гипотезы» /analyses — то, что юзер хочет проверить. Мигрировал со
@@ -62,10 +60,10 @@ const HypothesesSlide = ({ topSlot }: Props) => {
 
   const openInfo = useCallback(() => {
     void drawerStore.show(SectionInfoDrawer, {
-      title: 'Гипотезы',
-      description: HYPOTHESES_INFO,
+      title: t('analyses.hypotheses.title'),
+      description: hypothesesInfo,
     });
-  }, []);
+  }, [t]);
 
   // Бар — прямо в `bottomBar` (как EventsWriteBar): нижний инсет владеет ТОЛЬКО
   // `Screen.bottomBar` (safe-area), боковой — `WriteBarShell.wrap` (--sys-inset-page).
@@ -82,7 +80,12 @@ const HypothesesSlide = ({ topSlot }: Props) => {
         ) : undefined
       }
       topContentRight={
-        <InfoButton tone="ghost" size={40} aria-label="Что такое гипотезы" onClick={openInfo} />
+        <InfoButton
+          tone="ghost"
+          size={40}
+          aria-label={t('analyses.hypotheses.infoAria')}
+          onClick={openInfo}
+        />
       }
       bottomBar={<HypothesisWriteBar onCreated={markNew} />}
     >
@@ -93,12 +96,7 @@ const HypothesesSlide = ({ topSlot }: Props) => {
           <EmptyState
             className={styles.empty}
             title={t('analyses.empty.hypotheses.title')}
-            description={
-              <>
-                Гипотеза — то, что хочешь проверить за пару недель. Например:{' '}
-                <em>«Головная боль после молочки»</em>. Запиши первую в поле снизу.
-              </>
-            }
+            description={hypothesesInfo}
           />
         ) : (
           // Сохранённые гипотезы = HypothesisCard в added-режиме (шеврон-правка

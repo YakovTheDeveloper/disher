@@ -33,6 +33,8 @@ function setUserAgentString(value: string) {
 
 beforeEach(() => {
   vi.resetModules();
+  // Под vitest import.meta.env.DEV=true, а гейт в деве отключён — тестируем прод.
+  vi.stubEnv('DEV', false);
   setUa({ isIOS: false, isAndroid: false });
   // matchMedia(display-mode: standalone) → false (обычная вкладка, не установлено).
   Object.defineProperty(navigator, 'standalone', { value: false, configurable: true });

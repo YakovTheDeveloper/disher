@@ -62,7 +62,12 @@ const InsightsSlide = ({ topSlot }: Props) => {
         ) : undefined
       }
       topContentRight={
-        <InfoButton tone="ghost" size={40} aria-label="Что такое инсайты" onClick={openInfo} />
+        <InfoButton
+          tone="ghost"
+          size={40}
+          aria-label={t('analyses.insights.infoAria')}
+          onClick={openInfo}
+        />
       }
     >
       <div className={styles.container} onFocusCapture={handleFocusCapture}>

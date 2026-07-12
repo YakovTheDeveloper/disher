@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '@/shared/lib/dexie/schema';
-import { createProduct } from './mutations';
+import { createProduct, updateProduct } from './mutations';
 
 // createProduct пишет Dexie-строку. Тесты гоняются на fake-indexeddb
 // (см. vitest.setup.ts: `fake-indexeddb/auto`).
@@ -65,5 +65,50 @@ describe('createProduct', () => {
     expect(row!.nutrients).toEqual({});
     expect(row!.portions).toEqual([]);
     expect(row!.categories).toEqual([]);
+  });
+
+  it('description по умолчанию пустая строка', async () => {
+    const id = await createProduct({ name: 'Apple' });
+    const row = await db.products.get(id);
+    expect(row!.description).toBe('');
+  });
+
+  it('прокидывает переданную description', async () => {
+    const id = await createProduct({ name: 'Apple', description: 'сорт Гала' });
+    const row = await db.products.get(id);
+    expect(row!.description).toBe('сорт Гала');
+  });
+});
+
+// Единственный живой путь ПРАВКИ описания продукта (ProductDrawer →
+// ChangeDescriptionModal → updateProduct). Контракт: description — plain-колонка
+// (COLUMN_MAP, вне JSON_FIELDS), пустая строка = валидное «стереть».
+describe('updateProduct — description (plain column)', () => {
+  beforeEach(async () => {
+    await db.products.clear();
+  });
+
+  it('записывает новое значение, не трогая соседние поля', async () => {
+    const id = await createProduct({ name: 'Apple', description: 'старое' });
+    await updateProduct(id, { description: 'сорт Гала' });
+    const row = await db.products.get(id);
+    expect(row!.description).toBe('сорт Гала');
+    expect(row!.name).toBe('Apple');
+    expect(row!.nutrients).toEqual({});
+  });
+
+  it('пустая строка СТИРАЕТ описание (в отличие от имени, пусто валидно)', async () => {
+    const id = await createProduct({ name: 'Apple', description: 'сорт Гала' });
+    await updateProduct(id, { description: '' });
+    const row = await db.products.get(id);
+    expect(row!.description).toBe('');
+  });
+
+  it('JSON-подобный текст хранится литеральной строкой, НЕ парсится (не JSON_FIELDS)', async () => {
+    const id = await createProduct({ name: 'Apple' });
+    await updateProduct(id, { description: '{"note":"json-like"}' });
+    const row = await db.products.get(id);
+    expect(row!.description).toBe('{"note":"json-like"}');
+    expect(typeof row!.description).toBe('string');
   });
 });

@@ -28,6 +28,10 @@ export interface ProductRow {
   serving_unit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
   /** Optional thumbnail path (build-route catalog rows only; user products have none). */
   image?: string;
+  /** Free-form user note. Empty string when unset. Non-indexed — no schema bump
+   *  needed; rows from snapshots that predate this field fall back to '' in the
+   *  mapper (same contract as DishItemRow.details). */
+  description: string;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +39,8 @@ export interface ProductRow {
 export interface DishRow {
   id: string;
   name: string;
+  /** Free-form user note. Empty string when unset. Non-indexed (see ProductRow.description). */
+  description: string;
   created_at: string;
   updated_at: string;
 }

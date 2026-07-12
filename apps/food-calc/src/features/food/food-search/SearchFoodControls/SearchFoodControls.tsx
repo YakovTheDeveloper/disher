@@ -86,7 +86,10 @@ const SearchFoodControls = ({
           <ChoiceGroup
             onSurface={1}
             value={selectedFilter}
-            onChange={(next) => onSelectFilter?.(next as SearchFilter)}
+            onChange={(next) => {
+              onSelectFilter?.(next as SearchFilter);
+              close();
+            }}
             aria-label="Фильтр поиска"
             className={styles.filterChoices}
           >

@@ -1,6 +1,6 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
-import { WriteBarMedal } from '@/shared/ui/WriteBarShell';
+import { RoundButton } from '@/shared/ui/RoundButton';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './ItemActionsDrawer.module.scss';
 
@@ -105,7 +105,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
                 // иначе label размонтируется до делегирования (CLAUDE.md «Label
                 // focus delegation»). Дровер открыт с trapFocus:false, иначе
                 // focus-trap завернул бы делегацию назад.
-                <WriteBarMedal
+                <RoundButton
                   key={`${action.label}-${i}`}
                   look="bare"
                   floating={false}

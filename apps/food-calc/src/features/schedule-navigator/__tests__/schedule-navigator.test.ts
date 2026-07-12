@@ -16,7 +16,7 @@ vi.mock('@/shared/lib/dexie/schema', () => ({
 }));
 
 import { deriveFilledDates, useFilledDateKeys } from '../hooks';
-import { computePastFilledAsc, groupByMonth, parseKeys } from '../lib';
+import { groupByMonth, parseKeys } from '../lib';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -83,47 +83,6 @@ describe('parseKeys', () => {
   });
 });
 
-describe('computePastFilledAsc', () => {
-  it('strictly excludes yesterday (yesterday belongs to anchor block)', () => {
-    const today = new Date(2026, 4, 14); // 14 May 2026
-    const filledAsc = parseKeys([
-      '13-05-2026', // yesterday → excluded
-      '12-05-2026',
-      '10-05-2026',
-      '14-05-2026', // today → still excluded (isBefore(today, yesterday) === false)
-    ]);
-    const past = computePastFilledAsc(filledAsc, today);
-    expect(past.map((d) => d.dateStr)).toEqual(['10-05-2026', '12-05-2026']);
-  });
-
-  it('returns empty when filledAsc is empty', () => {
-    const today = new Date(2026, 4, 14);
-    expect(computePastFilledAsc([], today)).toEqual([]);
-  });
-
-  it('keeps deep-past days even when far older than yesterday', () => {
-    const today = new Date(2026, 4, 14);
-    const filledAsc = parseKeys([
-      '01-01-2024',
-      '15-08-2025',
-      '12-05-2026',
-    ]);
-    const past = computePastFilledAsc(filledAsc, today);
-    expect(past).toHaveLength(3);
-  });
-
-  it('does not return future-filled days', () => {
-    const today = new Date(2026, 4, 14);
-    const filledAsc = parseKeys([
-      '12-05-2026',
-      '20-05-2026', // future
-      '01-06-2026', // future
-    ]);
-    const past = computePastFilledAsc(filledAsc, today);
-    expect(past.map((d) => d.dateStr)).toEqual(['12-05-2026']);
-  });
-});
-
 describe('groupByMonth', () => {
   it('groups consecutive days by year-month, preserving input order', () => {
     const input = parseKeys([
@@ -167,39 +126,26 @@ describe('groupByMonth', () => {
   });
 });
 
-describe('integration: filled keys → past chips → groups', () => {
-  it('typical week of usage yields one group with the right past days', () => {
-    const today = new Date(2026, 4, 14);
+// Since the Embla slider was dropped (2026-07-12) the navigator feeds *every*
+// filled day into the month calendars — there is no past/anchor split any more.
+// These cover that pipeline end to end: Dexie keys → parseKeys → groupByMonth.
+describe('integration: filled keys → month groups', () => {
+  it('keeps yesterday/today/tomorrow in the groups (no past-only filtering)', () => {
     const keys = [
       '07-05-2026',
-      '09-05-2026',
-      '11-05-2026',
       '12-05-2026',
-      '13-05-2026', // yesterday — excluded from past
-      '14-05-2026', // today — excluded
+      '13-05-2026', // yesterday
+      '14-05-2026', // today
+      '15-05-2026', // tomorrow
     ];
-    const past = computePastFilledAsc(parseKeys(keys), today);
-    expect(past.map((d) => d.dateStr)).toEqual([
-      '07-05-2026',
-      '09-05-2026',
-      '11-05-2026',
-      '12-05-2026',
-    ]);
-    const groups = groupByMonth(past);
+    const groups = groupByMonth(parseKeys(keys));
     expect(groups).toHaveLength(1);
-    expect(groups[0]?.items).toHaveLength(4);
+    expect(groups[0]?.items.map((d) => d.dateStr)).toEqual(keys);
   });
 
-  it('crossing months yields two groups with correct order', () => {
-    const today = new Date(2026, 4, 14);
-    const keys = [
-      '28-04-2026',
-      '30-04-2026',
-      '02-05-2026',
-      '12-05-2026',
-    ];
-    const past = computePastFilledAsc(parseKeys(keys), today);
-    const groups = groupByMonth(past);
+  it('crossing months yields ascending groups (oldest → newest)', () => {
+    const keys = ['02-05-2026', '28-04-2026', '12-05-2026', '30-04-2026'];
+    const groups = groupByMonth(parseKeys(keys));
     expect(groups.map((g) => g.key)).toEqual(['2026-04', '2026-05']);
     expect(groups[0]?.items.map((d) => d.dateStr)).toEqual([
       '28-04-2026',
@@ -209,5 +155,10 @@ describe('integration: filled keys → past chips → groups', () => {
       '02-05-2026',
       '12-05-2026',
     ]);
+  });
+
+  it('future-only days still render as their own month group', () => {
+    const groups = groupByMonth(parseKeys(['20-05-2026', '01-06-2026']));
+    expect(groups.map((g) => g.key)).toEqual(['2026-05', '2026-06']);
   });
 });

@@ -41,9 +41,10 @@
     // сдвинуть кромку дровера = переопределить один `--drawer-inset`.
     //
     // Side-aware (2026-07-03): база = panel (12) для БОКОВЫХ дроверов (узкая
-    // колонка). Нижние дроверы переопределяют на sheet (24) в .content_bottom —
-    // full-width-лист, доктрина «ширина → обрамление». Крест (.topLeft) читает
-    // этот токен → на нижнем дровере сам встаёт на 24 = линию тела.
+    // колонка). Нижние дроверы переопределяют на собственный семантический токен
+    // --sys-bottom-drawer-inset (24) в .content_bottom — full-width-лист, доктрина
+    // «ширина → обрамление». Крест (.topLeft) читает этот токен → на нижнем дровере
+    // сам встаёт на 24 = линию тела.
     --drawer-inset: var(--sys-inset-panel);
 
     // ─── Боковой инсет + верхний зазор ТЕЛА (scroll-область) ─────────────────
@@ -270,13 +271,14 @@
     left: 0;
     right: 0;
     max-height: 100svh;
-    // Нижний дровер = full-width-лист: краевой инсет = sheet (24). Крест
-    // (.topLeft `left`) и боковой инсет тела оба читают --drawer-inset →
-    // выровнены по построению. Верхний зазор «заголовок → контент» = 12 (--space-3),
-    // единый для ВСЕХ нижних дроверов (раньше гулял 4/8/12/24).
-    --drawer-inset: var(--sys-inset-sheet);
+    // Нижний дровер = full-width-лист: краевой инсет = --sys-bottom-drawer-inset
+    // (24), собственный семантический токен нижнего дровера (не переиспользуем
+    // --sys-inset-sheet модалки — инсеты развязаны). Крест (.topLeft `left`) и
+    // боковой инсет тела оба читают --drawer-inset → выровнены по построению.
+    // Верхний зазор «заголовок → контент» несёт --drawer-content-pad-top ниже.
+    --drawer-inset: var(--sys-bottom-drawer-inset);
     --drawer-content-inset: var(--drawer-inset);
-    --drawer-content-pad-top: var(--space-3);
+    --drawer-content-pad-top: var(--space-1);
     // Скругление верхних углов = --sys-radius-drawer (24), НЕ листовое --sys-radius-sheet
     // (40). Метафора: дровер «система тебя спрашивает» — транзиентная панель поверх
     // листа, отделена от него меньшим радиусом. Боковые дроверы (left/right) держат тот
@@ -704,6 +706,7 @@
     // (.body), у всех разный. См. --drawer-content-* на .content / .content_bottom.
     padding-inline: var(--drawer-content-inset);
     padding-block-start: var(--drawer-content-pad-top);
+    padding-block-end: var(--space-4);
     -webkit-overflow-scrolling: touch;
 
     // Isolate scroll-induced repaints from the drawer surface — combined with the

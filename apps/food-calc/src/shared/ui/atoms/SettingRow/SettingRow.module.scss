@@ -1,6 +1,6 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// ─── Плоский ряд настроек (ProfileDrawer корень) ────────────────
+// ─── Плоский ряд настроек/действий (ProfileDrawer корень + AnalysisHubDrawer) ──
 // leading icon + label(+sub) + trailing. Тач-пол 48. Кнопка и div делят вид;
 // фон прозрачный — структуру группы держит бровка между рядами, НЕ подложка.
 
@@ -8,7 +8,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
   min-height: 48px;
   width: 100%;
   padding: var(--space-2) 0;
@@ -76,6 +76,20 @@ button.row {
 .trail svg {
   width: 16px;
   height: 16px;
+}
+
+// ─── Недоступный ряд (напр. «Разобрать день» офлайн / за пустой день) ────────
+// Приглушён, press-подсветки нет; причина недоступности живёт в `sub`.
+.disabled {
+  opacity: 0.45;
+}
+
+button.row.disabled {
+  cursor: default;
+
+  &:active {
+    background: transparent;
+  }
 }
 
 // ─── Danger-тон (ряд «Выйти из аккаунта») ───────────────────────

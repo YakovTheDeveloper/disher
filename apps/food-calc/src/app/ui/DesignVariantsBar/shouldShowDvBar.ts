@@ -1,11 +1,9 @@
-let cached: boolean | null = null;
-
+// The design-variants dev bar is a developer tool ONLY. Gate strictly on the
+// build mode: `import.meta.env.DEV` is a compile-time constant, so in a
+// production build this folds to `false` and Vite tree-shakes the whole
+// DesignVariantsBar out of the bundle. No `?dv` URL escape hatch — the bar must
+// be unreachable in prod by any means (the user-facing bug report lives in the
+// settings drawer, `features/feedback`).
 export function shouldShowDvBar(): boolean {
-  if (cached !== null) return cached;
-  const isDev = import.meta.env.DEV;
-  const urlForce =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).has('dv');
-  cached = isDev || urlForce;
-  return cached;
+  return import.meta.env.DEV;
 }

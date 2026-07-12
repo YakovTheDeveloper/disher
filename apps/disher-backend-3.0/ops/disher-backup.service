@@ -1,0 +1,28 @@
+# disher Postgres off-box backup — oneshot unit driven by disher-backup.timer.
+#
+# Install (on the VPS, as root):
+#   1. Edit the two paths below (WorkingDirectory + the script path) to match
+#      where the repo is checked out, and set the env values.
+#   2. cp ops/disher-backup.{service,timer} /etc/systemd/system/
+#   3. systemctl daemon-reload && systemctl enable --now disher-backup.timer
+#   4. Verify: systemctl start disher-backup.service ; journalctl -u disher-backup
+#
+# Runs the backup as root so it can read a root-owned rclone.conf. pg-backup.sh
+# already reads POSTGRES_* from .env.production in WorkingDirectory; the offsite +
+# heartbeat knobs are passed here.
+[Unit]
+Description=disher Postgres off-box backup (pg_dump -> integrity -> offsite -> heartbeat)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# CHANGE ME: absolute path to apps/disher-backend-3.0 on this VPS.
+WorkingDirectory=/srv/disher/apps/disher-backend-3.0
+Environment=BACKUP_DIR=/srv/disher/backups
+# CHANGE ME: offsite remote + monitor URL (leave unset to disable a feature).
+Environment=RCLONE_REMOTE=b2:disher-backups
+Environment=HEALTHCHECK_URL=https://hc-ping.com/REPLACE-WITH-UUID
+ExecStart=/usr/bin/env bash scripts/pg-backup.sh
+Nice=10
+IOSchedulingClass=idle

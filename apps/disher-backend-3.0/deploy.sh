@@ -43,6 +43,17 @@ echo "Deploying disher @ ${SHA} (current running tag: ${PREV_TAG:-none})"
 # Build the SHA-tagged image (compose: image: disher-backend:${IMAGE_TAG}).
 docker compose build backend
 
+# Apply any new schema migrations BEFORE swapping the backend. pg-migrate.sh is
+# ledger-tracked (schema_migrations) and idempotent — already-applied files are
+# skipped, so this is safe to run every deploy. Needs postgres up first.
+#
+# ONE-TIME on an existing prod DB, BEFORE the first deploy that runs this line:
+#     ./scripts/pg-migrate.sh --baseline
+# to record the pre-ledger migrations as already-applied. Without that baseline
+# this would try to re-apply non-idempotent DDL and abort the deploy.
+docker compose up -d --wait postgres
+./scripts/pg-migrate.sh
+
 # Health-gated swap. If the new backend never becomes healthy, --wait exits
 # non-zero — and the just-created broken container is now what's running.
 if ! docker compose up -d --wait; then

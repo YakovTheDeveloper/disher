@@ -5,7 +5,7 @@
 // feedback, design-variant palette. WriteFoodInput is now a thin adapter over it.
 //
 // Right-slot collapse (the medal / arc) keys off the row's `[data-expanded]`
-// plain attribute, so WriteBarMedal (its own module) can read it cross-file.
+// plain attribute, so RoundButton (its own module) can read it cross-file.
 //
 // ЦВЕТ — тон `ash` (единственный оставшийся, `mint` ретайрнут 2026-06-14):
 // `--wb-*`/`--sys-field-*` заданы дефолтами прямо на `.wrap`, элементы их ПОТРЕБЛЯЮТ.
@@ -152,7 +152,7 @@
     gap: var(--shell-inset);
     width: 100%;
     // Anchor для плавающей медали Еды (она абсолютна относительно строки, см.
-    // `.barLine .writeBarList` в WriteBarMedal.module.scss).
+    // `[data-write-bar] .roundButton` в RoundButton.module.scss).
     position: relative;
 }
 

@@ -26,6 +26,8 @@ export interface LedgerRow {
   kind: "grant" | "topup" | "charge" | "refund";
   feature: string | null;
   requestId: string | null;
+  /** Diagnostics blob, e.g. `{reason}` for a grant. Defaults to `{}`. */
+  meta: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -108,9 +110,10 @@ export async function listLedger(userId: string, limit = 50): Promise<LedgerRow[
     kind: LedgerRow["kind"];
     feature: string | null;
     request_id: string | null;
+    meta: Record<string, unknown> | null;
     created_at: Date | string;
   }>(
-    `select id, amount_kop, balance_after_kop, kind, feature, request_id, created_at
+    `select id, amount_kop, balance_after_kop, kind, feature, request_id, meta, created_at
        from wallet_ledger
       where user_id = $1
       order by created_at desc, id desc
@@ -124,6 +127,8 @@ export async function listLedger(userId: string, limit = 50): Promise<LedgerRow[
     kind: row.kind,
     feature: row.feature,
     requestId: row.request_id,
+    // jsonb comes back already parsed by pg; default to {} if somehow null.
+    meta: row.meta ?? {},
     createdAt:
       row.created_at instanceof Date
         ? row.created_at.toISOString()
@@ -264,34 +269,113 @@ export async function refund(
   }
 }
 
+export interface GrantResult {
+  balanceKop: number;
+  /** true when this requestId was already granted — no second credit happened. */
+  alreadyApplied: boolean;
+}
+
 /**
- * Admin/promo top-up. Adds `amountKop` and journals a `grant` row. This is the
- * MVP way money enters a wallet (no payment provider yet) — call it from a
- * script/SQL or a guarded admin route.
+ * Admin/promo top-up. Adds `amountKop` and journals a `grant` row with
+ * `meta.reason`. This is the MVP way money enters a wallet (no payment provider
+ * yet) — call it from a script/SQL or the guarded admin route.
+ *
+ * `requestId` is OPTIONAL and makes the grant idempotent (same shape as
+ * charge()): a retry with the same requestId returns the recorded balance with
+ * `alreadyApplied: true` instead of crediting twice — backed by the
+ * (user,'grant',request_id) UNIQUE index. Without it, behaviour is byte-for-byte
+ * the legacy path (request_id=null, always `alreadyApplied:false`) so existing
+ * callers/tests are unaffected.
+ *
+ * `requestId === 'welcome'` is rejected: the lazy welcome grant already owns
+ * (user,'grant','welcome') in that index, so reusing it would either collide or
+ * masquerade as the welcome credit.
  */
 export async function grant(
   userId: string,
   amountKop: number,
   reason: string,
-): Promise<{ balanceKop: number }> {
+  requestId?: string,
+): Promise<GrantResult> {
   if (!Number.isInteger(amountKop) || amountKop <= 0) {
     throw new Error("grant amount must be a positive integer (kopecks)");
   }
+  if (requestId === "welcome") {
+    throw new Error("grant requestId 'welcome' is reserved for the welcome grant");
+  }
+  const metaJson = JSON.stringify({ reason: reason.slice(0, 200) });
   await ensureWallet(userId);
-  return withTx(async (client) => {
-    const upd = await client.query<{ balance_kop: string }>(
-      `update wallet set balance_kop = balance_kop + $2, updated_at = now()
-        where user_id = $1
-        returning balance_kop`,
-      [userId, amountKop],
-    );
-    const newBalance = Number(upd.rows[0]!.balance_kop);
-    await client.query(
-      `insert into wallet_ledger
-         (user_id, amount_kop, balance_after_kop, kind, feature, request_id, meta)
-       values ($1, $2, $3, '${KIND.grant}', null, null, $4)`,
-      [userId, amountKop, newBalance, JSON.stringify({ reason: reason.slice(0, 200) })],
-    );
-    return { balanceKop: newBalance };
-  });
+
+  // Legacy path: no requestId → non-idempotent, request_id=null, unchanged.
+  if (requestId === undefined) {
+    return withTx(async (client) => {
+      const newBalance = await creditGrant(client, userId, amountKop, null, metaJson);
+      return { balanceKop: newBalance, alreadyApplied: false };
+    });
+  }
+
+  // Idempotent path (charge()-style): existence check inside the tx, and the
+  // UNIQUE index backstops a concurrent duplicate (23505 → re-select the winner).
+  try {
+    return await withTx(async (client) => {
+      const existing = await client.query<{ balance_after_kop: string }>(
+        `select balance_after_kop from wallet_ledger
+          where user_id = $1 and kind = '${KIND.grant}' and request_id = $2`,
+        [userId, requestId],
+      );
+      if (existing.rows[0]) {
+        return {
+          balanceKop: Number(existing.rows[0].balance_after_kop),
+          alreadyApplied: true,
+        };
+      }
+      const newBalance = await creditGrant(
+        client,
+        userId,
+        amountKop,
+        requestId,
+        metaJson,
+      );
+      return { balanceKop: newBalance, alreadyApplied: false };
+    });
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      const existing = await db().query<{ balance_after_kop: string }>(
+        `select balance_after_kop from wallet_ledger
+          where user_id = $1 and kind = '${KIND.grant}' and request_id = $2`,
+        [userId, requestId],
+      );
+      if (existing.rows[0]) {
+        return {
+          balanceKop: Number(existing.rows[0].balance_after_kop),
+          alreadyApplied: true,
+        };
+      }
+    }
+    throw err;
+  }
+}
+
+/** Credit a grant + journal it inside an open tx. Returns the new balance. */
+async function creditGrant(
+  client: PoolClient,
+  userId: string,
+  amountKop: number,
+  requestId: string | null,
+  metaJson: string,
+): Promise<number> {
+  const upd = await client.query<{ balance_kop: string }>(
+    `update wallet set balance_kop = balance_kop + $2, updated_at = now()
+      where user_id = $1
+      returning balance_kop`,
+    [userId, amountKop],
+  );
+  const newBalance = Number(upd.rows[0]!.balance_kop);
+  await client.query(
+    `insert into wallet_ledger
+       (user_id, amount_kop, balance_after_kop, kind, feature, request_id, meta)
+     values ($1, $2, $3, '${KIND.grant}', null, $4, $5)`,
+    [userId, amountKop, newBalance, requestId, metaJson],
+  );
+  return newBalance;
 }

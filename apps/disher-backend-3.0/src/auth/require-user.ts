@@ -8,9 +8,9 @@ declare module "fastify" {
 }
 
 export async function requireUser(req: FastifyRequest, reply: FastifyReply) {
-  const userId = await verifyUserBearer(req, reply);
-  if (!userId) return;
-  req.userId = userId;
+  const verified = await verifyUserBearer(req, reply);
+  if (!verified) return;
+  req.userId = verified.userId;
 }
 
 export function registerUserIdDecorator(app: FastifyInstance) {

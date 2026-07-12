@@ -3,23 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { parse, isValid, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { modalStore, type BaseDrawerProps } from '@/shared/ui';
+import { drawerStore } from '@/shared/ui/drawer-store';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { ActionTile } from '@/shared/ui/atoms/ActionTile';
+import { ActionList } from '@/shared/ui/ActionList';
+import { InfoButton } from '@/shared/ui/atoms/Button';
+import { SettingRow } from '@/shared/ui/atoms/SettingRow';
+import { AboutDiscoveriesDrawer } from './AboutDiscoveriesDrawer';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { AnalysisClarificationModal } from '../AnalysisClarificationModal';
 import { CreateLongAnalysisModal } from '../long';
+import CalendarDayIcon from '@/shared/assets/icons/calendar-day.svg?react';
+import CalendarRangeIcon from '@/shared/assets/icons/calendar-range.svg?react';
+import LightbulbIcon from '@/shared/assets/icons/lightbulb.svg?react';
 import styles from './AnalysisHubDrawer.module.scss';
 
 // Route literals — kept inline so this feature does not import from the `app`
 // layer (FSD upward-import boundary).
 const ANALYSES_ROUTE = '/analyses';
-
-// Ghost art (public/art). Bicycle = a single day's quick spin; horse-carriage =
-// the longer multi-week journey.
-const DAY_IMG = '/art/day-analysis.png';
-const LONG_IMG = '/art/long-analysis.png';
 
 type Props = BaseDrawerProps<void> & {
   date: string;
@@ -85,32 +88,60 @@ const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props
   }
 
   return (
-    <DrawerLayout title="Разбор">
-      <div className={styles.body}>
-        <ActionTile
-          emphasis
-          top="Разобрать день"
-          bottom={formatDay(date)}
-          hint={dailyHint}
-          art={<img src={DAY_IMG} alt="" />}
-          disabled={dailyDisabled}
-          onClick={startDaily}
+    <DrawerLayout
+      title="Открытия"
+      // ⓘ стекает объяснялку ПОВЕРХ хаба (хаб не закрываем) — «что такое разборы,
+      // инсайты, гипотезы и куда всё копится». Тихий ghost-глиф в chrome-слоте.
+      topRight={
+        <InfoButton
+          tone="ghost"
+          emphasis="quiet"
+          glyphSize={20}
+          aria-label="Об открытиях"
+          onClick={() => void drawerStore.show(AboutDiscoveriesDrawer, {})}
         />
-        <ActionTile
-          top="Разобрать недели"
-          bottom="Длительный разбор за 7–35 дней"
-          art={<img src={LONG_IMG} alt="" />}
-          onClick={startLong}
-        />
+      }
+    >
+      {/* Две секции ActionList: «Анализ» (создать разбор) и «Перейти» (уйти на
+          страницу открытий). Ряды — плоские SettingRow, делит тающая бровка. Секции
+          = h3 (заголовок дровера h2 → тело держит следующий ярус, корректный
+          outline). Причина недоступности «Разобрать день» (офлайн / пустой день)
+          едет в `sub`. */}
+      <ActionList>
+        <ActionList.Section as="h3" label="Анализ">
+          <div className={styles.rows}>
+            <SettingRow
+              icon={<CalendarDayIcon width={18} height={18} />}
+              label="Разобрать день"
+              sub={dailyDisabled ? (dailyHint ?? undefined) : formatDay(date)}
+              trailing={<ChevronGlyph />}
+              onClick={startDaily}
+              disabled={dailyDisabled}
+            />
+            <SettingRow
+              icon={<CalendarRangeIcon width={18} height={18} />}
+              label="Разобрать недели"
+              sub="Длительный разбор за 7–35 дней"
+              trailing={<ChevronGlyph />}
+              onClick={startLong}
+            />
+          </div>
+        </ActionList.Section>
+
         {!hideDiscoveriesLink && (
-          <ActionTile
-            inverse
-            top="Страница открытий"
-            bottom="Инсайты и гипотезы с твоих разборов"
-            onClick={openDiscoveries}
-          />
+          <ActionList.Section as="h3" label="Перейти">
+            <div className={styles.rows}>
+              <SettingRow
+                icon={<LightbulbIcon width={18} height={18} />}
+                label="Страница открытий"
+                sub="Инсайты и гипотезы с твоих разборов"
+                trailing={<ChevronGlyph />}
+                onClick={openDiscoveries}
+              />
+            </div>
+          </ActionList.Section>
         )}
-      </div>
+      </ActionList>
     </DrawerLayout>
   );
 };

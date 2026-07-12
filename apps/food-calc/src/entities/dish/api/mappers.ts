@@ -9,6 +9,8 @@ export function mapDishRow(row: DishRow): Dish {
   return {
     id: row.id,
     name: row.name,
+    // `?? ''` covers pre-`description` snapshot pulls (same as mapDishItemRow.details).
+    description: row.description ?? '',
     createdAt: row.created_at,
   };
 }

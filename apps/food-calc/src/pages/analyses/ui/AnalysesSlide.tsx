@@ -36,20 +36,23 @@ type Filter = 'all' | 'daily' | 'long';
 const isDaily = (a: Analysis): boolean =>
   windowSpanDays({ start: a.windowStart, end: a.windowEnd }) === 1;
 
-// Опции селекта-фильтра. Полные подписи (не сокращения «Дневн.»/«Длительн.») —
-// селект показывает выбранный пункт как самостоятельную строку, а не в тесном
-// ряду чипов, поэтому есть место на человеческое слово.
-const FILTER_OPTIONS: SelectOption[] = [
-  { value: 'all', label: 'Все' },
-  { value: 'daily', label: 'Дневные' },
-  { value: 'long', label: 'Длительные' },
-];
-
 const AnalysesSlide = ({ topSlot }: Props) => {
   const { t } = useTranslation();
   const { analyses, addOptimistic, deleteOne, loading, failedToLoad, refetch } =
     useAnalysesFeedContext();
   const [filter, setFilter] = useState<Filter>('all');
+
+  // Опции селекта-фильтра. Полные подписи (не сокращения «Дневн.»/«Длительн.») —
+  // селект показывает выбранный пункт как самостоятельную строку, а не в тесном
+  // ряду чипов, поэтому есть место на человеческое слово.
+  const filterOptions = useMemo<SelectOption[]>(
+    () => [
+      { value: 'all', label: t('analyses.filter.all') },
+      { value: 'daily', label: t('analyses.filter.daily') },
+      { value: 'long', label: t('analyses.filter.long') },
+    ],
+    [t]
+  );
 
   const visible = useMemo(() => {
     if (filter === 'all') return analyses;
@@ -75,10 +78,10 @@ const AnalysesSlide = ({ topSlot }: Props) => {
       void drawerStore.show(ItemActionsDrawer, {
         title: formatWindowLabel(analysis.windowStart, analysis.windowEnd),
         onDelete: () => deleteOne(analysis.id),
-        actions: [{ label: 'Открыть разбор', onClick: () => openDetail(analysis.id) }],
+        actions: [{ label: t('analyses.openAnalysis'), onClick: () => openDetail(analysis.id) }],
       });
     },
-    [deleteOne, openDetail]
+    [deleteOne, openDetail, t]
   );
 
   // Одна кнопка «Новый разбор» → развилка день/период в AnalysisHubDrawer.
@@ -105,7 +108,7 @@ const AnalysesSlide = ({ topSlot }: Props) => {
         flat
         className={styles.newAnalysisCta}
       >
-        Новый разбор
+        {t('analyses.newAnalysis')}
       </Button>
     </AppBottomBarShell>
   );
@@ -127,9 +130,9 @@ const AnalysesSlide = ({ topSlot }: Props) => {
           <>
             <div className={styles.filter}>
               <Select
-                ariaLabel="Фильтр разборов"
+                ariaLabel={t('analyses.filter.label')}
                 value={filter}
-                options={FILTER_OPTIONS}
+                options={filterOptions}
                 onChange={(next) => setFilter(next as Filter)}
               />
             </div>
@@ -150,7 +153,7 @@ const AnalysesSlide = ({ topSlot }: Props) => {
             description={t('analyses.empty.loadFailed.description')}
             action={
               <Button variant="system-secondary" onClick={() => refetch()}>
-                Повторить
+                {t('analyses.retry')}
               </Button>
             }
           />

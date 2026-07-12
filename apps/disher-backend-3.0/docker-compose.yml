@@ -53,6 +53,10 @@ services:
       - llm_logs:/app/dist/logs # llm-output / matcher-queries jsonl
     # NOT published — Caddy is the only ingress. HEALTHCHECK is baked in the image
     # (/health/ready: db ping + matcher ready).
+    # SIGTERM → graceful drain in main.ts (app.close() finishes in-flight requests).
+    # 30s (vs compose's 10s default) so a long paid LLM analyze can finish draining
+    # before SIGKILL instead of being cut mid-charge on every deploy.
+    stop_grace_period: 30s
     mem_limit: 1g
     mem_reservation: 512m
     logging:

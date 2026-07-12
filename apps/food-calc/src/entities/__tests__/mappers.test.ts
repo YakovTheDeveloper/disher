@@ -31,6 +31,7 @@ describe('mapProductRow', () => {
       categories: ['protein'],
       serving_basis: '100g' as const,
       serving_unit: null,
+      description: 'сорт Гала',
       created_at: ISO_A,
     };
     const ui = mapProductRow(row);
@@ -43,8 +44,26 @@ describe('mapProductRow', () => {
       categories: '["protein"]',
       servingBasis: '100g',
       servingUnit: null,
+      description: 'сорт Гала',
       createdAt: ISO_A,
     });
+  });
+
+  it('defaults description to empty string for pre-description snapshot rows', () => {
+    // Same contract as DishItemRow.details: rows from snapshots that predate
+    // the field must coerce to '' for UI types.
+    const row = {
+      id: 'p4',
+      name: 'x',
+      source: '',
+      nutrients: {},
+      portions: [],
+      categories: [],
+      serving_basis: '100g' as const,
+      serving_unit: null,
+      created_at: ISO_A,
+    } as unknown as Parameters<typeof mapProductRow>[0];
+    expect(mapProductRow(row).description).toBe('');
   });
 
   it('jsonb fields handle null gracefully via documented fallbacks', () => {
@@ -57,6 +76,7 @@ describe('mapProductRow', () => {
       categories: null as unknown as unknown[],
       serving_basis: '100g' as const,
       serving_unit: null,
+      description: '',
       created_at: ISO_A,
     };
     const ui = mapProductRow(row);
@@ -77,6 +97,7 @@ describe('mapProductRow', () => {
           categories: [],
           serving_basis: '100g' as const,
           serving_unit: null,
+          description: '',
           created_at: ISO_A,
         };
         return mapProductRow(row).id === id;
@@ -87,12 +108,20 @@ describe('mapProductRow', () => {
 
 describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
   it('mapDishRow renames all fields', () => {
-    const row = { id: 'd1', name: 'salad', created_at: ISO_A };
+    const row = { id: 'd1', name: 'salad', description: 'с заправкой', created_at: ISO_A };
     expect(mapDishRow(row)).toEqual({
       id: 'd1',
       name: 'salad',
+      description: 'с заправкой',
       createdAt: ISO_A,
     });
+  });
+
+  it('mapDishRow defaults description to empty string for pre-description snapshot rows', () => {
+    const row = { id: 'd2', name: 'soup', created_at: ISO_A } as unknown as Parameters<
+      typeof mapDishRow
+    >[0];
+    expect(mapDishRow(row).description).toBe('');
   });
 
   it('mapDishItemRow renames all fields including dish_id / product_id', () => {

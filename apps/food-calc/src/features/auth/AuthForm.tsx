@@ -8,8 +8,9 @@ type Mode = 'signIn' | 'signUp';
 type Step = 'email' | 'password';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// Synced with backend auth/server.ts emailAndPassword.minPasswordLength.
-const MIN_PASSWORD = 12;
+// Synced with backend auth/server.ts emailAndPassword.minPasswordLength —
+// менять ТОЛЬКО парой, иначе форма и сервер разойдутся в валидации.
+const MIN_PASSWORD = 11;
 
 type Props = {
   /** Initial mode for the form. Defaults to signIn. */
@@ -40,10 +41,6 @@ export function AuthForm({
   const signIn = useAuthStore((s) => s.signIn);
   const signInWithTelegram = useAuthStore((s) => s.signInWithTelegram);
   const clearError = useAuthStore((s) => s.clearError);
-
-  // Telegram OIDC login is opt-in per build: turn it on with VITE_TELEGRAM_LOGIN=1
-  // (only once the bot is configured server-side via TELEGRAM_CLIENT_*).
-  const telegramEnabled = import.meta.env.VITE_TELEGRAM_LOGIN === '1';
 
   const [mode, setMode] = useState<Mode>(initialMode);
   const [step, setStep] = useState<Step>('email');
@@ -172,22 +169,20 @@ export function AuthForm({
               Продолжить
             </Button>
           </form>
-          {telegramEnabled && (
-            <div className={styles.altAuth}>
-              <Text as="p" role="caption" className={styles.altDivider}>
-                или
-              </Text>
-              <Button
-                variant="system"
-                type="button"
-                className={styles.telegramBtn}
-                onClick={() => signInWithTelegram()}
-                disabled={isLoading}
-              >
-                Войти через Telegram
-              </Button>
-            </div>
-          )}
+          <div className={styles.altAuth}>
+            <Text as="p" role="caption" className={styles.altDivider}>
+              или
+            </Text>
+            <Button
+              variant="system"
+              type="button"
+              className={styles.telegramBtn}
+              onClick={() => signInWithTelegram()}
+              disabled={isLoading}
+            >
+              Войти через Telegram
+            </Button>
+          </div>
           </>
         ) : (
           <form onSubmit={handlePasswordSubmit} className={styles.form} noValidate>

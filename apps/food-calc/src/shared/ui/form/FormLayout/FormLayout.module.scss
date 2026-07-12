@@ -36,6 +36,21 @@
   min-width: 0;
 }
 
+// Ряд лейбла с правым слотом (кнопка-подсказка ⓘ). Лейбл слева, слот у правого
+// края; появляется только когда группе передан `trailing`.
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sys-stack-row);
+  min-width: 0;
+}
+
+.groupTrailing {
+  display: inline-flex;
+  flex: none;
+}
+
 .content {
   display: flex;
   flex-direction: column;

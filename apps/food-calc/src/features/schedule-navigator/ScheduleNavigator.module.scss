@@ -1,145 +1,124 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// schedule-navigator — unified onto the SearchFood card canon (2026-06-19).
-// The quick-nav anchor rows mirror the FoodActionCard row surface + the
-// paper-mono palette (mixin.scss), the SAME look as the food cards
-// in SearchFood. Honey/mint accents and the mint→sky ambient were retired —
-// state now reads through the shared --sys-card-* tokens (selected = faint grey
-// fill, today = active ink). Date typography (Source Serif day numeral + 9px
-// stacked weekday/month) is preserved and moved into the card's LEFT slot,
-// where FoodActionCard puts its round thumbnail. The relative word
-// (Вчера/Сегодня/Завтра) is the card «name» (centre), the chevron the trailing
-// affordance (right) — replacing the ⓘ info button.
-//
-// Layout: flex column. A tab row on top switches the body (Embla slider) between
-// the anchor block (quick tab) and the active-days tab — a scrollable stack of
-// per-month mini-calendars (7-col grid; active days filled, empty days dimmed).
+// schedule-navigator — один поток (Embla-слайдер + табы сняты 2026-07-12): секция
+// «Быстрый переход» (вчера/сегодня/завтра как круглые RoundButton-стрелки) +
+// секция «Дни с активностью» (мини-календари по месяцам, ascending). Скролл несёт
+// DrawerLayout; тело на монтировании подкручивается к выбранному/сегодняшнему дню
+// (см. scrollIntoView в ScheduleNavigator.tsx).
 
+// Корень дровера: медали быстрого перехода + ряд-вход «Показать все дни». Ярусы
+// отступов держит сам поток (ActionList снят 2026-07-12 — секций и подписей больше
+// нет, обобщать нечего). На под-экране «все дни» тот же `.shell` — один поток месяцев.
 .shell {
-  position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  gap: var(--sys-stack-section);
   color: var(--sys-card-text-rest);
-  // Стандартный белый дровер — фон отдаёт DrawerLayout `.content` (2026-06-20).
-  background: transparent;
 }
 
-// ─── Tab row ───────────────────────────────────────────────────────────────
-// Anchor-узел NavSwitcher (несёт `data-nav-align`) — раскладку и облик ряда держит
-// ScreenIndicator (.root/.tilesRow) под ним, как на HomePage (вшитый numerals-left).
-.tabRow {
-  position: relative;
-  z-index: 1;
-  // Верхний инсет НЕ добавляем: этот ряд едет в header-слот DrawerLayout, а тот
-  // владеет унифицированным chrome-инсетом (--drawer-chrome-pad-block) — общим со
-  // встроенным title+subtitle. Свой padding-top здесь дал бы двойной отступ и
-  // разъезд с остальными хедерами (custom header — инсет-агностик).
-}
-
-// ─── Slider viewport (Embla) ───────────────────────────────────────────────
-// `.viewport` = Embla root (клипует), `.track` = Embla container (flex-ряд, Embla
-// сам едет transform по горизонтали). `touch-action: pan-y` — горизонтальный драг
-// уходит в Embla, вертикальный скролл/закрытие шита остаются. Высоту viewport
-// задаёт JS (дышит под активную панель); Embla трогает только горизонталь.
-.viewport {
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  touch-action: pan-y;
-  transition: height 0.28s var(--easing-default, ease);
-  // Ширина «выглядывающего» соседнего экрана: слайд уже вьюпорта на эту величину,
-  // и второй экран приоткрывается у края (containScroll:'trimSnaps' даёт симметрию —
-  // на втором слайде так же выглядывает первый слева).
-  --nav-peek: 76px;
-  // Растворение у того края, где выглядывает сосед: он «утекает» за границу, а не
-  // режется вертикальной линией. `--nav-edge-fade` < `--nav-peek` НАМЕРЕННО — тогда
-  // маска задевает только соседа (он в 0…56px от края), а активная панель (её ближний
-  // край в ≥56px) остаётся резкой на любом табе. Сторону задаёт data-peek (см. tsx).
-  --nav-edge-fade: 44px;
-}
-
-// Растворяем ТОТ край, где выглядывает соседний экран: right на «Навигации»
-// (сосед справа), left на «Активных днях» (сосед слева).
-.viewport[data-peek='right'] {
-  $mask-r: linear-gradient(to right, #000 0, #000 calc(100% - var(--nav-edge-fade)), transparent 100%);
-  mask-image: $mask-r;
-  -webkit-mask-image: $mask-r;
-}
-
-.viewport[data-peek='left'] {
-  $mask-l: linear-gradient(to left, #000 0, #000 calc(100% - var(--nav-edge-fade)), transparent 100%);
-  mask-image: $mask-l;
-  -webkit-mask-image: $mask-l;
-}
-
-.track {
+// ─── Быстрый переход: три круглые медали-стрелки ───────────────────────────
+// RoundButton look="bare" в button-режиме. `--medal-size` задаём здесь: standalone
+// (вне WriteBarShell) медаль не наследует `--pill-h`, диаметр несёт этот токен.
+.quickRow {
+  --medal-size: 84px;
   display: flex;
-  height: 100%;
+  justify-content: center;
+  gap: var(--space-5);
 }
 
-.panel {
-  // Не 100%: слайд на `--nav-peek` уже вьюпорта, чтобы сосед выглядывал у края.
-  flex: 0 0 calc(100% - var(--nav-peek));
-  min-width: 0;
-  height: 100%;
+.quickGlyph {
+  width: 22px;
+  height: 22px;
+}
+
+// ─── Дни с активностью: столбик мини-календарей по месяцам ──────────────────
+// Каркас: ОДНА закреплённая шапка дней недели + под ней поток месяцев. Канон
+// «scrolling month list» (Apple/Google Calendar, подтверждён практикой 2026):
+// решётка колонок пн→вс одинакова во ВСЕХ месяцах, поэтому подпись колонок —
+// свойство потока, а не месяца; повторять её в каждом календаре = шум.
+.months {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
-// ─── Active-days section ───────────────────────────────────────────────────
-// All days with records (past + today + future), chips grouped by month.
-// Rendered only on the «Активные дни» tab; sizes to content up to a cap, then
-// scrolls inside (directional fade hints signal more above/below).
-.activeSection {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
-  // Directional scroll fades — "there's more above / below" signals.
-  --fade-top: 0px;
-  --fade-bottom: 0px;
-  $mask: linear-gradient(to bottom,
-      transparent 0,
-      #000 var(--fade-top),
-      #000 calc(100% - var(--fade-bottom)),
-      transparent 100%);
-  mask-image: $mask;
-  -webkit-mask-image: $mask;
-
-  &[data-fade-top] {
-    --fade-top: 36px;
-  }
-
-  &[data-fade-bottom] {
-    --fade-bottom: 36px;
-  }
-}
-
-// Измеряемый узел (activeInnerRef): padding здесь, а НЕ на .activeSection — иначе
-// verтикальный отступ не входит в offsetHeight, и панель на столько же короче
-// контента → ложный скролл + обрезанный низ.
-.activeInner {
-  padding: var(--space-5) var(--space-3) var(--space-6);
-}
-
-// ─── Month mini-calendar (active-days tab) ─────────────────────────────────
 // Структура решётки (month-заголовок, шапка дней недели, grid, база ячейки) —
-// общий миксин `calendar-grid()` (mixin.scss), ЕДИНЫЙ источник с RangeCalendar
-// окна разбора (features/analysis/long). Состояния ниже — ЛОКАЛЬНЫЕ: семантика
-// «активные дни» (heatmap: только записанные дни тапаемы) ≠ семантика диапазона,
-// и порядок каскада важен (`.cellSelected` перебивает `.cellActive`).
+// общий миксин calendar-grid() (mixin.scss), ЕДИНЫЙ источник с RangeCalendar
+// окна разбора. Состояния ниже — ЛОКАЛЬНЫЕ: семантика «активные дни» (heatmap)
+// ≠ семантика диапазона, и порядок каскада важен (`.cellSelected` бьёт `.cellActive`).
 @include calendar-grid;
 
-// Пустой день (нет записей) — тихий бледный контекст, но ТАПАЕМ (можно перейти
-// в день без активности). Заливки нет — только press-feedback, чтобы не спорить
-// с тепловой картой активных дней.
+// Шапка под-экрана «Все дни» — узел chrome-ряда дровера (DrawerLayout `header`):
+// заголовок + подписи колонок. Своего бокового/верхнего инсета НЕ ставит — слот уже
+// даёт жёлоб и вертикальный ритм (контракт .dragHandleHeader).
+.daysHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.daysHeaderTitle {
+  text-align: center;
+}
+
+// Подписи колонок в шапке. Центральный слот жмёт контент жёлобом под крест/topRight
+// (--drawer-chrome-gutter), а решётка тела сидит на боковом инсете листа — поэтому
+// ряд ВЫРЫВАЕТСЯ из жёлоба отрицательным полем и переклеивается на инсет тела: только
+// так 7 подписей встают ровно над 7 колонками цифр.
+.weekdayRowHeader {
+  margin-inline: calc(-1 * var(--drawer-chrome-gutter, 0px));
+  padding-inline: var(--drawer-inset, 0px);
+  margin-bottom: 0;
+}
+
+// Месяц — не карточка, а ЧАСТЬ ЛИСТА дровера (просьба 2026-07-12): подложка
+// surface-2 + радиус + тень сняты, решётка сидит прямо на листе. Соседние месяцы
+// делит full-bleed divider — тот же приём, что делит гипотезы и инсайты на
+// странице «Открытий» (HypothesisListItem `[data-presentation='analysis']`):
+// сплошная ink-линия, вытянутая за боковой инсет тела отрицательным
+// --drawer-content-inset → от кромки до кромки листа.
+.month {
+  position: relative;
+  padding-block: var(--sys-stack-section);
+
+  // Ритм месяцев теперь несёт divider (padding вокруг него), а не зазор — гасим
+  // `.month + .month { margin-top }` из calendar-grid(), иначе воздух двоится.
+  &+& {
+    margin-top: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--drawer-content-inset, 0px));
+    right: calc(-1 * var(--drawer-content-inset, 0px));
+    bottom: 0;
+    height: 1px;
+    background: var(--sys-color-text-system);
+    pointer-events: none;
+  }
+
+  &:last-child {
+    padding-block-end: 0;
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Название месяца несёт голос примитива <Heading role="title">. Здесь — раскладка
+// (заглавная буква + отступ до сетки), выключка ВПРАВО и холодный чёрный: месяц —
+// тихая метка потока, она отбивается от левого края цифр и не спорит с ними тоном.
+.monthHeading {
+  margin-bottom: var(--space-4);
+  text-align: right;
+  text-transform: capitalize;
+  color: var(--sys-color-text-cold-strong);
+}
+
+// Пустой день (нет записей) — тихий бледный контекст, но ТАПАЕМ. Заливки нет —
+// только press-feedback, чтобы не спорить с тепловой картой активных дней.
 .cellEmpty {
   cursor: pointer;
   color: var(--sys-color-text-faint);
@@ -160,8 +139,6 @@
 // Активный день (есть записи) — «залит», читается тепловой картой; тапаемый.
 .cellActive {
   cursor: pointer;
-  // Вес активного дня несёт примитив <Text weight="bold"> в ScheduleNavigator.tsx
-  // (унификация «выбранного» = 700, единая с календарём/чипом; типо-голос в примитиве).
   background: var(--sys-color-bg-hover);
   color: var(--sys-card-text-rest);
   -webkit-tap-highlight-color: transparent;
@@ -178,60 +155,42 @@
   }
 }
 
-// Сегодня — кольцо-ориентир поверх любой заливки. Через ::after-бордюр (не
-// box-shadow: тот гейтится под elevation-токен, а кольца-токена нет).
+// Сегодня — не кольцо, а дуговой штемпель «сегодня» под цифрой (ArcLabel, см. .tsx):
+// ориентир читается словом. Штемпель — декор поверх ячейки, потоку не мешает.
 .cellToday {
   position: relative;
+  // Штемпель шире ячейки и залезает на соседей — поднимаем сегодняшний день над
+  // соседними ячейками, иначе их заливка (cellActive/cellSelected, позже в DOM)
+  // закрасит вылезшую дугу.
+  z-index: 1;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-width: 1.5px;
-    border-style: solid;
-    border-color: var(--sys-card-active);
-    border-radius: var(--sys-radius-control);
-    pointer-events: none;
-  }
+// Арка (∩) над цифрой. Шире ячейки — размер шрифта дуги живёт в единицах viewBox,
+// значит крупные буквы = крупный SVG; выход на соседние клетки допустим (штемпель
+// декоративный, pointer-events: none).
+.todayArc {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 160%;
+  transform: translate(-50%, -30%);
+  color: var(--sys-color-text-accent);
 }
 
 // Выбранный (открытый) день — сильная заливка, перебивает .cellActive.
 .cellSelected {
   background: var(--sys-card-active);
-  color: var(--sys-card-text-active);
 }
 
-// ─── Empty state (active tab, no records yet) ──────────────────────────────
+// ─── Empty state (нет записей вообще) ──────────────────────────────────────
 .empty {
-  position: relative;
-  z-index: 1;
   padding: var(--space-8) var(--space-4);
   text-align: center;
   color: var(--sys-color-text-tertiary);
 }
 
-// ─── Anchor list (quick tab) ───────────────────────────────────────────────
-// Measuring wrapper (quickInnerRef): padding-bottom (not margin) so the panel's
-// measured offsetHeight includes the breathing space → viewport «breathes».
-.anchorList {
-  position: relative;
-  z-index: 1;
-  padding-bottom: var(--space-6);
-}
-
-// Вертикальный столбик плиток ActionTile (вчера/сегодня/завтра). Плитки тянутся
-// на всю ширину; зазор больше «плотных 2px», чтобы тени shadow-варианта дышали.
-.navList {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
-  margin: var(--space-3) var(--space-3) 0;
-}
-
 @media (prefers-reduced-motion: reduce) {
 
-  .viewport,
   .cellActive,
   .cellEmpty {
     transition: none;

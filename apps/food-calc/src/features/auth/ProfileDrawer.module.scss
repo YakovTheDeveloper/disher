@@ -1,39 +1,31 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // ─── Profile Drawer (logged-in user) ───────────────────────────
+// Секции + ритм между ними держит примитив ActionList (owl `--sys-stack-section`).
+// Здесь остаётся только специфика дровера: заполнение вьюпорта под danger-парковку,
+// плоская стопка рядов, чип статуса, danger-зона (bespoke — не обобщена в примитив).
 
 .container {
   display: flex;
   flex-direction: column;
-  // Fill the scroll viewport so `.danger { margin-top: auto }` can park the
-  // danger zone against the bottom edge. `flex-shrink: 0` lets tall content
-  // overflow into a scroll rather than squash; min-height is a legacy floor.
+  // Fill the scroll viewport so `.danger { margin-block-start: auto }` can park the
+  // danger zone against the bottom edge. `flex-shrink: 0` lets tall content overflow
+  // into a scroll rather than squash; min-height is a legacy floor. Ритм между
+  // секциями НЕ тут (owl в ActionList) — только нижний зазор.
   flex: 1 0 auto;
   min-height: 50vh;
-  // Боковой инсет отдан DrawerLayout `contentInset="panel"`, верхний зазор —
-  // шеллу (`--drawer-content-pad-top`); тут только нижний зазор + ритм секций.
   padding-block-end: var(--space-4);
-  gap: var(--space-8);
 }
 
-// ─── Секции (Внешний вид / Синхронизация / Данные) ──────────────
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sys-stack-row);
-}
-
-// Типографику несёт <Text role="label"> (миграция 2026-06-23 — трио заголовков
-// ушло с serif-italic на sans label). Класс — layout-слот + явный цвет.
-.sectionLabel {
-  margin: 0;
-  color: var(--sys-color-text-primary);
+// Под-экран «Декор» — парковки/заполнения нет (danger сюда не заходит), только
+// нижний зазор; ритм между двумя пикер-секциями держит тот же ActionList owl.
+.appearanceFlow {
+  padding-block-end: var(--space-4);
 }
 
 // ─── Плоская группа рядов (SettingRow) ──────────────────────────
 // Ряды стоят вплотную (без gap) — их разделяет тающая бровка внутри SettingRow
-// (`.row + .row`), а не зазор. Никакой подложки/рамки: структуру держит
+// (`.row::after`), а не зазор. Никакой подложки/рамки: структуру держит
 // выравнивание + Divider (канон paper-mono), не iOS-плашка.
 .rows {
   display: flex;
@@ -55,11 +47,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--sys-stack-row);
-  // Park at the bottom of the (viewport-filling) container — «снизу основного
-  // потока», but still in the scroll flow, not a pinned footer.
-  margin-top: auto;
   padding-top: var(--space-4);
   position: relative;
+}
+
+// Парковка danger-зоны у нижнего края (снизу основного потока, но в скролле, не
+// pinned footer). ActionList owl задаёт КАЖДОМУ ребёнку `margin-block-start`;
+// перебиваем его более специфичным селектором (`.container > .danger` весомее
+// `.layout > * + *`), иначе `auto` потеряется и парковка не сработает.
+.container > .danger {
+  margin-block-start: auto;
 }
 
 // Красный заголовок «Опасная зона» (Text role="label" без своего цвета наследует).

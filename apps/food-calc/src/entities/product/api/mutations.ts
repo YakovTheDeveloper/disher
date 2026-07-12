@@ -15,6 +15,7 @@ export async function createProduct(params: {
   id?: string;
   /** true → продукт-добавка: nutrients per serving, единица 'шт' по умолчанию. */
   isSupplement?: boolean;
+  description?: string;
 }): Promise<string> {
   const id = params.id ?? crypto.randomUUID();
   const row: Omit<ProductRow, 'updated_at'> = {
@@ -26,6 +27,7 @@ export async function createProduct(params: {
     categories: [],
     serving_basis: params.isSupplement ? 'serving' : '100g',
     serving_unit: params.isSupplement ? 'шт' : null,
+    description: params.description ?? '',
     created_at: new Date().toISOString(),
   };
   await putRow(db.products, row);
@@ -41,6 +43,8 @@ type ProductUpdates = Partial<{
   categories: string;
   servingBasis: '100g' | 'serving';
   servingUnit: 'IU' | 'mg' | 'mcg' | 'g' | 'шт' | null;
+  /** Plain string (empty ⇒ cleared). Not a JSON field. */
+  description: string;
 }>;
 
 const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
@@ -51,6 +55,7 @@ const COLUMN_MAP: Record<keyof ProductUpdates, string> = {
   categories: 'categories',
   servingBasis: 'serving_basis',
   servingUnit: 'serving_unit',
+  description: 'description',
 };
 
 const JSON_FIELDS: ReadonlySet<keyof ProductUpdates> = new Set([

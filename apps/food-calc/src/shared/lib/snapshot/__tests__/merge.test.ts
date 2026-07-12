@@ -29,6 +29,7 @@ function legacyProduct(
     categories: [],
     serving_basis: '100g',
     serving_unit: null,
+    description: '',
     created_at,
   };
 }

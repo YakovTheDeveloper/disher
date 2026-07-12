@@ -14,6 +14,7 @@ export interface Product {
   categories: string;
   servingBasis: ServingBasis;
   servingUnit: ServingUnit | null;
+  description: string;
   createdAt: string;
 }
 

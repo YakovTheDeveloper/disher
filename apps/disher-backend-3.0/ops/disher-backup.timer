@@ -1,0 +1,15 @@
+# Runs disher-backup.service every 6h (RPO 6h for the money ledger instead of the
+# 24h a nightly dump gives). A dump of this DB takes seconds, so a tighter cadence
+# is nearly free — drop to hourly (OnCalendar=hourly) if you want RPO 1h.
+#
+# Persistent=true re-runs a missed backup after the VPS was off at the trigger.
+[Unit]
+Description=Schedule disher Postgres off-box backup every 6h
+
+[Timer]
+OnCalendar=*-*-* 00/6:00:00
+RandomizedDelaySec=5m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -121,7 +121,7 @@ label,
 }
 
 // user-select наследуется → `<label>` с вложенным `<input>` мог бы погасить
-// выделение ВНУТРИ поля (label-focus-делегация ModalByLabel/WriteBarMedal оборачивает
+// выделение ВНУТРИ поля (label-focus-делегация ModalByLabel/RoundButton оборачивает
 // инпуты). Явно возвращаем text редактируемым/копируемым узлам.
 input,
 textarea,

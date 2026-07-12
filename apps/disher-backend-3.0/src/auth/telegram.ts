@@ -29,7 +29,7 @@
 // token into that exchange. We additionally validate `iss` / `aud` / `exp`
 // here, and set `issuer` + `requireIssuerValidation` on the provider config so
 // better-auth enforces the `iss` callback param too. Full JWKS RS256 signature
-// verification is a documented hardening step (see tds/telegram-auth.md) — not
+// verification is a documented hardening step (see apps/food-calc/tds/telegram-auth.md) — not
 // required for correctness given the authenticated channel, but defense in
 // depth if the flow is ever exposed to untrusted token sources.
 

@@ -1,0 +1,16 @@
+// Об открытиях — колонка абзацев-пояснений. Только раскладка: секции через
+// stack-section, внутри секции заголовок→абзац через stack-row.
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+    // Верхний зазор несёт шелл (title→content); тут только нижний.
+    padding-block-end: var(--space-2);
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+    min-width: 0;
+}

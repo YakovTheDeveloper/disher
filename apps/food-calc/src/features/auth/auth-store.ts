@@ -27,6 +27,13 @@ type AuthState = {
   isLoggedIn: boolean;
   email: string | null;
   userId: string | null;
+  /**
+   * Auth-provider role (better-auth admin plugin): 'admin' | 'user' | null.
+   * Read by `useIsAdmin` as the fast path — 'admin' unlocks the admin gate
+   * immediately; anything else falls back to a server probe (env-admins are
+   * role 'user'). Never a security boundary; the server guards admin routes.
+   */
+  role: string | null;
   /** True until the initial session check resolves. UI should show a splash while it is true. */
   isReady: boolean;
   isLoading: boolean;
@@ -70,6 +77,13 @@ type AuthActions = {
    */
   signInWithTelegram: () => Promise<void>;
   /**
+   * Attach Telegram to the account the user is ALREADY signed into. Distinct
+   * from `signInWithTelegram`, which for an email-registered user would mint a
+   * second account with its own (empty) wallet — Telegram gives no email, so
+   * better-auth cannot merge them by itself.
+   */
+  linkTelegram: () => Promise<void>;
+  /**
    * Re-send the verification email for the account stored in
    * `pendingVerificationEmail`. No-op if there is no pending email. Used by
    * the "check your inbox" view's "send again" button.
@@ -84,7 +98,7 @@ type AuthActions = {
 
 function applyUser(set: (s: Partial<AuthState>) => void, user: AppUser | null) {
   if (!user) {
-    set({ isLoggedIn: false, email: null, userId: null });
+    set({ isLoggedIn: false, email: null, userId: null, role: null });
     Sentry.setUser(null);
     return;
   }
@@ -92,6 +106,7 @@ function applyUser(set: (s: Partial<AuthState>) => void, user: AppUser | null) {
     isLoggedIn: true,
     email: user.email,
     userId: user.id,
+    role: user.role,
   });
   // id only — email is PII (food diary).
   Sentry.setUser({ id: user.id });
@@ -117,6 +132,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isLoggedIn: false,
   email: null,
   userId: null,
+  role: null,
   isReady: false,
   isLoading: false,
   error: null,
@@ -196,6 +212,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
     // Success → the browser is navigating to Telegram; this line is only
     // reached if the redirect could not be started. Keep isLoading on in the
     // success case so the button stays busy until the page unloads.
+    if (res && !res.ok) {
+      authFail(set, res.error, 'auth.signIn');
+    }
+  },
+
+  linkTelegram: async () => {
+    set({ isLoading: true, error: null, errorKind: null });
+    const res = await authProvider.linkOAuth('telegram', '/');
     if (res && !res.ok) {
       authFail(set, res.error, 'auth.signIn');
     }

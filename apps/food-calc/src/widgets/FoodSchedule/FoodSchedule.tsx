@@ -160,7 +160,7 @@ const FoodSchedule = ({
           if (res.ok) toaster.success('Удалено');
         },
         actions: buildInfoActions(item),
-        // Ряд правок под «Информация…» = три голые медали (WriteBarMedal): дуговая
+        // Ряд правок под «Информация…» = три голые медали (RoundButton): дуговая
         // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
         // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
         // поднимает клавиатуру (императивный startEdit её не поднимал); handleEdit-

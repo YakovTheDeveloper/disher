@@ -13,17 +13,23 @@ type Props = {
   trailing?: ReactNode;
   /** Danger-тон (ряд «Выйти из аккаунта») — красный label + sub + хвост. */
   danger?: boolean;
+  /** Недоступный ряд — приглушён, клик не стреляет (напр. «Разобрать день» офлайн
+   *  / за пустой день). Причину недоступности несёт `sub`. */
+  disabled?: boolean;
   /** С onClick ряд = <button> (навигация / действие); без него — <div>-контейнер,
    *  интерактивен только сам trailing (напр. Switch). */
   onClick?: () => void;
   'aria-label'?: string;
+  /** Доп. класс на корень ряда (аддитивный) — напр. tall-override в хабе «Открытия». */
+  className?: string;
 };
 
 /**
- * Плоский ряд настроек корня ProfileDrawer: [значок] + label(+sub) + trailing.
+ * Плоский ряд настроек/действий: [значок] + label(+sub) + trailing.
  * Группа таких рядов держится ВЫРАВНИВАНИЕМ и тающей бровкой СНИЗУ у каждого ряда
  * (`.row::after`), БЕЗ фона/рамки/тени — канон paper-mono (Divider + Typography),
  * а не iOS-плашка. Типографику несут <Text>, класс держит только раскладку/цвет.
+ * Дом корня ProfileDrawer («Аккаунт») и хаба «Разбор» (AnalysisHubDrawer).
  */
 export function SettingRow({
   icon,
@@ -31,8 +37,10 @@ export function SettingRow({
   sub,
   trailing,
   danger,
+  disabled,
   onClick,
   'aria-label': ariaLabel,
+  className,
 }: Props) {
   const body = (
     <>
@@ -55,11 +63,17 @@ export function SettingRow({
     </>
   );
 
-  const cls = clsx(styles.row, danger && styles.danger);
+  const cls = clsx(styles.row, danger && styles.danger, disabled && styles.disabled, className);
 
   if (onClick) {
     return (
-      <button type="button" className={cls} onClick={onClick} aria-label={ariaLabel}>
+      <button
+        type="button"
+        className={cls}
+        onClick={onClick}
+        disabled={disabled}
+        aria-label={ariaLabel}
+      >
         {body}
       </button>
     );

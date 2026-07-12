@@ -6,6 +6,7 @@ import {
   useDishItemsWithProducts,
   useDishPortions,
   updateDishName,
+  updateDishDescription,
   updateDishItem,
   removeDishItem,
   addDishPortion,
@@ -13,7 +14,12 @@ import {
   removeDishPortion,
   deleteDish,
 } from '@/entities/dish';
-import { ChangeNameModal, CHANGE_NAME_INPUT_ID } from '@/features/shared/change-name';
+import {
+  ChangeNameModal,
+  CHANGE_NAME_INPUT_ID,
+  ChangeDescriptionModal,
+  CHANGE_DESCRIPTION_INPUT_ID,
+} from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
 import { Screen } from '@/shared/ui/Screen';
 import {
@@ -25,6 +31,7 @@ import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { useCardPalette } from '@/shared/lib/cardPalette';
 import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
+import { Text } from '@/shared/ui/atoms/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
@@ -107,10 +114,13 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const location = useLocation();
 
   const [renameOpen, setRenameOpen] = useState(false);
-  const handleNameFocusCapture = useCallback((e: React.FocusEvent) => {
-    if ((e.target as HTMLElement).id === CHANGE_NAME_INPUT_ID) {
-      setRenameOpen(true);
-    }
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  // Один onFocusCapture на обе chrome-модалки (имя + описание): лейбл делегирует
+  // фокус инпуту нужной модалки, здесь ловим по id и раскрываем её.
+  const handleChromeFocusCapture = useCallback((e: React.FocusEvent) => {
+    const id = (e.target as HTMLElement).id;
+    if (id === CHANGE_NAME_INPUT_ID) setRenameOpen(true);
+    else if (id === CHANGE_DESCRIPTION_INPUT_ID) setDescriptionOpen(true);
   }, []);
   const openNutrients = useCallback(() => {
     void drawerStore.show(
@@ -255,6 +265,28 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     </Heading>
   );
 
+  // Подпись-описание под именем: тап открывает ChangeDescriptionModal тем же
+  // приёмом, что имя (лейбл → фокус инпута модалки → handleChromeFocusCapture).
+  // Пустое описание показывает «+ Описание» как призыв добавить.
+  const descriptionLine = (
+    <label
+      htmlFor={CHANGE_DESCRIPTION_INPUT_ID}
+      className={styles.descriptionEdit}
+      aria-label={dish.description ? 'Изменить описание' : 'Добавить описание'}
+    >
+      <Text as="span" role="caption">
+        {dish.description || '+ Описание'}
+      </Text>
+    </label>
+  );
+
+  const overviewTopContent = (
+    <>
+      {nameHeading}
+      {descriptionLine}
+    </>
+  );
+
   // Карандаш-edit в правом верхнем слоте листа (topContentRight). Тот же тригер,
   // что клик по имени: `<label htmlFor={CHANGE_NAME_INPUT_ID}>` (ghost-режим
   // IconButton) → фокус на input ChangeNameModal → onFocusCapture раскрывает rename.
@@ -312,7 +344,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         <Screen
           key={1}
           headerOverlap
-          topContent={nameHeading}
+          topContent={overviewTopContent}
           topContentRight={editNameButton}
           stickyTop={topSlot}
           topBarHide="settings"
@@ -429,7 +461,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           (внутри ChangeNameModal), не лейбла — поэтому модалка живёт соседом
           SwipeDeck. Лейбл в nameHeading (в каждом Screen) редиректит фокус на её
           input по id → onFocusCapture здесь ловит и раскрывает rename. */}
-      <div onFocusCapture={handleNameFocusCapture}>
+      <div onFocusCapture={handleChromeFocusCapture}>
         <ChangeNameModal
           currentName={dish.name}
           isExpanded={renameOpen}
@@ -440,6 +472,21 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           }}
           onDelete={handleDeleteDish}
           deleteLabel="Удалить блюдо"
+        />
+        {/* Блюдо не может быть БАД → showHint={false} (кнопка-подсказка про
+            состав БАД в шапке не нужна). */}
+        <ChangeDescriptionModal
+          currentDescription={dish.description}
+          isExpanded={descriptionOpen}
+          onClose={() => setDescriptionOpen(false)}
+          onChangeDescription={(description) => {
+            void safeMutate(
+              () => updateDishDescription(dish.id, description),
+              'Не удалось изменить описание',
+            );
+            setDescriptionOpen(false);
+          }}
+          showHint={false}
         />
       </div>
       <SwipeDeck

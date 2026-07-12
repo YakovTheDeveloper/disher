@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { useDishWithStatus, useDishItemsWithProducts, useDishNutrientTotals } from '@/entities/dish';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
-import { IconButton } from '@/shared/ui/atoms/Button';
+import { Button, IconButton } from '@/shared/ui/atoms/Button';
 import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
@@ -104,43 +104,63 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
     );
   }
 
+  // Стрелка-переход живёт сверху только когда есть состав. Пустое блюдо вместо
+  // неё несёт крупную кнопку-переход под подсказкой (запрос 2026-07-12): один
+  // вход, а не дубль стрелка+кнопка.
   return (
     <DrawerLayout
       title={displayName}
       subtitle="блюдо"
       a11yLabel={dish.name}
       contentInset="panel"
-      topRight={pageArrow}
+      topRight={items.length > 0 ? pageArrow : undefined}
     >
       <div className={s.body}>
-        <section className={s.section}>
-          <Heading as="span" role="title">Состав</Heading>
-          {items.length > 0 ? (
-            <ul className={s.ingredients}>
-              {items.map((it) => (
-                <li key={it.id} className={s.ingredientRow}>
-                  <Text as="span" role="body" className={s.ingredientName}>
-                    {it.product?.name ? capitalizeFirst(it.product.name) : 'Продукт'}
-                  </Text>
-                  <Numeral as="span" size="sm" className={s.ingredientQty}>
-                    {Math.round(it.quantity)}
-                    <Text as="span" role="caption" className={s.ingredientUnit}> г</Text>
-                  </Numeral>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState title={t('food.dish.emptyIngredients')} />
-          )}
-        </section>
+        {items.length > 0 ? (
+          <>
+            <section className={s.section}>
+              <Heading as="span" role="title">Состав</Heading>
+              <ul className={s.ingredients}>
+                {items.map((it) => (
+                  <li key={it.id} className={s.ingredientRow}>
+                    <Text as="span" role="body" className={s.ingredientName}>
+                      {it.product?.name ? capitalizeFirst(it.product.name) : 'Продукт'}
+                    </Text>
+                    <Numeral as="span" size="sm" className={s.ingredientQty}>
+                      {Math.round(it.quantity)}
+                      <Text as="span" role="caption" className={s.ingredientUnit}> г</Text>
+                    </Numeral>
+                  </li>
+                ))}
+              </ul>
+            </section>
 
-        {/* Суммарные нутриенты блюда (сумма ингредиентов) — read-only, тот же
-            NutrientTable-разбор, что и в ProductDrawer, через общий FoodsNutrients
-            (норма-кнопка сверху + таблица). Гейтим по наличию ингредиентов: у
-            пустого блюда totals = {} → таблица нулей + «Моя норма» читались бы как
-            «есть профиль из нулей». Пусто → только empty-state состава выше. */}
-        {items.length > 0 && (
-          <FoodsNutrients totals={totals} missingNutrientNames={missingNutrientNames} />
+            {/* Суммарные нутриенты блюда (сумма ингредиентов) — read-only, тот же
+                NutrientTable-разбор, что и в ProductDrawer, через общий FoodsNutrients
+                (норма-кнопка сверху + таблица). Гейтим по наличию ингредиентов: у
+                пустого блюда totals = {} → таблица нулей + «Моя норма» читались бы как
+                «есть профиль из нулей». */}
+            <FoodsNutrients totals={totals} missingNutrientNames={missingNutrientNames} />
+          </>
+        ) : (
+          // Пусто: «Состав» не пишем вовсе. Подсказка уводит на страницу блюда
+          // (там правки состава и остальные действия), кнопка-переход — прямо
+          // под ней.
+          <EmptyState
+            title="Здесь пока пусто"
+            description="Основные действия — на странице блюда."
+            action={
+              <Button
+                variant="surface"
+                onSurface={1}
+                fullWidth
+                trailingChevron
+                onClick={handleOpenPage}
+              >
+                Перейти к блюду
+              </Button>
+            }
+          />
         )}
       </div>
     </DrawerLayout>
