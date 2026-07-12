@@ -186,6 +186,17 @@ export const auth = betterAuth({
       generateId: "uuid",
     },
   },
+  // Where auth errors land. Without this, better-auth's /error route in
+  // production 302s the browser to a RELATIVE `/?error=<code>` — which the
+  // browser resolves against the API origin (api.disher.life), NOT the SPA. The
+  // user ends up staring at our Fastify problem+json 404 instead of the app;
+  // that is exactly how the Telegram `issuer_missing` failure surfaced. An
+  // absolute FRONTEND_ORIGIN sends them home instead. Left unset in dev (no
+  // FRONTEND_ORIGIN) so better-auth keeps its own HTML error page, which is the
+  // more useful thing to look at while developing.
+  ...(process.env.FRONTEND_ORIGIN
+    ? { onAPIError: { errorURL: process.env.FRONTEND_ORIGIN } }
+    : {}),
   // Long session by design (Disher auth-инвариант: «логин один раз»). Bearer
   // mode means we have no refresh token — sliding `updateAge` extends the
   // server-side `session.expiresAt` row by re-issuing the bearer when it's

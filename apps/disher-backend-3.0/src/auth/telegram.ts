@@ -26,12 +26,19 @@
 // Trust model for the id_token: it arrives from Telegram's token endpoint over
 // TLS in exchange for a one-time PKCE code that only our backend and Telegram
 // share, so it is channel-authenticated — an attacker cannot inject a forged
-// token into that exchange. We additionally validate `iss` / `aud` / `exp`
-// here, and set `issuer` + `requireIssuerValidation` on the provider config so
-// better-auth enforces the `iss` callback param too. Full JWKS RS256 signature
-// verification is a documented hardening step (see apps/food-calc/tds/telegram-auth.md) — not
-// required for correctness given the authenticated channel, but defense in
-// depth if the flow is ever exposed to untrusted token sources.
+// token into that exchange. We validate `iss` / `aud` / `exp` of the token
+// here. Full JWKS RS256 signature verification is a documented hardening step
+// (see apps/food-calc/tds/telegram-auth.md) — not required for correctness given the
+// authenticated channel, but defense in depth if the flow is ever exposed to
+// untrusted token sources.
+//
+// `requireIssuerValidation` MUST stay off. It does NOT check the id_token's
+// `iss` claim (we do that ourselves below) — better-auth checks the RFC 9207
+// `iss` QUERY PARAM on the callback redirect, and Telegram never sends one: its
+// discovery doc omits `authorization_response_iss_parameter_supported`. Turning
+// it on rejected every single callback with `?error=issuer_missing` before the
+// token exchange even ran. `issuer` stays set, so better-auth still catches a
+// MISMATCH should Telegram ever start sending the param.
 
 import type { GenericOAuthConfig } from "better-auth/plugins";
 
@@ -152,7 +159,6 @@ export function telegramGenericOAuthConfig(): GenericOAuthConfig | null {
     providerId: "telegram",
     discoveryUrl: TELEGRAM_OIDC_DISCOVERY_URL,
     issuer: TELEGRAM_ISSUER,
-    requireIssuerValidation: true,
     clientId,
     clientSecret,
     scopes: ["openid", "profile"],

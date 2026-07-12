@@ -23,6 +23,16 @@ import type {
 } from './types';
 import { classifyError } from '@/shared/lib/errors/classify';
 
+// Absolutize an in-app path against the SPA's own origin. Non-negotiable for
+// the OAuth redirect flows: better-auth hands `callbackURL` / `errorCallbackURL`
+// straight to a `Location:` header, so a relative '/' resolves against the API
+// origin (api.disher.life), not the app (disher.life) — the user lands on the
+// backend's raw 404 JSON instead of coming home. Absolute in, absolute out.
+function appURL(path: string): string {
+  if (typeof window === 'undefined') return path;
+  return new URL(path, window.location.origin).toString();
+}
+
 // Map better-auth user shape onto our AppUser. The anonymous plugin is not
 // loaded on the backend, so every user is "real" — no anon filtering needed.
 function toAppUser(
@@ -339,7 +349,12 @@ export const betterAuthProvider: AuthProvider = {
     // onSuccess hook (betterAuthClient.ts), not here. We only get a value back
     // when the redirect can't be started.
     try {
-      const { data, error } = await authClient.signIn.oauth2({ providerId, callbackURL });
+      const target = appURL(callbackURL);
+      const { data, error } = await authClient.signIn.oauth2({
+        providerId,
+        callbackURL: target,
+        errorCallbackURL: target,
+      });
       if (error) {
         return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
       }
@@ -357,7 +372,12 @@ export const betterAuthProvider: AuthProvider = {
     // Same redirect shape as signInWithOAuth, but better-auth attaches the
     // provider to the CURRENT session's user instead of resolving/creating one.
     try {
-      const { data, error } = await authClient.oauth2.link({ providerId, callbackURL });
+      const target = appURL(callbackURL);
+      const { data, error } = await authClient.oauth2.link({
+        providerId,
+        callbackURL: target,
+        errorCallbackURL: target,
+      });
       if (error) {
         return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
       }

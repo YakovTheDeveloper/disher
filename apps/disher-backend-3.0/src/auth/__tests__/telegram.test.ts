@@ -163,7 +163,6 @@ describe("telegramGenericOAuthConfig", () => {
       providerId: "telegram",
       discoveryUrl: "https://oauth.telegram.org/.well-known/openid-configuration",
       issuer: TELEGRAM_ISSUER,
-      requireIssuerValidation: true,
       clientId: CLIENT_ID,
       clientSecret: "s3cr3t",
       scopes: ["openid", "profile"],
@@ -171,6 +170,15 @@ describe("telegramGenericOAuthConfig", () => {
       authentication: "basic",
     });
     expect(typeof cfg?.getUserInfo).toBe("function");
+  });
+
+  // Regression: `requireIssuerValidation` guards the RFC 9207 `iss` QUERY PARAM
+  // on the callback, not the id_token claim. Telegram never sends that param, so
+  // turning this on rejects every login with `?error=issuer_missing`.
+  it("leaves requireIssuerValidation off — Telegram sends no RFC 9207 iss param", () => {
+    vi.stubEnv("TELEGRAM_CLIENT_ID", CLIENT_ID);
+    vi.stubEnv("TELEGRAM_CLIENT_SECRET", "s3cr3t");
+    expect(telegramGenericOAuthConfig()?.requireIssuerValidation).toBeUndefined();
   });
 
   it("wires getUserInfo to decode the id_token", async () => {
