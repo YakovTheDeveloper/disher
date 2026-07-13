@@ -1,20 +1,27 @@
-.header {
+// Боковой инсет — на ModalShell.wrapper (canon: шелл владеет колеёй), поэтому
+// внутренние блоки несут только вертикальные отступы.
+.controls {
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-row);
-    padding: var(--sys-inset-page);
-    padding-block-end: 0;
+    padding-block-end: var(--space-3);
 }
 
 .search {
     width: 100%;
 }
 
+.tabs {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
 .list {
     display: flex;
     flex-direction: column;
     gap: var(--sys-stack-row);
-    padding: var(--sys-inset-page);
+    padding-block-end: var(--sys-inset-page);
 }
 
 .hint {

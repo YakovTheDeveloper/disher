@@ -48,7 +48,7 @@ vi.mock('@/shared/lib/dexie/schema', () => ({
 
 // Best-effort pre-wipe sync (fix #2). Spy records order + lets each test drive
 // success/failure.
-const syncNowMock = vi.fn(async (_opts?: { signal?: AbortSignal }) => {
+const syncNowMock = vi.fn<(opts?: { signal?: AbortSignal }) => Promise<void>>(async () => {
   opOrder.push('sync');
 });
 vi.mock('@/shared/lib/snapshot', () => ({
@@ -300,6 +300,29 @@ describe('finalSyncBeforeSignOut', () => {
 
   it('reports success when the sync lands', async () => {
     await expect(finalSyncBeforeSignOut()).resolves.toBe(true);
+  });
+});
+
+// Провал Telegram-OAuth приезжает 302-редиректом с кодом в URL; AuthForm
+// конвертирует его в этот экшен (см. shared/lib/auth/oauthReturn.ts).
+describe('reportOAuthReturnError', () => {
+  it('sets a human message + errorKind=auth, exposing the better-auth code', () => {
+    useAuthStore.getState().reportOAuthReturnError('state_mismatch');
+
+    const s = useAuthStore.getState();
+    expect(s.errorKind).toBe('auth');
+    expect(s.error).toContain('Не удалось войти через Telegram');
+    // vitest runs in dev mode → the machine code rides as a suffix.
+    expect(s.error).toContain('state_mismatch');
+  });
+
+  it('without a code: bare human message, no suffix', () => {
+    useAuthStore.getState().reportOAuthReturnError(null);
+
+    expect(useAuthStore.getState().error).toBe(
+      'Не удалось войти через Telegram, попробуйте ещё раз',
+    );
+    expect(useAuthStore.getState().errorKind).toBe('auth');
   });
 });
 

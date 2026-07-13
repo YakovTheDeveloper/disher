@@ -16,8 +16,12 @@ export async function truncateAllUserData(pool: pg.Pool): Promise<void> {
   // Single statement so PG can take all locks together; CASCADE walks FKs.
   // RESTART IDENTITY is harmless here (no serial cols) — kept for forward
   // compat if a serial is added later.
+  // auth_events is listed EXPLICITLY: it deliberately carries no FK to users
+  // (its most valuable rows are failed logins by unknown users — an FK would
+  // reject exactly those), so CASCADE cannot reach it and rows would leak
+  // across cases.
   await pool.query(
-    `truncate table "users", "verification" restart identity cascade`,
+    `truncate table "users", "verification", "auth_events" restart identity cascade`,
   );
 }
 

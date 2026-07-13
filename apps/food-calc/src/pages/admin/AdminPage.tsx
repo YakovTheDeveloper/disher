@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { RouterLinks } from '@/app/router';
-import { Screen } from '@/shared/ui/Screen';
-import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { ModalShell } from '@/shared/ui/ModalShell';
+import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -11,15 +11,38 @@ import { rub } from '@/shared/lib/money';
 import { useAdminGate } from '@/features/admin/useIsAdmin';
 import { TopupDrawer } from '@/features/admin/TopupDrawer';
 import { UserLedgerDrawer } from '@/features/admin/UserLedgerDrawer';
+import { AuthEventsList } from '@/features/admin/AuthEventsList';
+import { UserReportsList } from '@/features/admin/UserReportsList';
 import styles from './AdminPage.module.scss';
 
-// /admin — wallet top-up console. Client gate is UX only: `useIsAdmin` may be
-// `false` (bounce to root — the server 403s the API regardless), `null` (still
-// deciding / transient — render nothing) or `true` (show the list). Dozens of
-// users, no pagination → fetch once, filter on the client.
+// /admin — wallet top-up console + auth diagnostics + user problem reports. It's a
+// route, but it wears the fullscreen-modal chrome (ModalShell + back arrow): a
+// служебный экран, куда заходят из настроек и откуда возвращаются, а не раздел
+// приложения. Back → Root (a direct-URL visitor has no history to pop).
+//
+// Client gate is UX only: `useIsAdmin` may be `false` (bounce to root — the server
+// 403s the API regardless), `null` (still deciding / transient — render nothing) or
+// `true` (show the list). Dozens of users, no pagination → fetch once, filter on the
+// client. «Входы» and «Репорты» are server-filtered (rows grow without bound).
+
+type Tab = 'users' | 'auth' | 'reports';
+
+const TITLES: Record<Tab, string> = {
+  users: 'Пользователи',
+  auth: 'Входы',
+  reports: 'Репорты',
+};
+
+const PLACEHOLDERS: Record<Tab, string> = {
+  users: 'Поиск по почте или роли',
+  auth: 'Поиск по почте или id',
+  reports: 'Поиск по почте или тексту',
+};
 
 export function AdminPage() {
   const { isAdmin, retry } = useAdminGate();
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<Tab>('users');
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState('');
@@ -93,63 +116,93 @@ export function AdminPage() {
   };
 
   return (
-    <Screen
-      backgroundColor="gray"
-      header={
-        <header className={styles.header}>
-          <Heading role="headline" as="h1">
-            Пользователи
-          </Heading>
+    <ModalShell>
+      <ModalShell.Header
+        title={TITLES[tab]}
+        onBack={() => navigate(RouterLinks.Root)}
+        backLabel="Закрыть админку"
+      />
+      <ModalShell.Body>
+        <div className={styles.controls}>
+          <div className={styles.tabs}>
+            <Button
+              variant={tab === 'users' ? 'system-secondary' : 'ghost'}
+              flat
+              onClick={() => setTab('users')}
+            >
+              Пользователи
+            </Button>
+            <Button
+              variant={tab === 'auth' ? 'system-secondary' : 'ghost'}
+              flat
+              onClick={() => setTab('auth')}
+            >
+              Входы
+            </Button>
+            <Button
+              variant={tab === 'reports' ? 'system-secondary' : 'ghost'}
+              flat
+              onClick={() => setTab('reports')}
+            >
+              Репорты
+            </Button>
+          </div>
           <AutoGrowSearch
             singleLine
             value={query}
             onChange={setQuery}
-            placeholder="Поиск по почте или роли"
+            placeholder={PLACEHOLDERS[tab]}
             className={styles.search}
           />
-        </header>
-      }
-    >
-      <div className={styles.list}>
-        {failed ? (
-          <Text role="caption" as="p" className={styles.hint}>
-            Не удалось загрузить пользователей
-          </Text>
-        ) : users === null ? (
-          <Text role="caption" as="p" className={styles.hint}>
-            …
-          </Text>
-        ) : filtered.length === 0 ? (
-          <Text role="caption" as="p" className={styles.hint}>
-            Никого не найдено
-          </Text>
+        </div>
+
+        {tab === 'auth' ? (
+          <AuthEventsList query={query} />
+        ) : tab === 'reports' ? (
+          <UserReportsList query={query} />
         ) : (
-          filtered.map((u) => (
-            <div key={u.id} className={styles.row}>
-              <div className={styles.identity}>
-                <Text role="body" as="span" className={styles.email}>
-                  {u.email ?? u.id}
-                </Text>
-                <Text role="caption" as="span" className={styles.role}>
-                  {u.role ?? 'user'}
-                </Text>
-              </div>
-              <Numeral as="span" size="sm" weight="bold" className={styles.balance}>
-                {rub(u.balanceKop)} ₽
-              </Numeral>
-              <div className={styles.actions}>
-                <Button variant="system-secondary" flat onClick={() => openTopup(u)}>
-                  Начислить
-                </Button>
-                <Button variant="ghost" onClick={() => openLedger(u)}>
-                  История
-                </Button>
-              </div>
-            </div>
-          ))
+          <div className={styles.list}>
+            {failed ? (
+              <Text role="caption" as="p" className={styles.hint}>
+                Не удалось загрузить пользователей
+              </Text>
+            ) : users === null ? (
+              <Text role="caption" as="p" className={styles.hint}>
+                …
+              </Text>
+            ) : filtered.length === 0 ? (
+              <Text role="caption" as="p" className={styles.hint}>
+                Никого не найдено
+              </Text>
+            ) : (
+              filtered.map((u) => (
+                <div key={u.id} className={styles.row}>
+                  <div className={styles.identity}>
+                    <Text role="body" as="span" className={styles.email}>
+                      {u.email ?? u.id}
+                    </Text>
+                    <Text role="caption" as="span" className={styles.role}>
+                      {u.role ?? 'user'}
+                    </Text>
+                  </div>
+                  <Numeral as="span" size="sm" weight="bold" className={styles.balance}>
+                    {rub(u.balanceKop)} ₽
+                  </Numeral>
+                  <div className={styles.actions}>
+                    <Button variant="system-secondary" flat onClick={() => openTopup(u)}>
+                      Начислить
+                    </Button>
+                    <Button variant="ghost" onClick={() => openLedger(u)}>
+                      История
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
-      </div>
-    </Screen>
+      </ModalShell.Body>
+    </ModalShell>
   );
 }
 

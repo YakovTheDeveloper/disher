@@ -114,6 +114,134 @@ export async function adminRoutes(app: FastifyInstance) {
     },
   );
 
+  // Auth diagnostics (see auth/auth-events.ts + db/migrations/…_auth_events.sql).
+  // Answers "почему у юзера не заходит": newest first, optionally narrowed to
+  // failures only, optionally to one user (by email substring or user id).
+  //
+  // `problems=1` is the default view — a healthy login writes a row too, and the
+  // successes outnumber the failures we're actually hunting.
+  app.get<{
+    Querystring: { limit?: string; problems?: string; q?: string };
+  }>("/auth-events", async (req, reply) => {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+    const problemsOnly = req.query.problems === "1";
+    const q = (req.query.q ?? "").trim();
+
+    const where: string[] = [];
+    const params: unknown[] = [];
+    if (problemsOnly) where.push(`outcome <> 'success'`);
+    if (q) {
+      params.push(`%${q.toLowerCase()}%`);
+      const like = `$${params.length}`;
+      // user_id is a uuid — cast before matching, else pg raises 42883 on `like`.
+      where.push(`(lower(email) like ${like} or user_id::text like ${like})`);
+    }
+    params.push(limit);
+
+    const r = await db().query<{
+      id: string;
+      created_at: Date | string;
+      path: string | null;
+      provider: string | null;
+      outcome: string;
+      status_code: number | null;
+      error_code: string | null;
+      error_message: string | null;
+      user_id: string | null;
+      email: string | null;
+      ip: string | null;
+      user_agent: string | null;
+    }>(
+      `select id, created_at, path, provider, outcome, status_code, error_code,
+              error_message, user_id, email, ip, user_agent
+         from auth_events
+        ${where.length ? `where ${where.join(" and ")}` : ""}
+        order by created_at desc
+        limit $${params.length}`,
+      params,
+    );
+
+    const items = r.rows.map((row) => ({
+      id: String(row.id),
+      createdAt:
+        row.created_at instanceof Date
+          ? row.created_at.toISOString()
+          : String(row.created_at),
+      path: row.path,
+      provider: row.provider,
+      outcome: row.outcome,
+      statusCode: row.status_code,
+      errorCode: row.error_code,
+      errorMessage: row.error_message,
+      userId: row.user_id,
+      email: row.email,
+      ip: row.ip,
+      userAgent: row.user_agent,
+    }));
+    return reply.send({ items });
+  });
+
+  // Пользовательские баг-репорты («Сообщить о проблеме» → routes/user-reports.ts,
+  // таблица user_reports). Читаем ТОЛЬКО прод-сток из БД — dev-сток на диск
+  // (routes/bug-reports.ts) в проде не регистрируется вовсе. Джойним почту
+  // автора: репорт без «кто» не отработать.
+  app.get<{ Querystring: { limit?: string; q?: string } }>(
+    "/user-reports",
+    async (req, reply) => {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+      const q = (req.query.q ?? "").trim();
+
+      const params: unknown[] = [];
+      let where = "";
+      if (q) {
+        params.push(`%${q.toLowerCase()}%`);
+        const like = `$${params.length}`;
+        // user_id — uuid: приводим к тексту, иначе pg падает с 42883 на `like`.
+        where = `where (lower(u.email) like ${like}
+                     or lower(r.text) like ${like}
+                     or r.user_id::text like ${like})`;
+      }
+      params.push(limit);
+
+      const r = await db().query<{
+        id: string;
+        created_at: Date | string;
+        text: string;
+        page: string | null;
+        screen_size: string | null;
+        user_agent: string | null;
+        pwa: string | null;
+        user_id: string;
+        email: string | null;
+      }>(
+        `select r.id, r.created_at, r.text, r.page, r.screen_size, r.user_agent,
+                r.pwa, r.user_id, u.email
+           from user_reports r
+           left join "users" u on u.id = r.user_id
+          ${where}
+          order by r.created_at desc
+          limit $${params.length}`,
+        params,
+      );
+
+      const items = r.rows.map((row) => ({
+        id: String(row.id),
+        createdAt:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : String(row.created_at),
+        text: row.text,
+        page: row.page,
+        screenSize: row.screen_size,
+        userAgent: row.user_agent,
+        pwa: row.pwa,
+        userId: row.user_id,
+        email: row.email,
+      }));
+      return reply.send({ items });
+    },
+  );
+
   // Read a user's ledger (newest first), including meta so the reason is visible.
   app.get<{ Params: { id: string }; Querystring: { limit?: string } }>(
     "/users/:id/ledger",

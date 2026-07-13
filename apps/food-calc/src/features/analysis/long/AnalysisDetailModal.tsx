@@ -48,8 +48,8 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
   // filter — the backend does not distinguish the two.
   const title =
     windowSpanDays({ start: analysis.windowStart, end: analysis.windowEnd }) === 1
-      ? 'Разбор дня'
-      : 'Разбор по неделям';
+      ? 'Анализ дня'
+      : 'Анализ ';
 
   // Toast once when a running analysis terminally fails (server marked it
   // failed). The in-modal banner shows it while open; the toaster persists the
@@ -73,7 +73,7 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
     } catch (err) {
       console.error('restart analysis failed', err);
       toast.error(
-        err instanceof PaymentRequiredError ? err.message : 'Не удалось перезапустить разбор',
+        err instanceof PaymentRequiredError ? err.message : 'Не удалось перезапустить разбор'
       );
       setRestarting(false);
     }
@@ -88,78 +88,84 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
           onBack={() => onClose()}
         />
 
-      <ModalShell.Body>
-        {status === 'running' && (
-          <div className={styles.pending}>
-            <Spinner />
-            <Text as="p" role="caption" className={styles.pendingText}>
-              Разбор ещё идёт — это займёт пару минут. Можно закрыть окно и
-              вернуться позже.
-            </Text>
-          </div>
-        )}
-
-        {status === 'stale' && (
-          <div className={styles.failed}>
-            <Text as="p" role="label" className={styles.failedTitle}>Разбор, похоже, не удался</Text>
-            <Text as="p" role="caption" className={styles.failedBody}>
-              Он завис надолго без результата. Обычно это сбой на сервере —
-              можно запустить его заново за то же окно.
-            </Text>
-          </div>
-        )}
-
-        {status === 'failed' && (
-          <div className={styles.failed}>
-            <Text as="p" role="label" className={styles.failedTitle}>Разбор не удался</Text>
-            <Text as="p" role="caption" className={styles.failedBody}>{analysis.summary}</Text>
-          </div>
-        )}
-
-        {status === 'done' && (
-          <FeatureErrorBoundary label="Разбор" resetKeys={[analysis.id]}>
-            <AnalysisResult
-              summary={analysis.summary}
-              observations={analysis.observations}
-              insights={analysis.insights}
-              hypotheses={analysis.hypotheses}
-              insightSource="long"
-              bare
-            />
-          </FeatureErrorBoundary>
-        )}
-
-        {(status === 'stale' || status === 'failed') && (
-          <Button
-            variant="accent"
-            fullWidth
-            disabled={restarting}
-            onClick={handleRestart}
-          >
-            {restarting ? 'Запускаем…' : 'Запустить заново'}
-          </Button>
-        )}
-
-        <section className={styles.section}>
-          <QuietLabel as="p" className={styles.sectionTitle}>Гипотезы в этом разборе</QuietLabel>
-          {appliedHypotheses.length === 0 ? (
-            <Text as="p" role="caption" className={styles.snapshotEmpty}>
-              Разбор запускался без выбранных гипотез.
-            </Text>
-          ) : (
-            <ul className={styles.snapshotList}>
-              {appliedHypotheses.map((h, idx) => (
-                <li key={h.id || idx} className={styles.snapshotItem}>
-                  <Text as="span" role="label" className={styles.snapshotItemTitle}>{h.title}</Text>
-                  {h.body && (
-                    <Text as="span" role="caption" className={styles.snapshotItemBody}>{h.body}</Text>
-                  )}
-                </li>
-              ))}
-            </ul>
+        <ModalShell.Body>
+          {status === 'running' && (
+            <div className={styles.pending}>
+              <Spinner />
+              <Text as="p" role="caption" className={styles.pendingText}>
+                Разбор ещё идёт — это займёт пару минут. Можно закрыть окно и вернуться позже.
+              </Text>
+            </div>
           )}
-        </section>
-      </ModalShell.Body>
+
+          {status === 'stale' && (
+            <div className={styles.failed}>
+              <Text as="p" role="label" className={styles.failedTitle}>
+                Разбор, похоже, не удался
+              </Text>
+              <Text as="p" role="caption" className={styles.failedBody}>
+                Он завис надолго без результата. Обычно это сбой на сервере — можно запустить его
+                заново за то же окно.
+              </Text>
+            </div>
+          )}
+
+          {status === 'failed' && (
+            <div className={styles.failed}>
+              <Text as="p" role="label" className={styles.failedTitle}>
+                Разбор не удался
+              </Text>
+              <Text as="p" role="caption" className={styles.failedBody}>
+                {analysis.summary}
+              </Text>
+            </div>
+          )}
+
+          {status === 'done' && (
+            <FeatureErrorBoundary label="Разбор" resetKeys={[analysis.id]}>
+              <AnalysisResult
+                summary={analysis.summary}
+                observations={analysis.observations}
+                insights={analysis.insights}
+                hypotheses={analysis.hypotheses}
+                insightSource="long"
+                bare
+              />
+            </FeatureErrorBoundary>
+          )}
+
+          {(status === 'stale' || status === 'failed') && (
+            <Button variant="accent" fullWidth disabled={restarting} onClick={handleRestart}>
+              {restarting ? 'Запускаем…' : 'Запустить заново'}
+            </Button>
+          )}
+
+          <section className={styles.section}>
+            <QuietLabel as="p" className={styles.sectionTitle}>
+              Гипотезы в этом разборе
+            </QuietLabel>
+            {appliedHypotheses.length === 0 ? (
+              <Text as="p" role="caption" className={styles.snapshotEmpty}>
+                Разбор запускался без выбранных гипотез.
+              </Text>
+            ) : (
+              <ul className={styles.snapshotList}>
+                {appliedHypotheses.map((h, idx) => (
+                  <li key={h.id || idx} className={styles.snapshotItem}>
+                    <Text as="span" role="label" className={styles.snapshotItemTitle}>
+                      {h.title}
+                    </Text>
+                    {h.body && (
+                      <Text as="span" role="caption" className={styles.snapshotItemBody}>
+                        {h.body}
+                      </Text>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </ModalShell.Body>
       </ModalShell>
     </ModalLayout>
   );

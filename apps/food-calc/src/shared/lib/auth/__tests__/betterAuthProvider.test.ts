@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const signUpEmailMock = vi.fn();
 const sendVerificationEmailMock = vi.fn();
 const signInEmailMock = vi.fn();
+const signInOAuth2Mock = vi.fn();
 const getSessionMock = vi.fn();
 const signOutMock = vi.fn();
 
@@ -19,7 +20,7 @@ vi.mock('../betterAuthClient', () => ({
   authClient: {
     signUp: { email: signUpEmailMock },
     sendVerificationEmail: sendVerificationEmailMock,
-    signIn: { email: signInEmailMock },
+    signIn: { email: signInEmailMock, oauth2: signInOAuth2Mock },
     getSession: getSessionMock,
     signOut: signOutMock,
     $store: { atoms: { session: { subscribe: () => () => {} } } },
@@ -253,6 +254,111 @@ describe('betterAuthProvider.bootstrap', () => {
     expect(localStorage.getItem(LAST_USER_KEY)).toBe(
       JSON.stringify({ id: 'u9', email: 'u9@example.com', role: null }),
     );
+  });
+});
+
+// The Telegram callback mints the session as an api-origin cookie + a
+// `set-auth-token` header on a 302 — invisible to JS. On a device with no
+// bearer, bootstrap must see the `?oauth=` marker (set by signInWithOAuth on
+// the callbackURL) and capture that cookie-session into the bearer slot
+// instead of short-circuiting to logged-out.
+describe('betterAuthProvider.bootstrap (OAuth return leg)', () => {
+  let warnSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    localStorage.clear();
+    getSessionMock.mockReset();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    window.history.replaceState(null, '', '/');
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('captures the cookie-session into the bearer slot and returns the user', async () => {
+    window.history.replaceState(null, '', '/?oauth=telegram');
+    getSessionMock.mockResolvedValue({
+      data: {
+        user: { id: 'tg1', email: null },
+        session: { token: 'raw-session-token' },
+      },
+      error: null,
+    });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'tg1', email: null, role: null });
+    expect(localStorage.getItem(BEARER_KEY)).toBe('raw-session-token');
+    expect(localStorage.getItem(LAST_USER_KEY)).toBe(
+      JSON.stringify({ id: 'tg1', email: null, role: null }),
+    );
+    // Marker consumed — a reload must not re-run the capture.
+    expect(window.location.search).toBe('');
+    expect(getSessionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to logged-out when the return-leg session is absent (cookie missing/expired)', async () => {
+    window.history.replaceState(null, '', '/?oauth=telegram');
+    getSessionMock.mockResolvedValue({ data: null, error: null });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(window.location.search).toBe('');
+  });
+
+  it('falls back to logged-out when the return-leg getSession throws (network)', async () => {
+    window.history.replaceState(null, '', '/?oauth=telegram');
+    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
+    expect(window.location.search).toBe('');
+  });
+
+  it('with an existing bearer: strips the marker but keeps the normal bootstrap path', async () => {
+    window.history.replaceState(null, '', '/?oauth=telegram');
+    localStorage.setItem(BEARER_KEY, 'existing-token');
+    getSessionMock.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'u1@example.com' } },
+      error: null,
+    });
+
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
+    expect(localStorage.getItem(BEARER_KEY)).toBe('existing-token');
+    expect(window.location.search).toBe('');
+  });
+
+  it('without the marker: old short-circuit, no network call', async () => {
+    const user = await betterAuthProvider.bootstrap();
+
+    expect(user).toBeNull();
+    expect(getSessionMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('betterAuthProvider.signInWithOAuth', () => {
+  beforeEach(() => {
+    signInOAuth2Mock.mockReset();
+  });
+
+  it('marks the success URL with ?oauth= and the error URL with ?authError=', async () => {
+    signInOAuth2Mock.mockResolvedValue({ data: null, error: null });
+
+    await betterAuthProvider.signInWithOAuth('telegram', '/');
+
+    expect(signInOAuth2Mock).toHaveBeenCalledWith({
+      providerId: 'telegram',
+      callbackURL: `${window.location.origin}/?oauth=telegram`,
+      errorCallbackURL: `${window.location.origin}/?authError=telegram`,
+    });
   });
 });
 

@@ -230,4 +230,154 @@ describeIfReady("admin routes", () => {
     const topup = items.find((i) => i.amountKop === 500);
     expect(topup?.meta?.reason).toBe("birthday");
   });
+
+  // ── GET auth-events ────────────────────────────────────────────────────────
+  // The rows themselves are written by the better-auth hooks (auth/auth-events.ts,
+  // unit-tested there); here we only pin the READ contract the admin panel calls.
+  describe("auth diagnostics", () => {
+    async function seedEvent(row: {
+      outcome: string;
+      email: string;
+      errorCode?: string;
+    }): Promise<void> {
+      await pool.query(
+        `insert into auth_events (path, provider, outcome, status_code, error_code, email)
+         values ('/sign-in/email', 'email', $1, $2, $3, $4)`,
+        [
+          row.outcome,
+          row.outcome === "success" ? 200 : 401,
+          row.errorCode ?? null,
+          row.email,
+        ],
+      );
+    }
+
+    it("403 for a non-admin", async () => {
+      const user = await createTestUser();
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/auth-events",
+        headers: user.headers,
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it("problems=1 hides the successful logins", async () => {
+      const admin = await createTestUser();
+      await promoteToAdmin(admin.userId);
+      await seedEvent({ outcome: "success", email: "ok@example.com" });
+      await seedEvent({
+        outcome: "failure",
+        email: "stuck@example.com",
+        errorCode: "INVALID_EMAIL_OR_PASSWORD",
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/auth-events?problems=1",
+        headers: admin.headers,
+      });
+      expect(res.statusCode).toBe(200);
+      const { items } = res.json() as {
+        items: Array<{ email: string; outcome: string; errorCode: string | null }>;
+      };
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        email: "stuck@example.com",
+        outcome: "failure",
+        errorCode: "INVALID_EMAIL_OR_PASSWORD",
+      });
+    });
+
+    it("q narrows to one user by email substring", async () => {
+      const admin = await createTestUser();
+      await promoteToAdmin(admin.userId);
+      await seedEvent({ outcome: "failure", email: "stuck@example.com" });
+      await seedEvent({ outcome: "failure", email: "someone-else@example.com" });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/auth-events?q=STUCK",
+        headers: admin.headers,
+      });
+      const { items } = res.json() as { items: Array<{ email: string }> };
+      expect(items.map((i) => i.email)).toEqual(["stuck@example.com"]);
+    });
+
+    it("a search string that is not a uuid does not blow up the user_id match", async () => {
+      const admin = await createTestUser();
+      await promoteToAdmin(admin.userId);
+      await seedEvent({ outcome: "failure", email: "stuck@example.com" });
+
+      // `user_id` is a uuid column — matching it against a free-text query without
+      // a ::text cast raises 42883 and 500s the whole panel.
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/auth-events?q=not-a-uuid",
+        headers: admin.headers,
+      });
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  // ── GET user-reports ───────────────────────────────────────────────────────
+  // Rows are written by routes/user-reports.ts (its own test); here we pin the
+  // READ contract the panel's «Репорты» accordion calls.
+  describe("user reports", () => {
+    async function seedReport(user: TestUser, text: string): Promise<void> {
+      await pool.query(
+        `insert into user_reports (id, user_id, text, page)
+         values (gen_random_uuid(), $1::uuid, $2, '/schedule')`,
+        [user.userId, text],
+      );
+    }
+
+    it("403 for a non-admin", async () => {
+      const user = await createTestUser();
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/user-reports",
+        headers: user.headers,
+      });
+      expect(res.statusCode).toBe(403);
+    });
+
+    it("lists reports newest first, attributed to the reporter's email", async () => {
+      const admin = await createTestUser();
+      await promoteToAdmin(admin.userId);
+      const reporter = await createTestUser();
+      await seedReport(reporter, "первый");
+      await seedReport(reporter, "второй");
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/user-reports",
+        headers: admin.headers,
+      });
+      expect(res.statusCode).toBe(200);
+      const { items } = res.json() as {
+        items: Array<{ text: string; email: string; page: string | null }>;
+      };
+      expect(items.map((i) => i.text)).toEqual(["второй", "первый"]);
+      expect(items[0].email).toBe(reporter.email);
+      expect(items[0].page).toBe("/schedule");
+    });
+
+    it("q narrows by report text and survives a non-uuid query", async () => {
+      const admin = await createTestUser();
+      await promoteToAdmin(admin.userId);
+      const reporter = await createTestUser();
+      await seedReport(reporter, "кнопка не жмётся");
+      await seedReport(reporter, "всё хорошо");
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/api/admin/user-reports?q=КНОПКА",
+        headers: admin.headers,
+      });
+      expect(res.statusCode).toBe(200);
+      const { items } = res.json() as { items: Array<{ text: string }> };
+      expect(items.map((i) => i.text)).toEqual(["кнопка не жмётся"]);
+    });
+  });
 });

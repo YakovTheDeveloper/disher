@@ -121,6 +121,14 @@ type AuthActions = {
    */
   linkTelegram: () => Promise<void>;
   /**
+   * Surface an OAuth failure carried back on the redirect URL (better-auth
+   * 302-ит на SPA с `?error=<code>`, наш errorCallbackURL добавляет маркер
+   * `?authError=` — см. shared/lib/auth/oauthReturn.ts). Без этого юзер после
+   * неудачного Telegram-входа молча оказывается на логине. `code` — машинный
+   * код better-auth (state_mismatch, issuer_missing, …), если он был в URL.
+   */
+  reportOAuthReturnError: (code: string | null) => void;
+  /**
    * Re-send the verification email for the account stored in
    * `pendingVerificationEmail`. No-op if there is no pending email. Used by
    * the "check your inbox" view's "send again" button.
@@ -317,6 +325,19 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
 
   logout: async () => {
     await get().signOut();
+  },
+
+  reportOAuthReturnError: (code) => {
+    Sentry.captureException(new Error(`OAuth return error: ${code ?? 'unknown'}`), {
+      tags: { kind: 'auth', op: 'auth.oauthReturn', ...(code ? { code } : {}) },
+    });
+    const human = 'Не удалось войти через Telegram, попробуйте ещё раз';
+    // Dev-суффикс с кодом better-auth — тот же приём, что у defaultUserMessage
+    // (в прод-сборке только человеческий текст, код уходит в Sentry).
+    set({
+      error: import.meta.env.DEV && code ? `${human} [${code}]` : human,
+      errorKind: 'auth',
+    });
   },
 
   requestResendVerification: async () => {

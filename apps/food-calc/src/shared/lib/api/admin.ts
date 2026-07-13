@@ -84,6 +84,84 @@ export async function fetchUserLedger(
 }
 
 /**
+ * One recorded login attempt (backend: auth/auth-events.ts). `outcome` is
+ * 'success' (session issued), 'failure' (better-auth rejected it — bad password,
+ * unverified email, an OAuth error code) or 'error' (an exception escaped: DB
+ * down, Telegram unreachable, a bug). `email` is the ATTEMPTED identifier, so it
+ * is present even when no such user exists — that's how you find who's stuck.
+ */
+export interface AuthEvent {
+  id: string;
+  createdAt: string;
+  path: string | null;
+  provider: string | null;
+  outcome: 'success' | 'failure' | 'error';
+  statusCode: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  userId: string | null;
+  email: string | null;
+  ip: string | null;
+  userAgent: string | null;
+}
+
+export interface AuthEventsQuery {
+  /** Failures + errors only. The successes outnumber what we're hunting. */
+  problemsOnly?: boolean;
+  /** Substring match on email or user id. */
+  q?: string;
+  limit?: number;
+}
+
+export async function fetchAuthEvents(
+  query: AuthEventsQuery = {},
+  signal?: AbortSignal,
+): Promise<AuthEvent[]> {
+  const params = new URLSearchParams();
+  if (query.problemsOnly) params.set('problems', '1');
+  if (query.q?.trim()) params.set('q', query.q.trim());
+  params.set('limit', String(query.limit ?? 100));
+
+  const res = await authedFetch(`${ADMIN_BASE}/auth-events?${params.toString()}`, { signal });
+  if (!res.ok) await throwApiError(res);
+  const data = (await res.json()) as { items?: AuthEvent[] };
+  return data.items ?? [];
+}
+
+/**
+ * One user-submitted problem report («Сообщить о проблеме» → backend
+ * routes/user-reports.ts). `email` is the reporter's, joined server-side — a
+ * report you can't attribute is a report you can't answer.
+ */
+export interface UserReport {
+  id: string;
+  createdAt: string;
+  text: string;
+  page: string | null;
+  screenSize: string | null;
+  userAgent: string | null;
+  pwa: string | null;
+  userId: string;
+  email: string | null;
+}
+
+export async function fetchUserReports(
+  query: { q?: string; limit?: number } = {},
+  signal?: AbortSignal,
+): Promise<UserReport[]> {
+  const params = new URLSearchParams();
+  if (query.q?.trim()) params.set('q', query.q.trim());
+  params.set('limit', String(query.limit ?? 100));
+
+  const res = await authedFetch(`${ADMIN_BASE}/user-reports?${params.toString()}`, {
+    signal,
+  });
+  if (!res.ok) await throwApiError(res);
+  const data = (await res.json()) as { items?: UserReport[] };
+  return data.items ?? [];
+}
+
+/**
  * Result of the `GET /api/admin/me` probe used to recognize an env-admin whose
  * DB role is still 'user'. Deliberately tri-state so `useIsAdmin` can tell a
  * definitive "not an admin" (403 — safe to cache) apart from a transient network

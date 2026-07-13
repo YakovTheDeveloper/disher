@@ -37,10 +37,17 @@
 // (email-verification.test.ts) still asserts better-auth's wiring.
 
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware, getIp } from "better-auth/api";
 import { admin, bearer, genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
 import { getAdminUserIds } from "./admin-ids.js";
+import {
+  buildAuthEvent,
+  isTrackedAuthPath,
+  recordAuthEvent,
+  type AuthHookContext,
+} from "./auth-events.js";
 import { telegramGenericOAuthConfig } from "./telegram.js";
 
 const connectionString = process.env.LOCAL_DATABASE_URL;
@@ -194,9 +201,48 @@ export const auth = betterAuth({
   // absolute FRONTEND_ORIGIN sends them home instead. Left unset in dev (no
   // FRONTEND_ORIGIN) so better-auth keeps its own HTML error page, which is the
   // more useful thing to look at while developing.
-  ...(process.env.FRONTEND_ORIGIN
-    ? { onAPIError: { errorURL: process.env.FRONTEND_ORIGIN } }
-    : {}),
+  onAPIError: {
+    ...(process.env.FRONTEND_ORIGIN
+      ? { errorURL: process.env.FRONTEND_ORIGIN }
+      : {}),
+    // Only NON-APIError throws reach here (a real exception: DB down, Telegram
+    // unreachable, a bug). APIErrors — including redirects — are caught upstream
+    // and handled by the after-hook below. Defining `onError` SUPPRESSES
+    // better-auth's own console logging of these (api/index.mjs: it returns
+    // early once a custom handler exists), so log here too or the stdout trail
+    // disappears.
+    onError: (error: unknown) => {
+      console.error("[auth] unhandled auth error", error);
+      recordAuthEvent({
+        path: null,
+        provider: null,
+        outcome: "error",
+        statusCode: null,
+        errorCode: error instanceof Error ? error.name : "unknown",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        userId: null,
+        email: null,
+        ip: null,
+        userAgent: null,
+      });
+    },
+  },
+  // One row per login-relevant attempt (see auth/auth-events.ts). Runs after the
+  // handler returned — `ctx.context.returned` holds either the result or the
+  // APIError it threw, so success and failure land in the same place. Untracked
+  // paths (/get-session on every boot) are skipped: they'd bury the signal.
+  hooks: {
+    after: createAuthMiddleware(async (ctx) => {
+      if (!isTrackedAuthPath(ctx.path)) return;
+      const source = ctx.request ?? ctx.headers ?? new Headers();
+      recordAuthEvent(
+        buildAuthEvent(
+          ctx as unknown as AuthHookContext,
+          getIp(source, ctx.context.options),
+        ),
+      );
+    }),
+  },
   // Long session by design (Disher auth-инвариант: «логин один раз»). Bearer
   // mode means we have no refresh token — sliding `updateAge` extends the
   // server-side `session.expiresAt` row by re-issuing the bearer when it's

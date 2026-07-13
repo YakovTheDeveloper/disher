@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
+import { consumeOAuthReturnError } from '@/shared/lib/auth/oauthReturn';
 import styles from './AuthForm.module.scss';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
@@ -39,6 +40,15 @@ export function AuthForm({ layout }: Props) {
   const error = useAuthStore((s) => s.error);
   const signInWithTelegram = useAuthStore((s) => s.signInWithTelegram);
   const clearError = useAuthStore((s) => s.clearError);
+  const reportOAuthReturnError = useAuthStore((s) => s.reportOAuthReturnError);
+
+  // Провал Telegram-входа приезжает 302-редиректом с `?authError=` / `?error=`
+  // в URL (см. oauthReturn.ts) — без этого чтения юзер молча оказывается на
+  // логине без объяснения. Маркер съедается из адресной строки один раз.
+  useEffect(() => {
+    const oauthError = consumeOAuthReturnError();
+    if (oauthError) reportOAuthReturnError(oauthError.code);
+  }, [reportOAuthReturnError]);
 
   useEffect(() => {
     return () => clearError();

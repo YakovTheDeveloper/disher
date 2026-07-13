@@ -62,6 +62,19 @@
 
 }
 
+// ─── Well presentation — ряд внутри вдавленного поля ──────────────────────────
+// Фон несёт блок-well (HypothesisListPanel `.well`), поэтому ряд прозрачный —
+// иначе surface-1 читался бы как пилюля поверх поля. Вертикальная полоска-акцент
+// снята (решение юзера 2026-07-13): состояние «выбрано» несёт чекбокс, полоска на
+// вдавленном поле читалась как декор-мусор.
+.row[data-presentation='well'] {
+    background: transparent;
+
+    &::before {
+        display: none;
+    }
+}
+
 .checkboxWrap {
     display: flex;
     align-items: center;

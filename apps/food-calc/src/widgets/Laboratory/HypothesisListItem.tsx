@@ -41,8 +41,10 @@ type Props = {
    * (`--sys-card-*`), accent stripe + per-row hairline; used by the selection lists.
    * `'analysis'` — the «Анализ дня» look (`--ax-*`): surface off, no accent
    * stripe, fading-hairline divider, Apple type scale; the «Открытия» slide.
+   * `'well'` — ряд внутри вдавленного поля (модалка создания разбора): фон
+   * прозрачный (его несёт well), полоска-акцент и hairline остаются.
    */
-  presentation?: 'flush' | 'analysis';
+  presentation?: 'flush' | 'analysis' | 'well';
 } & EditProps;
 
 // One hypothesis row. The text is inert; interaction lives in two zones that
@@ -94,7 +96,7 @@ const HypothesisListItem = ({
       data-selected={selected || undefined}
       data-no-checkbox={hideCheckbox || undefined}
       data-new={isNew || undefined}
-      data-presentation={presentation === 'analysis' ? 'analysis' : undefined}
+      data-presentation={presentation === 'flush' ? undefined : presentation}
     >
       {!hideCheckbox && (
         <label className={styles.checkboxWrap}>

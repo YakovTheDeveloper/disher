@@ -13,7 +13,6 @@ import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
-import modalStyles from './ScheduleEventModals.module.scss';
 import { EDIT_MODAL_INPUT_IDS } from './ScheduleEventEditModal.constants';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
@@ -126,7 +125,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'time'}
         content={
-          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
+          <ModalShell>
             <ModalShell.Header title="Выберите время" onBack={handleClose} />
             <ModalShell.Body>
               <TimeChoose
@@ -152,7 +151,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'text'}
         content={
-          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
+          <ModalShell>
             <ModalShell.Header title="Опишите событие" onBack={handleClose} />
             <ModalShell.Body>
               <AutoGrowSearch
@@ -174,7 +173,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
-          <ModalShell variant="spring4" className={modalStyles.whiteShell}>
+          <ModalShell>
             <ModalShell.Header title="Оценка" onBack={handleClose} />
             <ModalShell.AtomsBody>
               <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} />

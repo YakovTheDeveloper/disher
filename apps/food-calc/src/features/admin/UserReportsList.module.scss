@@ -1,0 +1,73 @@
+// Боковой инсет несёт ModalShell.wrapper (хост-экран /admin) — здесь только вертикаль.
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-row);
+    padding-block-end: var(--sys-inset-page);
+}
+
+.hint {
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+    padding-block: var(--space-4);
+}
+
+.row {
+    padding: 0 var(--space-3);
+    background: var(--sys-color-surface-1);
+    border: 1px solid var(--sys-color-border-default);
+    border-radius: var(--sys-radius-container);
+}
+
+.head {
+    padding-block: var(--space-3);
+}
+
+.identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    gap: 2px;
+}
+
+.who {
+    color: var(--sys-color-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+// Свёрнутая шапка отвечает «кто и о чём» — текст режем в одну строку, целиком он
+// живёт в теле.
+.excerpt {
+    color: var(--sys-color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.when {
+    color: var(--sys-color-text-secondary);
+    white-space: nowrap;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-block-end: var(--space-3);
+}
+
+.text {
+    color: var(--sys-color-text-primary);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.meta {
+    color: var(--sys-color-text-secondary);
+    overflow-wrap: anywhere;
+}

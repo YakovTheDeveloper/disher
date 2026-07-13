@@ -49,7 +49,21 @@ export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: 
   };
 
   return (
-    <div id={id} tabIndex={id ? -1 : undefined} className={`${styles.container} ${className}`}>
+    <div className={`${styles.container} ${className}`}>
+      {/* `<label htmlFor>` делегирует фокус ТОЛЬКО labelable-элементу — на <div id>
+          клик по медали «Особенности» был no-op (onFocusCapture не срабатывал, шаг
+          не флипался). Прокси-input — реальная цель метки. readOnly: панель шкалы
+          открывается keyboard-down (как inline EventScalePanel), число вводят тапом. */}
+      {id && (
+        <input
+          id={id}
+          className={styles.focusProxy}
+          readOnly
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+      )}
+
       {scales.length > 0 && (
         <div className={styles.scaleChips}>
           {scales.map(({ atom, index }) => (

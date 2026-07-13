@@ -10,13 +10,7 @@ import HypothesisListPanel from '@/widgets/Laboratory/HypothesisListPanel';
 import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 import { startAnalysis, type Analysis } from '../api';
 import RangePickerWithFallback from './RangePickerWithFallback';
-import {
-  defaultRange,
-  endsInFuture,
-  isValidWindow,
-  rangeDayKeys,
-  type DateRange,
-} from './range';
+import { defaultRange, endsInFuture, isValidWindow, rangeDayKeys, type DateRange } from './range';
 import { Button } from '@/shared/ui/atoms/Button';
 
 // The modal resolves with the created (pending) analysis so AnalysesPage can
@@ -45,8 +39,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
     });
   }, []);
 
-  const canSubmit =
-    isValidWindow(range) && !endsInFuture(range) && !submitting;
+  const canSubmit = isValidWindow(range) && !endsInFuture(range) && !submitting;
 
   // Snapshot of the ticked hypotheses — {id,title,body} rides into the
   // applied_hypotheses jsonb. Pruned against the live list.
@@ -55,7 +48,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
       hypotheses
         .filter((h) => selectedIds.has(h.id))
         .map((h) => ({ id: h.id, title: h.title, body: h.body })),
-    [hypotheses, selectedIds],
+    [hypotheses, selectedIds]
   );
 
   // The analysis id doubles as the X-Request-Id idempotency key. Mint it once
@@ -86,7 +79,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
     } catch (err) {
       console.error('startAnalysis failed', err);
       toast.error(
-        err instanceof PaymentRequiredError ? err.message : 'Не удалось запустить разбор',
+        err instanceof PaymentRequiredError ? err.message : 'Не удалось запустить разбор'
       );
       setSubmitting(false);
     }
@@ -95,7 +88,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
   return (
     <ModalLayout a11yLabel="Новый разбор по неделям">
       <ModalShell>
-        <ModalShell.Header title="Разбор по неделям" onBack={() => onClose()} />
+        <ModalShell.Header title="Анализ дней" onBack={() => onClose()} />
 
         {/* ModalShell.Body flows as one scroller (list uses maxBodyHeight='none')
             with a --sys-stack-section gap between the window picker and the
@@ -117,6 +110,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
               onToggle={handleToggle}
               titleVariant="label"
               maxBodyHeight="none"
+              surface="well"
             />
           )}
 
@@ -125,12 +119,7 @@ const CreateLongAnalysisModal = ({ onClose }: Props) => {
           <ModalShell.ActionButtons
             debugId="create-long-analysis"
             right={
-              <Button
-                variant="accent"
-                fullWidth
-                disabled={!canSubmit}
-                onClick={handleSubmit}
-              >
+              <Button variant="accent" fullWidth disabled={!canSubmit} onClick={handleSubmit}>
                 {submitting ? 'Запускаем…' : 'Запустить разбор'}
               </Button>
             }

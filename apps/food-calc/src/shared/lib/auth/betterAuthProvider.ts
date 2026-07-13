@@ -13,6 +13,11 @@
 //    user_updated. token_refreshed never fires (no refresh in bearer mode).
 
 import { authClient, BEARER_KEY } from './betterAuthClient';
+import {
+  OAUTH_ERROR_PARAM,
+  OAUTH_RETURN_PARAM,
+  consumeOAuthReturnFlag,
+} from './oauthReturn';
 import type {
   AppUser,
   AuthChangeEvent,
@@ -31,6 +36,17 @@ import { classifyError } from '@/shared/lib/errors/classify';
 function appURL(path: string): string {
   if (typeof window === 'undefined') return path;
   return new URL(path, window.location.origin).toString();
+}
+
+// appURL + a query-param marker. The OAuth redirect legs need the marker IN the
+// URL (not sessionStorage): it must survive the full leave-the-app round-trip
+// through Telegram in any return context — new tab, PWA standalone, in-app
+// browser handing back to the system one.
+function appURLWithParam(path: string, param: string, value: string): string {
+  if (typeof window === 'undefined') return path;
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set(param, value);
+  return url.toString();
 }
 
 // Map better-auth user shape onto our AppUser. The anonymous plugin is not
@@ -156,6 +172,45 @@ function persistLastUser(user: AppUser | null) {
   }
 }
 
+// Cap for the one-shot post-OAuth getSession. Deliberately NOT the 1s bootstrap
+// budget: this leg runs exactly once right after the Telegram redirect, usually
+// on a cold mobile connection, and a premature abort silently strands the user
+// back on AuthScreen (the session cookie exists but the bearer is never
+// captured).
+const OAUTH_CAPTURE_TIMEOUT_MS = 5000;
+
+// Finish a redirect OAuth sign-in on a device with no bearer. The callback
+// (`/api/auth/oauth2/callback/<provider>`) minted the session as a cookie on
+// the API origin and put `set-auth-token` on the 302 — a navigation header JS
+// never sees, so localStorage stayed empty and the plain bootstrap would
+// short-circuit to logged-out. Here we ask the server for that session over
+// the same-site cookie (better-auth client sends credentials:'include' by
+// default; with an empty bearer better-fetch skips the Authorization header
+// entirely, so the cookie is the credential) and mirror the raw session token
+// into the bearer slot — the server-side bearer plugin accepts it verbatim
+// (requireSignature is off), so `session.token` IS a valid bearer.
+async function captureOAuthSession(): Promise<AppUser | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OAUTH_CAPTURE_TIMEOUT_MS);
+  try {
+    const { data } = await authClient.getSession({
+      fetchOptions: { signal: controller.signal },
+    });
+    const token = data?.session?.token;
+    const user = toAppUser(data?.user);
+    if (!token || !user) return null;
+    localStorage.setItem(BEARER_KEY, token);
+    cachedUser = user;
+    persistLastUser(user);
+    return user;
+  } catch (e) {
+    console.warn('betterAuthProvider: post-OAuth session capture failed', e);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export const betterAuthProvider: AuthProvider = {
   async bootstrap() {
     // One-shot legacy cleanup: drop any pre-migration `sb-*` localStorage keys
@@ -169,10 +224,21 @@ export const betterAuthProvider: AuthProvider = {
       localStorage.setItem(SB_CLEANED_FLAG, '1');
     }
 
+    // Consume the OAuth-return marker unconditionally so `?oauth=` never
+    // survives a reload — a stale flag would re-run the capture path.
+    const oauthReturn = consumeOAuthReturnFlag();
+
     // Skip the network entirely if there is no token — fresh install or
     // post-signOut. The reactive store will stay logged-out and AuthGate
-    // shows the sign-in screen.
+    // shows the sign-in screen. The one exception is the OAuth return leg:
+    // there a session ALREADY exists (as an api-origin cookie), only the
+    // bearer is missing — capture it instead of bouncing the user back to
+    // AuthScreen after a completed Telegram round-trip.
     if (!localStorage.getItem(BEARER_KEY)) {
+      if (oauthReturn) {
+        const captured = await captureOAuthSession();
+        if (captured) return captured;
+      }
       cachedUser = null;
       persistLastUser(null);
       return null;
@@ -345,15 +411,17 @@ export const betterAuthProvider: AuthProvider = {
   async signInWithOAuth(providerId, callbackURL = '/') {
     // Redirect-based OIDC (Telegram). On success better-auth returns a provider
     // authorize URL and the client redirects the browser to it — control leaves
-    // the page, so the bearer is captured on the way back through the standard
-    // onSuccess hook (betterAuthClient.ts), not here. We only get a value back
-    // when the redirect can't be started.
+    // the page. The bearer can NOT be captured by the onSuccess hook on the way
+    // back (the callback is a 302 navigation, not an XHR), so the success URL
+    // carries the `?oauth=<provider>` marker: bootstrap() sees it and pulls the
+    // cookie-session into the bearer slot (captureOAuthSession). The error URL
+    // carries `?authError=<provider>` for AuthForm's banner. We only get a
+    // value back here when the redirect can't be started.
     try {
-      const target = appURL(callbackURL);
       const { data, error } = await authClient.signIn.oauth2({
         providerId,
-        callbackURL: target,
-        errorCallbackURL: target,
+        callbackURL: appURLWithParam(callbackURL, OAUTH_RETURN_PARAM, providerId),
+        errorCallbackURL: appURLWithParam(callbackURL, OAUTH_ERROR_PARAM, providerId),
       });
       if (error) {
         return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };

@@ -4,11 +4,27 @@
  */
 
 .container {
+  position: relative;
   display: flex;
   flex-direction: column;
   flex: 1 0;
   min-height: 0;
   gap: var(--space-3);
+}
+
+/* Цель `<label htmlFor>` для шага «Особенности» (см. AtomBuilder.tsx). Невидим,
+   но НЕ display:none — иначе фокус на него не сядет и делегация метки умрёт. */
+.focusProxy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ─── Added states — chips at the TOP of the scale section ──────────────────

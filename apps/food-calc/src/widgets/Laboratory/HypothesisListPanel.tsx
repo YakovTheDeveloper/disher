@@ -68,6 +68,13 @@ type Props = {
    * rows flow flush with fading-hairline dividers (the «Открытия» slide).
    */
   presentation?: 'flush' | 'analysis';
+  /**
+   * Поверхность панели. `'plain'` (default) — заголовок на столе, список в
+   * приподнятой рамке. `'well'` — заголовок И список внутри ОДНОГО вдавленного
+   * поля (канон модалки создания еды, `.compositionBlock`); ряды при этом
+   * прозрачные. Используется модалкой «Разбор по неделям».
+   */
+  surface?: 'plain' | 'well';
 } & EditProps;
 
 // The hypothesis list: a static header label + a height-bounded, internally
@@ -86,6 +93,7 @@ const HypothesisListPanel = ({
   titleVariant = 'heading',
   showMeta = false,
   presentation = 'flush',
+  surface = 'plain',
 }: Props) => {
   // The list scrolls inside itself (`maxBodyHeight`). A freshly created
   // hypothesis lands at the top of this inner scroll, so when a new id arrives
@@ -105,13 +113,17 @@ const HypothesisListPanel = ({
   // (модалка владеет единственным скроллом тела).
   const bounded = maxBodyHeight !== 'none';
   const analysis = presentation === 'analysis';
+  const well = surface === 'well';
+  // Well владеет фоном блока — ряды внутри прозрачные (analysis-режим со своим
+  // плоским видом не пересекается с well: разные хосты).
+  const rowPresentation = analysis ? 'analysis' : well ? 'well' : 'flush';
 
   // Пустой список — никакой подсказки: композер выше с живым плейсхолдером
   // («Головная боль после молочки») сам учит формату записи (решение 2026-06-08).
   if (total === 0) return null;
 
   return (
-    <section className={styles.section}>
+    <section className={`${styles.section} ${well ? styles.well : ''}`}>
       {headerVariant === 'divider' ? (
         <div className={styles.divider} aria-hidden />
       ) : (
@@ -157,7 +169,7 @@ const HypothesisListPanel = ({
                 hideCheckbox={!selectable}
                 isNew={newIds?.has(h.id) ?? false}
                 showMeta={showMeta}
-                presentation={presentation}
+                presentation={rowPresentation}
                 {...editProps}
               />
             );

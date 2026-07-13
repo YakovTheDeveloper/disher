@@ -1,6 +1,54 @@
+@import '@/shared/assets/style/mixin.scss';
+
 .section {
     display: flex;
     flex-direction: column;
+}
+
+// ─── `surface='well'` — вдавленное поле (канон модалки создания еды) ──────────
+// Заголовок + список = ОДИН well стола surface-0, ровно как `.compositionBlock`
+// в FoodEntryCreateModals: плоский field-градиент (едет по gradient-исключению
+// strict-value), одна inset-тень на весь блок — не по пилюле на ряд. Ряды внутри
+// прозрачные (см. HypothesisListItem `[data-presentation='well']`), рамка/тень
+// скролл-обёртки сняты — глубину несёт блок.
+.well {
+    border-radius: var(--sys-field-radius, var(--radius-sm));
+    --panel-well: color-mix(in oklch, var(--sys-color-surface-0), var(--sys-field-well-shade) var(--sys-field-well-depth));
+    background: linear-gradient(90deg, var(--panel-well) 0%, var(--panel-well) 100%);
+    @include field-depth(--panel-well);
+    box-shadow: var(--sys-field-shadow);
+    // NB: без `overflow: hidden` — у flex-item'а он обнуляет `min-height: auto`,
+    // и тело модалки сжимает блок, обрезая хвост списка. Клип углов не нужен:
+    // ряды внутри прозрачные, красить нечего.
+    flex-shrink: 0;
+}
+
+// Заголовок садится на тот же горизонтальный рельс, что и текст рядов
+// (--sys-field-inset-x) — весь контент блока на одном левом рельсе by construction.
+.well .header {
+    padding: 12px var(--sys-field-inset-x) 10px;
+}
+
+.well .scrollWrap {
+    border-radius: 0;
+    box-shadow: none;
+
+    // Шов «заголовок ↔ список» — rail-divider во всю ширину блока (как в .compositionBlock).
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        @include rail-divider(var(--sys-card-hairline));
+        pointer-events: none;
+        z-index: 1;
+    }
+}
+
+.well .scrollBody {
+    border-radius: 0;
 }
 
 // ─── Header label (static — no collapse) ──────────────────────────────
