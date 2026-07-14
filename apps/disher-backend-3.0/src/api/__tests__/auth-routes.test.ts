@@ -7,7 +7,10 @@ import {
   it,
 } from "vitest";
 import { buildApp, type BuiltApp } from "../buildApp.js";
-import { createTestUser } from "../../test/auth-helpers.js";
+import {
+  createTestUser,
+  sessionCookieFromInject,
+} from "../../test/auth-helpers.js";
 import {
   makeTestPool,
   truncateAllUserData,
@@ -17,7 +20,7 @@ import {
 //
 // Exercises sign-up / sign-in / sign-out / get-session through the real Fastify
 // stack via app.inject() — no mocks. Auth state is verified at two levels:
-//  - HTTP response (status + body shape + set-auth-token header)
+//  - HTTP response (status + body shape + session cookie in set-cookie)
 //  - DB row (session row deleted after sign-out, user row exists after sign-up)
 //
 // truncateAllUserData in beforeEach wipes users + session + account + verification
@@ -64,10 +67,10 @@ describeIfReady("better-auth HTTP routes", () => {
         user: { id: string; email: string; name: string };
       };
       // C1 contract: requireEmailVerification + autoSignIn:false → no session
-      // is issued at signUp time. Bearer header is absent; client must
+      // is issued at signUp time. No session cookie is set; the client must
       // wait for the verify-email click (or surface "check your inbox").
       expect(body.token).toBeNull();
-      expect(res.headers["set-auth-token"]).toBeUndefined();
+      expect(sessionCookieFromInject(res)).toBeNull();
       expect(body.user.email).toBe("alice@example.com");
       expect(body.user.name).toBe("Alice");
       expect(body.user.id).toMatch(
@@ -113,7 +116,7 @@ describeIfReady("better-auth HTTP routes", () => {
       });
 
       expect(res.statusCode).toBe(200);
-      expect(res.headers["set-auth-token"]).toBeUndefined();
+      expect(sessionCookieFromInject(res)).toBeNull();
 
       const after = await pool.query<{ count: string }>(
         `select count(*)::text from users where email = $1`,
@@ -165,7 +168,7 @@ describeIfReady("better-auth HTTP routes", () => {
       };
       expect(body.token).toBeTruthy();
       expect(body.user.email).toBe("bob@example.com");
-      expect(res.headers["set-auth-token"]).toBeTruthy();
+      expect(sessionCookieFromInject(res)).toBeTruthy();
     });
 
     it("rejects wrong password with 401", async () => {
@@ -219,7 +222,7 @@ describeIfReady("better-auth HTTP routes", () => {
   });
 
   describe("GET /api/auth/get-session", () => {
-    it("returns user + session for a valid bearer token", async () => {
+    it("returns user + session for a valid session cookie", async () => {
       const user = await createTestUser({ email: "eve@example.com" });
 
       const res = await app.inject({
@@ -290,12 +293,12 @@ describeIfReady("better-auth HTTP routes", () => {
   });
 
   // Closes acceptance gap from sec 1.8: opaque-session model invariant. Since
-  // bearers resolve to a `session` row on every authed request, deleting that
-  // row instantly invalidates every device holding the token — the runtime
-  // equivalent of a JWT revocation. Smoke: bearer works against a protected
-  // route, DELETE FROM session, same bearer is rejected with 401.
+  // session cookies resolve to a `session` row on every authed request, deleting
+  // that row instantly invalidates every device holding the cookie — the runtime
+  // equivalent of a JWT revocation. Smoke: the cookie works against a protected
+  // route, DELETE FROM session, the same cookie is rejected with 401.
   describe("session revocation", () => {
-    it("DELETE FROM session → next request with same bearer is rejected with 401", async () => {
+    it("DELETE FROM session → next request with the same cookie is rejected with 401", async () => {
       const user = await createTestUser({ email: "revoke@example.com" });
 
       const before = await app.inject({

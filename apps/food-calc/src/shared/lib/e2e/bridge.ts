@@ -40,16 +40,17 @@ export function installE2EBridge(): void {
 
     createProduct,
 
+    // The session is an httpOnly cookie — invisible to JS and to this bridge.
+    // Playwright drives it natively through the browser context, so "signed in?"
+    // is answered by the cached user alone.
     getSession: async () => {
       const user = authProvider.getCurrentUser();
-      const accessToken = await authProvider.getAccessToken();
-      return user && accessToken ? { user, access_token: accessToken } : null;
+      return user ? { user } : null;
     },
     signInTest: async (email = 'e2e@disher.test', password = 'e2e-password') => {
       const result = await authProvider.signIn(email, password);
       if (!result.ok) throw new Error(result.error.message);
-      const accessToken = await authProvider.getAccessToken();
-      return { user: result.user, access_token: accessToken };
+      return { user: result.user };
     },
     signOut: async () => {
       await authProvider.signOut();

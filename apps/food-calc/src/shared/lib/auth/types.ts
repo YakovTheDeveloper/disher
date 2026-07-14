@@ -36,8 +36,8 @@ export type SignUpResult =
   | { ok: false; error: AuthError };
 
 // Provider-agnostic session lifecycle events. `token_refreshed` is included
-// for providers that auto-refresh; the current better-auth bearer-mode impl
-// never emits it (sessions are opaque, no refresh — a 401 means sign-out).
+// for providers that auto-refresh; the better-auth impl never emits it
+// (sessions are opaque, no refresh — a 401 means sign-out).
 export type AuthChangeEvent =
   | 'signed_in'
   | 'signed_out'
@@ -46,18 +46,11 @@ export type AuthChangeEvent =
 
 export interface AuthProvider {
   /**
-   * Resolve the initial session from local storage. Returns the user if a
-   * valid session is present, null otherwise. Does NOT throw on
-   * "no session" — only on storage / parse errors.
+   * Resolve the initial session against the server (the session cookie is
+   * httpOnly — there is nothing local to read). Returns the user if a valid
+   * session is present, null otherwise. Does NOT throw on "no session".
    */
   bootstrap(): Promise<AppUser | null>;
-
-  /**
-   * Current access token if signed in, null otherwise. The active better-auth
-   * impl returns an opaque bearer (not a JWT) read straight from
-   * localStorage — there is no refresh.
-   */
-  getAccessToken(): Promise<string | null>;
 
   signIn(email: string, password: string): Promise<AuthResult>;
   signUp(email: string, password: string): Promise<SignUpResult>;

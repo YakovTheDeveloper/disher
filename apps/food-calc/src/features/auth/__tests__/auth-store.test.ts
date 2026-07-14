@@ -16,7 +16,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const authProviderMock = {
   bootstrap: vi.fn(async () => null),
-  getAccessToken: vi.fn(async () => null),
   signIn: vi.fn(),
   signUp: vi.fn(),
   signOut: vi.fn(async () => undefined),

@@ -1,7 +1,7 @@
 import { auth } from "../auth/server.js";
 
 // Test auth helpers — wrap better-auth's first-party `auth.api.signUpEmail`
-// so each test can mint a fresh user + bearer token in one call.
+// so each test can mint a fresh user + session cookie in one call.
 //
 // We intentionally use the production `auth` instance (../auth/server.ts)
 // rather than better-auth's `getTestInstance` — the latter spins up its own
@@ -21,7 +21,7 @@ import { auth } from "../auth/server.js";
 // signUp → picks the JWT verification token out of the `globalThis` map
 // populated by the dev-stub `sendVerificationEmail` callback in auth/server.ts
 // → calls `auth.api.verifyEmail`, which (with
-// `autoSignInAfterVerification: true`) issues the bearer in `set-auth-token`.
+// `autoSignInAfterVerification: true`) issues the session cookie in `set-cookie`.
 //
 // Note: better-auth's email-verification token is a self-contained signed JWT,
 // not a `verification` table row — reading from the table would always miss.
@@ -29,14 +29,49 @@ import { auth } from "../auth/server.js";
 export type TestUser = {
   /** UUID — usable as user_id in disher tables. */
   userId: string;
-  /** Bearer token from set-auth-token header — send as Authorization: Bearer <token>. */
-  sessionToken: string;
-  /** Convenience: `{ authorization: "Bearer <token>" }` ready for inject() headers. */
+  /** `Cookie:` header value carrying the session cookie (name=<signed value>). */
+  sessionCookie: string;
+  /** Convenience: `{ cookie: "<name>=<value>" }` ready for inject() headers. */
   headers: Record<string, string>;
   email: string;
 };
 
 let counter = 0;
+
+/**
+ * Pull the better-auth session cookie out of a `Set-Cookie` response and return
+ * it as a `Cookie:` header value. Matched by suffix (`*session_token`) rather
+ * than a hard-coded name so `advanced.cookiePrefix` and the `__Secure-` prefix
+ * (added only when the base URL is https) stay free to change.
+ */
+export function sessionCookieFromResponse(response: Response): string | null {
+  return pickSessionCookie(response.headers.getSetCookie());
+}
+
+/**
+ * Same, for a Fastify `inject()` result — its `set-cookie` header is a bare
+ * string when a single cookie was set and an array when several were.
+ */
+export function sessionCookieFromInject(res: {
+  headers: Record<string, unknown>;
+}): string | null {
+  const raw = res.headers["set-cookie"];
+  const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  return pickSessionCookie(list.map(String));
+}
+
+function pickSessionCookie(setCookies: string[]): string | null {
+  for (const raw of setCookies) {
+    const pair = raw.split(";", 1)[0];
+    const name = pair.split("=", 1)[0];
+    // An expiry-style clear (`...=; Max-Age=0`) carries an empty value — it is
+    // a sign-out, not a session, so don't hand it back as a credential.
+    if (name.endsWith("session_token") && pair.length > name.length + 1) {
+      return pair;
+    }
+  }
+  return null;
+}
 
 type VerifyTokenMap = Map<
   string,
@@ -52,8 +87,8 @@ function getVerifyTokensMap(): VerifyTokenMap {
 /**
  * Pick the JWT verification token left by the dev-stub `sendVerificationEmail`
  * callback (see auth/server.ts) and call `auth.api.verifyEmail`. Returns the
- * bearer issued by `autoSignInAfterVerification`. Throws if the callback has
- * not populated the map for `email` (a signal that better-auth never invoked
+ * session cookie issued by `autoSignInAfterVerification`. Throws if the callback
+ * has not populated the map for `email` (a signal that better-auth never invoked
  * the callback — likely a config regression).
  */
 async function verifyEmailForTest(email: string): Promise<string> {
@@ -80,18 +115,18 @@ async function verifyEmailForTest(email: string): Promise<string> {
     );
   }
 
-  const sessionToken = response.headers.get("set-auth-token");
-  if (!sessionToken) {
+  const sessionCookie = sessionCookieFromResponse(response);
+  if (!sessionCookie) {
     throw new Error(
-      "verifyEmail response missing set-auth-token — is autoSignInAfterVerification enabled?",
+      "verifyEmail response set no session cookie — is autoSignInAfterVerification enabled?",
     );
   }
-  return sessionToken;
+  return sessionCookie;
 }
 
 /**
  * Sign up a fresh test user via better-auth, then verify the email + grab the
- * bearer. Returns userId + bearer token.
+ * session cookie. Returns userId + the cookie header.
  *
  * Email defaults to `test+<counter>+<random>@example.com` so multiple users
  * in the same test get unique emails without collision.
@@ -123,12 +158,12 @@ export async function createTestUser(opts: {
   const json = (await signUpResponse.json()) as { user: { id: string } };
   const userId = json.user.id;
 
-  const sessionToken = await verifyEmailForTest(email);
+  const sessionCookie = await verifyEmailForTest(email);
 
   return {
     userId,
-    sessionToken,
-    headers: { authorization: `Bearer ${sessionToken}` },
+    sessionCookie,
+    headers: { cookie: sessionCookie },
     email,
   };
 }

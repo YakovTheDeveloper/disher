@@ -27,11 +27,10 @@ function isPublicPath(pathname: string): boolean {
  * navigation lands on the gated app.
  *
  * Do NOT short-circuit this to `<>{children}</>` to test without a login: the
- * app then boots signed-out, no bearer is ever minted, and every authedFetch
- * (sync, analyze, free-text-food) throws NotAuthenticatedError BEFORE issuing a
- * request — the user sees a bare «Что-то пошло не так» and no network activity
- * at all. That shipped to prod once (98d3f1b3 → 7b2f54e4); use a real test
- * account instead.
+ * app then boots signed-out, no session cookie is ever minted, and every
+ * authedFetch (sync, analyze, free-text-food) comes back 401 — the user sees a
+ * bare «Что-то пошло не так». That shipped to prod once (98d3f1b3 → 7b2f54e4);
+ * use a real test account instead.
  *
  * NB: we read `window.location.pathname` directly. AuthGate is mounted inside
  * App's Outlet so a Router context is available, but the public-path check is

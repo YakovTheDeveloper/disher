@@ -1,23 +1,22 @@
-// better-auth implementation of the AuthProvider contract. Replaces
-// supabaseAuthProvider as the active backend behind `authProvider`. The rest
-// of the app (auth-store, useUserId, authedFetch) keeps consuming the same
-// interface from ./types — no call-site changes.
+// better-auth implementation of the AuthProvider contract. The rest of the app
+// (auth-store, useUserId, authedFetch) consumes the interface from ./types — no
+// call-site changes.
 //
-// Key differences vs supabase:
-//  - sessions are opaque server-side tokens (NOT JWT), no refresh — a 401
-//    from /api/auth/get-session means sign-out (we wipe the bearer key).
-//  - `set-auth-token` header is captured in betterAuthClient.ts onSuccess
-//    hook — we don't see the token here directly, only via localStorage.
-//  - onAuthChange subscribes to better-auth's nanostore `session` atom and
-//    diffs against the previous user to emit signed_in / signed_out /
-//    user_updated. token_refreshed never fires (no refresh in bearer mode).
+// Session transport is an httpOnly cookie the browser attaches itself. JS never
+// sees the credential, which means:
+//  - there is nothing to read locally to answer "am I signed in?" — bootstrap
+//    always asks the server (see the two timeout budgets below);
+//  - `disher.lastUser` is the only local trace, and it is a render hint, not a
+//    credential: it lets a returning user see their app instead of a login
+//    screen while the session check is still in flight.
+//
+// Sessions are opaque server-side tokens (NOT JWT), no refresh — a 401 from
+// /api/auth/get-session means sign-out. onAuthChange subscribes to better-auth's
+// nanostore `session` atom and diffs against the previous user to emit
+// signed_in / signed_out / user_updated.
 
-import { authClient, BEARER_KEY } from './betterAuthClient';
-import {
-  OAUTH_ERROR_PARAM,
-  OAUTH_RETURN_PARAM,
-  consumeOAuthReturnFlag,
-} from './oauthReturn';
+import { authClient } from './betterAuthClient';
+import { OAUTH_ERROR_PARAM } from './oauthReturn';
 import type {
   AppUser,
   AuthChangeEvent,
@@ -120,18 +119,24 @@ let cachedUser: AppUser | null = null;
 
 const SB_CLEANED_FLAG = 'disher.sb-cleaned';
 
-// Hard cap on the boot-time getSession call. The whole app render is gated
-// behind it (AuthGate → null until bootstrap resolves), so it must never wait
-// on the OS network timeout. A healthy call returns in well under a second;
-// anything past this is treated as a hung socket and we boot local-first
-// instead (cachedUser ← readLastUser, session reconciles in the background).
-const BOOTSTRAP_NET_TIMEOUT_MS = 1000;
+// Two caps on the boot-time getSession call — the whole app render is gated
+// behind it (AuthGate → null until bootstrap resolves), so it must never wait on
+// the OS network timeout. Which cap applies depends on what we can fall back to:
+//
+//  - WARM (a lastUser is cached): a timeout costs nothing — we render their app
+//    from Dexie and reconcile the session in the background. Keep it tight.
+//  - COLD (no lastUser): the only fallback is AuthScreen, and aborting early
+//    strands a user who DOES have a valid cookie back at the login button. This
+//    is exactly the leg right after the Telegram redirect — first login, cold
+//    mobile connection, nothing cached. Give the network real time.
+const BOOTSTRAP_WARM_TIMEOUT_MS = 1000;
+const BOOTSTRAP_COLD_TIMEOUT_MS = 5000;
 
-// Persisted last-known user. Used as a fallback when bootstrap can't reach
-// the server (network down / backend offline) but a bearer is still on disk
-// — we keep the user signed in instead of bouncing them to AuthScreen. Wiped
-// on explicit signOut or on a real 401/403 from the server. See
-// project_auth_invariant.md: «окно логина юзер не видит вне явного logout».
+// Persisted last-known user. Used as a fallback when bootstrap can't reach the
+// server (network down / backend offline) — we keep the user signed in instead
+// of bouncing them to AuthScreen. Wiped on explicit signOut or on a real 401/403
+// from the server. See project_auth_invariant.md: «окно логина юзер не видит вне
+// явного logout».
 const LAST_USER_KEY = 'disher.lastUser';
 
 function readLastUser(): AppUser | null {
@@ -172,45 +177,6 @@ function persistLastUser(user: AppUser | null) {
   }
 }
 
-// Cap for the one-shot post-OAuth getSession. Deliberately NOT the 1s bootstrap
-// budget: this leg runs exactly once right after the Telegram redirect, usually
-// on a cold mobile connection, and a premature abort silently strands the user
-// back on AuthScreen (the session cookie exists but the bearer is never
-// captured).
-const OAUTH_CAPTURE_TIMEOUT_MS = 5000;
-
-// Finish a redirect OAuth sign-in on a device with no bearer. The callback
-// (`/api/auth/oauth2/callback/<provider>`) minted the session as a cookie on
-// the API origin and put `set-auth-token` on the 302 — a navigation header JS
-// never sees, so localStorage stayed empty and the plain bootstrap would
-// short-circuit to logged-out. Here we ask the server for that session over
-// the same-site cookie (better-auth client sends credentials:'include' by
-// default; with an empty bearer better-fetch skips the Authorization header
-// entirely, so the cookie is the credential) and mirror the raw session token
-// into the bearer slot — the server-side bearer plugin accepts it verbatim
-// (requireSignature is off), so `session.token` IS a valid bearer.
-async function captureOAuthSession(): Promise<AppUser | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OAUTH_CAPTURE_TIMEOUT_MS);
-  try {
-    const { data } = await authClient.getSession({
-      fetchOptions: { signal: controller.signal },
-    });
-    const token = data?.session?.token;
-    const user = toAppUser(data?.user);
-    if (!token || !user) return null;
-    localStorage.setItem(BEARER_KEY, token);
-    cachedUser = user;
-    persistLastUser(user);
-    return user;
-  } catch (e) {
-    console.warn('betterAuthProvider: post-OAuth session capture failed', e);
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 export const betterAuthProvider: AuthProvider = {
   async bootstrap() {
     // One-shot legacy cleanup: drop any pre-migration `sb-*` localStorage keys
@@ -224,45 +190,34 @@ export const betterAuthProvider: AuthProvider = {
       localStorage.setItem(SB_CLEANED_FLAG, '1');
     }
 
-    // Consume the OAuth-return marker unconditionally so `?oauth=` never
-    // survives a reload — a stale flag would re-run the capture path.
-    const oauthReturn = consumeOAuthReturnFlag();
-
-    // Skip the network entirely if there is no token — fresh install or
-    // post-signOut. The reactive store will stay logged-out and AuthGate
-    // shows the sign-in screen. The one exception is the OAuth return leg:
-    // there a session ALREADY exists (as an api-origin cookie), only the
-    // bearer is missing — capture it instead of bouncing the user back to
-    // AuthScreen after a completed Telegram round-trip.
-    if (!localStorage.getItem(BEARER_KEY)) {
-      if (oauthReturn) {
-        const captured = await captureOAuthSession();
-        if (captured) return captured;
-      }
-      cachedUser = null;
-      persistLastUser(null);
-      return null;
-    }
-    // better-auth rejects (TypeError: Failed to fetch) instead of returning
-    // `{ error }` on network failure — backend down, offline, DNS, etc. We
-    // do NOT drop the token AND we fall back to the persisted last-known user
-    // so AuthGate doesn't bounce a signed-in user to AuthScreen just because
-    // the backend is unreachable. BackupGate will fail its push/pull quietly
-    // and Dexie keeps serving as the local-first source of truth.
+    // The session lives in an httpOnly cookie, so there is no local check that
+    // can short-circuit this: only the server knows whether we're signed in.
+    // Every boot asks — including the leg back from Telegram, which is now just
+    // an ordinary boot with a cookie already in place (no marker, no capture).
     //
-    // CRITICAL: this await blocks the whole app boot — AuthGate renders
-    // nothing until bootstrap resolves. fetch() has no default timeout, so a
-    // hung socket (iOS reaching the backend's separate self-signed cert on
-    // :3100, captive portal, dead TCP) freezes the splash for ~60s until the
-    // OS network stack gives up. Cap it with an AbortController exactly like
-    // signOut does — on timeout we treat it as a network failure (keep the
-    // bearer, fall back to the last-known user, boot local-first).
+    // better-auth rejects (TypeError: Failed to fetch) instead of returning
+    // `{ error }` on network failure — backend down, offline, DNS, etc. We fall
+    // back to the persisted last-known user so AuthGate doesn't bounce a
+    // signed-in user to AuthScreen just because the backend is unreachable;
+    // BackupGate will fail its push/pull quietly and Dexie keeps serving as the
+    // local-first source of truth.
+    //
+    // CRITICAL: this await blocks the whole app boot — AuthGate renders nothing
+    // until bootstrap resolves. fetch() has no default timeout, so a hung socket
+    // (iOS reaching the backend's separate self-signed cert on :3100, captive
+    // portal, dead TCP) would freeze the splash for ~60s until the OS network
+    // stack gives up. Cap it with an AbortController; the budget depends on
+    // whether we have a user to fall back to.
+    const lastUser = readLastUser();
     const controller = new AbortController();
     let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, BOOTSTRAP_NET_TIMEOUT_MS);
+    const timer = setTimeout(
+      () => {
+        timedOut = true;
+        controller.abort();
+      },
+      lastUser ? BOOTSTRAP_WARM_TIMEOUT_MS : BOOTSTRAP_COLD_TIMEOUT_MS,
+    );
     let getSessionResult: Awaited<ReturnType<typeof authClient.getSession>>;
     try {
       getSessionResult = await authClient.getSession({
@@ -270,53 +225,51 @@ export const betterAuthProvider: AuthProvider = {
       });
     } catch (e) {
       console.warn('betterAuthProvider.bootstrap: getSession failed (network?)', e);
-      cachedUser = readLastUser();
+      cachedUser = lastUser;
       return cachedUser;
     } finally {
       clearTimeout(timer);
     }
     // An abort can surface as a thrown error (handled above) OR as a resolved
-    // `{ error }` shape. The latter must NOT hit the token-wipe branch below —
-    // a timeout is never a real revocation. Force the network-failure path.
+    // `{ error }` shape. The latter must NOT hit the wipe branch below — a
+    // timeout is never a real revocation. Force the network-failure path.
     if (timedOut) {
       console.warn('betterAuthProvider.bootstrap: getSession timed out');
-      cachedUser = readLastUser();
+      cachedUser = lastUser;
       return cachedUser;
     }
     const { data, error } = getSessionResult;
     if (error) {
-      // Only an EXPLICIT auth rejection means the token is truly dead: 401
-      // (expired/revoked) or 403 (forbidden). Wipe the bearer + last-known user
-      // so a later network-flake can't resurrect a revoked session.
+      // Only an EXPLICIT auth rejection means the session is truly dead: 401
+      // (expired/revoked) or 403 (forbidden). Wipe the last-known user so a
+      // later network-flake can't resurrect a revoked session.
       //
       // Any OTHER error — 5xx, 429, or a network-shaped error better-fetch
-      // surfaced as `{ error }` (no numeric status) — is TRANSIENT. Keep the
-      // token and boot local-first from readLastUser, exactly like the
-      // network-throw (catch) and timeout branches above. Before this, ANY error
-      // logged the user out, so a fast 500/502/429 in the 1s boot window (deploy,
-      // pg-pool restart, proxy) bounced a signed-in user to AuthScreen — and the
+      // surfaced as `{ error }` (no numeric status) — is TRANSIENT: boot
+      // local-first from the last-known user, exactly like the network-throw
+      // (catch) and timeout branches above. Before this, ANY error logged the
+      // user out, so a fast 500/502/429 in the boot window (deploy, pg-pool
+      // restart, proxy) bounced a signed-in user to AuthScreen — and the
       // re-login cascaded a wipeLocalData that dropped unsynced edits.
       const status =
         typeof (error as { status?: unknown }).status === 'number'
           ? (error as { status: number }).status
           : undefined;
       if (status === 401 || status === 403) {
-        localStorage.removeItem(BEARER_KEY);
         persistLastUser(null);
         cachedUser = null;
         return null;
       }
       console.warn(
-        'betterAuthProvider.bootstrap: getSession error, treating as transient (token kept)',
+        'betterAuthProvider.bootstrap: getSession error, treating as transient',
         error,
       );
-      cachedUser = readLastUser();
+      cachedUser = lastUser;
       return cachedUser;
     }
     if (!data?.user) {
-      // 200 with no session for this token — the server explicitly says it's
-      // dead (not a transport failure). Wipe, same as a 401.
-      localStorage.removeItem(BEARER_KEY);
+      // 200 with no session — the server explicitly says there is none (not a
+      // transport failure): no cookie, or it's expired. Wipe, same as a 401.
       persistLastUser(null);
       cachedUser = null;
       return null;
@@ -324,10 +277,6 @@ export const betterAuthProvider: AuthProvider = {
     cachedUser = toAppUser(data.user);
     persistLastUser(cachedUser);
     return cachedUser;
-  },
-
-  async getAccessToken() {
-    return localStorage.getItem(BEARER_KEY);
   },
 
   async signIn(email, password): Promise<AuthResult> {
@@ -388,22 +337,23 @@ export const betterAuthProvider: AuthProvider = {
   },
 
   async signOut() {
-    // Best-effort server revoke — even if /sign-out fails (network/500/etc)
-    // we MUST clear the local bearer + cached user, otherwise the UI stays
-    // "logged in" against a dead session. A 7s AbortController cap stops a
-    // hung socket (dead TCP / captive portal — fetch has no default timeout)
-    // from freezing sign-out forever; on abort we proceed to the local clear
-    // exactly as on any other failure (the server session expires on its own).
+    // The cookie is httpOnly: only the server can actually clear it (sign-out
+    // replies with an expiring Set-Cookie). If that call never lands — offline,
+    // 500, hung socket — the cookie survives and a reload would sign the user
+    // straight back in. We still clear the local state so the UI leaves
+    // immediately, and the next successful boot reconciles.
+    //
+    // A 7s AbortController cap stops a hung socket (dead TCP / captive portal —
+    // fetch has no default timeout) from freezing sign-out forever.
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 7000);
     try {
       await authClient.signOut({ fetchOptions: { signal: controller.signal } });
     } catch (e) {
-      console.error('signOut failed (clearing local bearer anyway)', e);
+      console.error('signOut failed (clearing local state anyway)', e);
     } finally {
       clearTimeout(timer);
     }
-    localStorage.removeItem(BEARER_KEY);
     persistLastUser(null);
     cachedUser = null;
   },
@@ -411,16 +361,15 @@ export const betterAuthProvider: AuthProvider = {
   async signInWithOAuth(providerId, callbackURL = '/') {
     // Redirect-based OIDC (Telegram). On success better-auth returns a provider
     // authorize URL and the client redirects the browser to it — control leaves
-    // the page. The bearer can NOT be captured by the onSuccess hook on the way
-    // back (the callback is a 302 navigation, not an XHR), so the success URL
-    // carries the `?oauth=<provider>` marker: bootstrap() sees it and pulls the
-    // cookie-session into the bearer slot (captureOAuthSession). The error URL
-    // carries `?authError=<provider>` for AuthForm's banner. We only get a
-    // value back here when the redirect can't be started.
+    // the page. The success leg needs no marker: the callback sets the session
+    // cookie and the browser brings it back on its own, so the return is an
+    // ordinary boot. The error leg still carries `?authError=<provider>` for
+    // AuthForm's banner. We only get a value back here when the redirect can't
+    // be started.
     try {
       const { data, error } = await authClient.signIn.oauth2({
         providerId,
-        callbackURL: appURLWithParam(callbackURL, OAUTH_RETURN_PARAM, providerId),
+        callbackURL: appURL(callbackURL),
         errorCallbackURL: appURLWithParam(callbackURL, OAUTH_ERROR_PARAM, providerId),
       });
       if (error) {

@@ -49,7 +49,7 @@ describeIfReady("admin routes", () => {
   });
 
   // ── guard ────────────────────────────────────────────────────────────────
-  it("401 without a bearer", async () => {
+  it("401 without a session cookie", async () => {
     const res = await app.inject({ method: "GET", url: "/api/admin/me" });
     expect(res.statusCode).toBe(401);
   });

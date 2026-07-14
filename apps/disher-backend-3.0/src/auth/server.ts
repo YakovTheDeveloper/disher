@@ -2,7 +2,7 @@
 //
 // Owns: schema-generating config (CLI generate reads this file), runtime
 // password verification (signUpEmail / signInEmail), session management,
-// bearer-token issuance for the SPA. HTTP route mounting is in B3 (the
+// session-cookie issuance for the SPA. HTTP route mounting is in B3 (the
 // Fastify handler that proxies to `auth.handler`).
 //
 // Schema baked in here (see ../../db/migrations/better-auth-schema.sql for
@@ -12,10 +12,12 @@
 //  - user.modelName: "users"     → table is `public.users` (matches the
 //                                  existing FK target name from `auth.users`)
 //
-// Plugins:
-//  - bearer() — issues a `set-auth-token` response header on sign-in/-up that
-//    callers (browser SPA, tests via Fastify.inject) read once and then send
-//    back as `Authorization: Bearer <token>`. Required for non-cookie auth.
+// Session transport: httpOnly cookie (better-auth's native mode). The old
+// bearer() plugin is gone — it existed only to translate an Authorization
+// header back into the cookie better-auth reads anyway. SPA and API are
+// different origins but the SAME site (disher.life / api.disher.life), so the
+// cookie is first-party: SameSite=Lax carries it, and Safari's ITP does not
+// cap it (that cap applies to JS-set cookies, not Set-Cookie).
 //
 // Email verification (C1): `requireEmailVerification: true` blocks signIn
 // (HTTP 403 EMAIL_NOT_VERIFIED) and forces signUp to return `token: null` —
@@ -28,17 +30,17 @@
 //
 // C2.4: better-auth generates `url` pointing at backend
 // (`${BETTER_AUTH_URL}/api/auth/verify-email?token=...`). The SPA owns the
-// verify UX (loading/success/error states) and reads the bearer from the
-// `set-auth-token` response header — better-auth's own redirect handler
-// would 302 to `callbackURL` and the browser drops headers across redirects.
-// So we rewrite the visible URL to the SPA route `/auth/verify-email?token=`
-// and the SPA calls `authClient.verifyEmail({ query: { token } })` itself.
-// Keep the original `url` in the globalThis map so the contract test
-// (email-verification.test.ts) still asserts better-auth's wiring.
+// verify UX (loading/success/error states) and calls
+// `authClient.verifyEmail({ query: { token } })` itself — better-auth's own
+// redirect handler would 302 to `callbackURL` and the SPA never gets to render
+// its states. So we rewrite the visible URL to the SPA route
+// `/auth/verify-email?token=`. Keep the original `url` in the globalThis map so
+// the contract test (email-verification.test.ts) still asserts better-auth's
+// wiring.
 
 import { betterAuth } from "better-auth";
 import { createAuthMiddleware, getIp } from "better-auth/api";
-import { admin, bearer, genericOAuth } from "better-auth/plugins";
+import { admin, genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
 import { getAdminUserIds } from "./admin-ids.js";
@@ -192,6 +194,28 @@ export const auth = betterAuth({
     database: {
       generateId: "uuid",
     },
+    // A cookie is identified by name+domain+path. The pre-migration server
+    // already put `better-auth.session_token` on api.disher.life as a HOST-ONLY
+    // cookie, and it still sits in every live browser. A new cookie with the
+    // SAME name but `Domain=.disher.life` would NOT overwrite it — both would
+    // fly on every request, the server would read the first, and sign-out (which
+    // can only clear the domain-scoped one) would leave the user signed in.
+    // A fresh prefix gives a namespace where exactly one cookie can exist.
+    // Accepted cost: every live user is signed out once and re-logs via Telegram.
+    cookiePrefix: "disher",
+    // Prod only: SPA (disher.life) and API (api.disher.life) are different
+    // subdomains, so the session cookie must be scoped to the parent domain.
+    // In dev both live on the same hostname (ports 5173 / 3100, and a port is
+    // not part of a cookie's scope), so a host-only cookie is enough — and with
+    // a LAN IP a `Domain` attribute is illegal outright.
+    ...(process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN
+      ? {
+          crossSubDomainCookies: {
+            enabled: true,
+            domain: process.env.COOKIE_DOMAIN,
+          },
+        }
+      : {}),
   },
   // Where auth errors land. Without this, better-auth's /error route in
   // production 302s the browser to a RELATIVE `/?error=<code>` — which the
@@ -243,11 +267,16 @@ export const auth = betterAuth({
       );
     }),
   },
-  // Long session by design (Disher auth-инвариант: «логин один раз»). Bearer
-  // mode means we have no refresh token — sliding `updateAge` extends the
-  // server-side `session.expiresAt` row by re-issuing the bearer when it's
-  // older than 1 day, so an active user effectively never re-logs. A user
-  // who's away for >365d will see the login screen — acceptable.
+  // Long session by design (Disher auth-инвариант: «логин один раз»). There is
+  // no refresh token — sliding `updateAge` extends the server-side
+  // `session.expiresAt` row (and re-sends the cookie) when it's older than a
+  // day, so an active user effectively never re-logs. A user who's away for
+  // >365d will see the login screen — acceptable. NOT touching these two: they
+  // ARE the "log in once" invariant.
+  //
+  // `session.cookieCache` stays OFF deliberately: better-auth #10021 — a stale
+  // cached session_data signs the user OUT instead of falling back to the DB,
+  // which directly contradicts the invariant above.
   session: {
     expiresIn: 60 * 60 * 24 * 365,
     updateAge: 60 * 60 * 24,
@@ -298,7 +327,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    bearer(),
     // Roles (admin/user). adminUserIds seeds bootstrap admins from env (they
     // keep role='user' in the DB but are treated as admin) — see admin-ids.ts.
     // No createAccessControl: the app has no fine-grained permissions, just the

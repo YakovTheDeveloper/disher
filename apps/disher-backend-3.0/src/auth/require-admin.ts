@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getAdminUserIds } from "./admin-ids.js";
-import { verifyUserBearer } from "./verify-bearer.js";
+import { verifyUserSession } from "./verify-session.js";
 
 // Server-side admin guard — the ONLY real gate (the client-side gate is UX,
 // AuthGate on the frontend is a no-op for security). Self-applied as a
@@ -11,13 +11,13 @@ import { verifyUserBearer } from "./verify-bearer.js";
 // env-admin keeps role='user' in the DB. The env is parsed lazily on every call
 // (getAdminUserIds re-reads process.env) so it's testable without a restart.
 //
-// 401 = no/invalid bearer (verifyUserBearer already sent it). 403 = a valid
+// 401 = no/invalid session (verifyUserSession already sent it). 403 = a valid
 // user who isn't an admin. Errors go out as plain `{error}` bodies (not thrown
 // AppError) so bare-Fastify contract tests without the global error handler see
 // the right status.
 
 export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
-  const verified = await verifyUserBearer(req, reply);
+  const verified = await verifyUserSession(req, reply);
   if (!verified) return; // 401 already sent
 
   const isAdmin =

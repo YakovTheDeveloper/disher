@@ -1,19 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
 
-// The prod route is auth-gated (requireUser → verifyUserBearer) and writes to
+// The prod route is auth-gated (requireUser → verifyUserSession) and writes to
 // pg. Mock both boundaries: a fake pool captures the INSERT params, and the
-// bearer verifier gates on a plain `Bearer ` header so we can exercise the
-// 401 path and the happy path without a real session store.
+// session verifier gates on the presence of a session cookie so we can exercise
+// the 401 path and the happy path without a real session store.
 const query = vi.fn().mockResolvedValue({ rows: [] });
 vi.mock("../db.js", () => ({ pool: { query } }));
 
 const TEST_USER_ID = "11111111-1111-4111-8111-111111111111";
-vi.mock("../../auth/verify-bearer.js", () => ({
-  verifyUserBearer: vi.fn(async (req, reply) => {
-    const h = req.headers.authorization as string | undefined;
-    if (!h?.startsWith("Bearer ")) {
-      reply.status(401).send({ error: "No token provided" });
+vi.mock("../../auth/verify-session.js", () => ({
+  verifyUserSession: vi.fn(async (req, reply) => {
+    const cookie = req.headers.cookie as string | undefined;
+    if (!cookie?.includes("session_token=")) {
+      reply.status(401).send({ error: "Invalid or expired session" });
       return null;
     }
     return { userId: TEST_USER_ID, role: null };
@@ -23,7 +23,7 @@ vi.mock("../../auth/verify-bearer.js", () => ({
 const { userReportsRoutes } = await import("./user-reports.js");
 
 const url = "/api/user-reports/";
-const AUTH = { authorization: "Bearer test-token" };
+const AUTH = { cookie: "disher.session_token=test-token" };
 
 async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify();
@@ -50,7 +50,7 @@ afterEach(() => {
 });
 
 describe("POST /api/user-reports — auth gate", () => {
-  it("401s without a bearer, writes nothing", async () => {
+  it("401s without a session cookie, writes nothing", async () => {
     const app = await buildApp();
     const res = await app.inject({ method: "POST", url, payload: { text: "hi" } });
     expect(res.statusCode).toBe(401);

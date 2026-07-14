@@ -9,7 +9,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 const authedFetch = vi.fn();
 vi.mock('@/shared/lib/api/authedFetch', () => ({
   authedFetch: (...args: unknown[]) => authedFetch(...args),
-  NotAuthenticatedError: class extends Error {},
 }));
 
 import { syncNow } from '@/shared/lib/snapshot';

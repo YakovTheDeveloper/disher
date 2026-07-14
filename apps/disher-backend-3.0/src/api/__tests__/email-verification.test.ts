@@ -1,6 +1,10 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { buildApp, type BuiltApp } from "../buildApp.js";
 import { auth } from "../../auth/server.js";
+import {
+  sessionCookieFromInject,
+  sessionCookieFromResponse,
+} from "../../test/auth-helpers.js";
 import { makeTestPool, truncateAllUserData } from "../../test/db-helpers.js";
 
 // C1 — email-verification contract tests for the better-auth flow:
@@ -8,7 +12,7 @@ import { makeTestPool, truncateAllUserData } from "../../test/db-helpers.js";
 //   signUp (no session) → sendVerificationEmail callback fires
 //                       → signIn before verify is rejected (403)
 //                       → verifyEmail click consumes token
-//                       → autoSignInAfterVerification issues a bearer
+//                       → autoSignInAfterVerification issues a session cookie
 //                       → emailVerified=true in DB
 //
 // We hit the production `auth` instance + the live HTTP routes via
@@ -87,12 +91,12 @@ describeIfReady("C1 email-verification contract", () => {
     });
 
     expect(res.statusCode).toBe(403);
-    expect(res.headers["set-auth-token"]).toBeUndefined();
+    expect(sessionCookieFromInject(res)).toBeNull();
     const blob = JSON.stringify(res.json()).toLowerCase();
     expect(blob).toContain("verif");
   });
 
-  it("verifyEmail consumes the token, flips emailVerified=true, and (autoSignInAfterVerification) issues a bearer", async () => {
+  it("verifyEmail consumes the token, flips emailVerified=true, and (autoSignInAfterVerification) issues a session cookie", async () => {
     const email = "verify-flow@example.com";
     await app.inject({
       method: "POST",
@@ -108,8 +112,8 @@ describeIfReady("C1 email-verification contract", () => {
       asResponse: true,
     })) as Response;
     expect(verifyResponse.ok).toBe(true);
-    const bearer = verifyResponse.headers.get("set-auth-token");
-    expect(bearer).toBeTruthy();
+    const sessionCookie = sessionCookieFromResponse(verifyResponse);
+    expect(sessionCookie).toBeTruthy();
 
     const dbUser = await pool.query<{ emailVerified: boolean }>(
       `select "emailVerified" from users where email = $1`,
@@ -117,18 +121,18 @@ describeIfReady("C1 email-verification contract", () => {
     );
     expect(dbUser.rows[0].emailVerified).toBe(true);
 
-    // The freshly-issued bearer must work against /api/auth/get-session.
+    // The freshly-issued cookie must work against /api/auth/get-session.
     const session = await app.inject({
       method: "GET",
       url: "/api/auth/get-session",
-      headers: { authorization: `Bearer ${bearer}` },
+      headers: { cookie: sessionCookie! },
     });
     expect(session.statusCode).toBe(200);
     const body = session.json() as { user: { email: string } };
     expect(body.user.email).toBe(email);
   });
 
-  it("signIn after verify succeeds (bearer issued, emailVerified=true)", async () => {
+  it("signIn after verify succeeds (session cookie issued, emailVerified=true)", async () => {
     const email = "post-verify-signin@example.com";
     await app.inject({
       method: "POST",
@@ -146,7 +150,7 @@ describeIfReady("C1 email-verification contract", () => {
       payload: { email, password: "test-password-12345" },
     });
     expect(res.statusCode).toBe(200);
-    expect(res.headers["set-auth-token"]).toBeTruthy();
+    expect(sessionCookieFromInject(res)).toBeTruthy();
   });
 
   it("verifyEmail with a tampered/invalid token is rejected", async () => {

@@ -16,7 +16,6 @@ const getSessionMock = vi.fn();
 const signOutMock = vi.fn();
 
 vi.mock('../betterAuthClient', () => ({
-  BEARER_KEY: 'disher.bearer',
   authClient: {
     signUp: { email: signUpEmailMock },
     sendVerificationEmail: sendVerificationEmailMock,
@@ -29,7 +28,6 @@ vi.mock('../betterAuthClient', () => ({
 
 const { betterAuthProvider } = await import('../betterAuthProvider');
 
-const BEARER_KEY = 'disher.bearer';
 const LAST_USER_KEY = 'disher.lastUser';
 
 beforeEach(() => {
@@ -137,112 +135,102 @@ describe('betterAuthProvider.bootstrap', () => {
     warnSpy.mockRestore();
   });
 
-  it('returns null without hitting the network when no bearer', async () => {
+  // The session cookie is httpOnly: nothing local can tell us whether one
+  // exists, so every boot must ask the server — including a fresh install.
+  it('always asks the server, even with nothing cached locally', async () => {
+    getSessionMock.mockResolvedValue({ data: null, error: null });
+
     const user = await betterAuthProvider.bootstrap();
+
     expect(user).toBeNull();
-    expect(getSessionMock).not.toHaveBeenCalled();
+    expect(getSessionMock).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to last-known user when getSession throws (network down) — bearer survives', async () => {
-    localStorage.setItem(BEARER_KEY, 'opaque-token');
+  it('falls back to last-known user when getSession throws (network down)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
     const user = await betterAuthProvider.bootstrap();
 
+    // Critical: an unreachable backend is NOT a revocation — the cookie may
+    // still be perfectly valid, so keep the user in the app.
     expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
-    // Critical: do NOT wipe the bearer on a network throw — the session may
-    // still be valid, the backend is just unreachable right now.
-    expect(localStorage.getItem(BEARER_KEY)).toBe('opaque-token');
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
   });
 
   it('returns null on network throw when no last-known user is cached', async () => {
-    localStorage.setItem(BEARER_KEY, 'opaque-token');
     getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBe('opaque-token');
   });
 
-  it('wipes bearer AND lastUser when server returns 401 (token revoked)', async () => {
-    localStorage.setItem(BEARER_KEY, 'dead-token');
+  it('wipes lastUser when server returns 401 (session revoked)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 401, message: 'Unauthorized' } });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 
   // Fix #3: bootstrap used to log the user out on ANY getSession error. A fast
-  // 5xx/429 in the 1s boot window (deploy, pg-pool restart, proxy) is transient
-  // — the token must survive and the app must boot local-first, exactly like a
-  // network throw. Only 401/403 is a real revocation.
-  it('keeps bearer + falls back to last-known user on a 500 (transient, NOT a revoke)', async () => {
-    localStorage.setItem(BEARER_KEY, 'live-token');
+  // 5xx/429 in the boot window (deploy, pg-pool restart, proxy) is transient —
+  // the app must boot local-first, exactly like a network throw. Only 401/403 is
+  // a real revocation.
+  it('falls back to last-known user on a 500 (transient, NOT a revoke)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 500, message: 'Bad Gateway' } });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
-    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
   });
 
-  it('keeps bearer on a 429 (rate-limited, transient)', async () => {
-    localStorage.setItem(BEARER_KEY, 'live-token');
+  it('keeps the user on a 429 (rate-limited, transient)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u2', email: 'u2@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 429, message: 'Too Many Requests' } });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u2', email: 'u2@example.com', role: null });
-    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
   });
 
-  it('keeps bearer on a status-less error shape (better-fetch surfaced a network error as {error})', async () => {
-    localStorage.setItem(BEARER_KEY, 'live-token');
+  it('keeps the user on a status-less error shape (better-fetch surfaced a network error as {error})', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u3', email: 'u3@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { message: 'Failed to fetch' } });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u3', email: 'u3@example.com', role: null });
-    expect(localStorage.getItem(BEARER_KEY)).toBe('live-token');
+    expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
   });
 
-  it('wipes bearer AND lastUser when server returns 403 (forbidden ≡ dead token)', async () => {
-    localStorage.setItem(BEARER_KEY, 'dead-token');
+  it('wipes lastUser when server returns 403 (forbidden ≡ dead session)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 403, message: 'Forbidden' } });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 
-  it('wipes bearer on a clean 200 with no user (server explicitly says: no session)', async () => {
-    localStorage.setItem(BEARER_KEY, 'stale-token');
+  it('wipes lastUser on a clean 200 with no user (server explicitly says: no session)', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: null });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 
   it('persists last-known user on successful bootstrap', async () => {
-    localStorage.setItem(BEARER_KEY, 'valid-token');
     getSessionMock.mockResolvedValue({
       data: { user: { id: 'u9', email: 'u9@example.com' } },
       error: null,
@@ -255,92 +243,22 @@ describe('betterAuthProvider.bootstrap', () => {
       JSON.stringify({ id: 'u9', email: 'u9@example.com', role: null }),
     );
   });
-});
 
-// The Telegram callback mints the session as an api-origin cookie + a
-// `set-auth-token` header on a 302 — invisible to JS. On a device with no
-// bearer, bootstrap must see the `?oauth=` marker (set by signInWithOAuth on
-// the callbackURL) and capture that cookie-session into the bearer slot
-// instead of short-circuiting to logged-out.
-describe('betterAuthProvider.bootstrap (OAuth return leg)', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    localStorage.clear();
-    getSessionMock.mockReset();
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    window.history.replaceState(null, '', '/');
-  });
-
-  afterEach(() => {
-    warnSpy.mockRestore();
-    window.history.replaceState(null, '', '/');
-  });
-
-  it('captures the cookie-session into the bearer slot and returns the user', async () => {
-    window.history.replaceState(null, '', '/?oauth=telegram');
+  // The Telegram return leg is no longer special: the callback set the session
+  // cookie, the browser brings it back, and bootstrap is an ordinary boot with
+  // no marker to consume and nothing to capture.
+  it('signs in a first-time Telegram user with nothing cached (return leg)', async () => {
     getSessionMock.mockResolvedValue({
-      data: {
-        user: { id: 'tg1', email: null },
-        session: { token: 'raw-session-token' },
-      },
+      data: { user: { id: 'tg1', email: null } },
       error: null,
     });
 
     const user = await betterAuthProvider.bootstrap();
 
     expect(user).toEqual({ id: 'tg1', email: null, role: null });
-    expect(localStorage.getItem(BEARER_KEY)).toBe('raw-session-token');
     expect(localStorage.getItem(LAST_USER_KEY)).toBe(
       JSON.stringify({ id: 'tg1', email: null, role: null }),
     );
-    // Marker consumed — a reload must not re-run the capture.
-    expect(window.location.search).toBe('');
-    expect(getSessionMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('falls back to logged-out when the return-leg session is absent (cookie missing/expired)', async () => {
-    window.history.replaceState(null, '', '/?oauth=telegram');
-    getSessionMock.mockResolvedValue({ data: null, error: null });
-
-    const user = await betterAuthProvider.bootstrap();
-
-    expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
-    expect(window.location.search).toBe('');
-  });
-
-  it('falls back to logged-out when the return-leg getSession throws (network)', async () => {
-    window.history.replaceState(null, '', '/?oauth=telegram');
-    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
-
-    const user = await betterAuthProvider.bootstrap();
-
-    expect(user).toBeNull();
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
-    expect(window.location.search).toBe('');
-  });
-
-  it('with an existing bearer: strips the marker but keeps the normal bootstrap path', async () => {
-    window.history.replaceState(null, '', '/?oauth=telegram');
-    localStorage.setItem(BEARER_KEY, 'existing-token');
-    getSessionMock.mockResolvedValue({
-      data: { user: { id: 'u1', email: 'u1@example.com' } },
-      error: null,
-    });
-
-    const user = await betterAuthProvider.bootstrap();
-
-    expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
-    expect(localStorage.getItem(BEARER_KEY)).toBe('existing-token');
-    expect(window.location.search).toBe('');
-  });
-
-  it('without the marker: old short-circuit, no network call', async () => {
-    const user = await betterAuthProvider.bootstrap();
-
-    expect(user).toBeNull();
-    expect(getSessionMock).not.toHaveBeenCalled();
   });
 });
 
@@ -349,14 +267,14 @@ describe('betterAuthProvider.signInWithOAuth', () => {
     signInOAuth2Mock.mockReset();
   });
 
-  it('marks the success URL with ?oauth= and the error URL with ?authError=', async () => {
+  it('leaves the success URL bare and marks the error URL with ?authError=', async () => {
     signInOAuth2Mock.mockResolvedValue({ data: null, error: null });
 
     await betterAuthProvider.signInWithOAuth('telegram', '/');
 
     expect(signInOAuth2Mock).toHaveBeenCalledWith({
       providerId: 'telegram',
-      callbackURL: `${window.location.origin}/?oauth=telegram`,
+      callbackURL: `${window.location.origin}/`,
       errorCallbackURL: `${window.location.origin}/?authError=telegram`,
     });
   });
@@ -375,14 +293,12 @@ describe('betterAuthProvider.signOut', () => {
     errorSpy.mockRestore();
   });
 
-  it('wipes bearer + lastUser even if server revoke throws', async () => {
-    localStorage.setItem(BEARER_KEY, 'tok');
+  it('wipes lastUser even if the server revoke throws', async () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     signOutMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
     await betterAuthProvider.signOut();
 
-    expect(localStorage.getItem(BEARER_KEY)).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });
 });

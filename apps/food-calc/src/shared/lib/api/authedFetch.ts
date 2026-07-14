@@ -1,18 +1,10 @@
-// fetch() with Authorization: Bearer <token> attached.
+// fetch() that carries the session cookie.
+//
+// The session is an httpOnly cookie on the API's site, so there is nothing to
+// attach by hand — `credentials: 'include'` tells the browser to send it on a
+// cross-ORIGIN (but same-SITE) call to api.disher.life. An unauthenticated call
+// now simply comes back 401 from the server, like any other failure.
 
-import { authProvider } from '@/shared/lib/auth/authProvider';
-
-export class NotAuthenticatedError extends Error {
-  constructor() {
-    super('Not authenticated');
-    this.name = 'NotAuthenticatedError';
-  }
-}
-
-export async function authedFetch(url: string, init: RequestInit = {}): Promise<Response> {
-  const token = await authProvider.getAccessToken();
-  if (!token) throw new NotAuthenticatedError();
-  const headers = new Headers(init.headers);
-  headers.set('Authorization', `Bearer ${token}`);
-  return fetch(url, { ...init, headers });
+export function authedFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(url, { ...init, credentials: 'include' });
 }

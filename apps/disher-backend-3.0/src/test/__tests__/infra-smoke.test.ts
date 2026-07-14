@@ -4,7 +4,7 @@ import { makeTestPool, truncateAllUserData } from "../db-helpers.js";
 
 // B2 infra smoke — proves the test scaffold works end-to-end:
 //   1. global-setup ran (schema applied, LOCAL_DATABASE_URL pointed at test DB)
-//   2. createTestUser hits auth.api.signUpEmail and returns a bearer token
+//   2. createTestUser hits auth.api.signUpEmail and returns a session cookie
 //   3. The created user is visible in public.users on the test pool
 //   4. truncateAllUserData wipes between tests (FK cascade includes session/account)
 //
@@ -28,8 +28,8 @@ describeIfReady("test infrastructure", () => {
   it("createTestUser returns a userId that exists in public.users", async () => {
     const u = await createTestUser({ email: "smoke-1@example.com" });
     expect(u.userId).toMatch(/^[0-9a-f-]{36}$/);
-    expect(u.sessionToken.length).toBeGreaterThan(20);
-    expect(u.headers.authorization).toBe(`Bearer ${u.sessionToken}`);
+    expect(u.sessionCookie.length).toBeGreaterThan(20);
+    expect(u.headers.cookie).toBe(u.sessionCookie);
 
     const { rows } = await pool.query<{ id: string; email: string }>(
       `select id, email from public.users where id = $1`,

@@ -1,37 +1,25 @@
-// OAuth redirect-return markers. The Telegram (generic OAuth2) flow leaves the
-// SPA entirely and comes back through a server 302 — the only channel that
-// survives that round-trip in every browser context is the URL itself. Two
-// markers, two consumers:
+// OAuth redirect-error marker. The Telegram (generic OAuth2) flow leaves the SPA
+// entirely and comes back through a server 302 — the only channel that survives
+// that round-trip in every browser context is the URL itself.
 //
-//  - `?oauth=<provider>` — success leg, set on `callbackURL` by
-//    signInWithOAuth. bootstrap() sees it and captures the freshly minted
-//    cookie-session into the bearer slot (the `set-auth-token` header rides
-//    the 302 and is invisible to JS, so localStorage has no bearer yet).
-//  - `?authError=<provider>` — error leg, set on `errorCallbackURL`.
+// Only the ERROR leg needs a marker. The success leg brings the session home as
+// a cookie the browser attaches on its own, so bootstrap() just asks the server
+// like on any other boot.
+//
+//  - `?authError=<provider>` — set on `errorCallbackURL` by signInWithOAuth.
 //    better-auth appends its own `?error=<code>` both here and on the bare
-//    FRONTEND_ORIGIN redirect from onAPIError (issuer_missing и т.п.), so a
-//    lone `error` param without our marker is also an OAuth failure today —
-//    the email flow that could produce one is disabled (2026-07-13).
+//    FRONTEND_ORIGIN redirect from onAPIError (issuer_missing и т.п.), so a lone
+//    `error` param without our marker is also an OAuth failure today — the email
+//    flow that could produce one is disabled (2026-07-13).
 //
-// Each consumer strips its params via history.replaceState so a marker never
-// survives a reload: a stale `oauth` flag would re-run the session capture, a
-// stale error would re-show the banner on every boot.
+// The consumer strips its params via history.replaceState so a stale error can't
+// re-show the banner on every boot.
 
-export const OAUTH_RETURN_PARAM = 'oauth';
 export const OAUTH_ERROR_PARAM = 'authError';
 
 function stripParams(url: URL, params: string[]): void {
   for (const p of params) url.searchParams.delete(p);
   window.history.replaceState(window.history.state, '', url);
-}
-
-/** True when the success marker is present. Strips it from the address bar. */
-export function consumeOAuthReturnFlag(): boolean {
-  if (typeof window === 'undefined') return false;
-  const url = new URL(window.location.href);
-  if (!url.searchParams.has(OAUTH_RETURN_PARAM)) return false;
-  stripParams(url, [OAUTH_RETURN_PARAM]);
-  return true;
 }
 
 /**

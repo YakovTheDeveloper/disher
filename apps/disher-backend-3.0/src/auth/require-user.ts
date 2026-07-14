@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { verifyUserBearer } from "./verify-bearer.js";
+import { verifyUserSession } from "./verify-session.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -8,7 +8,7 @@ declare module "fastify" {
 }
 
 export async function requireUser(req: FastifyRequest, reply: FastifyReply) {
-  const verified = await verifyUserBearer(req, reply);
+  const verified = await verifyUserSession(req, reply);
   if (!verified) return;
   req.userId = verified.userId;
 }

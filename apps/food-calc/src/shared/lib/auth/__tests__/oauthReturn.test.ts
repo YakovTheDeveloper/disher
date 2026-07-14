@@ -1,29 +1,12 @@
 // URL-marker consumption for the OAuth redirect round-trip (Telegram). The
-// markers are the only state that survives leaving the SPA, so the contract is
-// strict: read once, strip from the address bar, never touch foreign params.
+// error marker is the only state that survives leaving the SPA (the success leg
+// needs none — the session comes home as a cookie), so the contract is strict:
+// read once, strip from the address bar, never touch foreign params.
 import { afterEach, describe, expect, it } from 'vitest';
-import { consumeOAuthReturnError, consumeOAuthReturnFlag } from '../oauthReturn';
+import { consumeOAuthReturnError } from '../oauthReturn';
 
 afterEach(() => {
   window.history.replaceState(null, '', '/');
-});
-
-describe('consumeOAuthReturnFlag', () => {
-  it('returns false and leaves the URL alone when the marker is absent', () => {
-    window.history.replaceState(null, '', '/?foo=1');
-
-    expect(consumeOAuthReturnFlag()).toBe(false);
-    expect(window.location.search).toBe('?foo=1');
-  });
-
-  it('returns true and strips ONLY the oauth param', () => {
-    window.history.replaceState(null, '', '/?oauth=telegram&foo=1');
-
-    expect(consumeOAuthReturnFlag()).toBe(true);
-    expect(window.location.search).toBe('?foo=1');
-    // Consumed — the second read must not re-trigger the capture path.
-    expect(consumeOAuthReturnFlag()).toBe(false);
-  });
 });
 
 describe('consumeOAuthReturnError', () => {
