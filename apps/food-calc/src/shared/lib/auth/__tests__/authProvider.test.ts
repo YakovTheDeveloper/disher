@@ -1,4 +1,4 @@
-// betterAuthProvider unit tests for the C2.1 contract:
+// authProvider unit tests for the C2.1 contract:
 //   - signUp under requireEmailVerification: returns
 //     { ok: true, pendingVerification: true, email } when there is no error.
 //     The server body has no `user` (autoSignIn:false), and we explicitly do
@@ -26,7 +26,7 @@ vi.mock('../betterAuthClient', () => ({
   },
 }));
 
-const { betterAuthProvider } = await import('../betterAuthProvider');
+const { authProvider } = await import('../authProvider');
 
 const LAST_USER_KEY = 'disher.lastUser';
 
@@ -40,14 +40,14 @@ afterEach(() => {
   sendVerificationEmailMock.mockReset();
 });
 
-describe('betterAuthProvider.signUp', () => {
+describe('authProvider.signUp', () => {
   it('returns pendingVerification:true when better-auth replies without error and without user (autoSignIn:false)', async () => {
     // Under requireEmailVerification + autoSignIn:false, better-auth returns
     // { token: null, user: undefined } for fresh signups. We must not key off
     // `user` — absence of `error` is the success signal.
     signUpEmailMock.mockResolvedValue({ data: { token: null }, error: null });
 
-    const result = await betterAuthProvider.signUp('new@example.com', 'password123');
+    const result = await authProvider.signUp('new@example.com', 'password123');
 
     expect(result).toEqual({ ok: true, pendingVerification: true, email: 'new@example.com' });
     expect(signUpEmailMock).toHaveBeenCalledWith({
@@ -62,7 +62,7 @@ describe('betterAuthProvider.signUp', () => {
   it('returns pendingVerification:true on duplicate email (anti-enumeration: better-auth replies 200 too)', async () => {
     signUpEmailMock.mockResolvedValue({ data: { token: null }, error: null });
 
-    const result = await betterAuthProvider.signUp('dup@example.com', 'password123');
+    const result = await authProvider.signUp('dup@example.com', 'password123');
 
     expect(result).toEqual({ ok: true, pendingVerification: true, email: 'dup@example.com' });
   });
@@ -73,7 +73,7 @@ describe('betterAuthProvider.signUp', () => {
       error: { status: 400, message: 'Password too short', code: 'PASSWORD_TOO_SHORT' },
     });
 
-    const result = await betterAuthProvider.signUp('a@b.com', '12');
+    const result = await authProvider.signUp('a@b.com', '12');
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -86,7 +86,7 @@ describe('betterAuthProvider.signUp', () => {
   it('classifies thrown TypeError as network', async () => {
     signUpEmailMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    const result = await betterAuthProvider.signUp('a@b.com', 'password123');
+    const result = await authProvider.signUp('a@b.com', 'password123');
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -94,11 +94,11 @@ describe('betterAuthProvider.signUp', () => {
   });
 });
 
-describe('betterAuthProvider.sendVerificationEmail', () => {
+describe('authProvider.sendVerificationEmail', () => {
   it('forwards email + callbackURL and returns { ok:true } on success', async () => {
     sendVerificationEmailMock.mockResolvedValue({ data: { status: true }, error: null });
 
-    const result = await betterAuthProvider.sendVerificationEmail('a@b.com');
+    const result = await authProvider.sendVerificationEmail('a@b.com');
 
     expect(result).toEqual({ ok: true });
     expect(sendVerificationEmailMock).toHaveBeenCalledWith({ email: 'a@b.com', callbackURL: '/' });
@@ -110,7 +110,7 @@ describe('betterAuthProvider.sendVerificationEmail', () => {
       error: { status: 429, message: 'too many' },
     });
 
-    const result = await betterAuthProvider.sendVerificationEmail('a@b.com');
+    const result = await authProvider.sendVerificationEmail('a@b.com');
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -118,7 +118,7 @@ describe('betterAuthProvider.sendVerificationEmail', () => {
   });
 });
 
-describe('betterAuthProvider.bootstrap', () => {
+describe('authProvider.bootstrap', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -140,7 +140,7 @@ describe('betterAuthProvider.bootstrap', () => {
   it('always asks the server, even with nothing cached locally', async () => {
     getSessionMock.mockResolvedValue({ data: null, error: null });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toBeNull();
     expect(getSessionMock).toHaveBeenCalledTimes(1);
@@ -150,7 +150,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     // Critical: an unreachable backend is NOT a revocation — the cookie may
     // still be perfectly valid, so keep the user in the app.
@@ -161,7 +161,7 @@ describe('betterAuthProvider.bootstrap', () => {
   it('returns null on network throw when no last-known user is cached', async () => {
     getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toBeNull();
   });
@@ -170,7 +170,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 401, message: 'Unauthorized' } });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
@@ -184,7 +184,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 500, message: 'Bad Gateway' } });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u1', email: 'u1@example.com', role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
@@ -194,7 +194,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u2', email: 'u2@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 429, message: 'Too Many Requests' } });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u2', email: 'u2@example.com', role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
@@ -204,7 +204,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u3', email: 'u3@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { message: 'Failed to fetch' } });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u3', email: 'u3@example.com', role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBeTruthy();
@@ -214,7 +214,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: { status: 403, message: 'Forbidden' } });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
@@ -224,7 +224,7 @@ describe('betterAuthProvider.bootstrap', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     getSessionMock.mockResolvedValue({ data: null, error: null });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toBeNull();
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
@@ -236,7 +236,7 @@ describe('betterAuthProvider.bootstrap', () => {
       error: null,
     });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toEqual({ id: 'u9', email: 'u9@example.com', role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBe(
@@ -253,7 +253,7 @@ describe('betterAuthProvider.bootstrap', () => {
       error: null,
     });
 
-    const user = await betterAuthProvider.bootstrap();
+    const user = await authProvider.bootstrap();
 
     expect(user).toEqual({ id: 'tg1', email: null, role: null });
     expect(localStorage.getItem(LAST_USER_KEY)).toBe(
@@ -262,7 +262,7 @@ describe('betterAuthProvider.bootstrap', () => {
   });
 });
 
-describe('betterAuthProvider.signInWithOAuth', () => {
+describe('authProvider.signInWithOAuth', () => {
   beforeEach(() => {
     signInOAuth2Mock.mockReset();
   });
@@ -270,7 +270,7 @@ describe('betterAuthProvider.signInWithOAuth', () => {
   it('leaves the success URL bare and marks the error URL with ?authError=', async () => {
     signInOAuth2Mock.mockResolvedValue({ data: null, error: null });
 
-    await betterAuthProvider.signInWithOAuth('telegram', '/');
+    await authProvider.signInWithOAuth('telegram', '/');
 
     expect(signInOAuth2Mock).toHaveBeenCalledWith({
       providerId: 'telegram',
@@ -280,7 +280,7 @@ describe('betterAuthProvider.signInWithOAuth', () => {
   });
 });
 
-describe('betterAuthProvider.signOut', () => {
+describe('authProvider.signOut', () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -297,7 +297,7 @@ describe('betterAuthProvider.signOut', () => {
     localStorage.setItem(LAST_USER_KEY, JSON.stringify({ id: 'u1', email: 'u1@example.com' }));
     signOutMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await betterAuthProvider.signOut();
+    await authProvider.signOut();
 
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
   });

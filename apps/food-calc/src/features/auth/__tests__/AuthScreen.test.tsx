@@ -28,10 +28,6 @@ vi.mock('../CheckInboxView', () => ({
   ),
 }));
 
-vi.mock('../DisherLogo', () => ({
-  DisherLogo: () => <div data-testid="logo" />,
-}));
-
 // Sass module — Proxy returns the property name as a class string so any
 // className lookup resolves without scss compilation.
 vi.mock('../AuthScreen.module.scss', () => ({

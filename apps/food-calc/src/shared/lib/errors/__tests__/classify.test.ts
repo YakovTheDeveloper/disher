@@ -5,7 +5,7 @@ import { PaymentRequiredError } from '@/shared/lib/api/apiError';
 // classify.ts is fully vendor-agnostic since the better-auth migration —
 // classifyError consumes plain TypeError / DOMException / HTTP-shaped objects
 // only. better-auth's own error envelope is mapped to ErrorKind upstream in
-// classifyBetterAuthError (betterAuthProvider.ts), which is why the prod-message
+// classifyBetterAuthError (authProvider.ts), which is why the prod-message
 // `auth + code` cases below are constructed as ErrorKind directly rather than
 // fed through classifyError.
 

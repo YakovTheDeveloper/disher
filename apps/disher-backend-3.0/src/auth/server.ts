@@ -314,19 +314,24 @@ export const auth = betterAuth({
       console.log(
         `[auth] verification email -> ${user.email}\n  frontend url: ${frontendUrl}\n  better-auth url: ${url}\n  token: ${token}\n  resend: ${resend ? "ON" : "OFF (console-only)"}`
       );
-      // Stash per-email token + url so test helpers + E2E bridges can pick
-      // them up without coupling to better-auth's internal token format
-      // (which is a signed JWT, not a DB row). `url` stays as better-auth
-      // emitted it (used by the C1 contract test); `frontendUrl` is what
-      // the email body actually links to.
-      const g = globalThis as {
-        __verifyTokensByEmail?: Map<
-          string,
-          { url: string; frontendUrl: string; token: string }
-        >;
-      };
-      if (!g.__verifyTokensByEmail) g.__verifyTokensByEmail = new Map();
-      g.__verifyTokensByEmail.set(user.email, { url, frontendUrl, token });
+      // Stash per-email token + url so test helpers + E2E bridges can pick them
+      // up without coupling to better-auth's internal token format (which is a
+      // signed JWT, not a DB row). `url` stays as better-auth emitted it (used
+      // by the C1 contract test); `frontendUrl` is what the email body links to.
+      //
+      // Never in prod: this is a live map of валидных verification tokens sitting
+      // in process memory, and the /api/dev/verify-tokens route reads it. Nothing
+      // in prod needs it.
+      if (process.env.NODE_ENV !== "production") {
+        const g = globalThis as {
+          __verifyTokensByEmail?: Map<
+            string,
+            { url: string; frontendUrl: string; token: string }
+          >;
+        };
+        if (!g.__verifyTokensByEmail) g.__verifyTokensByEmail = new Map();
+        g.__verifyTokensByEmail.set(user.email, { url, frontendUrl, token });
+      }
 
       // Real send via Resend if configured. Fire-and-forget: do NOT await,
       // do NOT throw — see dispatchVerificationEmail comment.
