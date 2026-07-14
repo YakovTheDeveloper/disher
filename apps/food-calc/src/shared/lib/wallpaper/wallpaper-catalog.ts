@@ -6,109 +6,50 @@
 //
 // `id` — стабильный слаг (пишется в localStorage через wallpaper-store); НЕ менять
 // у существующих, иначе сохранённый выбор осиротеет и откатится к дефолту.
-// Дубли по содержимому свёрнуты в одну запись (hero-auth.jpg ≡ «Городская площадь»).
+// Дубли по содержимому свёрнуты в одну запись (бывший hero-auth.jpg ≡ «Городская площадь»).
+//
+// Пути ВЫВОДЯТСЯ из id: `scripts/gen-wallpaper-assets.mjs` кладёт ассеты именно под
+// слагом (`/art/hero/grapes.webp` + `/art/hero/thumb/grapes.webp`). Оригиналы живут в
+// art-src/hero/ — вне public, чтобы 7 MB исходников не уезжали в dist.
 
 export type WallpaperId = string;
 
 export interface Wallpaper {
   id: WallpaperId;
-  /** Путь от корня public (`/art/hero/...`). */
+  /** Полноразмерная обложка для hero-экранов. */
   src: string;
+  /** 192×128 (2× DPR) для миниатюры пикера — ~5 KB против ~400 KB у `src`. */
+  thumb: string;
   /** Человекочитаемое имя — показывается под миниатюрой в пикере. */
   label: string;
 }
 
+const wallpaper = (id: WallpaperId, label: string): Wallpaper => ({
+  id,
+  label,
+  src: `/art/hero/${id}.webp`,
+  thumb: `/art/hero/thumb/${id}.webp`,
+});
+
 export const WALLPAPERS: Wallpaper[] = [
-  {
-    id: 'grapes',
-    src: '/art/hero/SAAM-1977.99.2_2_screen.jpg',
-    label: 'Виноград',
-  },
-  {
-    id: 'lemur',
-    src: '/art/hero/NZP-20181114-3807SB_screen.jpg',
-    label: 'Лемур и тыква',
-  },
-  {
-    id: 'autumn-forest',
-    src: '/art/hero/CHSDM-23644_02-000001_screen.jpg',
-    label: 'Осенний лес',
-  },
-  {
-    id: 'high-tide',
-    src: '/art/hero/SAAM-1996.63.168_1_screen.jpg',
-    label: 'Прилив',
-  },
-  {
-    id: 'hammock',
-    src: '/art/hero/SAAM-1996.63.170_1_screen.jpg',
-    label: 'Гамак',
-  },
-  {
-    id: 'palms',
-    src: '/art/hero/hero-events.jpg',
-    label: 'Пальмы на закате',
-  },
-  {
-    id: 'flute',
-    src: '/art/hero/CHSDM-259998D64EE22-000001_screen.jpg',
-    label: 'Сцена с флейтой',
-  },
-  {
-    id: 'sampler',
-    src: '/art/hero/hero-events-2.jpg',
-    label: 'Вышивка',
-  },
-  {
-    id: 'gallery',
-    src: '/art/hero/NPG-AD_NPG_83_2BradysPhotoGallery-000001_screen.jpg',
-    label: 'Галерея портретов',
-  },
-  {
-    id: 'antelopes',
-    src: '/art/hero/CHSDM-D24E5D6646192-000001_screen.jpg',
-    label: 'Две антилопы',
-  },
-  {
-    id: 'fortress',
-    src: '/art/hero/hero-art-1.png',
-    label: 'Крепость',
-  },
-  {
-    id: 'square',
-    src: '/art/hero/CHSDM-B9FC4D1302062-000001_screen.jpg',
-    label: 'Городская площадь',
-  },
-  {
-    id: 'painter',
-    src: '/art/hero/NPG-NPG_93_5Russell-000001_screen.jpg',
-    label: 'Художник в студии',
-  },
-  {
-    id: 'village-moon',
-    src: '/art/hero/CHSDM-6FE1E03EBF6F2-000001_screen.jpg',
-    label: 'Деревня под луной',
-  },
-  {
-    id: 'chinese-gallery',
-    src: '/art/hero/CHSDM-CHP6573_screen.jpg',
-    label: 'Китайская галерея',
-  },
-  {
-    id: 'salon',
-    src: '/art/hero/события-1.jpg',
-    label: 'Компания за столом',
-  },
-  {
-    id: 'pudding',
-    src: '/art/hero/события-2.jpg',
-    label: 'Зимний десерт',
-  },
-  {
-    id: 'deer',
-    src: '/art/hero/события-3.jpg',
-    label: 'Олень в саду',
-  },
+  wallpaper('grapes', 'Виноград'),
+  wallpaper('lemur', 'Лемур и тыква'),
+  wallpaper('autumn-forest', 'Осенний лес'),
+  wallpaper('high-tide', 'Прилив'),
+  wallpaper('hammock', 'Гамак'),
+  wallpaper('palms', 'Пальмы на закате'),
+  wallpaper('flute', 'Сцена с флейтой'),
+  wallpaper('sampler', 'Вышивка'),
+  wallpaper('gallery', 'Галерея портретов'),
+  wallpaper('antelopes', 'Две антилопы'),
+  wallpaper('fortress', 'Крепость'),
+  wallpaper('square', 'Городская площадь'),
+  wallpaper('painter', 'Художник в студии'),
+  wallpaper('village-moon', 'Деревня под луной'),
+  wallpaper('chinese-gallery', 'Китайская галерея'),
+  wallpaper('salon', 'Компания за столом'),
+  wallpaper('pudding', 'Зимний десерт'),
+  wallpaper('deer', 'Олень в саду'),
 ];
 
 export const WALLPAPER_BY_ID: Record<WallpaperId, Wallpaper> = Object.fromEntries(

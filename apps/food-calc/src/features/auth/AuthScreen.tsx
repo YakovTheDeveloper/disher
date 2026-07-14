@@ -2,13 +2,14 @@ import { AuthForm } from './AuthForm';
 import { CheckInboxView } from './CheckInboxView';
 import { useAuthStore } from './auth-store';
 import { useKeyboardAwareScroll } from '@/shared/ui/hooks/useKeyboardAwareScroll';
+import { WALLPAPER_BY_ID } from '@/shared/lib/wallpaper';
 import styles from './AuthScreen.module.scss';
 
 /**
  * Fullscreen auth blocker. Mounted by AuthGate when there is no session.
  * On success the auth-store flips isLoggedIn → true and the gate unmounts.
  *
- * Облик — язык HomePage: hero-обложка (`hero-auth.jpg`) прибита к верхней кромке
+ * Облик — язык HomePage: hero-обложка («Городская площадь») прибита к верхней кромке
  * и тает в фон тем же easing-scrim'ом, что у HomeHero (вертикальный фейд + боковой
  * + верх во всю ширину), с белым масочным лого по центру. Снизу самокат-листом
  * поднимается СВЕТЛАЯ подложка (surface-2) — радиус листа + парная тень
@@ -28,7 +29,16 @@ export function AuthScreen() {
   return (
     <div className={styles.screen} ref={scrollerRef}>
       <div className={styles.hero} aria-hidden="true">
-        <img className={styles.heroImg} src="/art/hero/hero-auth.jpg" alt="" />
+        {/* LCP холодного старта: AuthGate рендерит этот экран КАЖДОМУ незалогиненному.
+            fetchpriority на самом <img>, а не <link rel=preload> в index.html — preload
+            качал бы обложку и залогиненным, которые AuthScreen никогда не видят.
+            Бывший hero-auth.jpg был байт-в-байт дублем «Городской площади». */}
+        <img
+          className={styles.heroImg}
+          src={WALLPAPER_BY_ID.square.src}
+          alt=""
+          fetchPriority="high"
+        />
         <div className={styles.logo} />
       </div>
 

@@ -45,7 +45,7 @@ const Thumb = ({
     <span className={styles.frame}>
       <img
         className={styles.thumbImg}
-        src={wallpaper.src}
+        src={wallpaper.thumb}
         alt=""
         loading="lazy"
         decoding="async"

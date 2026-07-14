@@ -7,11 +7,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+// Миниатюра обязана рендерить `thumb`, а НЕ полноразмерный `src` — ради этого
+// поле и заводилось (пикер тянул 18 полных JPG, ~7 MB).
 const WALLPAPERS = [
-  { id: 'a', src: '/a.jpg', label: 'A' },
-  { id: 'b', src: '/b.jpg', label: 'B' },
-  { id: 'c', src: '/c.jpg', label: 'C' },
-  { id: 'd', src: '/d.jpg', label: 'D' },
+  { id: 'a', src: '/a.webp', thumb: '/thumb/a.webp', label: 'A' },
+  { id: 'b', src: '/b.webp', thumb: '/thumb/b.webp', label: 'B' },
+  { id: 'c', src: '/c.webp', thumb: '/thumb/c.webp', label: 'C' },
+  { id: 'd', src: '/d.webp', thumb: '/thumb/d.webp', label: 'D' },
 ];
 const WALLPAPER_SCREENS = [{ key: 'ration', label: 'Рацион' }];
 const setWallpaper = vi.fn();
@@ -56,5 +58,12 @@ describe('WallpaperStrip', () => {
     render(<WallpaperStrip screen="ration" layout="columns" />);
     expect(screen.getByRole('radio', { name: 'B' })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'A' })).not.toBeChecked();
+  });
+
+  it('renders the thumbnail asset, never the full-size src', () => {
+    const { container } = render(<WallpaperStrip screen="ration" />);
+
+    const srcs = [...container.querySelectorAll('img')].map((img) => img.getAttribute('src'));
+    expect(srcs).toEqual(['/thumb/a.webp', '/thumb/b.webp', '/thumb/c.webp', '/thumb/d.webp']);
   });
 });
