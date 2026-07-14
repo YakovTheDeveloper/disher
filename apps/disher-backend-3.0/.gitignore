@@ -1,6 +1,7 @@
 node_modules
 .env
 .env.production
+.env.smoke
 dist
 data/*
 !data/food-embeddings.json

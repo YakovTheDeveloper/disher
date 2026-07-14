@@ -1,7 +1,8 @@
 // Telegram login via Telegram's official OIDC flow (oauth.telegram.org), wired
-// through better-auth's first-party `genericOAuth` plugin. Bearer mode is
-// unchanged: the genericOAuth callback mints a session and the `bearer()`
-// plugin emits the `set-auth-token` header exactly as for email sign-in.
+// through better-auth's first-party `genericOAuth` plugin. Session transport is
+// the same httpOnly cookie as email sign-in: the genericOAuth callback mints the
+// session and sets the cookie on the API origin, and the browser carries it home
+// on the redirect back to the SPA — no token ever crosses through JS.
 //
 // Why OIDC + genericOAuth (not the classic Login Widget + hand-rolled HMAC):
 //  - redirect-based → immune to the standalone-PWA popup-block bug (a real
@@ -14,14 +15,24 @@
 //  - NO userinfo endpoint: all profile data lives in the `id_token` (a JWT).
 //    We supply `getUserInfo()` to decode it instead of letting better-auth
 //    call a userinfo URL (there is none).
-//  - NO email: Telegram never returns an email, but `users.email` is NOT NULL
-//    UNIQUE. We synthesize a per-identity, non-routable placeholder
-//    (`tg_<sub>@telegram.local`) and mark it verified so better-auth's
-//    `emailVerification.sendOnSignUp` never tries to email a bogus address.
-//    Identity is keyed on (providerId='telegram', accountId=<sub>) via the
-//    `account` table — NEVER on the synthetic email — so two Telegram users
-//    can't merge into one account and a synthetic address can't collide with a
-//    real user's email.
+//  - NO email: Telegram never returns one, and better-auth REQUIRES one — the
+//    generic-oauth callback rejects an emailless profile outright
+//    (`email_is_missing`) and link-account dereferences `userInfo.email`
+//    unconditionally. First-class emailless identity keyed on
+//    (providerId, accountId) is upstream #9124, still unmerged as of 1.6.9. So a
+//    synthetic placeholder is forced on us; it is not a design choice.
+//
+//    Do NOT trust that address. better-auth's `findOAuthUser` falls back to a
+//    lookup BY EMAIL when no `account` row matches, which once made this
+//    placeholder a live account-takeover vector: the local part derives from a
+//    PUBLIC number, so an attacker could pre-register it via `/sign-up/email`
+//    and inherit the victim's Telegram identity on their next login. Two
+//    independent guards now stop that, and both must stay:
+//      1. `isSyntheticTelegramEmail` + the sign-up guard in server.ts — nobody
+//         outside this flow can own an address in the reserved domain;
+//      2. `accountLinking.disableImplicitLinking` in server.ts — email is never
+//         a linking key, so even a leaked address cannot merge two identities.
+//    Ratchets: __tests__/telegram-synthetic-email.test.ts.
 //
 // Trust model for the id_token: it arrives from Telegram's token endpoint over
 // TLS in exchange for a one-time PKCE code that only our backend and Telegram
@@ -45,6 +56,36 @@ import type { GenericOAuthConfig } from "better-auth/plugins";
 export const TELEGRAM_OIDC_DISCOVERY_URL =
   "https://oauth.telegram.org/.well-known/openid-configuration";
 export const TELEGRAM_ISSUER = "https://oauth.telegram.org";
+
+/**
+ * Reserved namespace for the synthetic addresses this flow mints. `.local` is
+ * reserved by RFC 6762 — it can never resolve, so no human can own a mailbox
+ * here and no real user can ever collide with one.
+ */
+export const TELEGRAM_SYNTHETIC_EMAIL_DOMAIN = "telegram.local";
+
+/** The address minted for a Telegram identity. The ONLY place this shape lives. */
+export function syntheticTelegramEmail(sub: string): string {
+  return `tg_${sub}@${TELEGRAM_SYNTHETIC_EMAIL_DOMAIN}`;
+}
+
+/**
+ * Does this address belong to the reserved namespace? Guards `/sign-up/email`
+ * (see server.ts) so the namespace stays ours.
+ *
+ * Deliberately matches the whole DOMAIN, not the exact `tg_<sub>` shape a
+ * caller would guess from `syntheticTelegramEmail`. The guard must keep holding
+ * if that local part ever changes — a predicate coupled to the format would
+ * silently stop guarding the day someone reshapes it, which is exactly the
+ * divergence that reopens the takeover.
+ */
+export function isSyntheticTelegramEmail(email: unknown): boolean {
+  if (typeof email !== "string") return false;
+  return email
+    .trim()
+    .toLowerCase()
+    .endsWith(`@${TELEGRAM_SYNTHETIC_EMAIL_DOMAIN}`);
+}
 
 /**
  * Minimal profile we derive from a Telegram id_token. Structurally compatible
@@ -135,10 +176,12 @@ export function telegramProfileFromIdToken(
   return {
     id: sub,
     name: displayName,
-    // Synthetic, non-routable, unique-per-identity. Marked verified so
-    // sendOnSignUp never emails it; identity is keyed on the account row, not
-    // this address.
-    email: `tg_${sub}@telegram.local`,
+    email: syntheticTelegramEmail(sub),
+    // `verified` is a lie we tell to keep `emailVerification.sendOnSignUp` from
+    // mailing an unroutable address — nobody verified anything. It used to be
+    // load-bearing (better-auth's implicit-link gate reads it), which is what
+    // made the takeover possible; `disableImplicitLinking` in server.ts is what
+    // took that weight off it. Leaving it true is now inert, not a shortcut.
     emailVerified: true,
     image: asString(claims.picture),
   };

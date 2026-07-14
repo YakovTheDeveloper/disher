@@ -337,7 +337,7 @@ export function ProfileDrawer() {
                 }
                 trailing={<ChevronGlyph />}
                 onClick={handleRevokeOtherSessions}
-                aria-disabled={revoking}
+                disabled={revoking}
               />
               <SettingRow
                 danger

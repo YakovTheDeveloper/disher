@@ -39,7 +39,7 @@
 // wiring.
 
 import { betterAuth } from "better-auth";
-import { createAuthMiddleware, getIp } from "better-auth/api";
+import { APIError, createAuthMiddleware, getIp } from "better-auth/api";
 import { genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
@@ -49,7 +49,11 @@ import {
   recordAuthEvent,
   type AuthHookContext,
 } from "./auth-events.js";
-import { telegramGenericOAuthConfig } from "./telegram.js";
+import { isTrustedOrigin, staticAllowedOrigins } from "./origins.js";
+import {
+  isSyntheticTelegramEmail,
+  telegramGenericOAuthConfig,
+} from "./telegram.js";
 
 const connectionString = process.env.LOCAL_DATABASE_URL;
 if (!connectionString) {
@@ -58,14 +62,10 @@ if (!connectionString) {
   );
 }
 
-// trustedOrigins: better-auth's built-in CSRF/origin check. Without this the
-// SPA hits "Invalid Origin" because better-auth only trusts `baseURL` by
-// default. The contract (per better-auth 1.6.x docs + 2026 research):
-//
-//   - In prod: static allowlist from env CSV. NEVER wildcard a full host.
-//   - In dev: known localhost entries + echo back any RFC1918/loopback
-//     origin on port 5173 so `pnpm run dev:frontend` (Vite network mode,
-//     LAN IP varies) Just Works without env tweaks per machine.
+// trustedOrigins: better-auth's built-in CSRF/origin check on /api/auth/*.
+// Without this the SPA hits "Invalid Origin" — better-auth only trusts `baseURL`
+// by default. The allowlist itself lives in ./origins.ts, shared with CORS and
+// with requireTrustedOrigin (the same check for every non-auth mutating route).
 //
 // Why function form, not wildcards: better-auth wildcard syntax is
 // label-style (`*.example.com`), not whole-host substitution. Patterns like
@@ -77,40 +77,13 @@ if (!connectionString) {
 //
 // `request` is undefined when better-auth is called via `auth.api` (init,
 // internal calls) — handle that branch explicitly.
-const STATIC_DEV_ORIGINS = [
-  "http://localhost:5173",
-  "https://localhost:5173",
-  "http://127.0.0.1:5173",
-  "https://127.0.0.1:5173",
-];
-
-// Ports: 5173 = vite dev (dev-network), 4173 = vite preview --host.
-const LAN_ORIGIN_DEV =
-  /^https?:\/\/(?:localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+):(?:5173|4173)$/;
-
-function staticAllowedOrigins(): string[] {
-  const fromEnv = process.env.BETTER_AUTH_TRUSTED_ORIGINS
-    ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : [];
-  const frontend = process.env.FRONTEND_ORIGIN
-    ? [process.env.FRONTEND_ORIGIN]
-    : [];
-  if (process.env.NODE_ENV === "production") {
-    return [...frontend, ...fromEnv];
-  }
-  return [...frontend, ...STATIC_DEV_ORIGINS, ...fromEnv];
-}
-
 async function trustedOriginsResolver(
   request?: Request
 ): Promise<string[]> {
   const base = staticAllowedOrigins();
-  if (process.env.NODE_ENV === "production") return base;
   if (!request) return base;
   const origin = request.headers.get("origin");
-  if (origin && LAN_ORIGIN_DEV.test(origin)) {
+  if (origin && !base.includes(origin) && isTrustedOrigin(origin)) {
     return [...base, origin];
   }
   return base;
@@ -197,32 +170,73 @@ export const auth = betterAuth({
       role: { type: "string", required: false, input: false },
     },
   },
+  account: {
+    accountLinking: {
+      // An OAuth identity may NEVER resolve onto an existing user by email.
+      // better-auth's default is the opposite: when no `account` row matches it
+      // looks the user up by email and links implicitly, gated only by
+      // `userInfo.emailVerified` — a flag WE set ourselves on an address WE
+      // invent (telegram.ts). Trusting our own claim is circular, and it is what
+      // turned the Telegram placeholder into an account-takeover vector. Off.
+      //
+      // Cost of this being on: a Telegram login that finds a same-email row it
+      // cannot link now FAILS instead of merging. That is the correct outcome —
+      // a refused login is recoverable, a stolen account is not.
+      disableImplicitLinking: true,
+      // The DELIBERATE link ("Привязать Telegram" in ProfileDrawer) is a
+      // different flow: it runs on an authenticated session, so the user is
+      // proving both identities. better-auth still refuses it unless the
+      // provider's email equals the session user's — and Telegram's synthetic
+      // address never equals a real one, so that flow is dead in prod today
+      // (`email_doesn't_match`). This revives it. It does not widen the implicit
+      // path above, which stays closed.
+      allowDifferentEmails: true,
+    },
+  },
   advanced: {
     database: {
       generateId: "uuid",
     },
-    // A cookie is identified by name+domain+path. The pre-migration server
-    // already put `better-auth.session_token` on api.disher.life as a HOST-ONLY
-    // cookie, and it still sits in every live browser. A new cookie with the
-    // SAME name but `Domain=.disher.life` would NOT overwrite it — both would
-    // fly on every request, the server would read the first, and sign-out (which
-    // can only clear the domain-scoped one) would leave the user signed in.
-    // A fresh prefix gives a namespace where exactly one cookie can exist.
+    // A cookie is identified by name+domain+path — so changing the SCOPE of a
+    // cookie without changing its NAME does not replace it, it duplicates it.
+    // Both fly on every request, the server reads whichever comes first, and
+    // sign-out can only clear one of them. We hit that trap once already (the
+    // bearer→cookie migration); the prefix bump is how we refuse to hit it twice.
+    //
+    // What changed: the cookie is now HOST-ONLY (no `Domain` attribute) and the
+    // previous `disher` cookie in every live browser IS domain-scoped, so the
+    // new one would land beside it. `disher1` is a namespace where exactly one
+    // cookie can exist.
+    //
     // Accepted cost: every live user is signed out once and re-logs via Telegram.
-    cookiePrefix: "disher",
-    // Prod only: SPA (disher.life) and API (api.disher.life) are different
-    // subdomains, so the session cookie must be scoped to the parent domain.
-    // In dev both live on the same hostname (ports 5173 / 3100, and a port is
-    // not part of a cookie's scope), so a host-only cookie is enough — and with
-    // a LAN IP a `Domain` attribute is illegal outright.
-    ...(process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN
-      ? {
-          crossSubDomainCookies: {
-            enabled: true,
-            domain: process.env.COOKIE_DOMAIN,
-          },
-        }
-      : {}),
+    // No data is lost — the diary lives in Dexie + the user_backups vault.
+    //
+    // The `__Secure-` prefix you'll see on the wire is better-auth's, added
+    // whenever baseURL is https — including the self-signed local dev server.
+    // So the dev cookie is `__Secure-disher1.session_token` too, not the bare name.
+    cookiePrefix: "disher1",
+    // No `crossSubDomainCookies`. The domain scope was never needed: a cookie
+    // follows the origin of the REQUEST, not of the page, so the SPA on
+    // disher.life sending fetch(credentials:'include') to api.disher.life gets
+    // the api.disher.life cookie without any Domain attribute — and the OAuth
+    // callback lands on api.disher.life directly.
+    //
+    // What dropping it BUYS, precisely: our session token stops being broadcast.
+    // With `Domain=.disher.life` the browser attached it to every request to every
+    // *.disher.life host — and prod ingress is a SHARED box, so a neighbour's
+    // server could simply read it out of the Cookie header. Host-only ends that.
+    //
+    // What it does NOT buy — read this before believing the cookie is safe:
+    // cookie TOSSING is still open. A neighbour can set
+    //   Set-Cookie: __Secure-disher1.session_token=<their own valid session>;
+    //               Domain=.disher.life; Path=/
+    // and the browser will send BOTH cookies to api.disher.life. Their signature is
+    // genuine (they registered an account legitimately), so only ORDER decides who
+    // wins: RFC 6265 §5.4 sorts by longer Path first, then by earlier creation time.
+    // Only the `__Host-` prefix actually forbids a sibling from writing the name.
+    // We deliberately deferred `__Host-` (better-auth does not automate it; hand-
+    // assembling it depends on an attribute-merge order that can shift in a minor).
+    // Revisit the moment real third-party tenants appear on *.disher.life.
   },
   // Where auth errors land. Without this, better-auth's /error route in
   // production 302s the browser to a RELATIVE `/?error=<code>` — which the
@@ -263,6 +277,29 @@ export const auth = betterAuth({
   // APIError it threw, so success and failure land in the same place. Untracked
   // paths (/get-session on every boot) are skipped: they'd bury the signal.
   hooks: {
+    // Nobody may register an address inside Telegram's synthetic namespace.
+    //
+    // Why this is a security control and not hygiene: better-auth resolves an
+    // OAuth login by (providerId, accountId) and, finding no `account` row,
+    // FALLS BACK TO A LOOKUP BY EMAIL (db/internal-adapter.mjs findOAuthUser).
+    // The Telegram placeholder derives from a Telegram user-id, which is public.
+    // So without this guard an attacker registers `tg_<victim_id>@telegram.local`
+    // with a password of their own, the victim's next Telegram login resolves
+    // onto THAT row, and the attacker owns the victim's diary, backup vault and
+    // wallet. `disableImplicitLinking` below is the second, independent stop.
+    //
+    // It has to run server-side: the attacker is curl, not our SPA, so a check
+    // in the sign-up form guards nothing — the same reason the Origin header is
+    // no defence on this route.
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-up/email") return;
+      const email = (ctx.body as { email?: unknown } | undefined)?.email;
+      if (!isSyntheticTelegramEmail(email)) return;
+      throw APIError.from("BAD_REQUEST", {
+        message: "Этот адрес занят системой — зарегистрируйтесь на другой",
+        code: "RESERVED_EMAIL_DOMAIN",
+      });
+    }),
     after: createAuthMiddleware(async (ctx) => {
       if (!isTrackedAuthPath(ctx.path)) return;
       const source = ctx.request ?? ctx.headers ?? new Headers();

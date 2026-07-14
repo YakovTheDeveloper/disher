@@ -158,6 +158,11 @@ let cachedUser: AppUser | null = null;
 const BOOTSTRAP_WARM_TIMEOUT_MS = 1000;
 const BOOTSTRAP_COLD_TIMEOUT_MS = 5000;
 
+// The mid-session liveness probe is not on the boot path — nothing is blocked on
+// it, and the wrong answer costs the user their unsynced edits. Give it room to
+// answer over a bad mobile link rather than time out into a false "dead".
+const PROBE_TIMEOUT_MS = 8000;
+
 // Persisted last-known user. Used as a fallback when bootstrap can't reach the
 // server (network down / backend offline) — we keep the user signed in instead
 // of bouncing them to AuthScreen. Wiped on explicit signOut or on a real 401/403
@@ -200,6 +205,41 @@ function persistLastUser(user: AppUser | null) {
     );
   } catch {
     // Quota / private mode — ignore; next successful bootstrap will retry.
+  }
+}
+
+/**
+ * Ask the server, once, whether the session is actually dead.
+ *
+ * `dead` — the server explicitly rejected us (401/403) or answered 200 with no
+ * session. `alive` — it answered with a session. `unknown` — we could not get an
+ * answer (offline, 5xx, timeout); the caller must NOT treat this as a rejection.
+ *
+ * This is the same three-way split bootstrap() makes, hoisted out so the
+ * mid-session 401 funnel can reuse it instead of inventing a second, laxer one.
+ */
+export async function probeSessionLiveness(): Promise<
+  'dead' | 'alive' | 'unknown'
+> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+  try {
+    const { data, error } = await authClient.getSession({
+      fetchOptions: { signal: controller.signal, cache: 'no-store' },
+    });
+    if (error) {
+      const status =
+        typeof (error as { status?: unknown }).status === 'number'
+          ? (error as { status: number }).status
+          : undefined;
+      return status === 401 || status === 403 ? 'dead' : 'unknown';
+    }
+    return data?.user ? 'alive' : 'dead';
+  } catch {
+    // Thrown = network-shaped (offline, DNS, aborted). Never a revocation.
+    return 'unknown';
+  } finally {
+    clearTimeout(timer);
   }
 }
 

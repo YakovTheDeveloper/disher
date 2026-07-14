@@ -2,7 +2,8 @@
 
 Self-host the backend (Fastify) + Postgres behind Caddy (auto-HTTPS) on a single
 Linux VPS, and cut over off Supabase (which was only a rented Postgres — no Auth,
-RLS, Storage, or PostgREST in use; auth is better-auth bearer).
+RLS, Storage, or PostgREST in use; auth is better-auth with an httpOnly session
+cookie).
 
 Topology: `Caddy (:80/:443)` → `backend:3100` → `postgres:5432`. Only Caddy is
 published; backend and Postgres are reachable only on the internal compose
@@ -122,7 +123,7 @@ never `:3100` (not published).
    `ERR_MODULE_NOT_FOUND` / `ENOENT`; model loaded from cache (no HF download).
 2. `curl https://api.example.com/health/ready` → 200, `db:"ok"`,
    `matcherReady:true`, valid (production) LE cert.
-3. From the SPA origin: register → email delivered → login (bearer) →
+3. From the SPA origin: register → email delivered → login (session cookie) →
    `GET`/`PUT /api/backup`.
 4. Paid matcher route `/api/free-text-food/parse` returns non-503 and debits the
    wallet (do this AFTER step 4 backups exist).

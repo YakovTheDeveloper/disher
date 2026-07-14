@@ -19,6 +19,8 @@ import { adminRoutes } from "./routes/admin.js";
 import { devRoutes } from "./routes/dev.js";
 import { betterAuthPlugin } from "../auth/fastify-plugin.js";
 import { registerUserIdDecorator, requireUser } from "../auth/require-user.js";
+import { isTrustedOrigin, staticAllowedOrigins } from "../auth/origins.js";
+import { requireTrustedOrigin } from "../auth/require-origin.js";
 import { pool } from "./db.js";
 import { isMatcherReady } from "./food-matcher.js";
 import { toProblem } from "./errors.js";
@@ -26,26 +28,25 @@ import { resolveRequestId } from "../billing/http.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// CORS origin policy. In dev we reflect any Origin (LAN IPs vary per machine).
-// In prod we MUST NOT reflect arbitrary origins with credentials:true — build a
-// static allowlist from FRONTEND_ORIGIN + BETTER_AUTH_TRUSTED_ORIGINS (CSV).
-// An empty prod allowlist fails closed (blocks cross-origin) and is logged.
-function resolveCorsOrigin(): true | string[] {
-  if (process.env.NODE_ENV !== "production") return true;
-  const allow = [
-    ...(process.env.FRONTEND_ORIGIN ? [process.env.FRONTEND_ORIGIN] : []),
-    ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS
-      ? process.env.BETTER_AUTH_TRUSTED_ORIGINS.split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-      : []),
-  ];
-  if (allow.length === 0) {
-    console.warn(
-      "[cors] production with empty allowlist — set FRONTEND_ORIGIN; SPA requests will be blocked"
-    );
-  }
-  return allow;
+// CORS origin policy — the allowlist itself lives in auth/origins.ts, shared
+// with better-auth's trustedOrigins and with requireTrustedOrigin.
+//
+// Dev used to `return true` here: reflect ANY Origin, with credentials:true.
+// That was survivable while the session was a bearer token in localStorage (the
+// token never rode along automatically). With a session COOKIE it is not — any
+// page a developer happens to have open could call the dev API as them and read
+// GET /api/backup, i.e. the whole food diary. So dev echoes LAN/localhost after
+// a strict match instead of reflecting blindly.
+//
+// A request with no Origin at all is allowed THROUGH CORS (same-origin fetches,
+// curl, health checks — CORS has nothing to say about them); it is
+// requireTrustedOrigin, not this, that blocks a headerless mutating request.
+function corsOriginDelegate(
+  origin: string | undefined,
+  cb: (err: Error | null, allow: boolean) => void,
+): void {
+  if (!origin) return cb(null, true);
+  cb(null, isTrustedOrigin(origin));
 }
 
 export type BuildAppOptions = {
@@ -85,9 +86,18 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     ...(httpsOptions ? { https: httpsOptions } : {}),
   });
 
+  if (
+    process.env.NODE_ENV === "production" &&
+    staticAllowedOrigins().length === 0
+  ) {
+    console.warn(
+      "[cors] production with empty allowlist — set FRONTEND_ORIGIN; SPA requests will be blocked",
+    );
+  }
+
   await app.register(sensible);
   await app.register(cors, {
-    origin: resolveCorsOrigin(),
+    origin: corsOriginDelegate,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   });
@@ -193,14 +203,21 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
       .send(problem);
   });
 
+  // requireTrustedOrigin goes on every session-authenticated scope BEFORE
+  // requireUser, so a forged cross-site request is refused with a 403 without
+  // ever reaching the session lookup. better-auth guards its own /api/auth/*
+  // routes; this is the same guarantee for ours. See auth/require-origin.ts for
+  // why "no Origin header" is a rejection and not a pass.
+
   // suggestions + free-text-food are PAID (debit the wallet per LLM call). They
   // used to be anonymous (IP-rate-limited) — the app now mandates signup
-  // (AuthGate), so requiring a bearer is safe. requireUser is added on a scope
+  // (AuthGate), so requiring a session is safe. requireUser is added on a scope
   // here, NOT inside the route modules, so their pure-pipeline unit tests keep
   // registering the bare route without auth. Billing inside the handler is gated
   // on req.userId, which only those bare tests lack.
   await app.register(
     async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
       scope.addHook("preHandler", requireUser);
       await scope.register(suggestionsRoutes);
     },
@@ -208,30 +225,55 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   );
   await app.register(
     async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
       scope.addHook("preHandler", requireUser);
       await scope.register(freeTextFoodRoutes);
     },
     { prefix: "/api/free-text-food" },
   );
-  // matcher-telemetry writes a client-controlled body to disk per request. It
-  // CANNOT be auth-gated: the client ships it via navigator.sendBeacon on
-  // page-hide (no way to attach an Authorization header), so a bearer hook
-  // would 401 every real event. Instead the route strictly validates the
-  // payload shape AND self-limits per IP (trustProxy makes req.ip the real
-  // client behind Caddy) — see matcher-telemetry.ts. That bounds the public
-  // disk-write surface without breaking the beacon.
+  // matcher-telemetry is the ONE deliberate exemption from requireTrustedOrigin.
+  // It writes a client-controlled body to disk per request and CANNOT be gated:
+  // the client ships it via navigator.sendBeacon on page-hide, which guarantees
+  // neither an Authorization header nor an Origin. Instead the route strictly
+  // validates the payload shape AND self-limits per IP (trustProxy makes req.ip
+  // the real client behind the proxy) — see matcher-telemetry.ts. It carries no
+  // session and mutates no user data, so CSRF has nothing to steal here.
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
-  await app.register(backupRoutes, { prefix: "/api/backup" });
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
+      await scope.register(backupRoutes);
+    },
+    { prefix: "/api/backup" },
+  );
   // Prod-safe user-facing bug reports (text + metadata → pg, auth-gated). The
   // dev disk sink (bugReportRoutes below) stays dev-only; this durable store is
   // the one real users reach from the settings drawer.
-  await app.register(userReportsRoutes, { prefix: "/api/user-reports" });
-  await app.register(analyzeRoutes, { prefix: "/api" });
-  await app.register(analyzeDishRoutes, { prefix: "/api" });
-  await app.register(billingRoutes, { prefix: "/api" });
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
+      await scope.register(userReportsRoutes);
+    },
+    { prefix: "/api/user-reports" },
+  );
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
+      await scope.register(analyzeRoutes);
+      await scope.register(analyzeDishRoutes);
+      await scope.register(billingRoutes);
+    },
+    { prefix: "/api" },
+  );
   // Admin panel (topup + roles). NOT dev-gated — it's a production feature; the
   // requireAdmin preHandler (self-applied in the module) is the security gate.
-  await app.register(adminRoutes, { prefix: "/api/admin" });
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
+      await scope.register(adminRoutes);
+    },
+    { prefix: "/api/admin" },
+  );
 
   // Dev/test-only routes. Each handler also 404s when NODE_ENV === 'production'
   // as a second line of defense, but skip registration entirely in prod so the

@@ -26,7 +26,7 @@ vi.mock('../betterAuthClient', () => ({
   },
 }));
 
-const { authProvider } = await import('../authProvider');
+const { authProvider, probeSessionLiveness } = await import('../authProvider');
 
 const LAST_USER_KEY = 'disher.lastUser';
 
@@ -300,5 +300,64 @@ describe('authProvider.signOut', () => {
     await authProvider.signOut();
 
     expect(localStorage.getItem(LAST_USER_KEY)).toBeNull();
+  });
+});
+
+// This is the function that decides whether a mid-session 401 costs the user their
+// unsynced edits: handleSessionExpired signs out (and wipes Dexie) on 'dead' and on
+// nothing else. Its three-way split is the whole safety property, so each branch is
+// pinned here. The funnel's own tests mock this function out entirely — without
+// these, not one of its branches would be executed by anything.
+describe('probeSessionLiveness', () => {
+  beforeEach(() => {
+    getSessionMock.mockReset();
+  });
+
+  it('reads an explicit rejection (401/403) as dead', async () => {
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 401 } });
+    await expect(probeSessionLiveness()).resolves.toBe('dead');
+
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 403 } });
+    await expect(probeSessionLiveness()).resolves.toBe('dead');
+  });
+
+  it('reads a 200 with a user as alive', async () => {
+    getSessionMock.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'u1@example.com' } },
+      error: null,
+    });
+    await expect(probeSessionLiveness()).resolves.toBe('alive');
+  });
+
+  // The server answered and said "no session" — that IS a rejection, just a polite
+  // one. Treating it as 'unknown' would leave a genuinely signed-out user stuck.
+  it('reads a 200 with no user as dead', async () => {
+    getSessionMock.mockResolvedValue({ data: null, error: null });
+    await expect(probeSessionLiveness()).resolves.toBe('dead');
+  });
+
+  // Everything below must NOT read as a revocation. A 5xx from a mid-deploy backend
+  // or a dead network is exactly the case the probe exists to distinguish — call it
+  // 'dead' and we wipe the diary of a user whose session was never revoked.
+  it('reads a 5xx as unknown, never dead', async () => {
+    getSessionMock.mockResolvedValue({ data: null, error: { status: 500 } });
+    await expect(probeSessionLiveness()).resolves.toBe('unknown');
+  });
+
+  it('reads an error with no status as unknown', async () => {
+    getSessionMock.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    await expect(probeSessionLiveness()).resolves.toBe('unknown');
+  });
+
+  it('reads a thrown network failure as unknown', async () => {
+    getSessionMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(probeSessionLiveness()).resolves.toBe('unknown');
+  });
+
+  it('reads a timeout abort as unknown', async () => {
+    getSessionMock.mockRejectedValue(
+      Object.assign(new Error('aborted'), { name: 'AbortError' }),
+    );
+    await expect(probeSessionLiveness()).resolves.toBe('unknown');
   });
 });

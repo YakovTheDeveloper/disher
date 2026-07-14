@@ -7,14 +7,20 @@
 #   docker compose up -d --wait
 #
 # Secrets/domain config come from .env.production (NOT committed — see
-# .env.production.example). Deployment-topology vars (HOST/PORT/paths) are pinned
-# in `environment:` so they can't be clobbered by the env_file.
+# .env.production.example). That file exists ONLY on the box; push-env.sh puts it
+# there. Deployment-topology vars (HOST/PORT/paths) are pinned in `environment:`
+# so they can't be clobbered by the env_file.
+#
+# For a local smoke run (does the image build, does the container go healthy?)
+# point ENV_FILE at the fake .env.smoke — there are no prod secrets on a dev
+# machine, so the default below would just fail with "env file not found":
+#   ENV_FILE=.env.smoke docker compose up -d --wait postgres backend
 
 services:
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
-    env_file: .env.production # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+    env_file: ${ENV_FILE:-.env.production} # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
     volumes:
       - pgdata:/var/lib/postgresql/data
     # NOT published — only reachable on the internal compose network.
@@ -36,7 +42,7 @@ services:
       dockerfile: apps/disher-backend-3.0/Dockerfile
     image: disher-backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
-    env_file: .env.production # app secrets: BETTER_AUTH_*, LOCAL_DATABASE_URL, OPENROUTER_API_KEY, RESEND_*, FRONTEND_ORIGIN, …
+    env_file: ${ENV_FILE:-.env.production} # app secrets: BETTER_AUTH_*, LOCAL_DATABASE_URL, OPENROUTER_API_KEY, RESEND_*, FRONTEND_ORIGIN, …
     environment:
       # Topology — pinned here so an env_file slip can't break container reachability.
       NODE_ENV: production
@@ -66,7 +72,7 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
-    env_file: .env.production # API_DOMAIN / ACME_EMAIL (+ optional SPA_DOMAIN)
+    env_file: ${ENV_FILE:-.env.production} # API_DOMAIN / ACME_EMAIL (+ optional SPA_DOMAIN)
     ports:
       - "80:80"
       - "443:443"
