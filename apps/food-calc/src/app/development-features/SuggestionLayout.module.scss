@@ -28,8 +28,10 @@
   --s-accent-marker: rgba(28, 28, 107, 0.55);
 
   // ── гарнитуры ──
-  --s-font-head: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --s-font-body: 'Onest', system-ui, -apple-system, sans-serif;
+  // Source Serif выпилен 2026-07-14 (self-hosted пакет ради одного глифа) — голова
+  // предложки едет на системной Georgia, как и app-ярус --sys-text-family-serif.
+  --s-font-head: Georgia, 'Times New Roman', serif;
+  --s-font-body: 'Onest Variable', system-ui, -apple-system, sans-serif;
   --s-font-mono: 'Ubuntu Mono', ui-monospace, monospace;
 
   // ── шкала кеглей ──

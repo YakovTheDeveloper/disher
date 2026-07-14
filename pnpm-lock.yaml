@@ -102,21 +102,9 @@ importers:
       '@floating-ui/react':
         specifier: 0.27.0
         version: 0.27.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@fontsource/alice':
-        specifier: ^5.2.8
-        version: 5.2.8
-      '@fontsource/merriweather':
+      '@fontsource-variable/onest':
         specifier: ^5.2.11
         version: 5.2.11
-      '@fontsource/onest':
-        specifier: ^5.2.11
-        version: 5.2.11
-      '@fontsource/raleway':
-        specifier: ^5.2.8
-        version: 5.2.8
-      '@fontsource/source-serif-4':
-        specifier: ^5.2.9
-        version: 5.2.9
       '@fontsource/ubuntu-mono':
         specifier: ^5.2.8
         version: 5.2.8
@@ -1416,20 +1404,8 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource/alice@5.2.8':
-    resolution: {integrity: sha512-EDpK9aFXsaRKdyZpgFu8d5+zmE07yIaFxqVeKrYQJjdQpEhWDZA+naLflHwQQmMbLMJK3a4X/RAm5MCScT93NA==}
-
-  '@fontsource/merriweather@5.2.11':
-    resolution: {integrity: sha512-ZiIMeUh5iT8d73o6xlSF8GKgjV5pgiFrufYc5jZTVAfExtWKqM2vQHnsqXSFMv4ELhAcjt6Vf+5T3oVGXhAizQ==}
-
-  '@fontsource/onest@5.2.11':
-    resolution: {integrity: sha512-YDOHuJ+HFf4rl6+vBzEoAGul+GyEOIlziepq+7UDT4839LyiFU1clVZqNmqmCRjwWidPTMUJIv1k9e+5UtuQOw==}
-
-  '@fontsource/raleway@5.2.8':
-    resolution: {integrity: sha512-OATNM+J4XniKQRlI1e67v3euOnCUiXwpqgMofomKc5JNYOq0JPE6E5uTXMnFaZejKN1Z7s05JrHpmYB7/tg1Fw==}
-
-  '@fontsource/source-serif-4@5.2.9':
-    resolution: {integrity: sha512-er/Pym9emsEVJNf947umJ4kXarXfsiN6CN7kTYinefKRaHLwiquiiHOZvKvxWgkV8JMCf3pV3g0NcsPFpVCH9w==}
+  '@fontsource-variable/onest@5.2.11':
+    resolution: {integrity: sha512-knJww1KxK4g66+qu90q3CPBvl4zhL5oDRi3/JMkYMmlhW3OgyRgT4MMfgd6jg2lvho7bLPAXfsYPh59h0yzwUA==}
 
   '@fontsource/ubuntu-mono@5.2.8':
     resolution: {integrity: sha512-N4nT8+GYWWcDODVSBLU4f3PycZQH9YIF6SypDI0rti3HrLqcXFS9u6wMvAd9vx1FmjAQkYv7Ld9CZ8XYTEOD0A==}
@@ -7154,15 +7130,7 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource/alice@5.2.8': {}
-
-  '@fontsource/merriweather@5.2.11': {}
-
-  '@fontsource/onest@5.2.11': {}
-
-  '@fontsource/raleway@5.2.8': {}
-
-  '@fontsource/source-serif-4@5.2.9': {}
+  '@fontsource-variable/onest@5.2.11': {}
 
   '@fontsource/ubuntu-mono@5.2.8': {}
 

@@ -2,56 +2,31 @@
 // (vite.config workbox globPatterns includes woff2) → render correctly OFFLINE.
 // Replaces the render-blocking Google Fonts @import removed from index.scss on 2026-06-01
 // (design-consistency-plan Phase 0; offline + Core-Web-Vitals).
+
+// Onest — ГЛАВНОЕ текстовое семейство: тело (--font-sans → --sys-text-family-sans),
+// заголовки (--heading-font, вес 700), крупные цифры (--font-big-numeric, вес 800),
+// тихий ярус (вес 200).
 //
-// STATIC @fontsource packages keep PLAIN family names ('Onest', 'Source Serif 4', 'Raleway'),
-// matching the --font-* token stacks. Each weight file bundles every subset incl. Cyrillic (RU UI).
+// ⚠️ ВАРИАТИВНЫЙ пакет регистрирует семейство С СУФФИКСОМ — "Onest Variable", НЕ "Onest".
+// Все стеки в tokens.scss обязаны называть его именно так, иначе молчаливый откат на
+// Golos Text / system.
+//
+// Ось wght: 100–900 в одном файле на сабсет → 4 файла (latin, latin-ext, cyrillic,
+// cyrillic-ext) вместо 24 статических. Покрывает ВСЕ живые веса разом, поэтому
+// «забыли импортировать вес» как класс ошибки больше не существует.
+//
+// NB: Onest БЕЗ курсива — `font-style: italic` вне Apple = faux-oblique (осознанно).
+import '@fontsource-variable/onest';
 
-// Onest — теперь ГЛАВНОЕ текстовое семейство (2026-06-22): тело всего приложения
-// (--font-sans → --sys-text-family-sans), заголовки (--heading-font, вес 700) и
-// крупные цифры (--font-big-numeric, вес 800). На Apple системный SF Pro стоит в
-// стеке первым; Onest — fallback вне Apple (Windows/Android), поэтому грузим все
-// веса, что реально использует тело+заголовки: 300 (light) · 400 · 500 · 600 ·
-// 700 (heading + bold body) · 800 (big-numeric). @fontsource регистрирует все
-// subset'ы, браузер тянет нужный (RU UI → cyrillic).
-// NB: Onest БЕЗ курсива — body `font-style: italic` вне Apple = faux-oblique
-// (принято осознанно; настоящий курсив несёт serif-ярус Source Serif). Jost
-// полностью выпилен 2026-06-23 (тело + поля = Onest-led --font-sans).
-import '@fontsource/onest/100.css';
-import '@fontsource/onest/200.css';
-import '@fontsource/onest/300.css';
-import '@fontsource/onest/400.css';
-import '@fontsource/onest/500.css';
-import '@fontsource/onest/600.css';
-import '@fontsource/onest/700.css';
-import '@fontsource/onest/800.css';
-
-// Quiet serif tier — Source Serif 4: italic for <QuietLabel> (inactive tab /
-// breadcrumb step — the «museum-label» pointer). NOT the heading voice — that is
-// Onest bold-sans via --heading-font (flip 2026-06-19). FieldLabel left this tier
-// for sans on 2026-06-23; nutrient section headers moved to Heading role="title".
-import '@fontsource/source-serif-4/300.css';
-import '@fontsource/source-serif-4/600.css';
-import '@fontsource/source-serif-4/700.css';
-import '@fontsource/source-serif-4/300-italic.css';
-import '@fontsource/source-serif-4/600-italic.css';
-import '@fontsource/source-serif-4/700-italic.css';
-
-// Accent serif — Alice (--font-alice). One weight (400); bundles cyrillic +
-// latin subsets. Used for the analysis loader caption — NOT the heading voice
-// (that is Onest bold-sans via --heading-font since the 2026-06-19 flip).
-import '@fontsource/alice/400.css';
-
-// Display accents — Raleway (--font-display)
-import '@fontsource/raleway/200.css';
-import '@fontsource/raleway/400.css';
-import '@fontsource/raleway/500.css';
-
-// Serif fallback — Merriweather: 2-я ступень стека --sys-text-family-serif
-// ("Source Serif 4","Merriweather",Georgia,serif) — тихий serif-ярус
-// (<QuietLabel>). NB: токен --font-serif удалён 2026-06-24;
-// семейство живёт теперь только в --sys-text-family-serif (tokens.scss).
-import '@fontsource/merriweather/400.css';
-import '@fontsource/merriweather/700.css';
-
-// Monospace — Ubuntu Mono (--font-mono)
+// Monospace — Ubuntu Mono (--font-mono): ItemsList, FoodEntryCreateModals, BugReportModal.
 import '@fontsource/ubuntu-mono/400.css';
+
+// Выпилены 2026-07-14 вместе с 85 woff2 (1.3 MB → 0.2 MB precache):
+//   · Source Serif 4 — единственным потребителем остался глиф «i» в InfoIcon;
+//     serif-ярус (--sys-text-family-serif) переведён на системную Georgia,
+//     которая несёт НАСТОЯЩИЙ курсив и стоит 0 байт.
+//   · Raleway (--font-display) — жил в одной строке NutrientEditRow; та переведена
+//     на --sys-field-font-family (остальная тройка field-токенов там уже стояла).
+//   · Merriweather — фолбэк ЗА self-hosted Source Serif ⇒ не рендерился никогда.
+//   · Alice (--font-alice) — ноль потребителей: подпись FabricLoader давно едет
+//     на <Text role="body">, комментарий про Alice врал.

@@ -50,13 +50,11 @@
 
   // ─── Font families — #font-families ──────────────────────────
   --font-sans: var(--sys-text-family-sans); // Onest-first body voice
-  --font-display: "Raleway", sans-serif;
-  --font-alice: "Alice", "Source Serif 4", serif; // accent serif (loader caption)
   --font-mono: "Ubuntu Mono", monospace;
-  --font-big-numeric: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; // weight 800 only
+  --font-big-numeric: "Onest Variable", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; // weight 800 only
 
   // ─── Headings (Onest bold-sans, Apple Large Title) — #headings ──
-  --heading-font: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --heading-font: "Onest Variable", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --heading-style: normal;
   --heading-weight: 700;
   --heading-letter: -0.022em;
@@ -70,8 +68,10 @@
   // preset «сист» (LOCKED 2026-06-22). Consumed via text-role(<role>) mixin.
 
   // family voices (ref for roles)
-  --sys-text-family-sans: "Onest", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --sys-text-family-serif: "Source Serif 4", "Merriweather", Georgia, serif; // quiet tier
+  --sys-text-family-sans: "Onest Variable", "Golos Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  // Системная Georgia: несёт НАСТОЯЩИЙ курсив и стоит 0 байт. Self-hosted Source Serif
+  // (36 woff2) держался ради одного глифа «i» в InfoIcon — не окупался.
+  --sys-text-family-serif: Georgia, "Times New Roman", serif; // quiet tier
 
   // Display — poster / active swipe tab
   --sys-text-display-size: 46px;
