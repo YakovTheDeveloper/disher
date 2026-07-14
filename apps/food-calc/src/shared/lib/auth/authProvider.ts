@@ -375,6 +375,28 @@ export const authProvider = {
     cachedUser = null;
   },
 
+  /**
+   * Kill every OTHER session of this user server-side; this device stays signed
+   * in. The answer to "я потерял телефон": a session is opaque, never rotates
+   * and lives 365 days, so a lost device stays inside until the row is deleted.
+   *
+   * Deliberately NOT `revokeSessions` (which would also kill the session of the
+   * device the user is holding): they asked to evict the others, not to log
+   * themselves out. Needs a valid session but NOT a fresh one — better-auth
+   * gates this on sensitiveSessionMiddleware, not freshSessionMiddleware.
+   */
+  async revokeOtherSessions(): Promise<{ ok: true } | { ok: false; error: AuthError }> {
+    try {
+      const { error } = await authClient.revokeOtherSessions();
+      if (error) {
+        return { ok: false, error: classifyBetterAuthError(error ?? undefined, error) };
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: classifyError(e) };
+    }
+  },
+
   async signInWithOAuth(
     providerId: string,
     callbackURL = '/',

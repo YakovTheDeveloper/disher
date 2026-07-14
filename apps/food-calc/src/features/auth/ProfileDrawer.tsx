@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from './auth-store';
+import { authProvider } from '@/shared/lib/auth/authProvider';
+import toaster from '@/shared/lib/toaster/toaster';
+import { defaultUserMessage } from '@/shared/lib/errors/classify';
 import { useIsAdmin } from '@/features/admin/useIsAdmin';
 import { RouterLinks } from '@/app/router';
 import styles from './ProfileDrawer.module.scss';
@@ -83,6 +86,9 @@ export function ProfileDrawer() {
   // «Сообщить о проблеме» — упрощённый прод-репорт (ModalByLabel, одно поле).
   // isExpanded гоняется отсюда по клику ряда; модалка накрывает дровер сверху.
   const [reportOpen, setReportOpen] = useState(false);
+  // Отзыв чужих сессий — сетевой вызов без своей модалки; флаг держит ряд
+  // задизейбленным, чтобы двойной тап не слал второй запрос.
+  const [revoking, setRevoking] = useState(false);
 
   // Cloud-sync toggle. Enabling is benign/immediate (re-push local via the
   // pull-first syncNow chokepoint — never a bare push that could clobber the
@@ -119,6 +125,22 @@ export function ProfileDrawer() {
     const snap = await pickJson();
     await apply(snap as never);
     window.location.reload();
+  };
+
+  // «Я потерял телефон». Сессия опаковая, не ротируется и живёт 365 дней —
+  // потерянное устройство остаётся внутри, пока строку сессии не удалят. Этот ряд
+  // и удаляет: все ДРУГИЕ сессии, текущая остаётся (юзер просил выселить чужих, а
+  // не выйти самому). Локальные данные не трогаются — это не выход, а отзыв.
+  const handleRevokeOtherSessions = async () => {
+    if (revoking) return;
+    setRevoking(true);
+    const result = await authProvider.revokeOtherSessions();
+    setRevoking(false);
+    if (result.ok) {
+      toaster.success('Другие устройства вышли из аккаунта');
+      return;
+    }
+    toaster.error(defaultUserMessage(result.error), { kind: result.error });
   };
 
   const handleSignOut = async () => {
@@ -301,6 +323,22 @@ export function ProfileDrawer() {
               Опасная зона
             </Text>
             <div className={styles.rows}>
+              {/* Отзыв чужих сессий стоит НАД выходом: он безопаснее (локальные
+                  данные целы, это устройство остаётся внутри) и решает другую
+                  задачу — «телефон потерян», а не «я ухожу». */}
+              <SettingRow
+                danger
+                icon={<LogoutIcon width={18} height={18} />}
+                label="Выйти на других устройствах"
+                sub={
+                  revoking
+                    ? 'Завершаем сессии…'
+                    : 'Завершит сессии везде, кроме этого устройства'
+                }
+                trailing={<ChevronGlyph />}
+                onClick={handleRevokeOtherSessions}
+                aria-disabled={revoking}
+              />
               <SettingRow
                 danger
                 icon={<LogoutIcon width={18} height={18} />}

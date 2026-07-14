@@ -59,6 +59,16 @@ vi.mock('@/features/wallpaper', () => ({ WallpaperPicker: () => <div /> }));
 vi.mock('@/features/card-palette', () => ({ CardPalettePicker: () => <div /> }));
 vi.mock('@/features/sync-status/SyncStatusChip', () => ({ SyncStatusChip: () => <div /> }));
 
+const mockRevokeOtherSessions = vi.fn();
+vi.mock('@/shared/lib/auth/authProvider', () => ({
+  authProvider: { revokeOtherSessions: (...a: unknown[]) => mockRevokeOtherSessions(...a) },
+}));
+const mockToastSuccess = vi.fn();
+const mockToastError = vi.fn();
+vi.mock('@/shared/lib/toaster/toaster', () => ({
+  default: { success: (...a: unknown[]) => mockToastSuccess(...a), error: (...a: unknown[]) => mockToastError(...a) },
+}));
+
 vi.mock('../ProfileDrawer.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `pd-${String(p)}` }),
 }));
@@ -71,6 +81,9 @@ const { ProfileDrawer } = await import('../ProfileDrawer');
 beforeEach(() => {
   mockShow.mockReset();
   mockAuth.signOut.mockReset();
+  mockRevokeOtherSessions.mockReset();
+  mockToastSuccess.mockReset();
+  mockToastError.mockReset();
 });
 
 afterEach(() => {
@@ -107,5 +120,36 @@ describe('ProfileDrawer (VariantD root)', () => {
     });
 
     expect(mockAuth.signOut).toHaveBeenCalledOnce();
+  });
+
+  // «Выйти на других устройствах» отзывает ЧУЖИЕ сессии: это устройство остаётся
+  // внутри и локальные данные не трогаются — поэтому ни модалки, ни signOut.
+  it('revokes other sessions without signing this device out', async () => {
+    mockRevokeOtherSessions.mockResolvedValue({ ok: true });
+    render(<ProfileDrawer />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /выйти на других устройствах/i }));
+    });
+
+    expect(mockRevokeOtherSessions).toHaveBeenCalledOnce();
+    expect(mockAuth.signOut).not.toHaveBeenCalled();
+    expect(mockShow).not.toHaveBeenCalled();
+    expect(mockToastSuccess).toHaveBeenCalledWith('Другие устройства вышли из аккаунта');
+  });
+
+  it('surfaces a failed revoke as an error toast (session stays as it was)', async () => {
+    mockRevokeOtherSessions.mockResolvedValue({
+      ok: false,
+      error: { kind: 'network', message: 'Failed to fetch' },
+    });
+    render(<ProfileDrawer />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /выйти на других устройствах/i }));
+    });
+
+    expect(mockToastError).toHaveBeenCalledOnce();
+    expect(mockToastSuccess).not.toHaveBeenCalled();
   });
 });
