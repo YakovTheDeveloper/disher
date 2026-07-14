@@ -297,13 +297,18 @@ describeIfReady("better-auth HTTP routes", () => {
   // that row instantly invalidates every device holding the cookie — the runtime
   // equivalent of a JWT revocation. Smoke: the cookie works against a protected
   // route, DELETE FROM session, the same cookie is rejected with 401.
+  //
+  // The probe route is GET /api/balance: requireUser-gated and 200 for any live
+  // user (the welcome grant creates the wallet). It used to be /api/backup/stats,
+  // which does not exist — so this test asserted 200 on a 404 and had been red
+  // long before the cookie migration.
   describe("session revocation", () => {
     it("DELETE FROM session → next request with the same cookie is rejected with 401", async () => {
       const user = await createTestUser({ email: "revoke@example.com" });
 
       const before = await app.inject({
         method: "GET",
-        url: "/api/backup/stats",
+        url: "/api/balance",
         headers: user.headers,
       });
       expect(before.statusCode).toBe(200);
@@ -316,7 +321,7 @@ describeIfReady("better-auth HTTP routes", () => {
 
       const after = await app.inject({
         method: "GET",
-        url: "/api/backup/stats",
+        url: "/api/balance",
         headers: user.headers,
       });
       expect(after.statusCode).toBe(401);
