@@ -65,8 +65,10 @@ const HypothesesSlide = ({ topSlot }: Props) => {
     });
   }, [t]);
 
-  // Бар — прямо в `bottomBar` (как EventsWriteBar): нижний инсет владеет ТОЛЬКО
-  // `Screen.bottomBar` (safe-area), боковой — `WriteBarShell.wrap` (--sys-inset-page).
+  // Бар — прямо в `bottomBar` (как EventsWriteBar). Оба инсета несёт сама плашка
+  // `WriteBarShell.wrap`: боковой — `--sys-inset-page`, нижний — safe-area, которую
+  // `Screen.bottomBar` ей уступает по `data-edge-bleed` (канон `bottom-edge-bleed`:
+  // кто красит нижнюю кромку, тот и красит системную панель PWA).
   return (
     <Screen
       stickyTop={topSlot}

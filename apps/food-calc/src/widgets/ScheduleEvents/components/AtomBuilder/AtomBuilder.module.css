@@ -75,13 +75,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* «Готово» — primary Button under the form; appears only while the form is
-   touched (commits the current state + clears for the next). The Button owns its
-   look; this rule only positions it left-aligned in the flex column. */
-.addState {
-  align-self: flex-start;
-}
-
 /* Подсказка — мелким кеглем, под шкалой и пилюлями (а не крупным заголовком
    сверху). «Намного меньше» по просьбе 2026-06-13. */
 .bottomHint {

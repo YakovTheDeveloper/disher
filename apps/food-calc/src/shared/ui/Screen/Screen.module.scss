@@ -91,7 +91,17 @@
     // (AppBottomBar `.writeDock`/`.shellSolo`) фон НЕ красят — источник тут.
     --sys-color-bottom-bar-scrim: transparent;
     background: var(--sys-color-bottom-bar-bg, var(--sys-color-bottom-bar-scrim));
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--bottom-bar-safe-pad, env(safe-area-inset-bottom));
+}
+
+// Канон «кто красит нижний край — тот и владеет safe-area» (миксин
+// `bottom-edge-bleed`). Непрозрачная док-плашка (write-бар, plate-CTA) метит себя
+// `data-edge-bleed` и забирает safe-area-инсет СЕБЕ в падинг — иначе системная
+// нижняя панель PWA красится прозрачным баром (= surface-0 экрана) и спорит с
+// плашкой (surface-2). Слот тогда обнуляет свой инсет: суммарная высота бара та же,
+// сдвига layout нет. Прозрачные бары атрибут не ставят → ветка их не трогает.
+.bottomBar:has([data-edge-bleed]) {
+    --bottom-bar-safe-pad: 0px;
 }
 
 // ─── Прятать нижний бар при фокусе любого инпута в скролл-контенте ──────────

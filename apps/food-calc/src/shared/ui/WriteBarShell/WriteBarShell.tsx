@@ -259,6 +259,9 @@ export const WriteBarShell = ({
       data-expanded={expanded || undefined}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
       data-write-bar=""
+      // Непрозрачная плашка красит нижнюю кромку → забирает safe-area-инсет у слота
+      // Screen `.bottomBar`, иначе системная панель PWA остаётся цвета экрана.
+      data-edge-bleed=""
     >
       {/* Opt-in dim-backdrop: fixed inset:0 but INSIDE `.wrap` at z-index:-1, so the
           dock plate + pill + hint paint OVER it (bright) while the page below dims.

@@ -61,6 +61,10 @@
     // Верт. падинг (--space-2 = 8px) МЕНЬШЕ бокового (--shell-inset) — well почти
     // дотягивается до верх/низ кромок плашки (заполняет высоту, 2026-06-27).
     padding: var(--space-2) var(--shell-inset);
+    // Плашка непрозрачна и стоит последней у нижней кромки → она же красит системную
+    // нижнюю панель PWA. Значит safe-area-инсет её, а не прозрачного слота Screen
+    // `.bottomBar` (тот уступает по `data-edge-bleed`, см. Screen.module.scss).
+    @include bottom-edge-bleed(var(--space-2));
     position: relative;
     box-sizing: border-box;
     // ПОДЛОЖКА ИМИТИРУЕТ ВОЗВЫШЕННОСТЬ: яркая (белее тёплой бумаги Screen) плашка

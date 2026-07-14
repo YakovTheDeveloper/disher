@@ -2,15 +2,17 @@
  * ScaleAtomInput — the single scale form (1–10 + phenomenon label).
  *
  * Scale is the ONLY manually-entered atom (2026-06-12). The value lives in the
- * draft store as `pendingScale`; there is NO «Добавить» button — the modal's
- * «Готово»/close commits it via `commitPendingScale` (one button, no data loss).
+ * draft store as `pendingScale`. The modal's «Готово»/close commits it via
+ * `commitPendingScale`, so a user entering ONE state never needs to press
+ * anything here; the optional `action` slot («Добавить состояние») is only for
+ * committing a state and starting the next one.
  * `setPendingScale` flips `touched`, so an untouched default never attaches a
  * phantom 5/10 to an event that the user only described in words.
  *
  * Renders directly inside the Оценка modal — no own header/footer.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
@@ -27,9 +29,17 @@ interface ScaleAtomInputProps {
    * the user taps a field.
    */
   autoFocusValue?: boolean;
+  /**
+   * Commit-affordance («Добавить состояние»), rendered INSIDE the form — right
+   * under the preset row, next to what it commits. It must not live in the
+   * builder's outer flex column: `.scalePanelBody` is `flex:1`, so anything
+   * after it gets pushed to the bottom of the screen — onto the modal footer's
+   * «Готово ✓», which is a different action entirely.
+   */
+  action?: ReactNode;
 }
 
-export const ScaleAtomInput = ({ autoFocusValue = true }: ScaleAtomInputProps) => {
+export const ScaleAtomInput = ({ autoFocusValue = true, action }: ScaleAtomInputProps) => {
   const value = useEventDraftStore((s) => s.pendingScale.value);
   const label = useEventDraftStore((s) => s.pendingScale.label);
   const setPendingScale = useEventDraftStore((s) => s.setPendingScale);
@@ -96,6 +106,8 @@ export const ScaleAtomInput = ({ autoFocusValue = true }: ScaleAtomInputProps) =
             </ChoiceItem>
           ))}
         </ChoiceGroup>
+
+        {action && <div className={styles.scaleAction}>{action}</div>}
       </div>
     </div>
   );

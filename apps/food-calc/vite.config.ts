@@ -183,13 +183,36 @@ export default defineConfig({
         'apple-touch-icon.png',
       ],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        // Картинки НЕ прекешим: 396 миниатюр каталога + обои тянулись бы при install
+        // (542 записи / 18 MB), конкурируя за канал с первым рендером. Они уходят в
+        // runtimeCaching ниже — кешируются по факту показа. PWA-иконки не теряются:
+        // они приходят через includeAssets, а не через globPatterns.
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         // wa-sqlite + powersync ship large wasm/worker bundles that we don't
         // want eagerly precached; they're loaded on demand.
         globIgnores: ['**/wa-sqlite*', '**/powersync*', '**/sql-wasm*'],
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            // Миниатюры каталога, обои, гравюры, hero. Имена иммутабельны
+            // (/catalog-food/<id>.webp) → CacheFirst: скачалось один раз, дальше
+            // из кеша без похода в сеть. Заодно закрывает старую дыру — jpg/jfif
+            // в globPatterns не входили вообще, обои офлайн не работали.
+            urlPattern: ({ request }) => request.destination === 'image',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'disher-images-v1',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: false,

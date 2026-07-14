@@ -168,6 +168,27 @@
     box-shadow: var(--sys-elevation-#{$level});
 }
 
+// ── BOTTOM EDGE BLEED ────────────────────────────────────────────────────────
+// КАНОН: кто красит нижний край экрана — тот и владеет `env(safe-area-inset-bottom)`.
+//
+// В PWA цвет системной нижней панели (жестовая полоса Android edge-to-edge, зона
+// home-indicator на iOS) НЕ задаётся ни `theme-color`, ни манифестом — вьюпорт при
+// `viewport-fit=cover` физически заезжает под неё, и панель показывает тот DOM-
+// элемент, который дотягивается до низа вьюпорта. Раньше safe-area всегда красил
+// Screen `.bottomBar` (прозрачный → surface-0 экрана), поэтому НЕПРОЗРАЧНАЯ док-
+// плашка (surface-2) обрывалась выше системной панели и давала шов.
+//
+// Плашка вешает на себя `data-edge-bleed` (Screen `.bottomBar` тогда отдаёт ей свой
+// safe-area-инсет, см. Screen.module.scss) и подключает этот миксин: собственный
+// вертикальный падинг + safe-area. Прозрачные chrome-only бары атрибут НЕ ставят —
+// под ними по-прежнему сквозит surface-0 экрана, и это верно.
+//
+//   .plate { background: var(--sys-color-surface-2); @include bottom-edge-bleed(var(--space-2)); }
+//
+@mixin bottom-edge-bleed($pad: 0px) {
+    padding-bottom: calc(#{$pad} + env(safe-area-inset-bottom, 0px));
+}
+
 // ── CARD & LIST palette ──────────────────────────────────────────────────────
 // The lavender-gradient `card-palette` mixin was REMOVED 2026-06-22: the single
 // card canon is `paper-mono-cards()` below (flat, hue-free — chosen via предложка

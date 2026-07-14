@@ -95,16 +95,21 @@ export const AtomBuilder = ({ id, className = '', autoFocusScaleValue = true }: 
         Можно добавить состояние
       </Heading>
 
-      <ScaleAtomInput autoFocusValue={autoFocusScaleValue} />
-
-      {/* «Готово» commits the current pending scale (adds a chip + clears the form
-          for the next state); the panel stays open (close is via the chevron).
+      {/* Коммит-кнопка едет ВНУТРЬ формы (слот `action`) — она добавляет ещё одно
+          состояние, а не заканчивает ввод. Снаружи, в потоке колонки, её выдавливало
+          вниз на футерное «Готово ✓» (у формы `flex:1`), и два разных действия
+          сливались в одно слово. Тихий secondary-тон — primary остаётся в футере.
           Gated by `touched` so an untouched default never attaches a phantom 5/10. */}
-      {pendingTouched && (
-        <Button variant="system" className={styles.addState} onClick={commitPendingScale}>
-          Готово
-        </Button>
-      )}
+      <ScaleAtomInput
+        autoFocusValue={autoFocusScaleValue}
+        action={
+          pendingTouched && (
+            <Button variant="system-secondary" onClick={commitPendingScale}>
+              Добавить состояние
+            </Button>
+          )
+        }
+      />
 
       {scales.length === 0 && legacy.length === 0 && (
         <Text as="p" role="caption" className={styles.bottomHint}>

@@ -71,4 +71,7 @@
     background: var(--sys-color-surface-2);
     @include surface-elevation(2);
     border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
+    // Непрозрачная плашка красит нижнюю кромку → safe-area её (канон
+    // `bottom-edge-bleed`). `.dock` уже даёт --space-2 снизу — прибавляем инсет к нему.
+    @include bottom-edge-bleed(var(--space-2));
 }

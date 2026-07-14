@@ -39,6 +39,10 @@ export const AppBottomBarShell = ({ children, side = 'left', width, plate = fals
   return (
     <div
       className={clsx(s.dock, s.dockV2, s.shellSolo, plate && s.plate)}
+      // Только в plate-режиме шелл непрозрачен и красит нижнюю кромку → тогда он и
+      // владеет safe-area (канон `bottom-edge-bleed`). Chrome-only шелл прозрачен —
+      // под ним верно сквозит surface-0 экрана, инсет остаётся у Screen `.bottomBar`.
+      data-edge-bleed={plate ? '' : undefined}
       data-shell-side={side}
       data-shell-fit={width ? 'sized' : undefined}
       style={width ? ({ '--solo-cta-width': width } as CSSProperties) : undefined}
