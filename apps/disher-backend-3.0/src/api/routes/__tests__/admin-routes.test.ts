@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
 import { createTestUser, type TestUser } from "../../../test/auth-helpers.js";
 import { makeTestPool, truncateAllUserData } from "../../../test/db-helpers.js";
@@ -6,8 +6,9 @@ import { WELCOME_GRANT_KOP } from "../../../billing/prices.js";
 
 // Admin-route contract — bare Fastify with ONLY adminRoutes registered (no
 // global error handler), mirroring balance-read.test.ts. Exercises the guard
-// (401/403, role-admin vs env-admin) and the topup validation/idempotency
-// matrix against a real Postgres. Skips when TEST_DATABASE_URL is unset.
+// (401/403 against the one source of truth, users.role) and the topup
+// validation/idempotency matrix against a real Postgres. Skips when
+// TEST_DATABASE_URL is unset.
 
 const ready = Boolean(process.env.TEST_DATABASE_URL);
 const describeIfReady = ready ? describe : describe.skip;
@@ -35,17 +36,8 @@ afterAll(async () => {
 });
 
 describeIfReady("admin routes", () => {
-  const savedAdminIds = process.env.ADMIN_USER_IDS;
-
   beforeEach(async () => {
     await truncateAllUserData(pool);
-    delete process.env.ADMIN_USER_IDS;
-  });
-
-  afterEach(() => {
-    // Restore the env every case tweaked it (env-admin test).
-    if (savedAdminIds === undefined) delete process.env.ADMIN_USER_IDS;
-    else process.env.ADMIN_USER_IDS = savedAdminIds;
   });
 
   // ── guard ────────────────────────────────────────────────────────────────
@@ -65,20 +57,12 @@ describeIfReady("admin routes", () => {
     expect(res.json()).toMatchObject({ error: "Forbidden" });
   });
 
-  it("200 for a role='admin' user (DB branch)", async () => {
+  // Also the regression guard for dropping the admin() plugin: `role` must still
+  // reach the session (it's declared as a user additionalField now), or every
+  // admin route would 403 its own admin.
+  it("200 for a role='admin' user", async () => {
     const admin = await createTestUser();
     await promoteToAdmin(admin.userId);
-    const res = await app.inject({
-      method: "GET",
-      url: "/api/admin/me",
-      headers: admin.headers,
-    });
-    expect(res.statusCode).toBe(200);
-  });
-
-  it("200 for an ADMIN_USER_IDS env admin (role stays 'user')", async () => {
-    const admin = await createTestUser();
-    process.env.ADMIN_USER_IDS = `${admin.userId}`;
     const res = await app.inject({
       method: "GET",
       url: "/api/admin/me",

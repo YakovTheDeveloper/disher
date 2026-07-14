@@ -40,10 +40,9 @@
 
 import { betterAuth } from "better-auth";
 import { createAuthMiddleware, getIp } from "better-auth/api";
-import { admin, genericOAuth } from "better-auth/plugins";
+import { genericOAuth } from "better-auth/plugins";
 import pg from "pg";
 import { Resend } from "resend";
-import { getAdminUserIds } from "./admin-ids.js";
 import {
   buildAuthEvent,
   isTrackedAuthPath,
@@ -189,6 +188,14 @@ export const auth = betterAuth({
   trustedOrigins: trustedOriginsResolver,
   user: {
     modelName: "users",
+    additionalFields: {
+      // `users.role` is OURS now — the admin() plugin that used to declare it is
+      // gone (it dragged in an RPC surface we 404'd by hand and a second source
+      // of truth for "who is admin"). Declaring it here is what keeps `role` on
+      // the session object that verify-session.ts reads; `input: false` means no
+      // client can ever set it — promotion is a DB write (see seed-admin.ts).
+      role: { type: "string", required: false, input: false },
+    },
   },
   advanced: {
     database: {
@@ -327,13 +334,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    // Roles (admin/user). adminUserIds seeds bootstrap admins from env (they
-    // keep role='user' in the DB but are treated as admin) — see admin-ids.ts.
-    // No createAccessControl: the app has no fine-grained permissions, just the
-    // admin flag, and all admin HTTP surface is custom routes (requireAdmin),
-    // not better-auth admin-RPC. Read at construction time, so env changes need
-    // a restart.
-    admin({ adminUserIds: getAdminUserIds() }),
     ...(telegramOAuthConfig
       ? [genericOAuth({ config: [telegramOAuthConfig] })]
       : []),

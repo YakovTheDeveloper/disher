@@ -15,10 +15,9 @@
 // address like `admin@disher.local` logs in without any email being sent. The
 // operator picks ADMIN_SEED_EMAIL + ADMIN_SEED_PASSWORD in .env.production.
 //
-// role='admin' is written straight to the DB so requireAdmin passes WITHOUT a
-// restart-gated ADMIN_USER_IDS entry (that env path stays as the fallback
-// bootstrap for promoting others). Tests never import main.ts, so this never
-// runs under vitest.
+// role='admin' is written straight to the DB — that column is the ONLY thing
+// requireAdmin looks at. Tests never import main.ts, so this never runs under
+// vitest.
 
 import { auth } from "./server.js";
 import { pool } from "../api/db.js";
