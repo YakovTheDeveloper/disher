@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
 import { getLLMModel } from "../build-info.js";
@@ -219,88 +220,117 @@ async function callLLM(text: string): Promise<LLMCallResult> {
 
 // ─── Routes ───
 
+// Shape only. The 2000-char cap and the empty-after-trim check stay in the
+// handler: they are this route's semantics, and the handler already answers
+// both with a specific message.
+const PARSE_BODY_SCHEMA = Type.Object(
+  {
+    text: Type.String(),
+    // Accepted for forward compatibility (Full phase), ignored in MVP — but it
+    // must be declared, or Fastify's removeAdditional would strip it and the
+    // spec would call a field the client legitimately sends unknown.
+    existingDishNames: Type.Optional(
+      Type.Array(Type.Object({ id: Type.String(), name: Type.String() })),
+    ),
+  },
+  { additionalProperties: false, title: "FreeTextFoodParseRequest" },
+);
+
 export async function freeTextFoodRoutes(app: FastifyInstance) {
-  app.post<{ Body: ParseRequest }>("/parse", async (req, reply) => {
-    const { text } = req.body ?? {};
+  app.post<{ Body: ParseRequest }>(
+    "/parse",
+    {
+      schema: {
+        operationId: "parseFreeTextFood",
+        tags: ["free-text"],
+        description:
+          "Free-text meal phrase → catalog-matched items (resolved / ambiguous / unresolved). Paid.",
+        security: [{ cookieSession: [] }],
+        body: PARSE_BODY_SCHEMA,
+      },
+    },
+    async (req, reply) => {
+      const { text } = req.body ?? {};
 
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return reply.status(400).send({ error: "text is required" });
-    }
+      if (!text || typeof text !== "string" || !text.trim()) {
+        return reply.status(400).send({ error: "text is required" });
+      }
 
-    if (text.length > 2000) {
-      return reply.status(400).send({ error: "text too long (max 2000 chars)" });
-    }
+      if (text.length > 2000) {
+        return reply.status(400).send({ error: "text too long (max 2000 chars)" });
+      }
 
-    if (!isMatcherReady()) {
-      return reply.status(503).send({
-        error: "Food matcher is still initializing. Please retry in a few seconds.",
-      });
-    }
-
-    if (!checkRateLimit(req.ip)) {
-      return reply.status(429).send({
-        error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per hour.`,
-      });
-    }
-
-    const requestId = resolveRequestId(req);
-    let charged = false;
-
-    try {
-      const cached = getCachedLLM(text);
-      let items: LLMItem[];
-      if (cached) {
-        items = cached;
-        app.log.info({ textPreview: text.slice(0, 80), requestId }, "free-text-food/parse cache hit");
-        logLLMOutput({
-          requestId,
-          model: getLLMModel(),
-          phrase: text,
-          itemsReturned: items,
-          cached: true,
-          latencyMs: 0,
+      if (!isMatcherReady()) {
+        return reply.status(503).send({
+          error: "Food matcher is still initializing. Please retry in a few seconds.",
         });
-      } else {
-        // Paid step: debit before the OpenRouter call. Cache hits above are
-        // free (no upstream call). req.userId is set by the requireUser
-        // preHandler (added on the scope in buildApp); it's absent only in the
-        // pure-pipeline unit tests, which skip billing.
-        if (req.userId) {
-          if (!(await chargeOr402(req, reply, "free_text_parse", requestId))) return;
-          charged = true;
+      }
+
+      if (!checkRateLimit(req.ip)) {
+        return reply.status(429).send({
+          error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per hour.`,
+        });
+      }
+
+      const requestId = resolveRequestId(req);
+      let charged = false;
+
+      try {
+        const cached = getCachedLLM(text);
+        let items: LLMItem[];
+        if (cached) {
+          items = cached;
+          app.log.info({ textPreview: text.slice(0, 80), requestId }, "free-text-food/parse cache hit");
+          logLLMOutput({
+            requestId,
+            model: getLLMModel(),
+            phrase: text,
+            itemsReturned: items,
+            cached: true,
+            latencyMs: 0,
+          });
+        } else {
+          // Paid step: debit before the OpenRouter call. Cache hits above are
+          // free (no upstream call). req.userId is set by the requireUser
+          // preHandler (added on the scope in buildApp); it's absent only in the
+          // pure-pipeline unit tests, which skip billing.
+          if (req.userId) {
+            if (!(await chargeOr402(req, reply, "free_text_parse", requestId))) return;
+            charged = true;
+          }
+          const result = await callLLM(text);
+          items = result.items;
+          setCachedLLM(text, items);
+          app.log.info(
+            { textPreview: text.slice(0, 80), itemCount: items.length, requestId, latencyMs: result.latencyMs },
+            "free-text-food/parse LLM parsed"
+          );
+          logLLMOutput({
+            requestId,
+            model: getLLMModel(),
+            phrase: text,
+            itemsReturned: items,
+            cached: false,
+            latencyMs: result.latencyMs,
+            ...(result.promptTokens !== undefined ? { promptTokens: result.promptTokens } : {}),
+            ...(result.completionTokens !== undefined ? { completionTokens: result.completionTokens } : {}),
+            ...(result.totalCost !== undefined ? { totalCost: result.totalCost } : {}),
+          });
         }
-        const result = await callLLM(text);
-        items = result.items;
-        setCachedLLM(text, items);
-        app.log.info(
-          { textPreview: text.slice(0, 80), itemCount: items.length, requestId, latencyMs: result.latencyMs },
-          "free-text-food/parse LLM parsed"
-        );
-        logLLMOutput({
-          requestId,
-          model: getLLMModel(),
-          phrase: text,
-          itemsReturned: items,
-          cached: false,
-          latencyMs: result.latencyMs,
-          ...(result.promptTokens !== undefined ? { promptTokens: result.promptTokens } : {}),
-          ...(result.completionTokens !== undefined ? { completionTokens: result.completionTokens } : {}),
-          ...(result.totalCost !== undefined ? { totalCost: result.totalCost } : {}),
-        });
+        if (items.length === 0) {
+          return reply.send({ requestId, resolved: [], ambiguous: [], unresolved: [] });
+        }
+        const result = await resolveNames(items, text, requestId);
+        return reply.send(result);
+      } catch (err) {
+        // Refund a completed charge if the request failed before a usable result.
+        if (charged && req.userId) {
+          await refund(req.userId, "free_text_parse", requestId).catch(() => {});
+        }
+        const message = err instanceof Error ? err.message : "Unknown error";
+        app.log.error(`free-text-food/parse error: ${message}`);
+        return reply.status(500).send({ error: message });
       }
-      if (items.length === 0) {
-        return reply.send({ requestId, resolved: [], ambiguous: [], unresolved: [] });
-      }
-      const result = await resolveNames(items, text, requestId);
-      return reply.send(result);
-    } catch (err) {
-      // Refund a completed charge if the request failed before a usable result.
-      if (charged && req.userId) {
-        await refund(req.userId, "free_text_parse", requestId).catch(() => {});
-      }
-      const message = err instanceof Error ? err.message : "Unknown error";
-      app.log.error(`free-text-food/parse error: ${message}`);
-      return reply.status(500).send({ error: message });
-    }
-  });
+    },
+  );
 }

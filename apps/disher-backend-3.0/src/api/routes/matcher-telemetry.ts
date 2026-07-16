@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { logTelemetryEvent, type TelemetryEvent } from "../telemetry-log.js";
 
 function isString(v: unknown): v is string {
@@ -94,16 +95,68 @@ function allowTelemetry(ip: string): boolean {
   return true;
 }
 
+// Mirrors validate() above, no stricter — the two guard the same wire shape and
+// this one exists so the spec can describe it (validate() stays: it is also
+// what BUILDS the typed event). The one thing the schema must not do is get
+// ahead of validate() and reject a beacon the handler would have taken: this
+// endpoint is fired by navigator.sendBeacon on page-hide, so nobody is left to
+// read the 400.
+const TELEMETRY_BODY_SCHEMA = Type.Object(
+  {
+    requestId: Type.String(),
+    userId: Type.String(),
+    action: Type.Union([Type.Literal("commit"), Type.Literal("abandon")]),
+    itemsTotal: Type.Number(),
+    itemsCommitted: Type.Number(),
+    itemsDeleted: Type.Number(),
+    itemsWithEditedFood: Type.Number(),
+    itemsWithEditedTime: Type.Number(),
+    itemsWithEditedQty: Type.Number(),
+    llmLatencyMs: Type.Number(),
+    matcherLatencyMs: Type.Number(),
+    reviewDurationMs: Type.Number(),
+    corrections: Type.Array(
+      Type.Object(
+        {
+          originalName: Type.String(),
+          matcherChoice: Type.String(),
+          userChoice: Type.Union([Type.String(), Type.Null()]),
+          correctionType: Type.Union([
+            Type.Literal("accepted-top1"),
+            Type.Literal("switched-ambiguous"),
+            Type.Literal("manual-search"),
+            Type.Literal("deleted"),
+          ]),
+        },
+        { additionalProperties: false, title: "MatcherCorrection" },
+      ),
+    ),
+  },
+  { additionalProperties: false, title: "MatcherTelemetryEvent" },
+);
+
 export async function matcherTelemetryRoutes(app: FastifyInstance) {
-  app.post("/", async (req, reply) => {
-    if (!allowTelemetry(req.ip)) {
-      return reply.status(429).send({ error: "telemetry rate limit exceeded" });
-    }
-    const event = validate(req.body);
-    if (!event) {
-      return reply.status(400).send({ error: "invalid telemetry payload" });
-    }
-    logTelemetryEvent(event);
-    return reply.status(204).send();
-  });
+  app.post(
+    "/",
+    {
+      schema: {
+        operationId: "logMatcherTelemetry",
+        tags: ["telemetry"],
+        description:
+          "Anonymous matcher-quality beacon. The ONE route exempt from the trusted-origin guard — sendBeacon carries neither Origin nor credentials. Carries no session and mutates no user data.",
+        body: TELEMETRY_BODY_SCHEMA,
+      },
+    },
+    async (req, reply) => {
+      if (!allowTelemetry(req.ip)) {
+        return reply.status(429).send({ error: "telemetry rate limit exceeded" });
+      }
+      const event = validate(req.body);
+      if (!event) {
+        return reply.status(400).send({ error: "invalid telemetry payload" });
+      }
+      logTelemetryEvent(event);
+      return reply.status(204).send();
+    },
+  );
 }

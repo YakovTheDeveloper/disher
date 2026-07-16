@@ -18,6 +18,11 @@
   "paths": {
     "/articles/nutrients": {
       "get": {
+        "operationId": "listNutrientArticles",
+        "tags": [
+          "content"
+        ],
+        "description": "Nutrient article folders available under /content/nutrients.",
         "responses": {
           "200": {
             "description": "Default Response"
@@ -27,6 +32,11 @@
     },
     "/articles/nutrients/{folder}": {
       "get": {
+        "operationId": "getNutrientArticle",
+        "tags": [
+          "content"
+        ],
+        "description": "Raw markdown of one nutrient article.",
         "parameters": [
           {
             "schema": {
@@ -46,6 +56,11 @@
     },
     "/health": {
       "get": {
+        "operationId": "getHealth",
+        "tags": [
+          "health"
+        ],
+        "description": "Liveness — the process is up. Never touches the DB.",
         "responses": {
           "200": {
             "description": "Default Response"
@@ -55,6 +70,11 @@
     },
     "/health/ready": {
       "get": {
+        "operationId": "getReadiness",
+        "tags": [
+          "health"
+        ],
+        "description": "Readiness — Postgres reachable AND the embedding matcher initialized. 503 when not.",
         "responses": {
           "200": {
             "description": "Default Response"
@@ -64,6 +84,39 @@
     },
     "/api/suggestions/dish-products": {
       "post": {
+        "operationId": "suggestDishProducts",
+        "tags": [
+          "suggestions"
+        ],
+        "description": "Dish name → its typical ingredients as catalog-matched products. Paid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "SuggestDishProductsRequest",
+                "type": "object",
+                "required": [
+                  "dishName"
+                ],
+                "properties": {
+                  "dishName": {
+                    "type": "string"
+                  },
+                  "comment": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -73,6 +126,63 @@
     },
     "/api/suggestions/product-nutrients": {
       "post": {
+        "operationId": "suggestProductNutrients",
+        "tags": [
+          "suggestions"
+        ],
+        "description": "Product name → estimated nutrient values per 100 g of edible part. Correlational estimates, not lab data. Paid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "SuggestProductNutrientsRequest",
+                "type": "object",
+                "required": [
+                  "productName",
+                  "nutrients"
+                ],
+                "properties": {
+                  "productName": {
+                    "type": "string"
+                  },
+                  "nutrients": {
+                    "type": "array",
+                    "items": {
+                      "additionalProperties": false,
+                      "title": "NutrientSpec",
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "label",
+                        "unit"
+                      ],
+                      "properties": {
+                        "name": {
+                          "description": "Stable english key — the backend stays nutrient-agnostic.",
+                          "type": "string"
+                        },
+                        "label": {
+                          "description": "RU display name, sent to the model as context.",
+                          "type": "string"
+                        },
+                        "unit": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -82,6 +192,54 @@
     },
     "/api/free-text-food/parse": {
       "post": {
+        "operationId": "parseFreeTextFood",
+        "tags": [
+          "free-text"
+        ],
+        "description": "Free-text meal phrase → catalog-matched items (resolved / ambiguous / unresolved). Paid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "FreeTextFoodParseRequest",
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "existingDishNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -91,6 +249,36 @@
     },
     "/api/free-text-event/parse": {
       "post": {
+        "operationId": "parseFreeTextEvent",
+        "tags": [
+          "free-text"
+        ],
+        "description": "Free-text health-event phrase → events with aspects. The LLM output IS the final structure. Paid.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "FreeTextEventParseRequest",
+                "type": "object",
+                "required": [
+                  "text"
+                ],
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -100,6 +288,149 @@
     },
     "/api/matcher-telemetry/": {
       "post": {
+        "operationId": "logMatcherTelemetry",
+        "tags": [
+          "telemetry"
+        ],
+        "description": "Anonymous matcher-quality beacon. The ONE route exempt from the trusted-origin guard — sendBeacon carries neither Origin nor credentials. Carries no session and mutates no user data.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "MatcherTelemetryEvent",
+                "type": "object",
+                "required": [
+                  "requestId",
+                  "userId",
+                  "action",
+                  "itemsTotal",
+                  "itemsCommitted",
+                  "itemsDeleted",
+                  "itemsWithEditedFood",
+                  "itemsWithEditedTime",
+                  "itemsWithEditedQty",
+                  "llmLatencyMs",
+                  "matcherLatencyMs",
+                  "reviewDurationMs",
+                  "corrections"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string"
+                  },
+                  "userId": {
+                    "type": "string"
+                  },
+                  "action": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "commit"
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "abandon"
+                        ]
+                      }
+                    ]
+                  },
+                  "itemsTotal": {
+                    "type": "number"
+                  },
+                  "itemsCommitted": {
+                    "type": "number"
+                  },
+                  "itemsDeleted": {
+                    "type": "number"
+                  },
+                  "itemsWithEditedFood": {
+                    "type": "number"
+                  },
+                  "itemsWithEditedTime": {
+                    "type": "number"
+                  },
+                  "itemsWithEditedQty": {
+                    "type": "number"
+                  },
+                  "llmLatencyMs": {
+                    "type": "number"
+                  },
+                  "matcherLatencyMs": {
+                    "type": "number"
+                  },
+                  "reviewDurationMs": {
+                    "type": "number"
+                  },
+                  "corrections": {
+                    "type": "array",
+                    "items": {
+                      "additionalProperties": false,
+                      "title": "MatcherCorrection",
+                      "type": "object",
+                      "required": [
+                        "originalName",
+                        "matcherChoice",
+                        "userChoice",
+                        "correctionType"
+                      ],
+                      "properties": {
+                        "originalName": {
+                          "type": "string"
+                        },
+                        "matcherChoice": {
+                          "type": "string"
+                        },
+                        "userChoice": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "correctionType": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "accepted-top1"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "switched-ambiguous"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "manual-search"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "deleted"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Default Response"
@@ -109,6 +440,28 @@
     },
     "/api/backup/": {
       "put": {
+        "operationId": "putBackup",
+        "tags": [
+          "backup"
+        ],
+        "description": "Write the user's snapshot. Last write wins.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "BackupSnapshot",
+                "description": "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it."
+              }
+            }
+          },
+          "description": "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it."
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -116,6 +469,16 @@
         }
       },
       "get": {
+        "operationId": "getBackup",
+        "tags": [
+          "backup"
+        ],
+        "description": "Read the user's snapshot, or 404 when none exists.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -123,6 +486,16 @@
         }
       },
       "delete": {
+        "operationId": "deleteBackup",
+        "tags": [
+          "backup"
+        ],
+        "description": "Erase the user's server-side vault. Idempotent — 204 either way.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -132,16 +505,22 @@
     },
     "/api/user-reports/": {
       "post": {
+        "operationId": "submitUserReport",
+        "tags": [
+          "feedback"
+        ],
+        "description": "User-facing «Сообщить о проблеме» sink — text + client metadata.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": false,
+                "title": "UserReport",
                 "type": "object",
                 "required": [
                   "text"
                 ],
-                "additionalProperties": false,
                 "properties": {
                   "text": {
                     "type": "string"
@@ -163,6 +542,11 @@
             }
           }
         },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -172,6 +556,69 @@
     },
     "/api/analyze": {
       "post": {
+        "operationId": "startAnalysis",
+        "tags": [
+          "analysis"
+        ],
+        "description": "Start a long analysis over a 1..35 day window. Idempotent per `id`. Paid; the result is filled in asynchronously.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "AnalyzeRequest",
+                "type": "object",
+                "required": [
+                  "id",
+                  "windowStart",
+                  "windowEnd"
+                ],
+                "properties": {
+                  "id": {
+                    "description": "Client-generated UUID. Doubles as the idempotency key for the charge and the row.",
+                    "type": "string"
+                  },
+                  "windowStart": {
+                    "type": "string"
+                  },
+                  "windowEnd": {
+                    "type": "string"
+                  },
+                  "payload": {
+                    "additionalProperties": false,
+                    "title": "AnalyzePayload",
+                    "type": "object",
+                    "properties": {
+                      "scheduleFoods": {
+                        "type": "array",
+                        "items": {}
+                      },
+                      "scheduleEvents": {
+                        "type": "array",
+                        "items": {}
+                      },
+                      "nutrientsByDay": {
+                        "type": "array",
+                        "items": {}
+                      },
+                      "hypotheses": {
+                        "type": "array",
+                        "items": {}
+                      },
+                      "userMessage": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -181,6 +628,16 @@
     },
     "/api/analyses": {
       "get": {
+        "operationId": "listAnalyses",
+        "tags": [
+          "analysis"
+        ],
+        "description": "The user's analyses, newest first (max 500). Pending / failed / done alike — the client derives the state from `result_md`.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -190,6 +647,11 @@
     },
     "/api/analyses/{id}": {
       "get": {
+        "operationId": "getAnalysis",
+        "tags": [
+          "analysis"
+        ],
+        "description": "Poll one analysis. Empty `result_md` = still running; a row starting with «⚠️» = failed.",
         "parameters": [
           {
             "schema": {
@@ -200,6 +662,11 @@
             "required": true
           }
         ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -207,6 +674,11 @@
         }
       },
       "delete": {
+        "operationId": "deleteAnalysis",
+        "tags": [
+          "analysis"
+        ],
+        "description": "Drop one of the user's analyses. No refund — a paid-for analysis is a consumed product. A second delete is a 404.",
         "parameters": [
           {
             "schema": {
@@ -215,6 +687,11 @@
             "in": "path",
             "name": "id",
             "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
           }
         ],
         "responses": {
@@ -226,6 +703,55 @@
     },
     "/api/analyze-dish": {
       "post": {
+        "operationId": "analyzeDish",
+        "tags": [
+          "analysis"
+        ],
+        "description": "Compositional breakdown of ONE dish (no days, no events, no hypotheses). Paid; answers synchronously.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "AnalyzeDishRequest",
+                "type": "object",
+                "properties": {
+                  "dishName": {
+                    "type": "string"
+                  },
+                  "totalGrams": {
+                    "type": "number"
+                  },
+                  "ingredients": {
+                    "type": "array",
+                    "items": {
+                      "additionalProperties": false,
+                      "title": "DishIngredient",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "grams": {
+                          "type": "number"
+                        },
+                        "details": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -235,6 +761,16 @@
     },
     "/api/balance": {
       "get": {
+        "operationId": "getBalance",
+        "tags": [
+          "billing"
+        ],
+        "description": "Current wallet balance. Creates the wallet (welcome grant) on first read.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -244,6 +780,26 @@
     },
     "/api/balance/ledger": {
       "get": {
+        "operationId": "listLedger",
+        "tags": [
+          "billing"
+        ],
+        "description": "Wallet ledger entries, newest first.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -253,6 +809,16 @@
     },
     "/api/billing/prices": {
       "get": {
+        "operationId": "getPrices",
+        "tags": [
+          "billing"
+        ],
+        "description": "Flat per-feature prices in kopecks — the client renders «−N ₽» from these.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -262,6 +828,16 @@
     },
     "/api/admin/me": {
       "get": {
+        "operationId": "getAdminMe",
+        "tags": [
+          "admin"
+        ],
+        "description": "Probe: 200 means the caller is an admin. Env-bootstrap admins have role='user', so the client cannot tell from the session alone.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -271,6 +847,16 @@
     },
     "/api/admin/users": {
       "get": {
+        "operationId": "listUsers",
+        "tags": [
+          "admin"
+        ],
+        "description": "Every user + wallet balance. No pagination — the client filters locally.",
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -280,6 +866,34 @@
     },
     "/api/admin/users/{id}/topup": {
       "post": {
+        "operationId": "topupUser",
+        "tags": [
+          "admin"
+        ],
+        "description": "Credit a user's wallet. Idempotent per requestId — a repeat returns the first result with alreadyApplied:true.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "title": "TopupRequest",
+                "type": "object",
+                "properties": {
+                  "amountKop": {
+                    "description": "Positive integer, kopecks."
+                  },
+                  "reason": {
+                    "description": "Non-empty, <= 200 chars."
+                  },
+                  "requestId": {
+                    "description": "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true."
+                  }
+                }
+              }
+            }
+          }
+        },
         "parameters": [
           {
             "schema": {
@@ -288,6 +902,11 @@
             "in": "path",
             "name": "id",
             "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
           }
         ],
         "responses": {
@@ -299,6 +918,44 @@
     },
     "/api/admin/auth-events": {
       "get": {
+        "operationId": "listAuthEvents",
+        "tags": [
+          "admin"
+        ],
+        "description": "Login diagnostics, newest first. `problems=1` narrows to non-success; `q` matches an email substring or a user id.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "description": "Clamped to 1..500 by the handler; default 100."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "problems",
+            "required": false,
+            "description": "'1' = failures only."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -308,6 +965,35 @@
     },
     "/api/admin/user-reports": {
       "get": {
+        "operationId": "listUserReports",
+        "tags": [
+          "admin"
+        ],
+        "description": "Production bug reports (table user_reports) joined with the author's email, newest first. `q` matches email / text / user id.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "description": "Clamped to 1..500 by the handler; default 100."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response"
@@ -317,7 +1003,20 @@
     },
     "/api/admin/users/{id}/ledger": {
       "get": {
+        "operationId": "getUserLedger",
+        "tags": [
+          "admin"
+        ],
+        "description": "One user's ledger, newest first, including the meta that carries the topup reason.",
         "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
           {
             "schema": {
               "type": "string"
@@ -325,6 +1024,11 @@
             "in": "path",
             "name": "id",
             "required": true
+          }
+        ],
+        "security": [
+          {
+            "cookieSession": []
           }
         ],
         "responses": {

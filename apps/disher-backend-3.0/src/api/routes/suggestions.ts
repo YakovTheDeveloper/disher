@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
 import { getLLMModel } from "../build-info.js";
@@ -401,9 +402,47 @@ async function callNutrientLLM(
 
 // ─── Routes ───
 
+// Shape only — every length cap below (dishName 200, comment 500, productName
+// 200, nutrients 100) stays in its handler, which answers with the specific
+// limit it enforced.
+const DISH_PRODUCTS_BODY_SCHEMA = Type.Object(
+  {
+    dishName: Type.String(),
+    comment: Type.Optional(Type.String()),
+  },
+  { additionalProperties: false, title: "SuggestDishProductsRequest" },
+);
+
+const PRODUCT_NUTRIENTS_BODY_SCHEMA = Type.Object(
+  {
+    productName: Type.String(),
+    nutrients: Type.Array(
+      Type.Object(
+        {
+          name: Type.String({ description: "Stable english key — the backend stays nutrient-agnostic." }),
+          label: Type.String({ description: "RU display name, sent to the model as context." }),
+          unit: Type.String(),
+        },
+        { additionalProperties: false, title: "NutrientSpec" },
+      ),
+    ),
+  },
+  { additionalProperties: false, title: "SuggestProductNutrientsRequest" },
+);
+
 export async function suggestionsRoutes(app: FastifyInstance) {
   app.post<{ Body: SuggestDishProductsRequest }>(
     "/dish-products",
+    {
+      schema: {
+        operationId: "suggestDishProducts",
+        tags: ["suggestions"],
+        description:
+          "Dish name → its typical ingredients as catalog-matched products. Paid.",
+        security: [{ cookieSession: [] }],
+        body: DISH_PRODUCTS_BODY_SCHEMA,
+      },
+    },
     async (req, reply) => {
       const { dishName, comment } = req.body ?? {};
 
@@ -503,6 +542,16 @@ export async function suggestionsRoutes(app: FastifyInstance) {
   // Head C: product name → estimated full nutrient profile (per 100 g).
   app.post<{ Body: SuggestProductNutrientsRequest }>(
     "/product-nutrients",
+    {
+      schema: {
+        operationId: "suggestProductNutrients",
+        tags: ["suggestions"],
+        description:
+          "Product name → estimated nutrient values per 100 g of edible part. Correlational estimates, not lab data. Paid.",
+        security: [{ cookieSession: [] }],
+        body: PRODUCT_NUTRIENTS_BODY_SCHEMA,
+      },
+    },
     async (req, reply) => {
       const { productName, nutrients } = req.body ?? {};
 

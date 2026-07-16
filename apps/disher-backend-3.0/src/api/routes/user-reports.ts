@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
 import { pool } from "../db.js";
 import { requireUser } from "../../auth/require-user.js";
@@ -31,29 +32,35 @@ type UserReportBody = {
 };
 
 // Shape gate for this PROD route (the dev sibling routes/bug-reports.ts stays
-// schema-less — it's dev-only). Rejects wrong-typed / extra fields before the
-// handler. Deliberately NO `minLength`/`maxLength` here: an empty/whitespace
-// `text` is caught by the trim check below (so the `{error}` body the frontend
-// reads is preserved), and oversized text is TRUNCATED (intent), not rejected.
-const BODY_SCHEMA = {
-  type: "object",
-  required: ["text"],
-  additionalProperties: false,
-  properties: {
-    text: { type: "string" },
-    page: { type: "string" },
-    screenSize: { type: "string" },
-    userAgent: { type: "string" },
-    pwa: { type: "string" },
+// schema-less — it's dev-only). Deliberately NO `minLength`/`maxLength` here:
+// an empty/whitespace `text` is caught by the trim check below, and oversized
+// text is TRUNCATED (intent), not rejected — a `maxLength` would turn a long
+// bug report into a 400 for the user writing it.
+const BODY_SCHEMA = Type.Object(
+  {
+    text: Type.String(),
+    page: Type.Optional(Type.String()),
+    screenSize: Type.Optional(Type.String()),
+    userAgent: Type.Optional(Type.String()),
+    pwa: Type.Optional(Type.String()),
   },
-} as const;
+  { additionalProperties: false, title: "UserReport" },
+);
 
 export async function userReportsRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireUser);
 
   app.post<{ Body: UserReportBody }>(
     "/",
-    { schema: { body: BODY_SCHEMA } },
+    {
+      schema: {
+        operationId: "submitUserReport",
+        tags: ["feedback"],
+        description: "User-facing «Сообщить о проблеме» sink — text + client metadata.",
+        security: [{ cookieSession: [] }],
+        body: BODY_SCHEMA,
+      },
+    },
     async (req, reply) => {
       if (!pool) return reply.status(500).send({ error: "DB not configured" });
 

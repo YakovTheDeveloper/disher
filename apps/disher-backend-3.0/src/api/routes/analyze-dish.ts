@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { requireUser } from "../../auth/require-user.js";
 import {
   ANALYSIS_OUTPUT_PROMPT_SPEC,
@@ -43,6 +44,30 @@ type AnalyzeDishBody = {
   totalGrams?: unknown;
   ingredients?: unknown;
 };
+
+// Every member optional, mirroring the handler: it defaults each one and only
+// refuses a request with NO name AND NO ingredients — that rule is semantics
+// and stays where it is. The schema tightens the TYPES (the live client already
+// sends exactly these), nothing else.
+const DISH_BODY_SCHEMA = Type.Object(
+  {
+    dishName: Type.Optional(Type.String()),
+    totalGrams: Type.Optional(Type.Number()),
+    ingredients: Type.Optional(
+      Type.Array(
+        Type.Object(
+          {
+            name: Type.Optional(Type.String()),
+            grams: Type.Optional(Type.Number()),
+            details: Type.Optional(Type.String()),
+          },
+          { additionalProperties: false, title: "DishIngredient" },
+        ),
+      ),
+    ),
+  },
+  { additionalProperties: false, title: "AnalyzeDishRequest" },
+);
 
 // System prompt is net-new — it does NOT reuse SYSTEM_PROMPT_BASE (that one
 // carries the cross-day cohort-mining paragraph, irrelevant to a single dish).
@@ -127,43 +152,56 @@ export async function analyzeDishRoutes(
 ) {
   app.addHook("preHandler", requireUser);
 
-  app.post("/analyze-dish", async (req, reply) => {
-    const body = (req.body ?? {}) as AnalyzeDishBody;
-    const dishName = asString(body.dishName);
-    const totalGrams = asNumber(body.totalGrams);
-    const ingredients = asIngredients(body.ingredients);
+  app.post(
+    "/analyze-dish",
+    {
+      schema: {
+        operationId: "analyzeDish",
+        tags: ["analysis"],
+        description:
+          "Compositional breakdown of ONE dish (no days, no events, no hypotheses). Paid; answers synchronously.",
+        security: [{ cookieSession: [] }],
+        body: DISH_BODY_SCHEMA,
+      },
+    },
+    async (req, reply) => {
+      const body = (req.body ?? {}) as AnalyzeDishBody;
+      const dishName = asString(body.dishName);
+      const totalGrams = asNumber(body.totalGrams);
+      const ingredients = asIngredients(body.ingredients);
 
-    if (!dishName.trim() && ingredients.length === 0) {
-      return reply
-        .status(400)
-        .send({ error: "dishName or ingredients required" });
-    }
+      if (!dishName.trim() && ingredients.length === 0) {
+        return reply
+          .status(400)
+          .send({ error: "dishName or ingredients required" });
+      }
 
-    // Paid: debit before calling the model so an insufficient-balance 402 is a
-    // clean JSON reply. Refund if the call/parse fails.
-    const requestId = resolveRequestId(req);
-    if (!(await chargeOr402(req, reply, "dish_analysis", requestId))) return;
+      // Paid: debit before calling the model so an insufficient-balance 402 is a
+      // clean JSON reply. Refund if the call/parse fails.
+      const requestId = resolveRequestId(req);
+      if (!(await chargeOr402(req, reply, "dish_analysis", requestId))) return;
 
-    const userPrompt = buildDishUserPrompt(dishName, totalGrams, ingredients);
+      const userPrompt = buildDishUserPrompt(dishName, totalGrams, ingredients);
 
-    try {
-      const result = await callLLMWithValidation(
-        DISH_SYSTEM_PROMPT,
-        userPrompt,
-        AbortSignal.timeout(DISH_TIMEOUT_MS),
-        opts.callLLM,
-      );
-      // A dish never produces day-pattern observations or hypotheses — enforce
-      // both on the server so the contract holds even if the model emits some.
-      return reply.send({
-        analysis: { ...result, observations: [], hypotheses: [] },
-      });
-    } catch (err) {
-      await refund(req.userId, "dish_analysis", requestId).catch(() => {});
-      const msg = err instanceof Error ? err.message : String(err);
-      return reply
-        .status(502)
-        .send({ error: "analysis-failed", detail: msg.slice(0, 200) });
-    }
-  });
+      try {
+        const result = await callLLMWithValidation(
+          DISH_SYSTEM_PROMPT,
+          userPrompt,
+          AbortSignal.timeout(DISH_TIMEOUT_MS),
+          opts.callLLM,
+        );
+        // A dish never produces day-pattern observations or hypotheses — enforce
+        // both on the server so the contract holds even if the model emits some.
+        return reply.send({
+          analysis: { ...result, observations: [], hypotheses: [] },
+        });
+      } catch (err) {
+        await refund(req.userId, "dish_analysis", requestId).catch(() => {});
+        const msg = err instanceof Error ? err.message : String(err);
+        return reply
+          .status(502)
+          .send({ error: "analysis-failed", detail: msg.slice(0, 200) });
+      }
+    },
+  );
 }

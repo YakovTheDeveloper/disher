@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
 import { requireAdmin } from "../../auth/require-admin.js";
 import { grant, listLedger } from "../../billing/wallet.js";
 import { pool } from "../db.js";
@@ -29,55 +30,116 @@ interface TopupBody {
   requestId?: unknown;
 }
 
+// This route moves money, so its schema documents the shape and refuses to
+// judge anything else: every member is `Unknown` and the handler's matrix
+// (positive integer / non-empty reason <= 200 / requestId 1..100 / not
+// "welcome") remains the single gate, exactly as its tests assert. Typing
+// `amountKop` here would put Ajv in front of that matrix for no gain — and if
+// Fastify's default type coercion were ever restored (buildApp turns it off),
+// a stringy "500" would arrive at the handler as a clean 500 and get credited.
+const TOPUP_BODY_SCHEMA = Type.Object(
+  {
+    amountKop: Type.Optional(Type.Unknown({ description: "Positive integer, kopecks." })),
+    reason: Type.Optional(Type.Unknown({ description: "Non-empty, <= 200 chars." })),
+    requestId: Type.Optional(
+      Type.Unknown({
+        description: "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true.",
+      }),
+    ),
+  },
+  { additionalProperties: false, title: "TopupRequest" },
+);
+
+// Plain strings, NOT `format: uuid` — a malformed id is the handler's 400 (it
+// checks before any SQL so pg can't raise 22P02 into a 500).
+const USER_ID_PARAMS = Type.Object({ id: Type.String() });
+
+// Querystrings arrive as strings; each handler parses and clamps its own limit.
+const LIMIT_QUERY = Type.Object({ limit: Type.Optional(Type.String()) });
+
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAdmin);
 
   // Probe used by the client to learn "am I an admin?" when role !== 'admin'
   // (env-bootstrap admins have role='user'). 401/403 are handled by requireAdmin.
-  app.get("/me", async (_req, reply) => {
-    return reply.send({});
-  });
+  app.get(
+    "/me",
+    {
+      schema: {
+        operationId: "getAdminMe",
+        tags: ["admin"],
+        description:
+          "Probe: 200 means the caller is an admin. Env-bootstrap admins have role='user', so the client cannot tell from the session alone.",
+        security: [{ cookieSession: [] }],
+      },
+    },
+    async (_req, reply) => {
+      return reply.send({});
+    },
+  );
 
   // One SQL: every user + their balance (0 when no wallet yet). No pagination —
   // there are dozens of users; the client filters/searches locally.
-  app.get("/users", async (_req, reply) => {
-    const r = await db().query<{
-      id: string;
-      email: string;
-      role: string | null;
-      created_at: Date | string;
-      balance_kop: string;
-      has_wallet: boolean;
-    }>(
-      `select u.id,
-              u.email,
-              u.role,
-              u."createdAt" as created_at,
-              coalesce(w.balance_kop, 0) as balance_kop,
-              (w.user_id is not null) as has_wallet
-         from "users" u
-         left join wallet w on w.user_id = u.id
-        order by u."createdAt" desc`,
-    );
-    const items = r.rows.map((row) => ({
-      id: row.id,
-      email: row.email,
-      role: row.role ?? "user",
-      createdAt:
-        row.created_at instanceof Date
-          ? row.created_at.toISOString()
-          : String(row.created_at),
-      balanceKop: Number(row.balance_kop),
-      hasWallet: row.has_wallet,
-    }));
-    return reply.send({ items });
-  });
+  app.get(
+    "/users",
+    {
+      schema: {
+        operationId: "listUsers",
+        tags: ["admin"],
+        description: "Every user + wallet balance. No pagination — the client filters locally.",
+        security: [{ cookieSession: [] }],
+      },
+    },
+    async (_req, reply) => {
+      const r = await db().query<{
+        id: string;
+        email: string;
+        role: string | null;
+        created_at: Date | string;
+        balance_kop: string;
+        has_wallet: boolean;
+      }>(
+        `select u.id,
+                u.email,
+                u.role,
+                u."createdAt" as created_at,
+                coalesce(w.balance_kop, 0) as balance_kop,
+                (w.user_id is not null) as has_wallet
+           from "users" u
+           left join wallet w on w.user_id = u.id
+          order by u."createdAt" desc`,
+      );
+      const items = r.rows.map((row) => ({
+        id: row.id,
+        email: row.email,
+        role: row.role ?? "user",
+        createdAt:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : String(row.created_at),
+        balanceKop: Number(row.balance_kop),
+        hasWallet: row.has_wallet,
+      }));
+      return reply.send({ items });
+    },
+  );
 
   // Top up a user's wallet. Idempotent per requestId (double-click / retry →
   // one credit, alreadyApplied:true). Validate everything BEFORE any SQL — in
   // particular the UUID, else pg raises 22P02 and we'd 500 instead of 400.
   app.post<{ Params: { id: string }; Body: TopupBody }>(
     "/users/:id/topup",
+    {
+      schema: {
+        operationId: "topupUser",
+        tags: ["admin"],
+        description:
+          "Credit a user's wallet. Idempotent per requestId — a repeat returns the first result with alreadyApplied:true.",
+        security: [{ cookieSession: [] }],
+        params: USER_ID_PARAMS,
+        body: TOPUP_BODY_SCHEMA,
+      },
+    },
     async (req, reply) => {
       const { id } = req.params;
       if (!UUID_RE.test(id)) {
@@ -122,64 +184,81 @@ export async function adminRoutes(app: FastifyInstance) {
   // successes outnumber the failures we're actually hunting.
   app.get<{
     Querystring: { limit?: string; problems?: string; q?: string };
-  }>("/auth-events", async (req, reply) => {
-    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
-    const problemsOnly = req.query.problems === "1";
-    const q = (req.query.q ?? "").trim();
+  }>(
+    "/auth-events",
+    {
+      schema: {
+        operationId: "listAuthEvents",
+        tags: ["admin"],
+        description:
+          "Login diagnostics, newest first. `problems=1` narrows to non-success; `q` matches an email substring or a user id.",
+        security: [{ cookieSession: [] }],
+        querystring: Type.Object({
+          limit: Type.Optional(Type.String({ description: "Clamped to 1..500 by the handler; default 100." })),
+          problems: Type.Optional(Type.String({ description: "'1' = failures only." })),
+          q: Type.Optional(Type.String()),
+        }),
+      },
+    },
+    async (req, reply) => {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
+      const problemsOnly = req.query.problems === "1";
+      const q = (req.query.q ?? "").trim();
 
-    const where: string[] = [];
-    const params: unknown[] = [];
-    if (problemsOnly) where.push(`outcome <> 'success'`);
-    if (q) {
-      params.push(`%${q.toLowerCase()}%`);
-      const like = `$${params.length}`;
-      // user_id is a uuid — cast before matching, else pg raises 42883 on `like`.
-      where.push(`(lower(email) like ${like} or user_id::text like ${like})`);
-    }
-    params.push(limit);
+      const where: string[] = [];
+      const params: unknown[] = [];
+      if (problemsOnly) where.push(`outcome <> 'success'`);
+      if (q) {
+        params.push(`%${q.toLowerCase()}%`);
+        const like = `$${params.length}`;
+        // user_id is a uuid — cast before matching, else pg raises 42883 on `like`.
+        where.push(`(lower(email) like ${like} or user_id::text like ${like})`);
+      }
+      params.push(limit);
 
-    const r = await db().query<{
-      id: string;
-      created_at: Date | string;
-      path: string | null;
-      provider: string | null;
-      outcome: string;
-      status_code: number | null;
-      error_code: string | null;
-      error_message: string | null;
-      user_id: string | null;
-      email: string | null;
-      ip: string | null;
-      user_agent: string | null;
-    }>(
-      `select id, created_at, path, provider, outcome, status_code, error_code,
-              error_message, user_id, email, ip, user_agent
-         from auth_events
-        ${where.length ? `where ${where.join(" and ")}` : ""}
-        order by created_at desc
-        limit $${params.length}`,
-      params,
-    );
+      const r = await db().query<{
+        id: string;
+        created_at: Date | string;
+        path: string | null;
+        provider: string | null;
+        outcome: string;
+        status_code: number | null;
+        error_code: string | null;
+        error_message: string | null;
+        user_id: string | null;
+        email: string | null;
+        ip: string | null;
+        user_agent: string | null;
+      }>(
+        `select id, created_at, path, provider, outcome, status_code, error_code,
+                error_message, user_id, email, ip, user_agent
+           from auth_events
+          ${where.length ? `where ${where.join(" and ")}` : ""}
+          order by created_at desc
+          limit $${params.length}`,
+        params,
+      );
 
-    const items = r.rows.map((row) => ({
-      id: String(row.id),
-      createdAt:
-        row.created_at instanceof Date
-          ? row.created_at.toISOString()
-          : String(row.created_at),
-      path: row.path,
-      provider: row.provider,
-      outcome: row.outcome,
-      statusCode: row.status_code,
-      errorCode: row.error_code,
-      errorMessage: row.error_message,
-      userId: row.user_id,
-      email: row.email,
-      ip: row.ip,
-      userAgent: row.user_agent,
-    }));
-    return reply.send({ items });
-  });
+      const items = r.rows.map((row) => ({
+        id: String(row.id),
+        createdAt:
+          row.created_at instanceof Date
+            ? row.created_at.toISOString()
+            : String(row.created_at),
+        path: row.path,
+        provider: row.provider,
+        outcome: row.outcome,
+        statusCode: row.status_code,
+        errorCode: row.error_code,
+        errorMessage: row.error_message,
+        userId: row.user_id,
+        email: row.email,
+        ip: row.ip,
+        userAgent: row.user_agent,
+      }));
+      return reply.send({ items });
+    },
+  );
 
   // Пользовательские баг-репорты («Сообщить о проблеме» → routes/user-reports.ts,
   // таблица user_reports). Читаем ТОЛЬКО прод-сток из БД — dev-сток на диск
@@ -187,6 +266,19 @@ export async function adminRoutes(app: FastifyInstance) {
   // автора: репорт без «кто» не отработать.
   app.get<{ Querystring: { limit?: string; q?: string } }>(
     "/user-reports",
+    {
+      schema: {
+        operationId: "listUserReports",
+        tags: ["admin"],
+        description:
+          "Production bug reports (table user_reports) joined with the author's email, newest first. `q` matches email / text / user id.",
+        security: [{ cookieSession: [] }],
+        querystring: Type.Object({
+          limit: Type.Optional(Type.String({ description: "Clamped to 1..500 by the handler; default 100." })),
+          q: Type.Optional(Type.String()),
+        }),
+      },
+    },
     async (req, reply) => {
       const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 500);
       const q = (req.query.q ?? "").trim();
@@ -245,6 +337,16 @@ export async function adminRoutes(app: FastifyInstance) {
   // Read a user's ledger (newest first), including meta so the reason is visible.
   app.get<{ Params: { id: string }; Querystring: { limit?: string } }>(
     "/users/:id/ledger",
+    {
+      schema: {
+        operationId: "getUserLedger",
+        tags: ["admin"],
+        description: "One user's ledger, newest first, including the meta that carries the topup reason.",
+        security: [{ cookieSession: [] }],
+        params: USER_ID_PARAMS,
+        querystring: LIMIT_QUERY,
+      },
+    },
     async (req, reply) => {
       const { id } = req.params;
       if (!UUID_RE.test(id)) {

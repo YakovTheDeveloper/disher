@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { getLLMModel } from "../build-info.js";
 import { chargeOr402, resolveRequestId } from "../../billing/http.js";
@@ -262,56 +263,76 @@ async function callLLM(text: string): Promise<LLMCallResult> {
 
 // ─── Routes ───
 
+// Shape only — the 2000-char cap and the empty-after-trim check are the
+// handler's, same as the free-text-food sibling.
+const PARSE_BODY_SCHEMA = Type.Object(
+  { text: Type.String() },
+  { additionalProperties: false, title: "FreeTextEventParseRequest" },
+);
+
 export async function freeTextEventRoutes(app: FastifyInstance) {
-  app.post<{ Body: ParseRequest }>("/parse", async (req, reply) => {
-    const { text } = req.body ?? {};
+  app.post<{ Body: ParseRequest }>(
+    "/parse",
+    {
+      schema: {
+        operationId: "parseFreeTextEvent",
+        tags: ["free-text"],
+        description:
+          "Free-text health-event phrase → events with aspects. The LLM output IS the final structure. Paid.",
+        security: [{ cookieSession: [] }],
+        body: PARSE_BODY_SCHEMA,
+      },
+    },
+    async (req, reply) => {
+      const { text } = req.body ?? {};
 
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return reply.status(400).send({ error: "text is required" });
-    }
+      if (!text || typeof text !== "string" || !text.trim()) {
+        return reply.status(400).send({ error: "text is required" });
+      }
 
-    if (text.length > 2000) {
-      return reply.status(400).send({ error: "text too long (max 2000 chars)" });
-    }
+      if (text.length > 2000) {
+        return reply.status(400).send({ error: "text too long (max 2000 chars)" });
+      }
 
-    if (!checkRateLimit(req.ip)) {
-      return reply.status(429).send({
-        error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per hour.`,
-      });
-    }
+      if (!checkRateLimit(req.ip)) {
+        return reply.status(429).send({
+          error: `Rate limit exceeded. Max ${RATE_LIMIT} requests per hour.`,
+        });
+      }
 
-    const requestId = resolveRequestId(req);
-    let charged = false;
+      const requestId = resolveRequestId(req);
+      let charged = false;
 
-    try {
-      const cached = getCachedLLM(text);
-      let events: LLMEvent[];
-      if (cached) {
-        events = cached;
-        app.log.info({ textPreview: text.slice(0, 80), requestId }, "free-text-event/parse cache hit");
-      } else {
-        // Paid step: debit before the OpenRouter call. Cache hits are free.
-        // req.userId is absent only in the pure-pipeline unit tests, which skip billing.
-        if (req.userId) {
-          if (!(await chargeOr402(req, reply, "free_text_event_parse", requestId))) return;
-          charged = true;
+      try {
+        const cached = getCachedLLM(text);
+        let events: LLMEvent[];
+        if (cached) {
+          events = cached;
+          app.log.info({ textPreview: text.slice(0, 80), requestId }, "free-text-event/parse cache hit");
+        } else {
+          // Paid step: debit before the OpenRouter call. Cache hits are free.
+          // req.userId is absent only in the pure-pipeline unit tests, which skip billing.
+          if (req.userId) {
+            if (!(await chargeOr402(req, reply, "free_text_event_parse", requestId))) return;
+            charged = true;
+          }
+          const result = await callLLM(text);
+          events = result.events;
+          setCachedLLM(text, events);
+          app.log.info(
+            { textPreview: text.slice(0, 80), eventCount: events.length, requestId, latencyMs: result.latencyMs },
+            "free-text-event/parse LLM parsed"
+          );
         }
-        const result = await callLLM(text);
-        events = result.events;
-        setCachedLLM(text, events);
-        app.log.info(
-          { textPreview: text.slice(0, 80), eventCount: events.length, requestId, latencyMs: result.latencyMs },
-          "free-text-event/parse LLM parsed"
-        );
+        return reply.send({ requestId, events });
+      } catch (err) {
+        if (charged && req.userId) {
+          await refund(req.userId, "free_text_event_parse", requestId).catch(() => {});
+        }
+        const message = err instanceof Error ? err.message : "Unknown error";
+        app.log.error(`free-text-event/parse error: ${message}`);
+        return reply.status(500).send({ error: message });
       }
-      return reply.send({ requestId, events });
-    } catch (err) {
-      if (charged && req.userId) {
-        await refund(req.userId, "free_text_event_parse", requestId).catch(() => {});
-      }
-      const message = err instanceof Error ? err.message : "Unknown error";
-      app.log.error(`free-text-event/parse error: ${message}`);
-      return reply.status(500).send({ error: message });
-    }
-  });
+    },
+  );
 }

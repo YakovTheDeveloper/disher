@@ -2,6 +2,7 @@ import Fastify, { FastifyError, FastifyInstance, FastifyServerOptions } from "fa
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
 import swagger from "@fastify/swagger";
+import { Type } from "@sinclair/typebox";
 import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -29,6 +30,39 @@ import { toProblem } from "./errors.js";
 import { resolveRequestId } from "../billing/http.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Schemas for the routes defined inline below. Like every route schema in this
+// codebase they carry an `operationId` (a client generator names its methods
+// from it; without one it invents a name out of the path) and describe the
+// INPUT only — see routes/README-ish note in api/errors.ts for why the handler,
+// not Ajv, keeps the bounds. No `response` schemas anywhere: Fastify uses those
+// to SERIALIZE, silently dropping members the schema omits, which is a
+// behaviour change and a separate decision from documenting the input.
+const NUTRIENT_ARTICLES_SCHEMA = {
+  operationId: "listNutrientArticles",
+  tags: ["content"],
+  description: "Nutrient article folders available under /content/nutrients.",
+};
+
+const NUTRIENT_ARTICLE_SCHEMA = {
+  operationId: "getNutrientArticle",
+  tags: ["content"],
+  description: "Raw markdown of one nutrient article.",
+  params: Type.Object({ folder: Type.String() }),
+};
+
+const HEALTH_SCHEMA = {
+  operationId: "getHealth",
+  tags: ["health"],
+  description: "Liveness — the process is up. Never touches the DB.",
+};
+
+const HEALTH_READY_SCHEMA = {
+  operationId: "getReadiness",
+  tags: ["health"],
+  description:
+    "Readiness — Postgres reachable AND the embedding matcher initialized. 503 when not.",
+};
 
 // CORS origin policy — the allowlist itself lives in auth/origins.ts, shared
 // with better-auth's trustedOrigins and with requireTrustedOrigin.
@@ -85,6 +119,18 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     // trustProxy parses X-Forwarded-For so req.ip is the real client. Safe
     // because the only hop in front of Fastify is our own Caddy.
     trustProxy: true,
+    ajv: {
+      customOptions: {
+        // OFF, against Fastify's default. Coercion REWRITES the body before the
+        // handler sees it, which silently voids the "schema = shape, handler =
+        // semantics" split every route schema here is written to: POST
+        // /api/admin/users/:id/topup refuses a stringy `amountKop: "500"` today,
+        // and with coercion an integer schema would hand the handler a clean
+        // 500 and credit the wallet. Clients send JSON, which already has the
+        // types; the string-typed querystrings are parsed by their handlers.
+        coerceTypes: false,
+      },
+    },
     ...(httpsOptions ? { https: httpsOptions } : {}),
   });
 
@@ -166,7 +212,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     prefix: "/content/",
   });
 
-  app.get("/articles/nutrients", async (_req, reply) => {
+  app.get("/articles/nutrients", { schema: NUTRIENT_ARTICLES_SCHEMA }, async (_req, reply) => {
     const fs = await import("fs/promises");
     const nutrientsDir = path.join(__dirname, "../../content/nutrients");
     try {
@@ -185,6 +231,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
 
   app.get<{ Params: { folder: string } }>(
     "/articles/nutrients/:folder",
+    { schema: NUTRIENT_ARTICLE_SCHEMA },
     async (req, reply) => {
       return reply.sendFile(`nutrients/${req.params.folder}/index.md`);
     }
@@ -192,7 +239,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
 
   // Liveness: the process is up. Cheap, never touches the DB — used by the
   // restart policy / load balancer to tell "alive" from "hung".
-  app.get("/health", async (_req, reply) => {
+  app.get("/health", { schema: HEALTH_SCHEMA }, async (_req, reply) => {
     return reply.send({
       status: "ok",
       uptime: process.uptime(),
@@ -205,7 +252,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // container with a dead DB or an unready matcher (which would 503 the paid
   // routes) is reported unhealthy instead of silently "ok". Returns 503 so
   // orchestrators gate on the status code, not just the body.
-  app.get("/health/ready", async (_req, reply) => {
+  app.get("/health/ready", { schema: HEALTH_READY_SCHEMA }, async (_req, reply) => {
     let db = false;
     try {
       if (pool) {
@@ -264,6 +311,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // ever reaching the session lookup. better-auth guards its own /api/auth/*
   // routes; this is the same guarantee for ours. See auth/require-origin.ts for
   // why "no Origin header" is a rejection and not a pass.
+  //
+  // `onRequest`, NOT `preHandler`, and the phase is load-bearing: Fastify runs
+  // schema validation BETWEEN the two. As a preHandler the guard sat behind
+  // Ajv, so a forged request with a malformed body got a 400 describing our
+  // schema instead of a flat 403 — the csrf-origin-guard ratchet caught exactly
+  // that when the route schemas landed. onRequest also refuses before the (up
+  // to 5MB) body is parsed. requireUser stays a preHandler, so origin is still
+  // checked ahead of the session lookup.
 
   // suggestions + free-text-food are PAID (debit the wallet per LLM call). They
   // used to be anonymous (IP-rate-limited) — the app now mandates signup
@@ -273,7 +328,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // on req.userId, which only those bare tests lack.
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       scope.addHook("preHandler", requireUser);
       await scope.register(suggestionsRoutes);
     },
@@ -281,7 +336,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   );
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       scope.addHook("preHandler", requireUser);
       await scope.register(freeTextFoodRoutes);
     },
@@ -289,7 +344,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   );
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       scope.addHook("preHandler", requireUser);
       await scope.register(freeTextEventRoutes);
     },
@@ -305,7 +360,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(matcherTelemetryRoutes, { prefix: "/api/matcher-telemetry" });
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       await scope.register(backupRoutes);
     },
     { prefix: "/api/backup" },
@@ -315,14 +370,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // the one real users reach from the settings drawer.
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       await scope.register(userReportsRoutes);
     },
     { prefix: "/api/user-reports" },
   );
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       await scope.register(analyzeRoutes);
       await scope.register(analyzeDishRoutes);
       await scope.register(billingRoutes);
@@ -333,7 +388,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // requireAdmin preHandler (self-applied in the module) is the security gate.
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("onRequest", requireTrustedOrigin);
       await scope.register(adminRoutes);
     },
     { prefix: "/api/admin" },

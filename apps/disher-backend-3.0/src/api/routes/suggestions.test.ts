@@ -354,11 +354,16 @@ const SPEC = [
 ];
 
 describe("POST /api/suggestions/product-nutrients — validation", () => {
+  // Requiredness moved from the handler's hand-written check to the route
+  // schema, so the answer no longer carries "productName is required" — Ajv
+  // refuses first. The status is unchanged (400), and under the real app the
+  // global handler renders it as problem+json with fieldErrors.productName (see
+  // api/__tests__/error-handler.test.ts). This local `buildApp` is a bare
+  // Fastify with no error handler, so it sees Fastify's default body.
   it("400 on missing productName", async () => {
     const app = await buildApp();
     const res = await app.inject({ method: "POST", url: nutUrl, payload: { nutrients: SPEC } });
     expect(res.statusCode).toBe(400);
-    expect(res.json().error).toMatch(/productName is required/);
   });
 
   it("400 on empty nutrients[]", async () => {
