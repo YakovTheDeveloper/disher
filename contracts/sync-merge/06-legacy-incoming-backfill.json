@@ -1,0 +1,39 @@
+{
+  "name": "06-legacy-incoming-backfill",
+  "description": "A legacy vault row (created_at, but no updated_at at all) gains the LWW key on ingest: updated_at is backfilled from created_at.",
+  "status": "canon",
+  "local": {},
+  "incoming": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "Legacy",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:01:00.000Z"
+      }
+    ]
+  },
+  "expected": {
+    "products": [
+      {
+        "categories": [],
+        "created_at": "2026-03-01T10:01:00.000Z",
+        "description": "",
+        "id": "p1",
+        "name": "Legacy",
+        "nutrients": {},
+        "portions": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "source": "",
+        "updated_at": "2026-03-01T10:01:00.000Z"
+      }
+    ]
+  }
+}

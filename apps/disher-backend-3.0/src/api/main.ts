@@ -9,6 +9,7 @@ import { pool } from "./db.js";
 import { initMatcher } from "./food-matcher.js";
 import { sweepStaleAnalyses } from "./routes/analyze.runJob.js";
 import { seedAdminUser } from "../auth/seed-admin.js";
+import { seedDevUser } from "../auth/seed-dev.js";
 
 initMatcher().catch((err) => {
   console.error("initMatcher failed:", err);
@@ -17,6 +18,10 @@ initMatcher().catch((err) => {
 // Idempotent admin seed (no-op unless ADMIN_SEED_EMAIL + ADMIN_SEED_PASSWORD are
 // set). Best-effort + non-blocking — a seed failure must never delay listen().
 void seedAdminUser();
+
+// Dev-only throwaway login account (NODE_ENV !== 'production'). Powers the
+// «Войти (Dev)» button on the SPA's AuthScreen. No-op + self-guarded in prod.
+void seedDevUser();
 
 // Startup-sweep: a deploy/restart/crash while a paid long-analysis job was in
 // flight would otherwise burn the user's charge and leave the row pending

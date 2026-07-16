@@ -26,11 +26,18 @@ import styles from './FoodEntryCreateModals.module.scss';
 type Props = {
   /** Create-флоу, поднятый страницей (useFoodEntryFlow({ mode: 'create', target })). */
   flow: FoodEntryFlow;
+  /**
+   * Куда позиционируются модалки. `absolute` (умолчание) — монтаж в overlay-слоте
+   * Screen. `fixed` — монтаж внутри дока бара (предложка): absolute там резолвился
+   * бы против панели и уезжал вместе с её скроллом.
+   */
+  position?: 'absolute' | 'fixed';
 };
 
-const FoodEntryCreateModals = ({ flow }: Props) => {
+const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
   const {
     kind,
+    host,
     step,
     setStep,
     draft,
@@ -47,15 +54,19 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
     inputIds: { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT },
   } = flow;
 
+  // Развилки ниже смотрят на `host` (куда ряд уедет), а не на `kind`: предложка
+  // (`kind='proposal'`) отправляет ряд в расписание ИЛИ в блюдо и должна вести себя
+  // ровно как соответствующий create-флоу.
+  //
   // У блюда в блюдо нельзя класть блюдо → products-only; в день можно добавить
   // целое блюдо → products-and-dishes.
-  const searchMode = kind === 'dish' ? 'products-only' : 'products-and-dishes';
+  const searchMode = host === 'dish' ? 'products-only' : 'products-and-dishes';
 
   // Заголовок шага поиска (ModalHeader внутри SearchFood). Блюдо → статичный
   // «Добавить продукт»; расписание → «Выбор еды». Дата-мета убрана (запрос юзера
   // 2026-07-10) — заголовок центрируется по полосе (titleAlign="center"). При
   // активном нутриент-фильтре SearchFood сам перебивает заголовок именем нутриента.
-  const searchTitle = kind === 'dish' ? 'Добавить продукт' : 'Выбор еды';
+  const searchTitle = host === 'dish' ? 'Добавить продукт' : 'Выбор еды';
   // Тайтл хедера поиска: при активном нутриент-фильтре имя нутриента перебивает
   // статичный тайтл (логика жила в SearchFood, поднята сюда вместе с выносом хедера
   // на уровень ModalShell).
@@ -83,7 +94,18 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // «Назад» в StepHeader — на предыдущий шаг по линейному порядку stepsForBar.
   // На первом шаге с StepHeader (quantity) back ведёт на search; search рисуется
   // голым SearchFood со своим onBack=handleClose.
+  //
+  // Предложка (kind='proposal') — исключение: там каждая ячейка ряда (имя/кол-во/
+  // время) = ПРЯМОЙ вход в свой шаг, а не последовательный визард. Линейный back
+  // из 'quantity' увёл бы на 'search' («Выбор еды») — шаг, который перед количеством
+  // не стоял; вдобавок остаточный клик по кнопке «назад» раскрывшейся модалки
+  // (label-focus race, см. ProposalFoodItem) тем самым открывал поиск поверх
+  // количества. В предложке back ВСЕГДА закрывает (возврат к списку разбора).
   const handleBack = () => {
+    if (kind === 'proposal') {
+      handleClose();
+      return;
+    }
     const idx = stepsForBar.indexOf(step as (typeof stepsForBar)[number]);
     if (idx <= 0) {
       handleClose();
@@ -149,7 +171,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // БАД-блок — только в РАСПИСАНИИ при создании продукта. В блюде БАД запрещён:
   // dish-калькулятор считает нутриенты в граммах (per-100g), serving-продукт дал
   // бы неверную сумму → БАД не создаём и не ищем в блюде (2026-06-20).
-  const showSupplementOption = kind === 'schedule' && draft.variant !== 'dish';
+  const showSupplementOption = host === 'schedule' && draft.variant !== 'dish';
 
   // Блок «Состав» — для ЛЮБОГО создаваемого продукта (еда per-100 г или таблетка
   // per-1 шт), не только для БАД. У блюда прямого состава нет (оно считается из
@@ -163,7 +185,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
   // product, сегмент не рендерим. Смена типа сбрасывает БАД-конфиг: он валиден
   // только для продукта (handleConfirmCreate его игнорирует для блюда, но stale
   // isSupplement выставил бы quantity=1).
-  const showVariantSegment = kind === 'schedule';
+  const showVariantSegment = host === 'schedule';
   const handleVariantChange = (next: string) => {
     const variant = next === 'dish' ? 'dish' : 'product';
     setDraft((d) => ({ ...d, variant, productId: null, dishId: null }));
@@ -177,7 +199,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
     <div onFocusCapture={handleFocusCapture}>
       {/* Step 1: Search */}
       <ModalByLabel
-        position="absolute"
+        position={position}
         isExpanded={step === 'search'}
         content={
           // SearchFood в общей раме ModalShell (как create/quantity шаги): одна
@@ -199,12 +221,15 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
               mode={searchMode}
               onSelectFood={handleFoodSelect}
               activeItemId={draft.productId ?? draft.dishId ?? undefined}
-              itemHtmlFor={QUANTITY_INPUT}
+              // Предложка коммитит замену еды на выборе (handleFoodSelect) и НЕ идёт
+              // в шаг «Порция» — поэтому карточка поиска не делегирует фокус в
+              // QUANTITY_INPUT. Create/edit (расписание/блюдо) — идут, как раньше.
+              itemHtmlFor={kind === 'proposal' ? undefined : QUANTITY_INPUT}
               inputId={SEARCH_INPUT}
               isActive={step === 'search'}
               createInputHtmlFor={CREATE_INPUT}
               onPickCreate={handlePickCreate}
-              excludeSupplements={kind === 'dish'}
+              excludeSupplements={host === 'dish'}
             />
           </ModalShell>
         }
@@ -215,7 +240,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
           step transition to 'quantity' happens via onFocusCapture after focus
           delegation lands (шаг времени убран — время = «сейчас» на коммите). */}
       <ModalByLabel
-        position="absolute"
+        position={position}
         isExpanded={step === 'create'}
         content={
           <ModalShell>
@@ -400,7 +425,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
 
       {/* Step 2: Quantity */}
       <ModalByLabel
-        position="absolute"
+        position={position}
         isExpanded={step === 'quantity'}
         content={
           <ModalShell>
@@ -417,7 +442,10 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
             />
 
             <ModalShell.Body>
-              {(draft.productId || draft.dishId) && (
+              {/* Предложка пускает в количество и без выбранной еды: нераспознанный
+                  ряд («200 г чего-то») всё равно несёт вес, и юзер вправе его
+                  поправить до того, как подберёт продукт. */}
+              {(draft.productId || draft.dishId || kind === 'proposal') && (
                 <>
                   <ProductQuantity
                     key={sessionKey}
@@ -459,6 +487,7 @@ const FoodEntryCreateModals = ({ flow }: Props) => {
       {/* Step 3: Details */}
       <ModalByLabelDetails
         isExpanded={step === 'details'}
+        position={position}
         flush
         debugId="create-details"
         onCommit={handleCommit}

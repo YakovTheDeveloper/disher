@@ -1,0 +1,57 @@
+{
+  "name": "05-tie-local-wins",
+  "description": "KNOWN BUG (И-2). Equal updated_at with different content: the comparison is a STRICT >, so the incoming row loses and the LOCAL side always survives. Two devices in this state never reconcile. A Kotlin client MUST reproduce this to stay bit-compatible with production.",
+  "status": "pins-known-bug",
+  "local": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "local-A",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "incoming-B",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ],
+    "tombstones": []
+  },
+  "expected": {
+    "products": [
+      {
+        "categories": [],
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "description": "",
+        "id": "p1",
+        "name": "local-A",
+        "nutrients": {},
+        "portions": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "source": "",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  }
+}

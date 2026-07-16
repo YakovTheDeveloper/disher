@@ -11,9 +11,8 @@ import { pushNavigate } from '@/shared/lib/viewTransition';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
-import { InfoIcon } from '@/shared/ui/atoms/icons/InfoIcon';
+import { InfoButton } from '@/shared/ui/atoms/Button';
 import { STEP_LABELS, type FoodEntryFlow, type DishEditItem } from './useFoodEntryFlow';
-import s from './FoodEntryEditModals.module.scss';
 
 type Props = {
   /** Edit-флоу, поднятый страницей (useFoodEntryFlow({ mode: 'edit', target })). */
@@ -144,19 +143,18 @@ const FoodEntryEditModals = ({ flow }: Props) => {
         onBack={handleClose}
         trailing={
           infoTarget ? (
-            <button
-              type="button"
-              className={s.infoBtn}
+            // Канон ⓘ в шапке: soft-плитка 44 (тот же вид, что во всех дроверах/
+            // модалках) — ink-подложка сама читается ярче/тише по surface.
+            <InfoButton
+              tone="soft"
+              size={44}
               aria-label={infoTarget.label}
               onClick={infoTarget.onClick}
-            >
-              <InfoIcon size={20} aria-hidden />
-            </button>
+            />
           ) : undefined
         }
       >
         <DetailsStep
-          foodName={draft.foodName ?? null}
           textareaId={DETAILS_INPUT}
           value={draft.details}
           onChange={(value) => setDraft((d) => ({ ...d, details: value }))}

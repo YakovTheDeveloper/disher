@@ -1,7 +1,7 @@
 // Suggestion-chip vocabulary for the schedule_food `details` field.
 //
-// Per the plan (apps/food-calc/tds/prep-method-plan.md), `details` is a
-// comma-separated string. Chips are a fast way to toggle commonly-used tags;
+// `details` is a comma-separated string. Chips are a fast way to toggle
+// commonly-used tags;
 // the textarea is still there for free-form text. Suggestions are merged
 // across all of a product's categories.
 //

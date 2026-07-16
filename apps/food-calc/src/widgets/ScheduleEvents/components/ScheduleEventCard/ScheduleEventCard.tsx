@@ -7,7 +7,7 @@ import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
@@ -27,35 +27,16 @@ type Props = {
   dimTime?: boolean;
 };
 
-function formatAtomChip(atom: Atom, index: number) {
-  switch (atom.kind) {
-    case 'scale': {
-      const pct = (atom.value / 10) * 100;
-      return (
-        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipScale)} key={`scale-${index}`}>
-          {atom.label && <span>{atom.label}</span>}
-          <span className={styles.scaleBar}>
-            <span className={styles.scaleFill} style={{ width: `${pct}%` }} />
-          </span>
-          <span>{atom.value}/10</span>
-        </Text>
-      );
-    }
-    case 'tag':
-      return (
-        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipTag)} key={`tag-${index}`}>
-          {atom.value}
-        </Text>
-      );
-    case 'relation':
-      return (
-        <Text as="span" role="caption" className={clsx(styles.chip, styles.chipTag)} key={`rel-${index}`}>
-          {atom.value}
-        </Text>
-      );
-    default:
-      return null;
-  }
+// Аспект = `label: value` (0..10) — компактный read-only чип. Число живёт в
+// тексте события тоже, но здесь оно = сама оценка (не дубль). Ушли от корзины-
+// стрелки/аналоговой полоски: модель теперь несёт явный `value`.
+function formatAspectChip(atom: Atom, index: number) {
+  return (
+    <Text as="span" role="caption" className={clsx(styles.chip, styles.chipScale)} key={`aspect-${index}`}>
+      {atom.label && <span>{atom.label}</span>}
+      <Numeral as="span" className={styles.aspectValue}>{atom.value}</Numeral>
+    </Text>
+  );
 }
 
 export function ScheduleEventCard({
@@ -108,7 +89,7 @@ export function ScheduleEventCard({
       {hasAtoms && (
         <Card.Meta>
           <TapTarget as="label" htmlFor={atomsHtmlFor} className={styles.atomsZone} onClick={onEditAtoms}>
-            {atoms.map((atom, i) => formatAtomChip(atom, i))}
+            {atoms.map((atom, i) => formatAspectChip(atom, i))}
           </TapTarget>
         </Card.Meta>
       )}

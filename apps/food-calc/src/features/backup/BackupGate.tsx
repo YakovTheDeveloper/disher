@@ -10,8 +10,6 @@ import { runSyncTracked } from '@/shared/lib/sync/runSync';
 // that already has data renders immediately and syncs in the background; a
 // fresh device blocks until the pull+merge lands so the UI hydrates. Offline-
 // tolerant. AuthGate sign-out → unmount, so the gate fires fresh on next sign-in.
-//
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Boot.
 export function BackupGate({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 

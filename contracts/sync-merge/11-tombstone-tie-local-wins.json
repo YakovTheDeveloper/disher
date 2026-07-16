@@ -1,0 +1,62 @@
+{
+  "name": "11-tombstone-tie-local-wins",
+  "description": "Tombstones LWW by deleted_at with the same STRICT > as rows: on equal deleted_at the local tombstone survives, so its `table` field is the one that decides which table gets the delete applied. Here the local tombstone points at products, so the same-id insights row is left alone.",
+  "status": "canon",
+  "local": {
+    "insights": [
+      {
+        "id": "p1",
+        "title": "same id, other table",
+        "detail": "d",
+        "valence": "neutral",
+        "strength": "weak",
+        "evidence": {
+          "days": []
+        },
+        "source": "daily",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ],
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "products",
+        "deleted_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "insights",
+        "deleted_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "expected": {
+    "insights": [
+      {
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "detail": "d",
+        "evidence": {
+          "days": []
+        },
+        "id": "p1",
+        "source": "daily",
+        "strength": "weak",
+        "title": "same id, other table",
+        "updated_at": "2026-03-01T10:00:00.000Z",
+        "valence": "neutral"
+      }
+    ],
+    "tombstones": [
+      {
+        "deleted_at": "2026-03-01T10:00:00.000Z",
+        "id": "p1",
+        "table": "products"
+      }
+    ]
+  }
+}

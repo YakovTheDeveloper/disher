@@ -1,7 +1,7 @@
 // ProposalFoodItem — тонкий контейнер над презентационным FoodEntryCard
 // (card-chassis-simplify 2026-06-25). Скелет [qty][имя+детали][время] держит
 // FoodEntryCard/Card; раскладку имени+«оригинала» — `.name` во FoodEntryCard. Тут
-// только специфика ряда: подложка + proposal-only цвет (.nameOriginal/.nameOriginalHint).
+// только специфика ряда: подложка + proposal-only цвет имени-fallback (.nameOriginal).
 // (rescue/delete живут СНАРУЖИ ряда, в InlineWriteFoodReview.)
 
 .group {
@@ -12,22 +12,14 @@
     color: var(--sys-color-text-primary);
 }
 
-// Раскладку имени+«оригинала» (колонка, тихий хинт строкой ПОД именем) держит
-// `.name` во FoodEntryCard; деталь-строку — клэмп-2 в общем `.meta` Card. Тут
-// только proposal-only цвет имени/хинта.
+// Раскладку имени держит `.name` во FoodEntryCard; деталь-строку — клэмп-2 в общем
+// `.meta` Card. Тут только proposal-only цвет имени-fallback.
 
 // ─── Proposal-only extras (нет в schedule) ───────────────────────
 
-// Модификатор имени-fallback (на примитиве FoodName): только контекстный цвет +
-// italic-аside; вес наследуется от консумера (вынесен из голоса, gate-safe).
+// Модификатор имени-fallback (на примитиве FoodName): только контекстный цвет;
+// вес наследуется от консумера (вынесен из голоса, gate-safe). italic снят —
+// наклон капители срезал тесный overflow:hidden-бокс имени.
 .nameOriginal {
     color: var(--sys-color-text-tertiary);
-    font-style: italic;
-}
-
-// «оригинал» под именем — размер/вес несёт <Text role="caption">; тут раскладка/цвет.
-.nameOriginalHint {
-    display: block;
-    color: var(--sys-color-text-tertiary);
-    font-style: italic;
 }

@@ -19,6 +19,11 @@ type Props = {
   /** С onClick ряд = <button> (навигация / действие); без него — <div>-контейнер,
    *  интерактивен только сам trailing (напр. Switch). */
   onClick?: () => void;
+  /** Задан → ряд = `<label htmlFor>` (делегирует фокус инпуту шага, iOS focus-
+   *  канон), а не кнопка. Для хаб-рядов, открывающих шаг флоу (перебивает onClick). */
+  htmlFor?: string;
+  /** Stash перед фокусом при label-делегации: pointerdown отрабатывает ДО click. */
+  onPointerDown?: () => void;
   'aria-label'?: string;
   /** Доп. класс на корень ряда (аддитивный) — напр. tall-override в хабе «Открытия». */
   className?: string;
@@ -39,6 +44,8 @@ export function SettingRow({
   danger,
   disabled,
   onClick,
+  htmlFor,
+  onPointerDown,
   'aria-label': ariaLabel,
   className,
 }: Props) {
@@ -64,6 +71,14 @@ export function SettingRow({
   );
 
   const cls = clsx(styles.row, danger && styles.danger, disabled && styles.disabled, className);
+
+  if (htmlFor) {
+    return (
+      <label className={cls} htmlFor={htmlFor} onPointerDown={onPointerDown} aria-label={ariaLabel}>
+        {body}
+      </label>
+    );
+  }
 
   if (onClick) {
     return (

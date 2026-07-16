@@ -8,9 +8,6 @@ import s from './DetailsStep.module.scss';
  * с именем еды + ⓘ в trailing-слоте — см. ScheduleFoodEditModals).
  */
 type Props = {
-  /** Имя еды — используется только для персонализации плейсхолдера textarea
-   *  («Особенности приема брокколи»). Само имя теперь рисуется в шапке модалки. */
-  foodName?: string | null;
   textareaId: string;
   value: string;
   onChange: (next: string) => void;
@@ -20,7 +17,6 @@ type Props = {
 };
 
 export function DetailsStep({
-  foodName,
   textareaId,
   value,
   onChange,

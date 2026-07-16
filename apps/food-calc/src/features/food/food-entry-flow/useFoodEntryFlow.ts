@@ -19,13 +19,36 @@ import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 // какую таблицу пишем. Дискриминированный union делает это явным; узкий
 // switch(target.kind) живёт только на entity-write (commit/select), всё
 // остальное общее.
+//
+// Третий таргет — `proposal`: ряд ПРЕДЛОЖКИ (in-memory строка разбора free-text,
+// её нет в Dexie). Флоу тот же (те же шаги, те же модалки), но entity-write
+// заменён колбэком `onCommit` — патч уезжает обратно в useWriteFoodFlow, а в
+// расписание/блюдо ряд попадёт только на общем «Подтвердить». `host` говорит,
+// куда предложка в итоге коммитится, — от него зависят чисто UI-развилки
+// (блюдо в блюдо не вкладывается, БАД в блюде запрещён).
 export type FoodEntryTarget =
   | { kind: 'schedule'; date: string }
-  | { kind: 'dish'; dishId: string };
+  | { kind: 'dish'; dishId: string }
+  | {
+      kind: 'proposal';
+      host: 'schedule' | 'dish';
+      onCommit: (uid: string, patch: ProposalCommit) => void;
+    };
+
+/** Патч ряда предложки — результат прохода флоу над in-memory строкой. */
+export type ProposalCommit = {
+  time: string;
+  quantity: number;
+  details: string;
+  variant: 'product' | 'dish';
+  productId: string | null;
+  dishId: string | null;
+  foodName: string | null;
+};
 
 export type FoodEntryMode = 'create' | 'edit';
 
-export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details' | 'create';
+export type Step = 'idle' | 'time' | 'search' | 'quantity' | 'details' | 'create' | 'choose';
 type ActiveStep = Exclude<Step, 'idle'>;
 
 // Полный флоу (3 шага) — когда у выбранного продукта есть курируемые подсказки
@@ -42,6 +65,9 @@ export const STEP_LABELS: Record<ActiveStep, string> = {
   quantity: 'Порция',
   details: 'Особенности',
   create: 'Создать',
+  // Хаб-шаг предложки — не крошка визарда (нет в CREATE_STEPS_*), но метка нужна
+  // для полноты Record<ActiveStep>. Заголовок задаётся явно в ProposalEditModals.
+  choose: 'Изменить',
 };
 
 export type DraftState = {
@@ -67,7 +93,20 @@ export type DishEditItem = {
   details?: string;
   product?: { name: string | null } | null;
 };
-export type FoodEntryEditItem = ScheduleEditItem | DishEditItem;
+/** Ряд предложки (uid + уже разобранные поля) — сущности за ним пока нет. */
+export type ProposalEditItem = {
+  id: string;
+  time: string;
+  quantity: number;
+  details: string;
+  variant: 'product' | 'dish';
+  productId: string | null;
+  dishId: string | null;
+  foodName: string | null;
+};
+export type FoodEntryEditItem = ScheduleEditItem | DishEditItem | ProposalEditItem;
+
+type TargetKind = FoodEntryTarget['kind'];
 
 const DEFAULT_PRODUCT_ID = '1';
 
@@ -81,7 +120,19 @@ const createEmptyDraft = (): DraftState => ({
   details: '',
 });
 
-const draftFromItem = (item: FoodEntryEditItem, kind: FoodEntryKind): DraftState => {
+const draftFromItem = (item: FoodEntryEditItem, kind: TargetKind): DraftState => {
+  if (kind === 'proposal') {
+    const it = item as ProposalEditItem;
+    return {
+      time: it.time,
+      variant: it.variant,
+      productId: it.productId,
+      dishId: it.dishId,
+      foodName: it.foodName,
+      quantity: it.quantity,
+      details: it.details,
+    };
+  }
   if (kind === 'schedule') {
     const it = item as ScheduleEditItem;
     return {
@@ -116,6 +167,10 @@ export function useFoodEntryFlow({
   target: FoodEntryTarget;
 }) {
   const kind = target.kind;
+  // Куда ряд уедет в итоге. Для предложки это НЕ `kind` (она ничего не пишет
+  // сама) — все UI-развилки (products-and-dishes? БАД можно?) смотрят сюда.
+  const host: 'schedule' | 'dish' = kind === 'proposal' ? target.host : kind;
+  const isProposal = kind === 'proposal';
   const haptic = useHaptic();
   const [step, setStep] = useState<Step>('idle');
   const [draft, setDraft] = useState<DraftState>(() => createEmptyDraft());
@@ -155,18 +210,25 @@ export function useFoodEntryFlow({
     draft.variant === 'dish' ? (draft.dishId ?? undefined) : undefined,
   );
 
-  const inputIds = useMemo(() => foodEntryInputIds(kind)[mode], [kind, mode]);
-  const { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT, TIME_INPUT } = inputIds;
+  const idKind: FoodEntryKind = isProposal
+    ? host === 'dish'
+      ? 'proposal-dish'
+      : 'proposal-schedule'
+    : host;
+  const inputIds = useMemo(() => foodEntryInputIds(idKind)[mode], [idKind, mode]);
+  const { SEARCH_INPUT, QUANTITY_INPUT, DETAILS_INPUT, CREATE_INPUT, TIME_INPUT, CHOOSE_INPUT } =
+    inputIds;
 
+  // Все пять ключей всегда: лишний безвреден (его инпут в DOM не рендерится), а
+  // гейт по `mode` не пропускал бы предложку — она единственная, кому нужны И
+  // 'create' (медаль «Новая еда» в поиске), И 'time' (тап по времени ряда).
   const INPUT_TO_STEP: Record<string, ActiveStep> = {
     [SEARCH_INPUT]: 'search',
     [QUANTITY_INPUT]: 'quantity',
     [DETAILS_INPUT]: 'details',
-    // CREATE_INPUT валиден только в create-режиме; TIME_INPUT — только в edit.
-    // Лишний ключ безвреден: соответствующий инпут в DOM не рендерится.
-    ...(mode === 'create'
-      ? { [CREATE_INPUT]: 'create' as ActiveStep }
-      : { [TIME_INPUT]: 'time' as ActiveStep }),
+    [CREATE_INPUT]: 'create',
+    [TIME_INPUT]: 'time',
+    [CHOOSE_INPUT]: 'choose',
   };
 
   const handleFocusCapture = useCallback(
@@ -260,7 +322,10 @@ export function useFoodEntryFlow({
         description?: string;
       },
     ) => {
-      if (mode !== 'create') return;
+      // Предложка — mode 'edit' (правит существующий ряд), но «Новая еда» ей
+      // доступна: сам продукт/блюдо создаётся в Dexie как обычно, ряд лишь
+      // начинает на него ссылаться.
+      if (mode !== 'create' && !isProposal) return;
       const trimmed = name.trim();
       if (!trimmed) return;
       const variant = draft.variant;
@@ -310,7 +375,7 @@ export function useFoodEntryFlow({
         }
       });
     },
-    [draft.variant, mode],
+    [draft.variant, mode, isProposal],
   );
 
   const handleFoodSelect = async (payload: {
@@ -320,30 +385,53 @@ export function useFoodEntryFlow({
   }) => {
     // Блюдо в блюдо не вкладывается (searchMode='products-only' это уже
     // предотвращает, но гард на месте на всякий случай).
-    if (kind === 'dish' && payload.variant === 'dish') return;
+    if (host === 'dish' && payload.variant === 'dish') return;
 
+    // Basis выбранного продукта: БАД (serving) считается в дозах → дефолт 1;
+    // еда/блюдо → 100 г. allProducts уже в памяти (те же строки, что показал
+    // поиск), поэтому резолвится синхронно на клике.
+    const selected =
+      payload.variant === 'product' ? allProducts.find((p) => p.id === payload.id) : undefined;
+    const isServingBasis = selected?.servingBasis === 'serving';
+
+    // Предложка: замена еды КОММИТИТСЯ СРАЗУ (шаг «Порция» больше не форсим —
+    // количество из разбора уже в draft). Зеркалит edit-ветку расписания ниже.
+    // SearchFood в предложке НЕ делегирует фокус в QUANTITY_INPUT (itemHtmlFor не
+    // задан на proposal-таргете), поэтому синхронный setStep('idle') здесь не
+    // дерётся с onFocusCapture-переходом в количество.
+    if (target.kind === 'proposal') {
+      const item = editingItem;
+      const patch = draft;
+      // Разобранное количество сохраняем; БАД считается в дозах — граммы туда не годятся.
+      const quantity = isServingBasis ? 1 : patch.quantity;
+      setStep('idle');
+      setEditingItem(null);
+      setDraft(createEmptyDraft());
+      if (!item) return;
+      target.onCommit(item.id, {
+        time: patch.time,
+        quantity,
+        details: patch.details.trim(),
+        variant: payload.variant,
+        productId: payload.variant === 'product' ? payload.id : null,
+        dishId: payload.variant === 'dish' ? payload.id : null,
+        foodName: payload.name ?? null,
+      });
+      return;
+    }
+
+    // Create: выбор еды только пишет draft; переход на 'quantity' делает
+    // делегирование фокуса (карточка SearchFood = `<label htmlFor=
+    // {QUANTITY_INPUT}>`). Синхронный setStep размонтировал бы SearchFood до
+    // делегирования (CLAUDE.md «Label focus delegation»).
     if (mode === 'create') {
-      // Дефолт количества зависит от basis выбранного продукта: БАД (serving)
-      // считается в дозах → 1; еда/блюдо → 100 г. allProducts уже в памяти (это
-      // те же строки, что показал поиск), поэтому basis резолвится синхронно на
-      // клике — новая порция-дефолт попадает в draft ДО того, как ProductQuantity
-      // ре-синкнет своё значение по resetKey (гонки нет).
-      const selected =
-        payload.variant === 'product'
-          ? allProducts.find((p) => p.id === payload.id)
-          : undefined;
-      const defaultQty = selected?.servingBasis === 'serving' ? 1 : 100;
-      // Только пишем draft — НЕ зовём setStep. Переход на 'quantity' делает
-      // делегирование фокуса (карточка SearchFood = `<label htmlFor=
-      // {QUANTITY_INPUT}>`). Синхронный setStep размонтировал бы SearchFood до
-      // делегирования (CLAUDE.md «Label focus delegation»).
       setDraft((prev) => ({
         ...prev,
         variant: payload.variant,
         productId: payload.variant === 'product' ? payload.id : null,
         dishId: payload.variant === 'dish' ? payload.id : null,
         foodName: payload.name ?? null,
-        quantity: defaultQty,
+        quantity: isServingBasis ? 1 : 100,
       }));
       return;
     }
@@ -380,6 +468,27 @@ export function useFoodEntryFlow({
   };
 
   const handleCommit = async () => {
+    // Предложка: ничего не пишем — патч уезжает в in-memory ряд (useWriteFoodFlow).
+    // В Dexie он попадёт позже, общим «Подтвердить» на всей предложке.
+    if (target.kind === 'proposal') {
+      const item = editingItem;
+      setStep('idle');
+      setEditingItem(null);
+      const patch = draft;
+      setDraft(createEmptyDraft());
+      if (!item) return;
+      target.onCommit(item.id, {
+        time: patch.time,
+        quantity: patch.quantity,
+        details: patch.details.trim(),
+        variant: patch.variant,
+        productId: patch.variant === 'product' ? patch.productId : null,
+        dishId: patch.variant === 'dish' ? patch.dishId : null,
+        foodName: patch.foodName,
+      });
+      return;
+    }
+
     if (mode === 'create') {
       const canCommit = draft.variant && (draft.productId || draft.dishId);
       const details = draft.details.trim() || null;
@@ -503,6 +612,8 @@ export function useFoodEntryFlow({
 
   return {
     kind,
+    /** Конечный адресат ряда — по нему UI решает про блюда/БАД (см. `host` выше). */
+    host,
     // Дата дня расписания (dd-MM-yyyy) — для заголовка «Добавить еду в dd.mm».
     // У блюда даты нет (undefined).
     date: target.kind === 'schedule' ? target.date : undefined,

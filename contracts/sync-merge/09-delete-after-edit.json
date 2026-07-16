@@ -1,0 +1,40 @@
+{
+  "name": "09-delete-after-edit",
+  "description": "A tombstone newer than the surviving row removes it.",
+  "status": "canon",
+  "local": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "edited",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "products",
+        "deleted_at": "2026-03-01T10:01:00.000Z"
+      }
+    ]
+  },
+  "expected": {
+    "tombstones": [
+      {
+        "deleted_at": "2026-03-01T10:01:00.000Z",
+        "id": "p1",
+        "table": "products"
+      }
+    ]
+  }
+}

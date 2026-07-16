@@ -22,8 +22,11 @@ export function useApplyColorMode(): void {
     const root = document.documentElement;
     root.setAttribute(MODE_ATTR, mode);
 
-    // Верхний status bar PWA красит meta[theme-color] — и ТОЛЬКО он (нижнюю системную
-    // панель красит DOM, дотянувшийся до низа вьюпорта, см. миксин `bottom-edge-bleed`).
+    // Верхний status bar PWA красит meta[theme-color] — и ТОЛЬКО он. Нижнюю полосу
+    // из страницы не достать вообще: во вкладке Android её красит canvas документа
+    // (= фон `body`, см. index.scss), в установленном PWA — тема Activity, и туда
+    // пути нет ни из манифеста, ни из DOM. Разбор:
+    // tds/ANALYSIS/android-bottom-nav-bar-2026-07-16.md.
     // Читаем уже применённый surface-0 из каскада, а не дублируем hex: единственный
     // источник правды остаётся в токенах, и шапка не разъедется при перекраске темы.
     const surface0 = getComputedStyle(root).getPropertyValue('--sys-color-surface-0').trim();

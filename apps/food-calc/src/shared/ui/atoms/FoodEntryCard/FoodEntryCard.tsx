@@ -1,4 +1,4 @@
-import { type ComponentProps, type ReactNode } from 'react';
+import { type ComponentProps } from 'react';
 import { Card } from '@/shared/ui/atoms/Card';
 import { EditableQuantity } from '@/shared/ui/atoms/EditableQuantity';
 import { CardTime } from '@/shared/ui/atoms/CardTime';
@@ -28,9 +28,18 @@ type CardRootProps = Omit<ComponentProps<typeof Card.Root>, 'children'>;
 export type FoodEntryCardProps = CardRootProps & {
   quantity: number;
   unit: string;
-  onCommitQuantity: (quantity: number) => void;
+  onCommitQuantity?: (quantity: number) => void;
   /** Screen прячет нижний бар на время инлайн-правки количества (только расписание). */
   qtyDataEntityEdit?: boolean;
+  /**
+   * Задан → количество/время правятся МОДАЛКОЙ, а не инлайн-полем: ячейка
+   * становится `<label htmlFor>` и делегирует фокус инпуту шага (ModalByLabel-
+   * канон, как имя ряда). Так правит предложка — весь ряд идёт одним флоу еды.
+   */
+  qtyHtmlFor?: string;
+  onQtyPointerDown?: () => void;
+  timeHtmlFor?: string;
+  onTimePointerDown?: () => void;
 
   name: { name: string } | null;
   /** Голос/цвет имени по типу записи (dishTitle/foodTitle/customTitle/nameOriginal). */
@@ -41,8 +50,6 @@ export type FoodEntryCardProps = CardRootProps & {
   onNamePointerDown?: () => void;
   /** Особенности приёма («с кожурой») — инлайн card-caption после имени (wrap-поток). */
   details?: string;
-  /** Довесок отдельной строкой ПОД именем (предложка: тихий «оригинал»-хинт). */
-  belowName?: ReactNode;
 
   // ── время (опц. — dish-item время не несёт) ──
   time?: string;
@@ -58,19 +65,22 @@ export function FoodEntryCard({
   unit,
   onCommitQuantity,
   qtyDataEntityEdit,
+  qtyHtmlFor,
+  onQtyPointerDown,
+  timeHtmlFor,
+  onTimePointerDown,
   name,
   nameClassName,
   nameHtmlFor,
   onNamePointerDown,
   details,
-  belowName,
   time,
   onCommitTime,
   dimTime,
   hideTime,
   ...rowProps
 }: FoodEntryCardProps) {
-  const showTime = time != null && onCommitTime != null && !hideTime;
+  const showTime = time != null && (onCommitTime != null || timeHtmlFor != null) && !hideTime;
 
   return (
     <Card.Root {...rowProps}>
@@ -78,14 +88,16 @@ export function FoodEntryCard({
         <EditableQuantity
           value={quantity}
           unit={unit}
-          onCommit={onCommitQuantity}
+          onCommit={onCommitQuantity ?? (() => {})}
           dataEntityEdit={qtyDataEntityEdit}
+          htmlFor={qtyHtmlFor}
+          onPointerDown={onQtyPointerDown}
         />
       </Card.Qty>
 
       <Card.Title>
         {/* Имя = flex:1 тап-зона (label htmlFor — iOS-focus rename-флоу). Детали идут
-            ИНЛАЙН после имени (FoodName.after, wrap-режим); belowName — строкой ниже. */}
+            ИНЛАЙН после имени (FoodName.after, wrap-режим). */}
         <TapTarget
           as="label"
           className={styles.name}
@@ -107,13 +119,19 @@ export function FoodEntryCard({
               ) : undefined
             }
           />
-          {belowName}
         </TapTarget>
       </Card.Title>
 
       {showTime && (
         <Card.Time>
-          <CardTime value={time} onCommit={onCommitTime} formatDisplay={formatClock} dim={dimTime} />
+          <CardTime
+            value={time}
+            onCommit={onCommitTime}
+            formatDisplay={formatClock}
+            dim={dimTime}
+            htmlFor={timeHtmlFor}
+            onPointerDown={onTimePointerDown}
+          />
         </Card.Time>
       )}
     </Card.Root>

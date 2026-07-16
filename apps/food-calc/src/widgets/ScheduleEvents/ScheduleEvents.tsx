@@ -100,6 +100,7 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
       overlay={
         editingItem && (
           <ScheduleEventEditModal
+            key={editingItem.id}
             item={editingItem}
             initialStep={editingStep}
             onClose={closeEditModal}

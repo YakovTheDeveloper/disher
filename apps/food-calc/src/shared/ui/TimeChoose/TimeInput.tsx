@@ -108,7 +108,12 @@ const TimeInput = ({
           }}
           maxLength={2}
           autoFocus={autoFocus}
-          onFocus={(e) => e.currentTarget.select()}
+          // Отложенный select (как NumberInput): при label-делегации предложки
+          // фокус приходит, пока prime-в-capture ещё перезаписывает значение поля
+          // через initialTime (draft.time = время ряда). Синхронный select ловил
+          // бы устаревшую цифру и терял выделение/каретку на пере-синке — откладываем
+          // до следующего тика, когда значение устаканилось. См. useTimeChoose.
+          onFocus={() => setTimeout(() => hhRef.current?.select())}
         />
       </span>
 
@@ -132,7 +137,7 @@ const TimeInput = ({
             onBlur?.();
           }}
           maxLength={2}
-          onFocus={(e) => e.currentTarget.select()}
+          onFocus={() => setTimeout(() => mmRef.current?.select())}
         />
       </span>
     </div>

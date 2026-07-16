@@ -77,9 +77,12 @@ body {
   margin: 0 auto;
   transition: background-color 0.3s ease-in;
 
-  // Холст под контентом = «стол»: иначе в PWA нижняя safe-area остаётся
-  // дефолтно-белой и спорит с тёплой бумагой экранов (парно с theme-color).
-  background-color: var(--sys-color-surface-0);
+  // Фон `body` нигде не виден: вьюпорт кроет `.screen` (surface-0, Screen.module.scss),
+  // а единственный экран вне Screen — AuthScreen — красит себя сам. Эта строка живёт
+  // ради ОДНОГО потребителя: canvas документа, которым Chrome красит нижнюю полосу.
+  // Тот же токен читает скрим `bottom-fade()` ⇒ полоса и низ приложения совпадают
+  // по построению. Механизм: tds/ANALYSIS/android-bottom-nav-bar-2026-07-16.md.
+  background-color: var(--sys-color-surface-2);
 }
 
 h1 {
@@ -236,6 +239,7 @@ html[data-vt-type='cover'] {
   &::view-transition-old(root) {
     animation: vt-cover-recede var(--duration-slow) var(--easing-default) both;
   }
+
   &::view-transition-new(root) {
     animation: vt-cover-rise var(--duration-slow) var(--easing-default) both;
   }
@@ -246,6 +250,7 @@ html[data-vt-type='cover'] {
     transform: scale(1);
     filter: brightness(1);
   }
+
   to {
     transform: scale(0.94);
     filter: brightness(0.82);
@@ -257,6 +262,7 @@ html[data-vt-type='cover'] {
     transform: translateY(100%);
     box-shadow: 0 -10px 44px rgba(0, 0, 0, 0.22);
   }
+
   to {
     transform: translateY(0);
     box-shadow: 0 -10px 44px rgba(0, 0, 0, 0);
@@ -278,6 +284,7 @@ html[data-vt-type='push'] {
   &::view-transition-old(root) {
     animation: vt-push-old-out var(--duration-ios) var(--easing-ios) both;
   }
+
   &::view-transition-new(root) {
     animation: vt-push-new-in var(--duration-ios) var(--easing-ios) both;
   }
@@ -288,6 +295,7 @@ html[data-vt-type='push'] {
     transform: translateX(100%);
     box-shadow: -6px 0 22px rgba(0, 0, 0, 0.16);
   }
+
   to {
     transform: translateX(0);
     box-shadow: -6px 0 22px rgba(0, 0, 0, 0);
@@ -299,6 +307,7 @@ html[data-vt-type='push'] {
     transform: translateX(0);
     filter: brightness(1);
   }
+
   to {
     transform: translateX(-30%);
     filter: brightness(0.92);
@@ -323,6 +332,7 @@ html[data-vt-type='cover-back'] {
     z-index: 2;
     animation: vt-cover-descend var(--duration-slow) var(--easing-default) both;
   }
+
   &::view-transition-new(root) {
     z-index: 1;
     animation: vt-cover-return var(--duration-slow) var(--easing-default) both;
@@ -334,6 +344,7 @@ html[data-vt-type='cover-back'] {
     transform: translateY(0);
     box-shadow: 0 -10px 44px rgba(0, 0, 0, 0);
   }
+
   to {
     transform: translateY(100%);
     box-shadow: 0 -10px 44px rgba(0, 0, 0, 0.22);
@@ -345,6 +356,7 @@ html[data-vt-type='cover-back'] {
     transform: scale(0.94);
     filter: brightness(0.82);
   }
+
   to {
     transform: scale(1);
     filter: brightness(1);
@@ -358,6 +370,7 @@ html[data-vt-type='push-back'] {
     z-index: 2;
     animation: vt-push-back-old-out var(--duration-ios) var(--easing-ios) both;
   }
+
   &::view-transition-new(root) {
     z-index: 1;
     animation: vt-push-back-new-in var(--duration-ios) var(--easing-ios) both;
@@ -369,6 +382,7 @@ html[data-vt-type='push-back'] {
     transform: translateX(0);
     box-shadow: -6px 0 22px rgba(0, 0, 0, 0);
   }
+
   to {
     transform: translateX(100%);
     box-shadow: -6px 0 22px rgba(0, 0, 0, 0.16);
@@ -380,6 +394,7 @@ html[data-vt-type='push-back'] {
     transform: translateX(-30%);
     filter: brightness(0.92);
   }
+
   to {
     transform: translateX(0);
     filter: brightness(1);
@@ -389,6 +404,7 @@ html[data-vt-type='push-back'] {
 // prefers-reduced-motion → мгновенная склейка для ВСЕХ переходов (root + морф +
 // cover + push + back-зеркала). Перекрывает длительности выше.
 @media (prefers-reduced-motion: reduce) {
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {

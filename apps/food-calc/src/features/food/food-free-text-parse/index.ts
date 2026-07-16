@@ -5,9 +5,7 @@ export { useWriteFoodFlow } from './model/useWriteFoodFlow';
 export type {
   UseWriteFoodFlowResult,
   WriteFoodFlowState,
-  ReviewEditStep,
-  ReviewRowView,
-  ReviewRowUpdates,
+  ReviewRow,
 } from './model/useWriteFoodFlow';
 export type { ParseTarget } from './model/target';
 export { getStorageKey, targetId, getWriteFoodInputId } from './model/target';

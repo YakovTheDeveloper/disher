@@ -1,0 +1,85 @@
+.slider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+// Толщина трека вынесена в переменную — бегунок центрируется относительно неё.
+.input {
+  --track-h: 6px;
+  --thumb-size: 28px;
+
+  flex: 1;
+  min-width: 0;
+  height: 44px; // touch-floor, бегунок живёт по центру
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+// WebKit: трек + заливка одним градиентом по --fill (нативного progress нет).
+.input::-webkit-slider-runnable-track {
+  height: var(--track-h);
+  border-radius: var(--sys-radius-indicator);
+  background: linear-gradient(
+    to right,
+    var(--sys-color-surface-action-accent) 0 var(--fill, 0%),
+    var(--sys-color-chip-tint) var(--fill, 0%) 100%
+  );
+}
+
+.input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  margin-top: calc((var(--track-h) - var(--thumb-size)) / 2);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-action-accent);
+  border: 3px solid var(--sys-color-surface-1);
+  box-shadow: var(--sys-elevation-1);
+}
+
+.input:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--sys-elevation-2);
+}
+
+// Firefox: трек + нативный progress-fill + бегунок отдельными псевдо.
+.input::-moz-range-track {
+  height: var(--track-h);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-chip-tint);
+}
+
+.input::-moz-range-progress {
+  height: var(--track-h);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-action-accent);
+}
+
+.input::-moz-range-thumb {
+  width: var(--thumb-size);
+  height: var(--thumb-size);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-action-accent);
+  border: 3px solid var(--sys-color-surface-1);
+  box-shadow: var(--sys-elevation-1);
+}
+
+.input:focus-visible::-moz-range-thumb {
+  box-shadow: var(--sys-elevation-2);
+}
+
+// Размер/цифровые фичи несёт примитив <Numeral size="lg">; здесь — только layout + цвет.
+.value {
+  min-width: 2ch;
+  text-align: right;
+  color: var(--sys-color-text-primary);
+}

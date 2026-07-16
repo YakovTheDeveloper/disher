@@ -23,7 +23,13 @@ afterEach(clearDb);
 
 describe('buildDishAnalysisPayload', () => {
   it('hydrates dish + ingredients with names from Dexie products', async () => {
-    await db.dishes.add({ id: 'd1', name: 'Борщ', created_at: ISO });
+    await db.dishes.add({
+      id: 'd1',
+      name: 'Борщ',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     await db.products.add({
       id: 'p-svekla',
       name: 'свёкла',
@@ -33,7 +39,9 @@ describe('buildDishAnalysisPayload', () => {
       categories: [],
       serving_basis: '100g',
       serving_unit: null,
+      description: '',
       created_at: ISO,
+      updated_at: ISO,
     });
     await db.dish_items.add({
       id: 'di1',
@@ -42,6 +50,7 @@ describe('buildDishAnalysisPayload', () => {
       quantity: 250,
       details: 'печёная',
       created_at: ISO,
+      updated_at: ISO,
     });
 
     const out = await buildDishAnalysisPayload('d1');
@@ -56,7 +65,13 @@ describe('buildDishAnalysisPayload', () => {
   });
 
   it('handles dish with no ingredients (empty payload, zero grams)', async () => {
-    await db.dishes.add({ id: 'd-empty', name: 'Пустое блюдо', created_at: ISO });
+    await db.dishes.add({
+      id: 'd-empty',
+      name: 'Пустое блюдо',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     const out = await buildDishAnalysisPayload('d-empty');
     expect(out.dishName).toBe('Пустое блюдо');
     expect(out.totalGrams).toBe(0);
@@ -64,7 +79,13 @@ describe('buildDishAnalysisPayload', () => {
   });
 
   it('sums grams across multiple ingredients', async () => {
-    await db.dishes.add({ id: 'd2', name: 'Микс', created_at: ISO });
+    await db.dishes.add({
+      id: 'd2',
+      name: 'Микс',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     await db.products.bulkAdd([
       {
         id: 'p1',
@@ -75,7 +96,9 @@ describe('buildDishAnalysisPayload', () => {
         categories: [],
         serving_basis: '100g',
         serving_unit: null,
+        description: '',
         created_at: ISO,
+        updated_at: ISO,
       },
       {
         id: 'p2',
@@ -86,7 +109,9 @@ describe('buildDishAnalysisPayload', () => {
         categories: [],
         serving_basis: '100g',
         serving_unit: null,
+        description: '',
         created_at: ISO,
+        updated_at: ISO,
       },
     ]);
     await db.dish_items.bulkAdd([
@@ -97,6 +122,7 @@ describe('buildDishAnalysisPayload', () => {
         quantity: 100,
         details: '',
         created_at: ISO,
+        updated_at: ISO,
       },
       {
         id: 'di-b',
@@ -105,6 +131,7 @@ describe('buildDishAnalysisPayload', () => {
         quantity: 75,
         details: '',
         created_at: ISO,
+        updated_at: ISO,
       },
     ]);
 
@@ -114,7 +141,13 @@ describe('buildDishAnalysisPayload', () => {
   });
 
   it('uses "?" when product is missing from Dexie and catalog', async () => {
-    await db.dishes.add({ id: 'd-x', name: 'X', created_at: ISO });
+    await db.dishes.add({
+      id: 'd-x',
+      name: 'X',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     await db.dish_items.add({
       id: 'di-x',
       dish_id: 'd-x',
@@ -122,6 +155,7 @@ describe('buildDishAnalysisPayload', () => {
       quantity: 50,
       details: '',
       created_at: ISO,
+      updated_at: ISO,
     });
     const out = await buildDishAnalysisPayload('d-x');
     expect(out.ingredients[0].name).toBe('?');

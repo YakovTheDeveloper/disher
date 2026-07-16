@@ -1,4 +1,4 @@
-import { useCallback, type CSSProperties } from 'react';
+import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createProduct } from '@/entities/product/api/mutations';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -6,28 +6,16 @@ import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { SheetCard } from '@/shared/ui/SheetCard';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
-import type { UseWriteFoodFlowResult, ReviewEditStep } from '../model/useWriteFoodFlow';
+import { IconButton } from '@/shared/ui/atoms/Button';
+import CrossIcon from '@/shared/assets/icons/cross.svg?react';
+import { useFoodEntryFlow, type ProposalEditItem } from '@/features/food/food-entry-flow';
+import type { UseWriteFoodFlowResult, UnresolvedRow } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
-import { FreeTextFoodReviewEditModals } from './FreeTextFoodReviewEditModals';
+import { ProposalEditModals } from './ProposalEditModals';
 import { AddToListPopover } from './AddToListPopover';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import styles from './InlineWriteFoodReview.module.scss';
 import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
-
-const REVIEW_INPUT_IDS = {
-  // Уникальные id (отличаются от WriteFoodModal.REVIEW_INPUT_IDS) — на
-  // FoodSchedule оба flow живут параллельно (writeFood + edit-schedule),
-  // а модалка WriteFoodModal на этом экране теперь НЕ монтируется. Сохраняю
-  // отдельные id чтобы не конфликтовать с DishBuilderPage если когда-нибудь
-  // эти компоненты окажутся на одной странице.
-  SEARCH_INPUT: 'inline-write-food-review-search',
-  DETAILS_INPUT: 'inline-write-food-review-details',
-} as const;
-
-const INPUT_TO_STEP: Record<string, Exclude<ReviewEditStep, 'idle'>> = {
-  [REVIEW_INPUT_IDS.SEARCH_INPUT]: 'search',
-  [REVIEW_INPUT_IDS.DETAILS_INPUT]: 'details',
-};
 
 // Палитра рядов предложки: ХОЛОДНАЯ бледная заливка через sys-токен
 // (--sys-color-surface-proposal), БЕЗ рамки (--row-rest-outline-w: 0).
@@ -45,76 +33,117 @@ export interface InlineWriteFoodReviewProps {
   flow: UseWriteFoodFlowResult;
 }
 
+// Крестик ряда = тот же примитив IconButton, что крест дроверов; «голый» shell
+// (без tone) — вид несёт .outerDelete. Это НЕ удаление, а soft-delete/undo:
+// на погашенном ряду глиф меняется на «вернуть» (свич живёт в scss по
+// [data-dismissed], оба глифа смонтированы).
+const DismissButton = ({ enabled, onClick }: { enabled: boolean; onClick: () => void }) => (
+  <IconButton
+    className={styles.outerDelete}
+    aria-label={enabled ? 'Удалить' : 'Вернуть'}
+    onClick={onClick}
+    icon={
+      <span className={styles.dismissGlyphs}>
+        <span className={styles.iconDismiss} aria-hidden="true">
+          <CrossIcon width={16} height={16} />
+        </span>
+        <span className={styles.iconUndo} aria-hidden="true">
+          ↶
+        </span>
+      </span>
+    }
+  />
+);
+
 export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
   const { t } = useTranslation();
   const {
     targetKind,
     state,
-    inputText,
     resolved,
     ambiguous,
     unresolved,
     hideTime,
     totalToAdd,
     isSubmitting,
-    editingUid,
-    editingStep,
-    editingRowView,
     toggleResolved,
     toggleAmbiguous,
     toggleUnresolved,
-    updateResolved,
-    updateAmbiguous,
     updateUnresolved,
-    startEdit,
-    closeEdit,
-    setEditingStep,
-    handleEditChange,
+    updateRow,
     commit,
     cancel,
   } = flow;
 
-  const readyCount = resolved.length + ambiguous.length + unresolved.length;
-  const isReviewEmpty = state === 'ready' && readyCount === 0;
-  const showOriginalText = state === 'ready' && (ambiguous.length > 0 || unresolved.length > 0);
+  // Правка ряда предложки = ТОТ ЖЕ флоу еды, что правит расписание и блюдо
+  // (те же шаги, те же модалки), только entity-write подменён колбэком: патч
+  // уезжает в in-memory ряд, а в базу всё уедет общим «Подтвердить».
+  const proposalTarget = useMemo(
+    () => ({ kind: 'proposal' as const, host: targetKind, onCommit: updateRow }),
+    [targetKind, updateRow]
+  );
+  const editFlow = useFoodEntryFlow({ mode: 'edit', target: proposalTarget });
+  const editIds = editFlow.inputIds;
+  const primeEdit = editFlow.primeEdit;
 
-  // Auto-reset предложки на delete-to-empty живёт внутри useWriteFoodFlow
-  // (через tap в scheduleUndoExpiry-timer). Здесь его НЕ дублируем — child
-  // не должен «решать», когда сбрасывать flow.
+  // Ряд в терминах флоу: ручной выбор (choice) перебивает то, что подобрал матчер.
+  const toEditItem = useCallback(
+    (uid: string): ProposalEditItem | null => {
+      const row =
+        resolved.find((r) => r.uid === uid) ??
+        ambiguous.find((a) => a.uid === uid) ??
+        unresolved.find((u) => u.uid === uid);
+      if (!row) return null;
 
-  // Предложка живёт внутри дока бара (слот bottomBar, над баром) — доскролл и
-  // якоря больше не нужны (панель всегда на виду). Перенос из afterContent →
-  // FoodWriteBar.dock по паттерну Событий, 2026-07-02.
+      const matcherId =
+        'productId' in row
+          ? row.productId
+          : 'selectedId' in row
+            ? row.selectedId
+            : (row.manual?.id ?? null);
 
-  // На focus event:
-  // - target — `<input id=SEARCH_INPUT|DETAILS_INPUT>` через label-делегацию из
-  //   ProposalFoodItem.FoodName или future details-editor.
-  // - dataset.activeItemUid — uid ряда, выставлен в pointerdown (ScheduleFoodItem
-  //   pattern). startEdit ВЫЗЫВАЕТСЯ здесь, а не в pointerdown — чтобы
-  //   ModalByLabel не expand'ился между pointerdown и pointerup и не подставлял
-  //   back-button SearchFood под click-координаты (это и был bug «open+close»).
-  // - если ряд уже в editing-режиме (юзер переключается search ↔ details внутри
-  //   модалки) → editingUid задан, нужен только setEditingStep.
-  const handleReviewFocusCapture = useCallback(
+      // Имя, которое РЯД показывает (не только ручной выбор): нужно заголовку
+      // хаб-чузера. Зеркалит per-section формулу отображения имени в рендере ниже.
+      const displayName =
+        row.choice?.name ??
+        ('productId' in row
+          ? row.name
+          : 'selectedId' in row
+            ? (row.candidates.find((c) => c.id === row.selectedId)?.name ?? null)
+            : (row.manual?.name ?? row.originalName));
+
+      return {
+        id: row.uid,
+        time: row.time,
+        quantity: row.quantity,
+        details: row.details,
+        variant: row.choice?.variant ?? 'product',
+        productId: row.choice ? row.choice.productId : matcherId,
+        dishId: row.choice?.dishId ?? null,
+        foodName: displayName,
+      };
+    },
+    [resolved, ambiguous, unresolved]
+  );
+
+  // Ряд шлёт свой uid в dataset инпута шага на pointerdown (см. ProposalFoodItem);
+  // здесь, на focus-событии, праймим им флоу. Шаг флоу флипнет свой собственный
+  // onFocusCapture (внутри ProposalEditModals) — на этом же событии, но ПОЗЖЕ:
+  // capture идёт снаружи внутрь. Синхронный setStep тут сломал бы label-делегацию.
+  const handleEditFocusCapture = useCallback(
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
-      const nextStep = INPUT_TO_STEP[target.id];
-      if (!nextStep) return;
-      if (editingUid) {
-        setEditingStep(nextStep);
-        return;
-      }
       const uid = target.dataset.activeItemUid;
       if (!uid) return;
-      startEdit(uid, nextStep);
+      const item = toEditItem(uid);
+      if (item) primeEdit(item);
     },
-    [editingUid, setEditingStep, startEdit]
+    [primeEdit, toEditItem]
   );
 
   // «+» у нераспознанного ряда → bottom-sheet «Новый продукт» через drawerStore
-  // (drawer-side-via-store). Anchor больше не нужен (теряется — ок, план Slice 12).
-  // onCreateNew возвращает успех: drawer закрывается только если createProduct
-  // прошёл (на провале остаётся открытым, тостер уже сообщил).
+  // (drawer-side-via-store). onCreateNew возвращает успех: drawer закрывается
+  // только если createProduct прошёл (на провале остаётся открытым, тостер уже сообщил).
   const openRescueDrawer = useCallback(
     (uid: string, originalName: string) => {
       void drawerStore.show(
@@ -139,6 +168,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     [updateUnresolved]
   );
 
+  const readyCount = resolved.length + ambiguous.length + unresolved.length;
+  const isReviewEmpty = state === 'ready' && readyCount === 0;
+
   const isLoading = state === 'loading';
   if (state !== 'ready' && !isLoading) return null;
 
@@ -150,11 +182,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         header="Распознаём…"
         data-state="loading"
       >
-        {inputText && (
-          <Text as="p" role="caption" className={styles.originalText}>
-            {inputText}
-          </Text>
-        )}
         <div className={styles.skeleton} aria-live="polite" aria-busy="true">
           <div className={styles.skeletonRow} />
           <div className={styles.skeletonRow} />
@@ -167,6 +194,58 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     );
   }
 
+  const section = (title: string, count: number, children: ReactNode) => (
+    <section className={styles.section}>
+      <Heading as="h3" role="title" className={styles.sectionTitle}>
+        {title}
+        <Numeral as="span" size="sm" weight="bold" className={styles.sectionCount}>
+          {count}
+        </Numeral>
+      </Heading>
+      {children}
+    </section>
+  );
+
+  // Как только юзер подобрал/создал еду взамен нераспознанной (choice/manual несёт
+  // имя), ряд перестаёт быть «не распознано» и переезжает в основную секцию — тот
+  // же паттерн, что resolved. Пустой rescue-«+» и italic-fallback остаются только
+  // у ещё-нераспознанных (pending).
+  const isRescued = (u: UnresolvedRow) => !!(u.choice?.name || u.manual?.name);
+  const unresolvedPicked = unresolved.filter(isRescued);
+  const unresolvedPending = unresolved.filter((u) => !isRescued(u));
+
+  const renderUnresolvedRow = (u: UnresolvedRow) => {
+    const picked = u.choice?.name || u.manual?.name || '';
+    return (
+      <li key={u.uid} className={styles.itemRow} data-dismissed={u.enabled ? undefined : 'true'}>
+        {!picked && (
+          <button
+            type="button"
+            className={styles.outerRescue}
+            onClick={() => openRescueDrawer(u.uid, u.originalName)}
+            aria-label="Добавить в свой список"
+            title="Добавить в свой список"
+          >
+            <PlusIcon />
+          </button>
+        )}
+        <ProposalFoodItem
+          uid={u.uid}
+          item={{
+            ...u,
+            name: picked || u.originalName,
+            productId: u.choice ? (u.choice.productId ?? '') : (u.manual?.id ?? ''),
+          }}
+          hideTime={hideTime}
+          isUnresolved={!picked}
+          inputIds={editIds}
+          paletteStyle={PROPOSAL_PALETTE}
+        />
+        <DismissButton enabled={u.enabled} onClick={() => toggleUnresolved(u.uid)} />
+      </li>
+    );
+  };
+
   return (
     <SheetCard
       key="wrap-ready"
@@ -175,12 +254,11 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
       // баре (FoodWriteBar.readyHeader, 2026-07-02). Здесь его больше нет, иначе
       // задваивался бы (бар + шапка листка одна над другой).
       data-state="ready"
-      onFocusCapture={handleReviewFocusCapture}
       actions={
         // CTA-ряд: «Отменить» (fit-content, слева) чистит flow (cancel()) — это
-        // теперь единственный способ закрыть предложку (× в шапке нет). «Добавить
-        // N» (растягивается, справа) коммитит; задизейблена, когда добавлять
-        // нечего (totalToAdd === 0) или во время сабмита.
+        // единственный способ закрыть предложку (× в шапке нет). «Подтвердить»
+        // (растягивается, справа) коммитит; задизейблена, когда добавлять нечего
+        // (totalToAdd === 0) или во время сабмита.
         <>
           <button
             type="button"
@@ -199,18 +277,12 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
             disabled={isSubmitting || totalToAdd === 0}
           >
             <Text as="span" role="body">
-              {isSubmitting ? 'Добавляем…' : `Добавить ${totalToAdd}`}
+              {isSubmitting ? 'Добавляем…' : 'Подтвердить'}
             </Text>
           </button>
         </>
       }
     >
-      {showOriginalText && inputText && (
-        <Text as="p" role="caption" className={styles.originalText}>
-          {inputText}
-        </Text>
-      )}
-
       {isReviewEmpty ? (
         <EmptyState
           className={styles.empty}
@@ -219,7 +291,7 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         />
       ) : (
         <div className={styles.sections}>
-          {resolved.length > 0 && (
+          {(resolved.length > 0 || unresolvedPicked.length > 0) && (
             <section className={styles.section}>
               <ul className={styles.list}>
                 {resolved.map((r) => (
@@ -230,40 +302,29 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                   >
                     <ProposalFoodItem
                       uid={r.uid}
-                      item={r}
+                      item={{
+                        ...r,
+                        name: r.choice?.name || r.name,
+                        productId: r.choice ? (r.choice.productId ?? '') : r.productId,
+                      }}
                       hideTime={hideTime}
-                      onCommitTime={(uid, time) => updateResolved(uid, { time })}
-                      onCommitQuantity={(uid, quantity) => updateResolved(uid, { quantity })}
-                      searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                      inputIds={editIds}
                       paletteStyle={PROPOSAL_PALETTE}
                     />
-                    <button
-                      type="button"
-                      className={styles.outerDelete}
-                      onClick={() => toggleResolved(r.uid)}
-                      aria-label={r.enabled ? 'Удалить' : 'Вернуть'}
-                    >
-                      <span className={styles.iconDismiss} aria-hidden="true">
-                        ×
-                      </span>
-                      <span className={styles.iconUndo} aria-hidden="true">
-                        ↶
-                      </span>
-                    </button>
+                    <DismissButton enabled={r.enabled} onClick={() => toggleResolved(r.uid)} />
                   </li>
                 ))}
+                {/* Нераспознанные, которым юзер уже подобрал еду, — здесь, среди
+                    основных (переезд из «Не распознано»). */}
+                {unresolvedPicked.map(renderUnresolvedRow)}
               </ul>
             </section>
           )}
 
-          {ambiguous.length > 0 && (
-            <section className={styles.section}>
-              <Heading as="h3" role="title" className={styles.sectionTitle}>
-                Уточните
-                <Numeral as="span" size="sm" weight="bold" className={styles.sectionCount}>
-                  {ambiguous.length}
-                </Numeral>
-              </Heading>
+          {ambiguous.length > 0 &&
+            section(
+              'Уточните',
+              ambiguous.length,
               <ul className={styles.list}>
                 {ambiguous.map((a) => {
                   const selected =
@@ -278,112 +339,38 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
                         uid={a.uid}
                         item={{
                           ...a,
-                          name: selected?.name ?? '—',
-                          productId: a.selectedId ?? '',
+                          name: a.choice?.name || selected?.name || '—',
+                          productId: a.choice
+                            ? (a.choice.productId ?? '')
+                            : (a.selectedId ?? ''),
                         }}
                         hideTime={hideTime}
-                        isAmbiguous
-                        candidates={a.candidates}
-                        selectedCandidateId={a.selectedId}
-                        onSelectCandidate={(id) => updateAmbiguous(a.uid, { selectedId: id })}
-                        onCommitTime={(uid, time) => updateAmbiguous(uid, { time })}
-                        onCommitQuantity={(uid, quantity) => updateAmbiguous(uid, { quantity })}
-                        searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
+                        inputIds={editIds}
                         paletteStyle={PROPOSAL_PALETTE}
                       />
-                      <button
-                        type="button"
-                        className={styles.outerDelete}
-                        onClick={() => toggleAmbiguous(a.uid)}
-                        aria-label={a.enabled ? 'Удалить' : 'Вернуть'}
-                      >
-                        <span className={styles.iconDismiss} aria-hidden="true">
-                          ×
-                        </span>
-                        <span className={styles.iconUndo} aria-hidden="true">
-                          ↶
-                        </span>
-                      </button>
+                      <DismissButton enabled={a.enabled} onClick={() => toggleAmbiguous(a.uid)} />
                     </li>
                   );
                 })}
               </ul>
-            </section>
-          )}
+            )}
 
-          {unresolved.length > 0 && (
-            <section className={styles.section}>
-              <Heading as="h3" role="title" className={styles.sectionTitle}>
-                Не распознано
-                <Numeral as="span" size="sm" weight="bold" className={styles.sectionCount}>
-                  {unresolved.length}
-                </Numeral>
-              </Heading>
-              <ul
-                className={styles.list}
-                data-rescue-slot={unresolved.some((u) => !u.manual) ? 'true' : undefined}
-              >
-                {unresolved.map((u) => (
-                  <li
-                    key={u.uid}
-                    className={styles.itemRow}
-                    data-dismissed={u.enabled ? undefined : 'true'}
-                  >
-                    {!u.manual && (
-                      <button
-                        type="button"
-                        className={styles.outerRescue}
-                        onClick={() => openRescueDrawer(u.uid, u.originalName)}
-                        aria-label="Добавить в свой список"
-                        title="Добавить в свой список"
-                      >
-                        <PlusIcon />
-                      </button>
-                    )}
-                    <ProposalFoodItem
-                      uid={u.uid}
-                      item={{
-                        ...u,
-                        name: u.manual?.name ?? u.originalName,
-                        productId: u.manual?.id ?? '',
-                      }}
-                      hideTime={hideTime}
-                      isUnresolved={!u.manual}
-                      wasRescued={!!u.manual}
-                      onCommitTime={(uid, time) => updateUnresolved(uid, { time })}
-                      onCommitQuantity={(uid, quantity) => updateUnresolved(uid, { quantity })}
-                      searchInputId={REVIEW_INPUT_IDS.SEARCH_INPUT}
-                      paletteStyle={PROPOSAL_PALETTE}
-                    />
-                    <button
-                      type="button"
-                      className={styles.outerDelete}
-                      onClick={() => toggleUnresolved(u.uid)}
-                      aria-label={u.enabled ? 'Удалить' : 'Вернуть'}
-                    >
-                      <span className={styles.iconDismiss} aria-hidden="true">
-                        ×
-                      </span>
-                      <span className={styles.iconUndo} aria-hidden="true">
-                        ↶
-                      </span>
-                    </button>
-                  </li>
-                ))}
+          {unresolvedPending.length > 0 &&
+            section(
+              'Не распознано',
+              unresolvedPending.length,
+              <ul className={styles.list} data-rescue-slot="true">
+                {unresolvedPending.map(renderUnresolvedRow)}
               </ul>
-            </section>
-          )}
+            )}
         </div>
       )}
 
-      <FreeTextFoodReviewEditModals
-        row={editingRowView}
-        step={editingStep}
-        onChange={handleEditChange}
-        onClose={closeEdit}
-        inputIds={REVIEW_INPUT_IDS}
-        excludeSupplements={targetKind === 'dish'}
-      />
+      {/* Праймим флоу uid'ом ряда на focus-событии (см. handleEditFocusCapture);
+          шаг флипает уже сам флоу — внутри ProposalEditModals. */}
+      <div onFocusCapture={handleEditFocusCapture}>
+        <ProposalEditModals flow={editFlow} />
+      </div>
     </SheetCard>
   );
 };

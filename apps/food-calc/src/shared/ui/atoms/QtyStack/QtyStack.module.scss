@@ -1,7 +1,6 @@
 // QtyStack — количество в одну строку «значение единица» («100г»). Ширина значения
 // = по содержимому (mirror-span, проект без field-sizing) → число у левого края,
 // единица прижата вплотную. Тап = правка.
-// См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
 
 .qty {
   display: inline-flex;

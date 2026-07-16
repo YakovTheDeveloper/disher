@@ -1,3 +1,5 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // NutrientCardAlt — universal nutrient card with variant support
 
 .card {
@@ -7,6 +9,11 @@
   border-radius: var(--sys-radius-container);
   box-shadow: var(--sys-elevation-action-rest);
   background: var(--sys-color-surface-1);
+  // product-edit-вариант несёт редактируемый NutrientInput; карта красит surface-1,
+  // значит она же объявляет well на шаг темнее ЭТОЙ поверхности — иначе инпут падал
+  // бы на статик-дефолт field-chip-palette. (В инлайне FoodEntryCreateModals карта
+  // прозрачна и well глубже — там панель переобъявляет field-depth(--panel-well).)
+  @include field-depth(--sys-color-surface-1);
   transition: opacity 0.2s;
   position: relative;
 }

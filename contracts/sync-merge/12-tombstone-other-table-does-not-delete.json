@@ -1,0 +1,55 @@
+{
+  "name": "12-tombstone-other-table-does-not-delete",
+  "description": "A tombstone only applies to the table named in its `table` field. A newer tombstone for a DIFFERENT table never touches this row — which is why row ids must be unique across the whole database, not just within a table.",
+  "status": "canon",
+  "local": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "survivor",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "insights",
+        "deleted_at": "2026-03-01T10:02:00.000Z"
+      }
+    ]
+  },
+  "expected": {
+    "products": [
+      {
+        "categories": [],
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "description": "",
+        "id": "p1",
+        "name": "survivor",
+        "nutrients": {},
+        "portions": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "source": "",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ],
+    "tombstones": [
+      {
+        "deleted_at": "2026-03-01T10:02:00.000Z",
+        "id": "p1",
+        "table": "insights"
+      }
+    ]
+  }
+}

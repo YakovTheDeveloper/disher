@@ -1,0 +1,40 @@
+{
+  "name": "08-tombstone-equal-stamp-deletes",
+  "description": "Tombstone application uses <=, not <: a tombstone whose deleted_at EQUALS the row updated_at still deletes. (Ties favour the delete here — the opposite of the row-vs-row tie rule.)",
+  "status": "canon",
+  "local": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "doomed",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "products",
+        "deleted_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "expected": {
+    "tombstones": [
+      {
+        "deleted_at": "2026-03-01T10:00:00.000Z",
+        "id": "p1",
+        "table": "products"
+      }
+    ]
+  }
+}

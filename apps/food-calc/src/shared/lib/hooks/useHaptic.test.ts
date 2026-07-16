@@ -10,7 +10,7 @@ import { useHaptic } from './useHaptic';
 afterEach(() => {
   // navigator — общий синглтон jsdom: снимаем определённый нами vibrate, чтобы
   // no-op-кейс видел «API отсутствует» (как в WebKit).
-  delete (navigator as Navigator & { vibrate?: unknown }).vibrate;
+  delete (navigator as unknown as { vibrate?: unknown }).vibrate;
   vi.restoreAllMocks();
 });
 

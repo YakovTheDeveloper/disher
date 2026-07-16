@@ -171,6 +171,41 @@ function insightRow(
   };
 }
 
+// И-18 — a blob carrying a malformed row (no `id`, or not an object) must not
+// abort the merge. Before the guard, `tbl.put(row)` threw on the missing inbound
+// key, the whole rw-tx rolled back, merge() rejected, and syncNow() never reached
+// push() — so the poisoned blob could never be overwritten, on any device. merge()
+// now screens each record and skips the unusable ones, keeping valid siblings.
+describe('merge() — И-18: a malformed incoming row cannot jam sync', () => {
+  beforeEach(clearAll);
+
+  it('does not throw on an incoming row with no id — it is skipped, valid siblings still land', async () => {
+    const incoming = {
+      products: [
+        { name: 'no-id garbage', updated_at: ISO }, // no `id` — would throw on put
+        product('p2', 'Good', '2026-03-01T00:00:00.000Z'), // must still be adopted
+      ],
+      tombstones: [],
+    } as unknown as Snapshot;
+
+    await expect(merge(incoming)).resolves.toBeUndefined();
+
+    expect(await db.products.count()).toBe(1);
+    expect((await db.products.get('p2'))?.name).toBe('Good');
+  });
+
+  it('does not throw on a non-object row or a malformed tombstone', async () => {
+    const incoming = {
+      products: [null, 42, product('p1', 'Survivor', '2026-03-01T00:00:00.000Z')],
+      tombstones: [{ table: 'products', deleted_at: ISO }], // no id — skipped
+    } as unknown as Snapshot;
+
+    await expect(merge(incoming)).resolves.toBeUndefined();
+    expect((await db.products.get('p1'))?.name).toBe('Survivor');
+    expect(await db.tombstones.count()).toBe(0); // the id-less tombstone never landed
+  });
+});
+
 describe('merge() — insights table (DOMAIN_TABLES, v8)', () => {
   beforeEach(clearAll);
 

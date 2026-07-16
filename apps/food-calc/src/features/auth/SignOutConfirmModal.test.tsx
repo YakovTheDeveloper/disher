@@ -111,7 +111,7 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
 // server), so the edits since the last sync exist ONLY in the Dexie the sign-out
 // is about to wipe. Never resolve true behind the user's back — ask.
 describe('SignOutConfirmModal (failed final sync)', () => {
-  const arm = (onClose: (v: boolean) => void) => {
+  const arm = (onClose: (v?: boolean) => void) => {
     render(<SignOutConfirmModal syncEnabled onClose={onClose} />);
     fireEvent.change(barrierField(), { target: { value: 'удалить' } });
     fireEvent.click(confirmBtn());

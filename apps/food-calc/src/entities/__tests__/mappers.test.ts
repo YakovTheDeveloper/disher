@@ -33,6 +33,7 @@ describe('mapProductRow', () => {
       serving_unit: null,
       description: 'сорт Гала',
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     const ui = mapProductRow(row);
     expect(ui).toEqual({
@@ -78,6 +79,7 @@ describe('mapProductRow', () => {
       serving_unit: null,
       description: '',
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     const ui = mapProductRow(row);
     expect(ui.nutrients).toBe('{}');
@@ -99,6 +101,7 @@ describe('mapProductRow', () => {
           serving_unit: null,
           description: '',
           created_at: ISO_A,
+          updated_at: ISO_A,
         };
         return mapProductRow(row).id === id;
       }),
@@ -108,7 +111,13 @@ describe('mapProductRow', () => {
 
 describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
   it('mapDishRow renames all fields', () => {
-    const row = { id: 'd1', name: 'salad', description: 'с заправкой', created_at: ISO_A };
+    const row = {
+      id: 'd1',
+      name: 'salad',
+      description: 'с заправкой',
+      created_at: ISO_A,
+      updated_at: ISO_A,
+    };
     expect(mapDishRow(row)).toEqual({
       id: 'd1',
       name: 'salad',
@@ -132,6 +141,7 @@ describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
       quantity: 50,
       details: 'варёное',
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(mapDishItemRow(row)).toEqual({
       id: 'di1',
@@ -163,6 +173,7 @@ describe('mapDishRow + mapDishItemRow + mapDishPortionRow', () => {
       label: 'small',
       grams: 120,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(mapDishPortionRow(row)).toEqual({
       id: 'dp1',
@@ -186,6 +197,7 @@ describe('mapScheduleFoodRow', () => {
       product_id: 'p1',
       dish_id: null,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     const dishRow = {
       ...foodRow,
@@ -221,6 +233,7 @@ describe('mapScheduleFoodRow', () => {
       product_id: 'p1',
       dish_id: null,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(mapScheduleFoodRow(row).details).toBe('');
   });
@@ -250,6 +263,7 @@ describe('mapScheduleEventRow', () => {
       text: undefined as unknown as string,
       atoms: [],
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     const ui = mapScheduleEventRow(row);
     expect(ui.endTime).toBe('');
@@ -265,6 +279,7 @@ describe('mapScheduleEventRow', () => {
       text: '',
       atoms: 'not valid json' as unknown as unknown[],
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(mapScheduleEventRow(row).atoms).toEqual([]);
   });
@@ -278,6 +293,7 @@ describe('readNormItems', () => {
       description: 'd',
       items: { protein: 80 } as unknown as Record<string, unknown>,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(readNormItems(row)).toEqual({ protein: 80 });
   });
@@ -289,6 +305,7 @@ describe('readNormItems', () => {
       description: '',
       items: '{"protein":80}' as unknown as Record<string, unknown>,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(readNormItems(row)).toEqual({ protein: 80 });
   });
@@ -301,6 +318,7 @@ describe('readNormItems', () => {
       description: '',
       items: null as unknown as Record<string, unknown>,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(readNormItems(row)).toEqual({});
   });
@@ -312,6 +330,7 @@ describe('readNormItems', () => {
       description: '',
       items: 'not valid json' as unknown as Record<string, unknown>,
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(readNormItems(row)).toEqual({});
   });
@@ -324,6 +343,7 @@ describe('mapHypothesisRow', () => {
       title: 'без молочки',
       body: 'проверяю неделю',
       created_at: ISO_A,
+      updated_at: ISO_A,
     };
     expect(mapHypothesisRow(row)).toEqual({
       id: 'h1',

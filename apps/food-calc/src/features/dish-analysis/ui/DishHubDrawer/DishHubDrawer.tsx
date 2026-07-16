@@ -1,16 +1,16 @@
 import { memo } from 'react';
 import { modalStore, type BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { ActionTile } from '@/shared/ui/atoms/ActionTile';
+import { ActionList } from '@/shared/ui/ActionList';
+import { SettingRow } from '@/shared/ui/atoms/SettingRow';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import { useDishAnalysis } from '../../api/queries';
 import { useDishRun } from '../../model/runStore';
 import { DishAnalysisModal } from '../DishAnalysisModal';
+import ChartBarsIcon from '@/shared/assets/icons/chart-bars.svg?react';
+import LupaIcon from '@/shared/assets/icons/lupa.svg?react';
 import styles from './DishHubDrawer.module.scss';
-
-// Ghost art (public/art) — переиспользуем существующий PNG разбора дня; новых
-// ассетов не заводим (см. инвариант плана).
-const ANALYSIS_IMG = '/art/day-analysis.png';
 
 type Props = BaseDrawerProps<void> & {
   dishId: string;
@@ -19,10 +19,11 @@ type Props = BaseDrawerProps<void> & {
   onSuggest: () => void;
 };
 
-// «О!»-хаб страницы блюда — зеркало AnalysisHubDrawer, но для блюда: две плитки
-// («Анализировать блюдо» → модалка, «Предложить продукты» → drawer-подсказка).
-// Свежий mount на каждое открытие через `drawerStore.show`, поэтому one-shot
-// `useDishAnalysis` перечитывает idb-keyval корректно (реактивность hasAnalysis).
+// «О!»-хаб страницы блюда — зеркало AnalysisHubDrawer, но для блюда: два ряда
+// SettingRow («Анализировать блюдо» → модалка, «Предложить продукты» → drawer-
+// подсказка), делит тающая бровка (канон paper-mono). Свежий mount на каждое
+// открытие через `drawerStore.show`, поэтому one-shot `useDishAnalysis`
+// перечитывает idb-keyval корректно (реактивность hasAnalysis).
 const DishHubDrawer = ({ dishId, hasIngredients, suggestDisabled, onSuggest, onClose }: Props) => {
   const online = useOnline();
   const { data: analysis } = useDishAnalysis(dishId);
@@ -31,7 +32,7 @@ const DishHubDrawer = ({ dishId, hasIngredients, suggestDisabled, onSuggest, onC
   const hasAnalysis = Boolean(analysis && (analysis.summary || analysis.insights.length > 0));
   const runInFlight = run?.status === 'loading';
 
-  // Плитка активна, если разбор уже есть (посмотреть) ИЛИ идёт (открыть лоадер).
+  // Ряд активен, если разбор уже есть (посмотреть) ИЛИ идёт (открыть лоадер).
   // Иначе гейтим по возможности посчитать: нужны ингредиенты и сеть.
   const analysisDisabled = !hasAnalysis && !runInFlight && (!hasIngredients || !online);
   const analysisHint =
@@ -55,23 +56,31 @@ const DishHubDrawer = ({ dishId, hasIngredients, suggestDisabled, onSuggest, onC
 
   return (
     <DrawerLayout title="Блюдо">
-      <div className={styles.body}>
-        <ActionTile
-          emphasis
-          top="Анализировать блюдо"
-          bottom="AI-разбор профиля БЖУ и связок нутриентов"
-          hint={analysisHint}
-          art={<img src={ANALYSIS_IMG} alt="" />}
-          disabled={analysisDisabled}
-          onClick={openAnalysis}
-        />
-        <ActionTile
-          top="Предложить продукты"
-          bottom="Подобрать ингредиенты по названию блюда"
-          disabled={suggestDisabled}
-          onClick={suggest}
-        />
-      </div>
+      {/* Ряды-действия SettingRow в одной секции ActionList (1:1 с AnalysisHubDrawer).
+          Причина недоступности «Анализировать» (офлайн / нет ингредиентов) едет в
+          `sub`. Секция без заголовка — он дублировал бы «Блюдо» из шапки. */}
+      <ActionList>
+        <ActionList.Section as="h3">
+          <div className={styles.rows}>
+            <SettingRow
+              icon={<ChartBarsIcon width={18} height={18} />}
+              label="Анализировать блюдо"
+              sub={analysisDisabled ? (analysisHint ?? undefined) : 'AI-разбор профиля БЖУ и связок нутриентов'}
+              trailing={<ChevronGlyph />}
+              onClick={openAnalysis}
+              disabled={analysisDisabled}
+            />
+            <SettingRow
+              icon={<LupaIcon width={18} height={18} />}
+              label="Предложить продукты"
+              sub="Подобрать ингредиенты по названию блюда"
+              trailing={<ChevronGlyph />}
+              onClick={suggest}
+              disabled={suggestDisabled}
+            />
+          </div>
+        </ActionList.Section>
+      </ActionList>
     </DrawerLayout>
   );
 };

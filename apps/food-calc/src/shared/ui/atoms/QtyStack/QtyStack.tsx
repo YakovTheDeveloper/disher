@@ -33,8 +33,6 @@ export type QtyStackProps<T extends ElementType = 'span'> = QtyStackOwnProps<T> 
  *
  * Полиморфен (как TapTarget): `as="span"` (default, inline-правка) ИЛИ
  * `as="label"` + htmlFor (правка через модалку, iOS focus-канон).
- *
- * См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
  */
 export function QtyStack<T extends ElementType = 'span'>({
   as,

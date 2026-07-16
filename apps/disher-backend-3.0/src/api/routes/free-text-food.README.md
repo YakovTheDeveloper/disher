@@ -2,8 +2,6 @@
 
 Пользователь на мобильном голосом или текстом описывает что ел («на завтрак овсянку с бананом»), backend через LLM + векторный поиск возвращает структурированные продукты, frontend показывает результат с UI-disambiguation, пользователь подтверждает — продукты добавляются в расписание дня.
 
-Актуальный прогресс и следующие шаги — [`apps/food-calc/tds/free-text-food-progress.md`](../../../../food-calc/tds/free-text-food-progress.md).
-
 Все пути в README относительны корня backend-пакета (`apps/disher-backend-3.0/`), если не указано иное.
 
 ## Архитектура: Hybrid Pipeline
@@ -132,7 +130,7 @@ LLM должен выводить время из контекста («утро
 - [`scripts/probe-matcher.ts`](../../../scripts/probe-matcher.ts) — односложные запросы (21 шт.), калибровка matcher.
 - [`scripts/probe-parse.ts`](../../../scripts/probe-parse.ts) — полные голосовые фразы (15 шт.) через HTTP, калибровка всего pipeline.
 
-Критерий успеха: ≥70% items в resolved, ≤15% в unresolved (без учёта заведомо составных блюд). При изменении порогов (`SCORE_FLOOR`, `AUTO_ACCEPT_MARGIN`) **обязательно** перегонять `probe-parse.ts` и фиксировать актуальные числа в [`free-text-food-progress.md`](../../../../food-calc/tds/free-text-food-progress.md). Запускать после старта сервера:
+Критерий успеха: ≥70% items в resolved, ≤15% в unresolved (без учёта заведомо составных блюд). При изменении порогов (`SCORE_FLOOR`, `AUTO_ACCEPT_MARGIN`) **обязательно** перегонять `probe-parse.ts` и фиксировать актуальные числа здесь же, в этом README. Запускать после старта сервера:
 
 ```bash
 npx tsx scripts/probe-parse.ts

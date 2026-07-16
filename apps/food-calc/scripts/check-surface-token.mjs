@@ -34,8 +34,27 @@ const APP = join(here, '..');
 const SURFACE_ROOTS = [
   { file: 'src/shared/ui/Screen/Screen.module.scss', selector: '.screen', note: 'full-page Screen surface' },
   { file: 'src/shared/ui/ModalShell/ModalShell.module.scss', selector: '.wrapper', note: 'modal overlay shell' },
-  // Candidates to enroll once their base-fill selector is pinned down:
-  //   DrawerLayout (drawer popup base), SearchFood (`--search-page-bg`).
+  // ── Input-hosting surface roots (2026-07-15) ──────────────────────────────
+  // Each paints a base `--sys-color-surface-*` fill AND hosts field consumers
+  // (--sys-field-*), so each ALSO @includes field-depth(<that same token>). The
+  // gate below asserts only the base FILL; the field-depth pairing is upheld by
+  // the "same token in background + field-depth" convention (mixin.scss #field-depth).
+  { file: 'src/shared/ui/DrawerLayout/DrawerLayout.module.scss', selector: '.content', note: 'drawer popup base (hosts drawer-form inputs)' },
+  { file: 'src/shared/ui/ModalLayout/ModalLayout.module.scss', selector: '.container', note: 'modal-store modal surface' },
+  { file: 'src/shared/ui/WriteBarShell/WriteBarShell.module.scss', selector: '.wrap', note: 'write-bar raised dock (hosts the pill field)' },
+  { file: 'src/features/food/food-search/SearchFood.module.scss', selector: '.content', note: 'food-search ambient surface (hosts the search field)' },
+  // Select paints its base surface on the PORTALED listbox (`.popup`); the
+  // `.trigger` is a field-gradient well, not a base fill — do not register it.
+  { file: 'src/shared/ui/atoms/Select/Select.module.scss', selector: '.popup', note: 'Select portaled listbox surface' },
+  // Feature cards/modals touched in the field-depth sweep (2026-07-15).
+  { file: 'src/entities/nutrient/ui/NutrientCard/NutrientCardEditor.module.scss', selector: '.card', note: 'nutrient card (product-edit hosts NutrientInput)' },
+  { file: 'src/features/auth/AuthScreen.module.scss', selector: '.sheet', note: 'auth sheet (hosts AuthForm inputs)' },
+  { file: 'src/features/auth/AuthScreen.module.scss', selector: '.screen', note: 'auth fullscreen blocker base' },
+  // NOT registered (intentional, see field-depth sweep report):
+  //   NumberInput `.input` — deliberately BARE (well painted by a parent row).
+  //   BugReportModal `.modal` — intentional glassy-dark override, not a sys surface.
+  //   *.compositionBlock / HypothesisListPanel `.well` — base fill is a
+  //     `--panel-well` field-GRADIENT, not a plain surface token (not a base fill).
 ];
 
 // Approved base-fill values: a sys surface token (opt. fallback), or no-paint.

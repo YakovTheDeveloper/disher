@@ -49,6 +49,20 @@ async function withStorageGuard<T>(op: () => Promise<T>): Promise<T> {
 // catches up — there's no cheap guard without true clock sync.
 const HWM_KEY = 'disher.clock.hwm';
 
+// Upper bound on how far ahead of the wall clock an OBSERVED (peer) stamp may
+// drag our clock (И-17). observeStamp() has no natural ceiling: it accepts any
+// finite parse greater than the current mark, so ONE poisoned row (a hand-edited
+// export dated year 9999, or a second writer with a broken date formatter) pins
+// every device's high-water mark in the far future FOREVER — nextStamp()
+// degenerates into the deterministic `hwm+1` counter on the whole fleet, which
+// makes the tie-divergence of И-2 permanent instead of a five-minute window, and
+// there is no reset path. A day is far beyond any real cross-device clock skew
+// (NTP holds seconds; a manual change, minutes/hours) yet rejects the poison
+// outright. Note we clamp only what we ADOPT into the mark — the incoming row
+// still merges by its own updated_at; we simply refuse to inherit an insane
+// clock from it.
+const OBSERVE_SKEW_CEILING_MS = 24 * 60 * 60 * 1000;
+
 function readHwm(): number {
   try {
     const n = Number(localStorage.getItem(HWM_KEY));
@@ -73,7 +87,26 @@ function writeHwm(ms: number): void {
 export function observeStamp(iso: string | undefined): void {
   if (!iso) return;
   const ms = Date.parse(iso);
-  if (Number.isFinite(ms) && ms > readHwm()) writeHwm(ms);
+  if (!Number.isFinite(ms)) return;
+  // Refuse to inherit a clock from the far future — one poisoned stamp would
+  // otherwise pin the mark there permanently and jam LWW fleet-wide (И-17).
+  if (ms > Date.now() + OBSERVE_SKEW_CEILING_MS) {
+    console.warn(`observeStamp: ignoring far-future stamp ${iso} (clock poison guard)`);
+    return;
+  }
+  if (ms > readHwm()) writeHwm(ms);
+}
+
+/** Clear the persisted high-water mark. Called by wipeLocalData() on an identity
+ *  switch so a poisoned or merely fast clock from user A's fleet cannot leak
+ *  across the account boundary into user B's first stamps (И-13) — the HWM lives
+ *  in localStorage, which the Dexie/idb-keyval wipe does not touch. */
+export function resetClock(): void {
+  try {
+    localStorage.removeItem(HWM_KEY);
+  } catch {
+    /* no-op — localStorage unavailable */
+  }
 }
 
 /** The next monotonic stamp: strictly greater than the wall clock AND every

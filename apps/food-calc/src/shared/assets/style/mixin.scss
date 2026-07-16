@@ -189,6 +189,40 @@
     padding-bottom: calc(#{$pad} + env(safe-area-inset-bottom, 0px));
 }
 
+// ── BOTTOM FADE (нижний скрим) ───────────────────────────────────────────────
+// Контент растворяется в цвете системной нижней панели у кромки экрана — вместо
+// того чтобы упираться в жёсткую белую плашку. Кнопка при этом плывёт над
+// градиентом, а не сидит на полке (канон iOS/Material 2026).
+//
+// Нижняя точка — `--sys-color-surface-2`, ТОТ ЖЕ токен, которым `body` красит canvas
+// документа (index.scss). Полоса устройства и низ приложения совпадают ПО ПОСТРОЕНИЮ:
+// синхронизировать нечего, разъехаться нечему. Верхняя точка — `transparent`, поэтому
+// скрим ложится на любую поверхность и ничего не знает о том, что под ним (в модалке
+// surface-0, в Screen — лист surface-1).
+//
+// Хост обязан быть `position: relative` И собственным stacking-context'ом, иначе
+// z-index скрима поедет наружу. Ярус задаёт консьюмер — скрим должен лечь НАД
+// контентом (тот тает в нём) и ПОД активными элементами.
+//
+//   .wrapper::after { @include bottom-fade(); z-index: 1; }
+//
+@mixin bottom-fade($h: var(--sys-bottom-fade-h)) {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: $h;
+    pointer-events: none;
+    // Стопы — приближение ease-out. Линейная альфа даёт «серую полосу»: глаз ловит
+    // ровный край на середине хода. Ease-out держит верх почти прозрачным и уплотняет
+    // градиент к самому низу, где он и должен стать сплошным.
+    background: linear-gradient(to top,
+        var(--sys-color-surface-2) 0%,
+        color-mix(in srgb, var(--sys-color-surface-2), transparent 20%) 30%,
+        color-mix(in srgb, var(--sys-color-surface-2), transparent 60%) 58%,
+        color-mix(in srgb, var(--sys-color-surface-2), transparent 88%) 82%,
+        transparent 100%);
+}
+
 // ── CARD & LIST palette ──────────────────────────────────────────────────────
 // The lavender-gradient `card-palette` mixin was REMOVED 2026-06-22: the single
 // card canon is `paper-mono-cards()` below (flat, hue-free — chosen via предложка
@@ -370,13 +404,19 @@
     flex-shrink: 0;
     pointer-events: none;
 
-    $edge-prop: if($edge == top, margin-bottom, margin-top);
+    $edge-prop: margin-top;
 
-    @if $gap == null {
-        #{$edge-prop}: -1px;
-    } @else {
-        #{$edge-prop}: calc(-1 * #{$gap});
+    @if $edge == top {
+        $edge-prop: margin-bottom;
     }
+
+    $offset: -1px;
+
+    @if $gap != null {
+        $offset: calc(-1 * #{$gap});
+    }
+
+    #{$edge-prop}: $offset;
 }
 
 @mixin mobile-breakpoint($breakpoint: 768px) {
@@ -558,70 +598,6 @@
         transform: scale($scale);
         transition-duration: var(--press-in);
     }
-}
-
-// ── ModalShell-style background variants ─────────────────────────────────────
-// Extracted from src/shared/ui/ModalShell/ModalShell.module.scss so the same
-// "spring orb" / glass / gradient look can be reused on full-page screens.
-//
-// The original ModalShell uses positioned <span> orbs with `filter: blur(...)`.
-// These mixins approximate that look with stacked CSS radial-gradients so no
-// extra DOM is required — drop `@include modal-bg-spring2()` (etc.) onto the
-// host element and you're done. The host should be `position: relative` (the
-// mixin sets it) and own its own stacking context.
-
-@mixin modal-bg-spring() {
-    position: relative;
-    background:
-        radial-gradient(circle 220px at -8% -8%, rgba(86, 197, 150, 0.45) 0%, transparent 60%),
-        radial-gradient(circle 200px at 110% 18%, rgba(79, 195, 247, 0.45) 0%, transparent 60%),
-        radial-gradient(circle 180px at 8% 78%, rgba(255, 224, 130, 0.45) 0%, transparent 60%),
-        radial-gradient(circle 170px at 95% 100%, rgba(129, 199, 132, 0.45) 0%, transparent 60%),
-        rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-@mixin modal-bg-spring2() {
-    position: relative;
-    background:
-        radial-gradient(circle 240px at -8% -10%, rgba(100, 181, 246, 0.38) 0%, transparent 65%),
-        radial-gradient(circle 210px at 108% 110%, rgba(174, 213, 129, 0.38) 0%, transparent 65%),
-        radial-gradient(circle 160px at 100% 40%, rgba(144, 202, 249, 0.32) 0%, transparent 70%),
-        radial-gradient(circle 150px at 0% 75%, rgba(197, 225, 165, 0.32) 0%, transparent 70%),
-        rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-@mixin modal-bg-spring4() {
-    position: relative;
-    background:
-        radial-gradient(circle 220px at 108% -8%, rgba(255, 179, 138, 0.45) 0%, transparent 65%),
-        radial-gradient(circle 200px at -8% 22%, rgba(139, 191, 139, 0.45) 0%, transparent 65%),
-        radial-gradient(circle 170px at 95% 78%, rgba(255, 204, 128, 0.40) 0%, transparent 65%),
-        radial-gradient(circle 150px at 8% 100%, rgba(128, 203, 196, 0.40) 0%, transparent 65%),
-        rgba(252, 253, 250, 0.88);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-@mixin modal-bg-spring5() {
-    position: relative;
-    background:
-        radial-gradient(circle 200px at -10% -10%, rgba(159, 208, 244, 0.32) 0%, transparent 70%),
-        radial-gradient(circle 200px at 110% 110%, rgba(182, 223, 177, 0.32) 0%, transparent 70%),
-        rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-}
-
-// Glass scrim only — matches `.wrapperGradient` + `.gradientScrim` from
-// ModalShell when no decorative image is in play. Gives a flat soft white
-// surface above whatever the parent paints.
-@mixin modal-bg-glass($alpha: 0.7) {
-    position: relative;
-    background: rgba(255, 255, 255, $alpha);
 }
 
 // ── Touch row floor (canon: list-item min-height) ──────────────────────────

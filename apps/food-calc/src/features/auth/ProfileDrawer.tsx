@@ -10,7 +10,8 @@ import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { WallpaperPicker } from '@/features/wallpaper';
 import { CardPalettePicker } from '@/features/card-palette';
-import { dump, apply, deleteBackup } from '@/shared/lib/snapshot';
+import { dump, apply, deleteBackup, isSnapshotShaped } from '@/shared/lib/snapshot';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { BalanceSection } from './BalanceSection';
 import { TelegramLinkRow } from './TelegramLinkRow';
@@ -121,9 +122,32 @@ export function ProfileDrawer() {
     downloadJson(`disher-${today}.json`, await dump());
   };
 
+  // «Загрузить из файла» — apply() деструктивно ЗАМЕНЯЕТ всю базу. Раньше это
+  // шло без спроса и без проверки: выбрал не тот файл (или не-снапшот JSON) —
+  // снёс данные. Теперь два барьера (И-16): (1) валидация формы снапшота до
+  // касания базы, (2) confirm-модалка перед заменой.
   const handleImport = async () => {
-    const snap = await pickJson();
-    await apply(snap as never);
+    let snap: unknown;
+    try {
+      snap = await pickJson();
+    } catch (e) {
+      if ((e as Error)?.message === 'cancelled') return; // пустой выбор — молча выходим
+      toaster.error('Не удалось прочитать файл — это не JSON');
+      return;
+    }
+    if (!isSnapshotShaped(snap)) {
+      toaster.error('Это не похоже на файл резервной копии Disher');
+      return;
+    }
+    const confirmed = await modalStore.show(ConfirmModal, {
+      title: 'Загрузить и заменить данные?',
+      message:
+        'Данные на этом устройстве будут заменены содержимым файла. Убедитесь, что выбрали правильную резервную копию.',
+      confirmLabel: 'Заменить',
+      tone: 'danger',
+    });
+    if (confirmed !== true) return;
+    await apply(snap);
     window.location.reload();
   };
 

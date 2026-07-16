@@ -92,7 +92,7 @@ const LongPressRow = ({
   // Single node: the <li> IS the card surface, the gesture target, the entrance
   // layer and the just-added flash host (`::before`). Tap = native onClick (pointer) +
   // Enter/Space (keyboard); long-press action = sustained press / mouse-hold /
-  // Shift+F10 / context-menu key — see tds/ANALYSIS/longpressrow-collapse-2026-06-25.md.
+  // Shift+F10 / context-menu key.
   return (
     <li
       data-row-id={id}

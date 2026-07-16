@@ -1,0 +1,252 @@
+// Панель разбора события — живёт в доке бара (`.reviewPanel` в EventsWriteBar,
+// ниже WriteBarShell), органичное продолжение бара. Обвязку «карточка на листке»
+// владеет SheetCard; здесь — только событие-специфика (карточки, период, оценки).
+// Зеркалит InlineWriteFoodReview, но bucket один (у события нет каталог-матчинга).
+
+.reviewSheet {
+  margin: 0;
+  flex-shrink: 0;
+
+  // В доке предложка не отдельная карточка — делит плашку бара. Гасим собственную
+  // поверхность SheetCard, чтобы шва не было (паттерн merged-dock).
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+
+  &::before {
+    display: none;
+  }
+}
+
+.empty {
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-row);
+}
+
+// Карточка события — холодная бледная заливка (как ряды предложки еды),
+// отстраивает машинно-разобранное от committed-рядов расписания.
+.eventCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--sys-radius-container);
+  background: var(--sys-color-surface-proposal);
+
+  // Soft-delete: перечёркнутая карточка гаснет; крестик → ↶ (см. .dismiss).
+  &::after {
+    content: '';
+    position: absolute;
+    left: var(--space-3);
+    right: var(--space-3);
+    top: 50%;
+    height: 1px;
+    background: var(--sys-color-text-tertiary);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  &[data-dismissed='true'] {
+    > :not(.cardHead) {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .period,
+    .textField {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    &::after {
+      opacity: 1;
+    }
+  }
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.period {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.periodDash {
+  color: var(--sys-color-text-tertiary);
+}
+
+// Нативный time-picker (мобильное колесо) в тон полей проекта: sunk-плашка +
+// pill-скругление. Пустое значение = момент/без периода.
+.timeField {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--sys-color-border-default);
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-bg-sunk);
+  color: var(--sys-color-text-primary);
+  // Нативный инпут не наследует шрифт — тянем окружающий, чтобы не свалиться в
+  // мелкий браузерный дефолт. Размер-токен тут запрещён (типо-инкапсуляция).
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--sys-color-border-strong);
+    outline-offset: 1px;
+  }
+}
+
+.textField {
+  width: 100%;
+}
+
+.aspects {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.aspect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.aspectHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  // Поле имени оценки тянется, крестик — по контенту.
+  > :first-child {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Мелкий крестик «убрать оценку» — тихая иконка на тайле.
+.removeAspect {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: var(--sys-color-surface-icon-tile);
+  border-radius: var(--sys-radius-indicator);
+  color: var(--sys-color-icon);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default), transform 0.12s ease;
+
+  &:active {
+    background: var(--sys-color-bg-press);
+    transform: scale(0.9);
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+// Крестик карточки (× ↔ ↶). Каркас = примитив IconButton; свич глифов — здесь.
+.dismiss {
+  flex: 0 0 auto;
+  color: var(--sys-color-icon);
+
+  .dismissGlyphs {
+    display: grid;
+    place-items: center;
+  }
+
+  .iconDismiss,
+  .iconUndo {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .iconUndo {
+    opacity: 0;
+  }
+}
+
+.eventCard[data-dismissed='true'] .dismiss {
+  .iconDismiss {
+    opacity: 0;
+  }
+
+  .iconUndo {
+    opacity: 1;
+  }
+}
+
+// CTA-ряд (в actions-слоте SheetCard). Зеркалит food review.
+.cancelBtn {
+  flex: 0 0 auto;
+  padding: 12px 18px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-bg-sunk);
+  color: var(--sys-color-text-secondary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  transition: transform 0.12s ease, background var(--press-out) var(--easing-default);
+
+  &:active {
+    background: var(--sys-color-bg-press);
+    transform: scale(0.98);
+    transition-duration: var(--sys-duration-press-in);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.commitBtn {
+  flex: 1;
+  padding: 12px 22px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-action-system);
+  color: var(--sys-color-on-action-system);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  transition: transform 0.12s ease, opacity 0.15s ease, filter var(--press-out) var(--easing-default);
+
+  &:active {
+    filter: brightness(0.9);
+    transform: scale(0.98);
+    transition-duration: var(--sys-duration-press-in);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

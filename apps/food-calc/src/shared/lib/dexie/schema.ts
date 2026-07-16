@@ -7,8 +7,7 @@ import Dexie, { type Table } from 'dexie';
 // read path stays clean (no `deleted_at` filter in queries). No per-row
 // `user_id` discriminator — sign-out wipes the DB.
 //
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md and the
-// merge-sync fix plan (.claude/ralph/fix_plan.md).
+// See the merge-sync fix plan (.claude/ralph/fix_plan.md).
 
 //
 // Every row carries two timestamps: `created_at` (stamped once at insert) and
@@ -245,7 +244,6 @@ export class DisherDB extends Dexie {
     // hypothesis is now just {id, title, body, created_at}. On a fresh device
     // the modify() runs over an empty table (no-op). The list now sorts by
     // created_at instead of saved_at.
-    // See apps/food-calc/tds/home-and-analyses-ui.md.
     this.version(6)
       .stores({
         hypotheses: 'id',

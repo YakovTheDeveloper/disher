@@ -13,6 +13,8 @@ export type {
   FoodEntryEditItem,
   ScheduleEditItem,
   DishEditItem,
+  ProposalEditItem,
+  ProposalCommit,
   DraftState as FoodEntryDraftState,
   Step as FoodEntryStep,
 } from './useFoodEntryFlow';

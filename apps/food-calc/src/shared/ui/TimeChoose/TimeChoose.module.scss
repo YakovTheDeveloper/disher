@@ -160,17 +160,6 @@
     gap: 8px;
 }
 
-.rangeRow {
-    display: flex;
-    align-items: stretch;
-    gap: 12px;
-
-    .rangeTabs {
-        flex-direction: column;
-        width: auto;
-    }
-}
-
 .toggleButton {
     @include pill-button();
 
@@ -206,33 +195,50 @@
     }
 }
 
-// ─── Range tabs (ОТ / ДО / Длит.) ──────────────────────────
-
+// ─── Range: сегментные табы (от | до) над циферблатом ───────
+// Опт-ин через чекбокс «Задать конец»: точечное событие живёт без этого хрома.
+// Табы — выбор поля, которое правит герой-циферблат (роль radio, презентация из
+// Choice segmented на sys-ярусе). Здесь — только ширина/равные сегменты.
 .rangeTabs {
-    display: flex;
-    gap: 2px;
     width: 100%;
-    border: 0;
-    border-radius: var(--sys-radius-container);
-    padding: 0;
-    background: transparent;
 }
 
-// Single-choice (роль radio) на примитиве Choice: презентация (кромка/радиус/
-// галочка-маркер/фокус) живёт в Choice на sys-ярусе. Здесь — только раскладка:
-// три равных сегмента в ряд. Маркер «выбрано» = галочка в углу (как везде).
 .rangeTab {
     flex: 1;
     justify-content: center;
     text-align: center;
 }
 
-// Голос (font-*) несёт <Text role="body"> на узле .rangeSummary; здесь — только цвет/
-// раскладка/таб-цифры.
+// Финальные значения под циферблатом. Длительность — тап-чип: и readout, и вход
+// в режим ввода длительности (тот же конец, другое представление).
 .rangeSummary {
-    color: var(--sys-color-text-secondary);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-variant-numeric: tabular-nums;
+}
+
+.rangeSummaryText {
+    color: var(--sys-color-text-secondary);
+}
+
+.durationChip {
+    padding: 4px 10px;
+    border: 0;
+    border-radius: var(--sys-radius-control);
+    background: var(--sys-color-surface-2);
+    color: var(--sys-color-text-secondary);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.durationChipActive {
+    background: var(--sys-color-bg-selected);
+    color: var(--sys-color-text-system);
 }
 
 // Голый <input type="time"> — санкционированный не-обёртываемый контекст (поле ввода,

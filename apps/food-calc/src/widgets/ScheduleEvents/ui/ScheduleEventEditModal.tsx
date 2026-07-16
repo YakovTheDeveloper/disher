@@ -1,26 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
 import { useOverlayHistory } from '@/shared/lib/useOverlayHistory';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { TimeChoose, type TimeRangeState } from '@/shared/ui/TimeChoose';
-import { updateScheduleEvent } from '@/entities/schedule-event';
+import { ActionList } from '@/shared/ui/ActionList';
+import { ScaleSlider } from '@/shared/ui/ScaleSlider';
+import {
+  updateScheduleEvent,
+  type ScheduleEvent,
+  type ScaleAtom,
+} from '@/entities/schedule-event';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { useEventDraftStore } from '@/entities/schedule-event/model/draft';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
-import { AtomBuilder } from '@/widgets/ScheduleEvents/components/AtomBuilder';
-import type { ScheduleEvent } from '@/entities/schedule-event';
-import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { EDIT_MODAL_INPUT_IDS } from './ScheduleEventEditModal.constants';
+import { ASPECT_COUNT, ASPECT_PLACEHOLDERS } from './EventCreateModal.constants';
+import type { AspectDraft } from './EventCreateModal';
+import s from './ScheduleEventEditModal.module.scss';
 
 type Step = 'idle' | 'time' | 'text' | 'atoms';
+
+// Линейка стартует в середине — нейтральная точка для новых (пустых) аспектов.
+const DEFAULT_ASPECT_VALUE = 5;
 
 type DraftState = {
   time: string;
   endTime: string | null;
   text: string;
+  aspects: AspectDraft[];
 };
 
 type Props = {
@@ -29,26 +38,30 @@ type Props = {
   onClose: () => void;
 };
 
+// Существующие аспекты в фиксированные ASPECT_COUNT строк (зеркалит офлайн-форму).
+// Хвост добивается пустыми — юзер может дописать оценку прямо в правке.
+const seedAspects = (item: ScheduleEvent): AspectDraft[] => {
+  const atoms = (typeof item.atoms === 'string' ? JSON.parse(item.atoms) : item.atoms ?? []) as ScaleAtom[];
+  const rows: AspectDraft[] = atoms.map((a) => ({ label: a.label ?? '', value: a.value }));
+  while (rows.length < ASPECT_COUNT) rows.push({ label: '', value: DEFAULT_ASPECT_VALUE });
+  return rows;
+};
+
 const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) => {
   const [step, setStep] = useState<Step>(initialStep);
+  // Keyed by item.id via the parent `overlay` — a fresh mount per opened event
+  // seeds the draft from `item`, so no effect-sync is needed.
   const [draft, setDraft] = useState<DraftState>(() => ({
     time: item.time,
     endTime: item.endTime ?? null,
     text: item.text ?? '',
+    aspects: seedAspects(item),
   }));
-  const clearAtoms = useEventDraftStore((s) => s.clearAtoms);
 
-  useEffect(() => {
-    const store = useEventDraftStore.getState();
-    store.clearAtoms(); // also resets pendingScale
-    const existingAtoms = (typeof item.atoms === 'string' ? JSON.parse(item.atoms) : item.atoms ?? []) as Atom[];
-    for (const atom of existingAtoms) {
-      store.addAtom(atom);
-    }
-    // Form starts empty — existing rated states show as chips in AtomBuilder; tap
-    // a chip to edit one. (Was: pre-hydrate the single scale, which now double-shows
-    // it as both chip and form when an event has multiple states.)
-  }, [item.id]);
+  // Строки < seededCount пришли из реального атома — сохраняем даже без лейбла (число
+  // осмысленно). Добавленные хвостовые строки материализуются ТОЛЬКО непустым лейблом
+  // (иначе дефолтная «5» без имени цепляла бы фантомную оценку — баг критики 2026-07-15).
+  const [seededCount] = useState(() => (Array.isArray(item.atoms) ? item.atoms.length : 0));
 
   useSwipeableLock(step !== 'idle');
   useOverlayHistory(step !== 'idle', () => {
@@ -57,9 +70,6 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
   });
 
   const handleClose = () => {
-    // Cancel = discard. Clear the shared draft so the loaded atoms don't leak
-    // into the next event created on the same day (the draft is a singleton).
-    clearAtoms();
     setStep('idle');
     onClose();
   };
@@ -72,15 +82,12 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     else if (id === EDIT_MODAL_INPUT_IDS.ATOMS_INPUT) setStep('atoms');
     else return;
 
-    // Медаль ItemActionsDrawer только что делегировала фокус сюда — дровер отработал,
-    // закрываем его (открыт с trapFocus:false, поэтому фокус смог уйти наружу портала).
-    // No-op, когда дровера нет (правка тапом по карточке) — closeLast закрывает лишь
-    // открытый инстанс.
+    // Медаль ItemActionsDrawer только что делегировала фокус сюда — закрываем дровер
+    // (открыт с trapFocus:false). No-op при правке тапом по карточке.
     drawerStore.closeLast();
 
-    // Контейнер атомов — flex:1 во весь экран; scrollIntoView({block:'center'})
-    // на нём тащит модалку / visual viewport на iOS. Скроллим только мелкие
-    // инпуты (время/текст).
+    // Прокси-инпут оценки readOnly (открывашка шага) — скроллить не нужно, поля
+    // аспектов сами центрируются по своему фокусу. Мелкие инпуты (время/текст) центрируем.
     if (id === EDIT_MODAL_INPUT_IDS.ATOMS_INPUT) return;
 
     requestAnimationFrame(() => {
@@ -90,30 +97,30 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
     });
   }, []);
 
-  const handleTimeFinish = (time: string) => {
-    setDraft((prev) => ({ ...prev, time }));
-  };
+  const handleTimeFinish = (time: string) => setDraft((prev) => ({ ...prev, time }));
 
   const handleRangeChange = (range: TimeRangeState) => {
     setDraft((prev) => ({ ...prev, time: range.from, endTime: range.toExplicitlySet ? range.to : null }));
   };
 
-  const handleTextChange = (value: string) => {
-    setDraft((prev) => ({ ...prev, text: value }));
+  const handleTextChange = (value: string) => setDraft((prev) => ({ ...prev, text: value }));
+
+  const handleAspectChange = (index: number, patch: Partial<AspectDraft>) => {
+    setDraft((prev) => ({
+      ...prev,
+      aspects: prev.aspects.map((a, i) => (i === index ? { ...a, ...patch } : a)),
+    }));
   };
 
-  const handleCommit = async () => {
-    // Flush the pending scale into atoms BEFORE reading them — «Готово» must not
-    // drop a rating the user typed but didn't separately confirm.
-    const store = useEventDraftStore.getState();
-    store.commitPendingScale();
-    const atoms = store.draft.atoms;
+  const commit = async () => {
+    const atoms: ScaleAtom[] = draft.aspects
+      .filter((a, i) => a.label.trim().length > 0 || i < seededCount)
+      .map((a) => ({ kind: 'scale', value: a.value, label: a.label.trim() || undefined }));
     const result = await safeMutate(
       () => updateScheduleEvent(item.id, { time: draft.time, endTime: draft.endTime ?? undefined, text: draft.text, atoms }),
       'Не удалось обновить событие',
     );
     if (!result.ok) return;
-    clearAtoms();
     setStep('idle');
     onClose();
   };
@@ -138,9 +145,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                   onChangeRange: handleRangeChange,
                 }}
               />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-              />
+              <ModalShell.ActionButtons right={<ModalNextButton onClick={commit} variant="finish" />} />
             </ModalShell.Body>
           </ModalShell>
         }
@@ -160,27 +165,50 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
                 value={draft.text}
                 placeholder="Опишите событие"
               />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
-              />
+              <ModalShell.ActionButtons right={<ModalNextButton onClick={commit} variant="finish" />} />
             </ModalShell.Body>
           </ModalShell>
         }
       />
 
-      {/* Atoms/Tags */}
+      {/* Aspects — label + линейка 0..10 на строку (те же примитивы, что офлайн-форма). */}
       <ModalByLabel
         position="absolute"
         isExpanded={step === 'atoms'}
         content={
           <ModalShell>
-            <ModalShell.Header title="Оценка" onBack={handleClose} />
-            <ModalShell.AtomsBody>
-              <AtomBuilder id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT} />
-              <ModalShell.ActionButtons
-                right={<ModalNextButton onClick={handleCommit} variant="finish" />}
+            <ModalShell.Header title="Оценки" onBack={handleClose} />
+            <ModalShell.Body>
+              {/* `<label htmlFor>` с карточки/медали делегирует фокус сюда — readOnly-
+                  прокси лишь раскрывает шаг (клавиатуры нет). */}
+              <input
+                id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
               />
-            </ModalShell.AtomsBody>
+              <ActionList>
+                <ActionList.Section label="Оценочные варианты">
+                  {draft.aspects.map((aspect, index) => (
+                    <div key={index} className={s.aspect}>
+                      <AutoGrowSearch
+                        singleLine
+                        value={aspect.label}
+                        onChange={(v) => handleAspectChange(index, { label: v })}
+                        placeholder={ASPECT_PLACEHOLDERS[index] ?? 'Оценочный вариант'}
+                      />
+                      <ScaleSlider
+                        value={aspect.value}
+                        onChange={(v) => handleAspectChange(index, { value: v })}
+                        ariaLabel={aspect.label.trim() || `Оценочный вариант ${index + 1}, 0–10`}
+                      />
+                    </div>
+                  ))}
+                </ActionList.Section>
+              </ActionList>
+              <ModalShell.ActionButtons right={<ModalNextButton onClick={commit} variant="finish" />} />
+            </ModalShell.Body>
           </ModalShell>
         }
       />

@@ -19,6 +19,15 @@ import {
 
 const USER_ID = '11111111-1111-1111-1111-111111111111';
 
+// Ряд, указывающий на ПРОДУКТ. Ряд может указывать и на блюдо (юзер выбрал его
+// вручную через поиск из предложки) — тогда `type: 'dish'` + `dishId`.
+const foodItem = (
+  productId: string,
+  quantity: number,
+  time: string,
+  details = '',
+): CommittedItem => ({ type: 'food', productId, dishId: null, quantity, time, details });
+
 beforeAll(() => {
   useAuthStore.setState({ userId: USER_ID });
 });
@@ -46,9 +55,10 @@ async function commitScheduleItems(
       const id = await addScheduleFood({
         date,
         time: c.time,
-        type: 'food',
+        type: c.type,
         quantity: c.quantity,
         productId: c.productId,
+        dishId: c.dishId,
         details: c.details ?? '',
       });
       newScheduleIds.push(id);
@@ -63,6 +73,8 @@ async function commitDishItems(
 ): Promise<void> {
   await db.transaction('rw', db.dish_items, async () => {
     for (const c of committed) {
+      // Mirror production: ингредиент блюда — всегда продукт.
+      if (c.type !== 'food' || !c.productId) continue;
       await addDishItem({
         dishId,
         productId: c.productId,
@@ -78,9 +90,9 @@ describe('useWriteFoodFlow.commit — schedule mode', () => {
   it('persists every committed item with correct fields', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
-      { productId: 'p-b', quantity: 250, time: '13:00', details: 'обед' },
-      { productId: 'p-c', quantity: 50, time: '21:00', details: '' },
+      foodItem('p-a', 100, '08:00'),
+      foodItem('p-b', 250, '13:00', 'обед'),
+      foodItem('p-c', 50, '21:00'),
     ];
 
     const ids = await commitScheduleItems(committed, date);
@@ -104,9 +116,9 @@ describe('useWriteFoodFlow.commit — schedule mode', () => {
   it('rolls back atomically when an addScheduleFood throws mid-loop', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
-      { productId: '', quantity: 100, time: '09:00', details: '' },
-      { productId: 'p-c', quantity: 100, time: '10:00', details: '' },
+      foodItem('p-a', 100, '08:00'),
+      foodItem('', 100, '09:00'),
+      foodItem('p-c', 100, '10:00'),
     ];
 
     let threw = false;
@@ -136,9 +148,7 @@ describe('useWriteFoodFlow.commit — schedule mode', () => {
 
   it('handles a single-item commit', async () => {
     const date = '02-05-2026';
-    const committed: CommittedItem[] = [
-      { productId: 'only', quantity: 42, time: '12:00', details: 'solo' },
-    ];
+    const committed: CommittedItem[] = [foodItem('only', 42, '12:00', 'solo')];
 
     const ids = await commitScheduleItems(committed, date);
     expect(ids).toHaveLength(1);
@@ -152,8 +162,8 @@ describe('useWriteFoodFlow.commit — schedule mode', () => {
   it('returns the generated ids in commit order', async () => {
     const date = '02-05-2026';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '08:00', details: '' },
-      { productId: 'p-b', quantity: 100, time: '09:00', details: '' },
+      foodItem('p-a', 100, '08:00'),
+      foodItem('p-b', 100, '09:00'),
     ];
 
     const ids = await commitScheduleItems(committed, date);
@@ -171,8 +181,8 @@ describe('useWriteFoodFlow.commit — dish mode', () => {
   it('persists every committed item as a dish_item', async () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '00:00', details: '' },
-      { productId: 'p-b', quantity: 200, time: '00:00', details: 'вареная' },
+      foodItem('p-a', 100, '00:00'),
+      foodItem('p-b', 200, '00:00', 'вареная'),
     ];
 
     await commitDishItems(committed, dishId);
@@ -193,14 +203,18 @@ describe('useWriteFoodFlow.commit — dish mode', () => {
   it('rolls back dish_items atomically on mid-loop error', async () => {
     const dishId = 'dish-xyz';
     const committed: CommittedItem[] = [
-      { productId: 'p-a', quantity: 100, time: '00:00', details: '' },
-      { productId: 'p-b', quantity: 200, time: '00:00', details: '' },
+      foodItem('p-a', 100, '00:00'),
+      foodItem('p-b', 200, '00:00'),
     ];
 
     let threw = false;
     try {
       await db.transaction('rw', db.dish_items, async () => {
-        await addDishItem({ dishId, productId: committed[0].productId, quantity: committed[0].quantity });
+        await addDishItem({
+          dishId,
+          productId: committed[0].productId!,
+          quantity: committed[0].quantity,
+        });
         // Synthetic mid-loop failure mirrors a thrown addDishItem.
         throw new Error('synthetic mid-loop failure');
       });
@@ -282,6 +296,66 @@ describe('useWriteFoodFlow.commit — committed[] filter (selectCommittable)', (
       ],
     });
     expect(committed.map((c) => c.productId)).toEqual(['r1', 'a1', 'u1']);
+  });
+
+  // Ручной выбор из поиска (`choice`) перебивает выбор матчера в ЛЮБОЙ категории —
+  // и он единственный умеет ссылаться на БЛЮДО (матчер блюда не подбирает).
+  it('choice перебивает выбор матчера', () => {
+    const committed = selectCommittable({
+      resolved: [
+        {
+          enabled: true,
+          productId: 'matcher-pick',
+          choice: { variant: 'product', productId: 'user-pick', dishId: null, name: 'Творог' },
+          quantity: 1,
+          time: '08:00',
+          details: '',
+        },
+      ],
+      ambiguous: [],
+      unresolved: [],
+    });
+    expect(committed).toEqual([
+      { type: 'food', productId: 'user-pick', dishId: null, quantity: 1, time: '08:00', details: '' },
+    ]);
+  });
+
+  it('ряд с выбранным БЛЮДОМ коммитится как type dish', () => {
+    const committed = selectCommittable({
+      resolved: [],
+      ambiguous: [],
+      unresolved: [
+        {
+          enabled: true,
+          manual: null,
+          choice: { variant: 'dish', productId: null, dishId: 'd-1', name: 'Борщ' },
+          quantity: 300,
+          time: '13:00',
+          details: '',
+        },
+      ],
+    });
+    expect(committed).toEqual([
+      { type: 'dish', productId: null, dishId: 'd-1', quantity: 300, time: '13:00', details: '' },
+    ]);
+  });
+
+  it('choice без id (еда не выбрана) не коммитится', () => {
+    const committed = selectCommittable({
+      resolved: [],
+      ambiguous: [],
+      unresolved: [
+        {
+          enabled: true,
+          manual: { id: 'm1' },
+          choice: { variant: 'dish', productId: null, dishId: null, name: '' },
+          quantity: 1,
+          time: '08:00',
+          details: '',
+        },
+      ],
+    });
+    expect(committed).toHaveLength(0);
   });
 
   it('returns [] when every row is dismissed — commit() must early-return', () => {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 // Чужая сущность (`daily-norm`) тянется ТОЛЬКО через @x-public-API — один символ,
-// связь явная (см. tds/nutrient-components-reorg-2026-07-11.md, Решение 2).
+// связь явная.
 import { useUserNormItems } from '@/entities/daily-norm/@x/nutrient';
 import {
   nutrientById,

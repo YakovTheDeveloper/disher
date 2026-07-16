@@ -20,8 +20,6 @@ import {
 // pending, anything else means done (success or failure). Failure becomes
 // content — there's no separate error column, status enum, or status check
 // to keep in sync.
-//
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Server route.
 
 const LLM_TIMEOUT_MS = 120_000;
 

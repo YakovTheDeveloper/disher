@@ -6,6 +6,7 @@ import { InfoButton } from '@/shared/ui/atoms/Button';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { RotatingPlaceholder } from './RotatingPlaceholder';
 import { WriteBarHint } from './WriteBarHint';
+import { writeBarDim } from './writeBarDimStore';
 import s from './WriteBarShell.module.scss';
 
 // Поверхность бара = стандартное поле формы проекта (warm well + внутренняя тень)
@@ -215,6 +216,22 @@ export const WriteBarShell = ({
     if (!expanded) setHintOpen(false);
   }, [expanded]);
 
+  // Пока этот бар гасит страницу своим focusOverlay (фокус ИЛИ форсированный
+  // overlayVisible) — держим ref в общем счётчике дима, который ставит флаг
+  // `data-writebar-dim` на body. Плавающая chrome НАД свайп-зоной (HomeTopBar)
+  // дим-оверлеем не достаётся: он заперт в stacking-контексте Embla-трека
+  // (transform) на z:0, а бар парит на z:10 в `.container`. Поэтому хром приглушает
+  // СЕБЯ по флагу через CSS (см. HomeTopBar.module.scss). Счётчик (а не голый булев)
+  // нужен потому, что оба слайда Embla (еда + события) смонтированы разом → их димы
+  // могут перекрыться; refcount не даёт cleanup одного затереть флаг другого
+  // (см. writeBarDimStore).
+  const dimsPage = focusOverlay && (expanded || overlayVisible);
+  useEffect(() => {
+    if (!dimsPage) return;
+    writeBarDim.acquire();
+    return writeBarDim.release;
+  }, [dimsPage]);
+
   // Карусель примеров: монтируется, когда переданы примеры И caller-гейт
   // `examplesActive` (список айтемов пуст). Сам цикл крутится только пока инпут
   // пуст (`active={!hasText}`); как только появляется текст — оверлей всё равно
@@ -287,9 +304,8 @@ export const WriteBarShell = ({
               схлопнулся бы, не успев показать текст. */}
           <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
             <InfoButton
-              tone="ghost"
-              size={32}
-              glyphSize={20}
+              tone="soft"
+              size={44}
               aria-label={hintOpen ? 'Скрыть подсказку' : 'Показать подсказку'}
               aria-expanded={hintOpen}
               tabIndex={expanded ? 0 : -1}

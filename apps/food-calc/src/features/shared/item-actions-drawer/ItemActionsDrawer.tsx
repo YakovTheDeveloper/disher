@@ -1,7 +1,11 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { Button, IconButton, type ButtonVariant } from '@/shared/ui/atoms/Button';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import { RoundButton } from '@/shared/ui/RoundButton';
+import { ActionList } from '@/shared/ui/ActionList';
+import { SettingRow } from '@/shared/ui/atoms/SettingRow';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import type { BaseDrawerProps } from '@/shared/ui';
+import InfoGlyph from '@/shared/assets/icons/cirlceInfo.svg?react';
 import s from './ItemActionsDrawer.module.scss';
 
 export type ItemAction = {
@@ -9,14 +13,7 @@ export type ItemAction = {
   icon?: React.ReactNode;
   onClick: () => void;
   /**
-   * Тон кнопки в стеке (переиспользует словарь примитива, без отдельного
-   * `emphasis`-enum). Дефолт — тихий `system-secondary`; «главное» действие
-   * (напр. «Информация о продукте») помечается `'system'` (уголь-filled) и
-   * читается как акцент стека.
-   */
-  variant?: ButtonVariant;
-  /**
-   * Если задан, кнопка рендерится как `<label htmlFor={htmlFor}>` (делегация
+   * Если задан, действие рендерится как `<label htmlFor={htmlFor}>` (делегация
    * фокуса ModalByLabel) вместо обычной `<button>`: тап фокусирует целевой input
    * → хостовый `onFocusCapture` флипает нужный шаг edit-флоу, и iOS Safari
    * поднимает клавиатуру (императивный `.focus()` из клика по кнопке этого не
@@ -25,7 +22,7 @@ export type ItemAction = {
    * до делегирования фокуса, а шаг погонится с focus-событием (см. CLAUDE.md
    * «Label focus delegation»). Дровер закрывается сам по уходу фокуса наружу.
    * Опускай для действий, которые навигируют/открывают (они закрываются-и-
-   * выполняются через обычную кнопку).
+   * выполняются через обычный ряд).
    */
   htmlFor?: string;
 };
@@ -39,9 +36,10 @@ interface Props extends BaseDrawerProps<void> {
    *  the guard). Omit for non-deletable entities (e.g. catalog foods) → the trash
    *  chrome button is dropped and the drawer shows actions only. */
   onDelete?: () => void;
-  /** Bottom vertical stack. The last entry reads as the "primary" action
-   *  (e.g. «Информация о продукте» sits at the bottom). */
+  /** Навигационные действия секции «Перейти» (напр. «Информация о продукте»).
+   *  Пусто → секция не рендерится (у события нет detail-страницы). */
   actions: ItemAction[];
+  /** Действия секции «Редактировать» — ряд круглых медалей (RoundButton). */
   editActions?: ItemAction[];
 }
 
@@ -78,53 +76,71 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
         ) : undefined
       }
     >
-      {actions.length > 0 && (
-        <div className={s.actions}>
-          {actions.map((action, i) => (
-            <Button
-              key={`${action.label}-${i}`}
-              variant={'system'}
-              flat
-              fullWidth
-              icon={action.icon}
-              onClick={() => handleAction(action)}
-            >
-              <span className={s.editBtnLabel}>{action.label}</span>
-            </Button>
-          ))}
-        </div>
-      )}
-      {editActions && editActions.length > 0 && (
-        <div className={s.editSection}>
-          <div className={s.editRow}>
-            {editActions.map((action, i) =>
-              action.htmlFor ? (
-                // Медаль = `<label htmlFor>`: тап фокусирует целевой edit-input,
-                // хостовый onFocusCapture флипает шаг (iOS поднимает клавиатуру) и
-                // закрывает дровер. onClick только праймит — НЕ closes/setStep,
-                // иначе label размонтируется до делегирования (CLAUDE.md «Label
-                // focus delegation»). Дровер открыт с trapFocus:false, иначе
-                // focus-trap завернул бы делегацию назад.
-                <RoundButton
+      {/* Тело дровера = ActionList: секция «Редактировать» (ряд медалей) + секция
+          «Перейти» (нав-ряды SettingRow). Секции = h3 (заголовок дровера h2 → тело
+          держит следующий ярус, корректный outline). */}
+      <ActionList>
+        {editActions && editActions.length > 0 && (
+          <ActionList.Section as="h3" label="Редактировать">
+            {/* Ряд медалей оставлен КАК ЕСТЬ (RoundButton look="bare"): дуговая
+                подпись + иконка по центру. НЕ конвертируем в SettingRow — медаль
+                несёт htmlFor-делегацию фокуса, специфичную для edit-флоу. */}
+            <div className={s.editSection}>
+              <div className={s.editRow}>
+                {editActions.map((action, i) =>
+                  action.htmlFor ? (
+                    // Медаль = `<label htmlFor>`: тап фокусирует целевой edit-input,
+                    // хостовый onFocusCapture флипает шаг (iOS поднимает клавиатуру) и
+                    // закрывает дровер. onClick только праймит — НЕ closes/setStep,
+                    // иначе label размонтируется до делегирования (CLAUDE.md «Label
+                    // focus delegation»). Дровер открыт с trapFocus:false, иначе
+                    // focus-trap завернул бы делегацию назад.
+                    <RoundButton
+                      key={`${action.label}-${i}`}
+                      look="bare"
+                      floating={false}
+                      htmlFor={action.htmlFor}
+                      onClick={action.onClick}
+                      ariaLabel={action.label}
+                      arcTop={action.label}
+                      centerNode={action.icon}
+                    />
+                  ) : (
+                    // Без htmlFor — обычная кнопка-медаль: закрыть-и-выполнить.
+                    <RoundButton
+                      key={`${action.label}-${i}`}
+                      look="bare"
+                      floating={false}
+                      onClick={() => handleAction(action)}
+                      ariaLabel={action.label}
+                      arcTop={action.label}
+                      centerNode={action.icon}
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          </ActionList.Section>
+        )}
+
+        {actions.length > 0 && (
+          <ActionList.Section as="h3" label="Перейти">
+            <div className={s.rows}>
+              {actions.map((action, i) => (
+                <SettingRow
                   key={`${action.label}-${i}`}
-                  look="bare"
-                  floating={false}
-                  htmlFor={action.htmlFor}
-                  onClick={action.onClick}
-                  ariaLabel={action.label}
-                  arcTop={action.label}
-                  centerNode={action.icon}
+                  // Дефолт-глиф — кольцо-ⓘ: единственный консумер (buildInfoActions)
+                  // не шлёт свой icon, ряд всегда «Информация о…».
+                  icon={action.icon ?? <InfoGlyph width={18} height={18} />}
+                  label={action.label}
+                  trailing={<ChevronGlyph />}
+                  onClick={() => handleAction(action)}
                 />
-              ) : (
-                // Без htmlFor — обычная кнопка: закрыть-и-выполнить (навигация).
-                <Button key={`${action.label}-${i}`} variant="system" onClick={() => handleAction(action)}>
-                  {action.label}
-                </Button>
-              )
-            )}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          </ActionList.Section>
+        )}
+      </ActionList>
     </DrawerLayout>
   );
 };

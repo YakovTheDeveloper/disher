@@ -8,7 +8,6 @@ import { requireUser } from "../../auth/require-user.js";
 //
 // The body is opaque jsonb. The server has no schema for user data — the
 // client dumps every Dexie table and applies the same blob on a fresh device.
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md.
 
 export async function backupRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireUser);

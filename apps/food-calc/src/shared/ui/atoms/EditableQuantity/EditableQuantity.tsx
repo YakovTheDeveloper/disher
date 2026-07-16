@@ -17,6 +17,14 @@ interface EditableQuantityProps {
    * (напр. предложка) = регрессия (бар начнёт прыгать). См. critique Slice 2.
    */
   dataEntityEdit?: boolean;
+  /**
+   * Задан → количество НЕ правится инлайн, а становится `<label htmlFor>`: тап
+   * делегирует фокус инпуту модалки (ModalByLabel-канон, iOS-safe). Так правит
+   * предложка — у неё правка ряда идёт единым флоу еды, а не полем в строке.
+   */
+  htmlFor?: string;
+  /** Stash id/uid правимой строки в dataset инпута ДО фокуса (label-режим). */
+  onPointerDown?: () => void;
 }
 
 /**
@@ -40,12 +48,25 @@ export function EditableQuantity({
   unit,
   onCommit,
   dataEntityEdit,
+  htmlFor,
+  onPointerDown,
 }: EditableQuantityProps) {
   const [draft, setDraft] = useState(value);
   const [seenValue, setSeenValue] = useState(value);
   if (value !== seenValue) {
     setSeenValue(value);
     setDraft(value);
+  }
+
+  // Label-режим: значение — статичный текст в тап-зоне (сама QtyStack полиморфна,
+  // `as="label"` для правки через модалку). Локальный draft/commit не участвуют —
+  // новое количество приедет сверху, из флоу.
+  if (htmlFor != null) {
+    return (
+      <QtyStack as="label" unit={unit} htmlFor={htmlFor} onPointerDown={onPointerDown}>
+        {value}
+      </QtyStack>
+    );
   }
 
   const commit = () => {

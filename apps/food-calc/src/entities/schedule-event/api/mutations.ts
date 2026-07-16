@@ -10,8 +10,10 @@ export async function addScheduleEvent(params: {
   endTime?: string;
   text?: string;
   atoms?: Atom[];
+  /** Pre-generated id (batch commit marks rows «added» before the write). */
+  id?: string;
 }): Promise<string> {
-  const id = crypto.randomUUID();
+  const id = params.id ?? crypto.randomUUID();
   const row: Omit<ScheduleEventRow, 'updated_at'> = {
     id,
     date: params.date,

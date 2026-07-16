@@ -25,126 +25,39 @@
   padding-inline: var(--sys-inset-modal-fullscreen);
 }
 
-.springOrbs {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  // [ВРЕМЕННО · probe 2026-06-26] орбы скрыты, чтобы фон был ровным.
-  display: none;
-}
-
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.45;
-  filter: blur(48px);
-}
-
-// Anti-banding dither. The orb radial-gradients band on 8-bit displays
-// (visible concentric rings). A whisper of high-frequency SVG noise over the
-// whole ambient layer breaks the smooth steps into stochastic dither, so the
-// eye no longer resolves the contour lines. Cheap (one data-URI, no decode),
-// pointer-transparent, sits above the orbs but below modal content (z-index 0).
-.springOrbs::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 // ── ModalShell ambient background — single monochrome tone ───────────────────
-// After the «great unification» (2026-06-19) ModalShell carries one fixed `mono`
-// tone, baked directly on `.wrapper` (dev-форк `data-dv='ModalShell'` снят
+// После «великой унификации» (2026-06-19) ModalShell несёт один фиксированный тон
+// `mono`, запечённый прямо на `.wrapper` (dev-форк `data-dv='ModalShell'` снят
 // 2026-06-22 — был single-variant). Surface = `--sys-color-surface-0` (полноэкранная
 // модалка = база-стол #f7f3eb, ось глубины; не всплывающий лист — под ней ничего нет).
-// Был cool bespoke #f0f1f4 до 2026-06-24. Дифференциацию от страницы
-// несут backdrop-scrim + пять desaturated warm-sand orbs в верхней зоне (часть
-// LIGHTER к крему, часть DARKER) — единый тёплый hue, без cool/lavender дрейфа.
-// Орбы = `background`-градиенты, NOT token-gated (stripe-fork canon). Orbs walk the spatial path orb2 → orb4 → orb5 → orb3 → orb1
-// (far-left → far-right); the transparent-feather + dither (above) keep them
-// band-free. `.springOrbs` / `.orb*` stay CSS-module-scoped; the wrapper class is
-// on the same element React portals, so it reaches modals through the Base UI portal.
+// Был cool bespoke #f0f1f4 до 2026-06-24. Дифференциацию от страницы несёт
+// backdrop-scrim. (Пять warm-sand орбов + anti-banding dither сняты 2026-07-16: с
+// probe 2026-06-26 они стояли под `display: none` и ничего не рисовали.)
 .wrapper {
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 
-  .orb {
-    opacity: 0.4;
-  }
-
-  // Feather each disc into transparent BEFORE the element edge — kills the hard
-  // circular boundary that `blur()` would smear into a visible ring.
-  .orb1 {
-    width: 250px;
-    height: 250px;
-    top: -70px;
-    right: -40px;
-    background: radial-gradient(circle, #fdfcf8 0%, #f4f1ea 56%, transparent 84%);
-  }
-
-  .orb2 {
-    width: 220px;
-    height: 220px;
-    top: -30px;
-    left: -50px;
-    background: radial-gradient(circle, #f1ede5 0%, #e9e4da 56%, transparent 84%);
-  }
-
-  .orb3 {
-    width: 190px;
-    height: 190px;
-    top: 30px;
-    right: 24px;
-    background: radial-gradient(circle, #f4f0e8 0%, #ebe5d9 56%, transparent 84%);
-  }
-
-  .orb4 {
-    width: 170px;
-    height: 170px;
-    top: 110px;
-    left: 16px;
-    background: radial-gradient(circle, #f7f4ed 0%, #ece6dc 56%, transparent 84%);
-  }
-
-  .orb5 {
-    width: 150px;
-    height: 150px;
-    top: -40px;
-    left: 38%;
-    background: radial-gradient(circle, #f5f1e9 0%, #e9e2d6 56%, transparent 84%);
-  }
-
-  >*:not(.springOrbs) {
+  >* {
     position: relative;
     z-index: 1;
   }
-}
 
-// ─── Dark: warm-coal ambient orbs ────────────────────────────────────────────
-// Light-sand orbs (#fdfcf8…) were bright blobs on the espresso base. Re-tint to
-// warm-coal discs a rung above surface-0, so the ambient reads as subtle depth,
-// not light pits. NB: `.springOrbs` currently `display:none` (probe 2026-06-26)
-// → orbs don't render today; this keeps them dark-correct if the ambient returns.
-:root[data-theme-mode='dark'] .wrapper {
-  .orb1 {
-    background: radial-gradient(circle, #2a251d 0%, #221e17 56%, transparent 84%);
+  // Нижний скрим. Псевдоэлемент — ПОСЛЕДНИЙ в дереве, поэтому на равном ярусе с
+  // `.body` (z-index: 1) ложится над ним: строки списка тают в белом, уходя под
+  // кнопку, а не обрываются об её край. Ярус здесь, а не в миксине — скрим
+  // универсален, а щель между контентом и кнопкой у каждого хоста своя.
+  &::after {
+    @include bottom-fade();
+    z-index: 1;
   }
-  .orb2 {
-    background: radial-gradient(circle, #262019 0%, #201b15 56%, transparent 84%);
-  }
-  .orb3 {
-    background: radial-gradient(circle, #282219 0%, #221d15 56%, transparent 84%);
-  }
-  .orb4 {
-    background: radial-gradient(circle, #2c261d 0%, #241f17 56%, transparent 84%);
-  }
-  .orb5 {
-    background: radial-gradient(circle, #29231a 0%, #211c15 56%, transparent 84%);
+
+  // Слот с фикс-баром — единственный, кто обязан читаться ПОВЕРХ скрима. Именно
+  // слот, а не сам бар: бар портируется ВНУТРЬ него, прямым ребёнком `.wrapper`
+  // не бывает.
+  >.footerSlot {
+    z-index: 2;
   }
 }
 
@@ -153,7 +66,7 @@
 // DEFINITIONS now live in shared/assets/style/mixin.scss; the `:root` publication
 // lives in shared/assets/style/tokens.scss (sys tier). ModalShell, a modal
 // component, no longer owns app-wide `--sys-field-*`/`--sys-chip-*`/`--sys-card-*`/`--list-*`
-// tokens — it keeps ONLY its `.wrapper` ambient-orbs/layout + the modal `.body/
+// tokens — it keeps ONLY its `.wrapper` ambient/layout + the modal `.body/
 // .title/.actionButtons/…` rules below.
 
 .spacer {

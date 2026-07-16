@@ -16,8 +16,7 @@ import { isSyncEnabled } from '@/shared/lib/sync-pref';
 //               foreign updated_at is preserved (never re-stamped to now())
 // and two HTTP transports (push/pull) over PUT/GET /api/backup.
 //
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §User route
-// and the merge-sync fix plan (.claude/ralph/fix_plan.md).
+// See the merge-sync fix plan (.claude/ralph/fix_plan.md).
 
 const URL = `${API_BASE}/api/backup`;
 
@@ -44,6 +43,30 @@ export const DOMAIN_TABLES = [
 // ingest guard in merge() backfills updated_at from created_at.
 type MergeRow = { id: string; created_at?: string; updated_at?: string };
 
+// A blob written by a buggy second writer can carry a record with no usable
+// `id` (or that isn't even an object). Handing it to Dexie's inbound-key `put`
+// THROWS, which aborts the whole rw-tx → merge() rejects → syncNow() never
+// reaches push() → the poisoned blob can never be overwritten, on ANY device,
+// with no recovery path and no surfaced error (И-18). So merge() screens every
+// incoming record and skips the unusable ones rather than letting a single bad
+// row jam sync for the whole fleet. Dropped rows are counted and logged — a
+// silent skip would read as "nothing came in".
+function usableId(rec: unknown): boolean {
+  return (
+    !!rec &&
+    typeof rec === 'object' &&
+    typeof (rec as { id?: unknown }).id === 'string' &&
+    (rec as { id: string }).id.length > 0
+  );
+}
+
+// A tombstone additionally needs a string `deleted_at` — it is both the LWW key
+// (compared with `>`) and what observeStamp() reads. A tombstone lacking it
+// can't order against anything, so it's junk that would only bloat the blob.
+function usableTombstone(rec: unknown): boolean {
+  return usableId(rec) && typeof (rec as { deleted_at?: unknown }).deleted_at === 'string';
+}
+
 export async function dump(): Promise<Snapshot> {
   const out: Snapshot = {};
   await Promise.all(
@@ -64,6 +87,20 @@ function stampImportRow(row: unknown): unknown {
     }
   }
   return row;
+}
+
+// Guard the file-restore path (И-16): apply() destructively replaces every table,
+// so a wrong file must be rejected BEFORE it wipes the base. A valid snapshot is a
+// plain object whose every value is an array and which carries at least one table
+// this app knows — enough to reject an unrelated JSON file (a photo's metadata,
+// another app's export) without hard-coding the full schema.
+const KNOWN_SNAPSHOT_KEYS = new Set<string>([...DOMAIN_TABLES, 'tombstones']);
+export function isSnapshotShaped(x: unknown): x is Snapshot {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return false;
+  const rec = x as Record<string, unknown>;
+  const keys = Object.keys(rec);
+  if (!keys.some((k) => KNOWN_SNAPSHOT_KEYS.has(k))) return false;
+  return keys.every((k) => Array.isArray(rec[k]));
 }
 
 export async function apply(s: Snapshot): Promise<void> {
@@ -91,13 +128,21 @@ export async function merge(incoming: Snapshot): Promise<void> {
     const incomingTombstones = (incoming.tombstones ?? []) as TombstoneRow[];
     const tombById = new Map<string, TombstoneRow>();
     for (const t of await db.tombstones.toArray()) tombById.set(t.id, t);
+    let droppedTombstones = 0;
     for (const t of incomingTombstones) {
+      if (!usableTombstone(t)) {
+        droppedTombstones++;
+        continue;
+      }
       observeStamp(t.deleted_at); // pull our clock up to a peer's delete stamp
       const cur = tombById.get(t.id);
       if (!cur || t.deleted_at > cur.deleted_at) {
         tombById.set(t.id, t);
         await db.tombstones.put(t);
       }
+    }
+    if (droppedTombstones) {
+      console.warn(`merge: dropped ${droppedTombstones} malformed incoming tombstone(s)`);
     }
 
     // 2. Per domain table: LWW union, then drop any row a tombstone outlives.
@@ -107,7 +152,12 @@ export async function merge(incoming: Snapshot): Promise<void> {
       const byId = new Map<string, MergeRow>(
         (await tbl.toArray()).map((r): [string, MergeRow] => [r.id, r]),
       );
+      let dropped = 0;
       for (const inc of incomingRows) {
+        if (!usableId(inc)) {
+          dropped++;
+          continue; // skip rather than let tbl.put throw and abort the rw-tx (И-18)
+        }
         // Legacy vault rows have created_at but no updated_at — backfill the
         // LWW key from created_at on ingest so the comparison below is sound.
         inc.updated_at ??= inc.created_at;
@@ -117,6 +167,9 @@ export async function merge(incoming: Snapshot): Promise<void> {
           await tbl.put(inc);
           byId.set(inc.id, inc);
         }
+      }
+      if (dropped) {
+        console.warn(`merge: dropped ${dropped} malformed incoming row(s) from "${name}"`);
       }
       for (const [id, row] of byId) {
         const tomb = tombById.get(id);

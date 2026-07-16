@@ -63,8 +63,8 @@ const InsightsSlide = ({ topSlot }: Props) => {
       }
       topContentRight={
         <InfoButton
-          tone="ghost"
-          size={40}
+          tone="soft"
+          size={44}
           aria-label={t('analyses.insights.infoAria')}
           onClick={openInfo}
         />

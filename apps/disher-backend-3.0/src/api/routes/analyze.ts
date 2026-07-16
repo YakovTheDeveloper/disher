@@ -25,9 +25,6 @@ import {
 // No status enum, no client_uuid (the row id IS the idempotency key), no
 // stale-pending sweep. A job that never finishes stays pending forever; the
 // user starts a fresh analysis with a new id.
-//
-// See apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md §Server route
-// and apps/food-calc/tds/home-and-analyses-ui.md.
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

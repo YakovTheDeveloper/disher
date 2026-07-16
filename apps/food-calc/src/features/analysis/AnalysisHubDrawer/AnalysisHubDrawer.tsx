@@ -91,12 +91,11 @@ const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props
     <DrawerLayout
       title="Открытия"
       // ⓘ стекает объяснялку ПОВЕРХ хаба (хаб не закрываем) — «что такое разборы,
-      // инсайты, гипотезы и куда всё копится». Тихий ghost-глиф в chrome-слоте.
+      // инсайты, гипотезы и куда всё копится». Мягкая плитка-кнопка в chrome-слоте.
       topRight={
         <InfoButton
-          tone="ghost"
-          emphasis="quiet"
-          glyphSize={20}
+          tone="soft"
+          size={44}
           aria-label="Об открытиях"
           onClick={() => void drawerStore.show(AboutDiscoveriesDrawer, {})}
         />

@@ -22,9 +22,9 @@
     // Контент в `Screen.screenScroll` стартует под top-bar'ом (читается
     // `screenScroll` как `--page-top-inset`).
     --page-top-inset: var(--top-bar-h);
-    // Ambient свечение живёт на app-уровне (`.main` в App.module.scss):
-    // проступает только через chrome (sticky-индикатор + нижний dock), а
-    // контент-плашка `.headerOverlap` остаётся opaque.
+    // Sticky-индикатор не несёт своего листа — под ним база экрана (`.main`,
+    // surface-0), а не surface-1 дефолта. Контент-плашка `.headerOverlap` opaque
+    // и наезжает на него сверху (samokat-паттерн, см. Screen.module.scss).
     --sys-color-sticky-top-bg: transparent;
 }
 

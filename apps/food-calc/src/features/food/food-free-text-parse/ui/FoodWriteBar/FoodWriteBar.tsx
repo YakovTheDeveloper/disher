@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { WriteBarShell } from '@/shared/ui/WriteBarShell';
 import type { SendState } from '@/shared/ui/WriteBarShell';
 import { RoundButton } from '@/shared/ui/RoundButton';
+import { FoodHintButton } from '@/shared/ui/FoodHintButton';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -46,6 +47,18 @@ const PLACEHOLDER_EXAMPLES = [
 // — через `\n` (CSS white-space: pre-line); без них длинные строки авто-переносит.
 const HINT_LABEL = 'Например';
 const HINT = '9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30';
+
+// Подсказки по правке разбора — за ⓘ в шапке предложки. Коротко про три жеста
+// правки ряда (замена еды по имени, правка кол-ва/времени, судьба нераспознанного).
+const REVIEW_HINT = (
+  <>
+    Нажмите на название — заменить продукт.
+    <br />
+    Нажмите на количество или время — поправить.
+    <br />
+    Не распознанное собрано отдельной группой — его можно добавить в свой список.
+  </>
+);
 
 export interface FoodWriteBarProps {
   /** free-text-food flow (см. `useWriteFoodFlow`). */
@@ -111,30 +124,32 @@ export const FoodWriteBar = ({
     if (!panelOpen) dockRef.current?.style.removeProperty('transform');
   }, [panelOpen, dockRef]);
 
-  // Пока панель предложки открыта — гасим верхний бар (HomeTopBar). Дим-оверлей
-  // живёт ВНУТРИ дока (bottomBar z:4), а бар парит на z:10 над свайп-зоной, поэтому
-  // оверлей до него не достаёт и его пилюли торчали бы из-под затемнения. Флаг на
-  // body → CSS в HomeTopBar.module.scss фейдит `.shell` в тень вместе со страницей.
-  useEffect(() => {
-    if (!panelOpen) return;
-    document.body.dataset.foodReviewOpen = 'true';
-    return () => {
-      delete document.body.dataset.foodReviewOpen;
-    };
-  }, [panelOpen]);
+  // Приглушение верхнего бара (HomeTopBar) на открытой панели больше НЕ живёт тут:
+  // WriteBarShell ставит `data-writebar-dim` на body (через refcount-счётчик), когда
+  // его focusOverlay видим (здесь — через `overlayVisible={panelOpen}`), и хром
+  // гасит себя по флагу (см. writeBarDimStore + HomeTopBar.module.scss).
 
   // Ready-state: панель предложки открыта → free-text-инпут больше не нужен
-  // (пишут в предложку, не в бар). Его место занимает заголовок «Предложения»,
+  // (пишут в предложку, не в бар). Его место занимает заголовок «Все верно?»,
   // перенесённый сюда из шапки SheetCard (`InlineWriteFoodReview`, 2026-07-02),
   // чтобы бар не был мёртвой полосой над панелью. Через `fieldOverride`: он
-  // форсит collapsed → send-монета скрыта, а trailingSlot-медаль «Список» при
-  // этом остаётся (dimmed) — оффлайн-путь виден, как и в resting-виде. WriteBarShell
-  // гасит well-заливку пилюли на override (data-field-override) → заголовок лежит
-  // плоско на плашке, а не в утопленном поле-слоте.
+  // форсит collapsed → send-монета скрыта; медаль «Список» на это время снята
+  // (см. trailingSlot), поэтому полоса принадлежит заголовку целиком и он стоит
+  // по центру. WriteBarShell гасит well-заливку пилюли на override
+  // (data-field-override) → заголовок лежит плоско на плашке, а не в утопленном
+  // поле-слоте.
   const readyHeader = (
-    <Heading as="h2" role="headline" className={s.readyHeader}>
-      Все верно?
-    </Heading>
+    <div className={s.readyHeader}>
+      <Heading as="h2" role="headline" className={s.readyHeaderTitle}>
+        Все верно?
+      </Heading>
+      {/* ⓘ top-right — тот же канон-примитив, что подсказка в шапке модалки еды
+          (FoodHintButton = InfoButton + PopoverTrigger). Место в правом инсете
+          пилюли освобождает снятая на открытой панели медаль «Список». */}
+      <span className={s.readyHint}>
+        <FoodHintButton hint={REVIEW_HINT} ariaLabel="Подсказки по разбору" size={40} glyphSize={20} />
+      </span>
+    </div>
   );
 
   const handleSubmit = useCallback(
@@ -204,18 +219,23 @@ export const FoodWriteBar = ({
           // не перекрывает список). Монета-печать в потоке (floating={false} → не
           // уезжает в плавающий режим, не сворачивается на фокусе). Режим flat —
           // «часть панели»: внешний бордер, плоская (без тени) — задаётся в RoundButton.
-          <div className={s.listCtaTrail}>
-            <RoundButton
-              htmlFor={searchHtmlFor}
-              ariaLabel={SEARCH_LABEL}
-              img={FOOD_TILE_IMG}
-              arcTop={ARC_TOP}
-              arcBottom={ARC_BOTTOM}
-              floating={false}
-              look="flat"
-              dimmed={panelOpen}
-            />
-          </div>
+          //
+          // На открытой предложке медали НЕТ: каталог сейчас не путь (юзер правит
+          // разбор), а её отсутствие отдаёт полосу целиком заголовку — он встаёт
+          // по центру бара, а не жмётся влево от монеты.
+          panelOpen ? undefined : (
+            <div className={s.listCtaTrail}>
+              <RoundButton
+                htmlFor={searchHtmlFor}
+                ariaLabel={SEARCH_LABEL}
+                img={FOOD_TILE_IMG}
+                arcTop={ARC_TOP}
+                arcBottom={ARC_BOTTOM}
+                floating={false}
+                look="flat"
+              />
+            </div>
+          )
         }
       />
 

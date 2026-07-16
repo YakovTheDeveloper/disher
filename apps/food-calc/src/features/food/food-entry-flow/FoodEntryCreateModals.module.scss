@@ -182,6 +182,16 @@
 // группы — собственный bg/shadow/radius лишние. Также убираем uppercase у
 // label'а («Белки», «Сахар» и т.п.) — внутри открытой группы заголовок
 // «БЖУ» уже uppercase, повтор читался бы как scaffolding.
+// NutrientCardEditor `.card` теперь сам объявляет field-depth(--sys-color-surface-1)
+// (для standalone product-edit). В инлайне это перебило бы НАМЕРЕННО более глубокий
+// well нутриент-инпутов (юзер-решение «инпуты глубже»: field-depth(--panel-well) на
+// .compositionBlock = на шаг ниже панели). Восстанавливаем его на инлайн-карте:
+// селектор `.compositionBlock .inlineCard` (0,2,0) детерминированно бьёт `.card`
+// (0,1,0), не полагаясь на порядок загрузки CSS-модулей.
+.compositionBlock .inlineCard {
+  @include field-depth(--panel-well);
+}
+
 .inlineCard {
   background: transparent !important;
   box-shadow: none !important;

@@ -27,8 +27,7 @@ import { refund } from "../../billing/wallet.js";
 // stream. We switched to the deterministic JSON contract shared with the daily
 // and long analyses — a short prose summary plus compositional insights
 // (nutrient synergies/antagonisms) the user can save. A dish has no temporal
-// window, so it never produces hypotheses (hypotheses: [] always). See
-// apps/food-calc/tds/hypotheses-insights.md §3.4.
+// window, so it never produces hypotheses (hypotheses: [] always).
 
 // A single dish is a small payload; mirrors the daily timeout.
 const DISH_TIMEOUT_MS = 60_000;

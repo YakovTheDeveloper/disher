@@ -30,7 +30,13 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
 import { useHaptic } from '@/shared/lib/hooks/useHaptic';
-import { countDismissed, countTotal, selectCommittable } from './selectCommittable';
+import {
+  countDismissed,
+  countTotal,
+  selectCommittable,
+  type RowChoice,
+} from './selectCommittable';
+import type { ProposalCommit } from '@/features/food/food-entry-flow';
 import {
   sendMatcherTelemetry,
   type TelemetryCorrection,
@@ -38,11 +44,6 @@ import {
 } from '../telemetry';
 
 export type WriteFoodFlowState = 'idle' | 'loading' | 'ready' | 'error';
-
-// Time + quantity редактятся inline на самом ряду (см. ProposalFoodItem) —
-// модалка остаётся только для search (замена продукта через SearchFood) и
-// details (заметка через DetailsChips).
-export type ReviewEditStep = 'idle' | 'search' | 'details';
 
 type ItemCategory = 'resolved' | 'ambiguous' | 'unresolved';
 
@@ -54,35 +55,16 @@ interface EditFlags {
 
 const EMPTY_FLAGS: EditFlags = { foodEdited: false, timeEdited: false, qtyEdited: false };
 
-export type ResolvedRow = ResolvedItem & { uid: string; enabled: boolean } & EditFlags;
-export type AmbiguousRow = AmbiguousItem & {
-  uid: string;
-  enabled: boolean;
-  selectedId: string | null;
-} & EditFlags;
-export type UnresolvedRow = UnresolvedItem & {
-  uid: string;
-  manual: MatchCandidate | null;
-  enabled: boolean;
-} & EditFlags;
+// `choice` — ручной выбор еды поверх матчера (юзер прошёл поиск из ряда). Живёт
+// одинаково на всех трёх категориях, поэтому и правка ряда одна на всех
+// (`updateRow`), без развилки по секции.
+type RowCommon = { uid: string; enabled: boolean; choice: RowChoice } & EditFlags;
 
-export interface ReviewRowView {
-  uid: string;
-  time: string;
-  quantity: number;
-  productId: string | null;
-  productName: string;
-  details: string;
-  originalName: string;
-}
+export type ResolvedRow = ResolvedItem & RowCommon;
+export type AmbiguousRow = AmbiguousItem & RowCommon & { selectedId: string | null };
+export type UnresolvedRow = UnresolvedItem & RowCommon & { manual: MatchCandidate | null };
 
-export interface ReviewRowUpdates {
-  time?: string;
-  quantity?: number;
-  productId?: string;
-  name?: string;
-  details?: string;
-}
+export type ReviewRow = ResolvedRow | AmbiguousRow | UnresolvedRow;
 
 const PARSE_TIMEOUT_MS = 35_000;
 const STALE_LOADING_MS = 60_000;
@@ -111,11 +93,6 @@ export interface UseWriteFoodFlowResult {
   totalToAdd: number;
   isSubmitting: boolean;
 
-  // Edit state
-  editingUid: string | null;
-  editingStep: ReviewEditStep;
-  editingRowView: ReviewRowView | null;
-
   // Review actions — soft-delete: `toggle*` инвертит `enabled`. Ряд остаётся
   // в массиве, `commit` + `totalToAdd` игнорируют `enabled === false`. Раньше
   // тут параллельно жил hard-delete (`delete*` + `handleUndo` + toast), его
@@ -127,10 +104,8 @@ export interface UseWriteFoodFlowResult {
   updateResolved: (uid: string, updates: Partial<ResolvedRow>) => void;
   updateAmbiguous: (uid: string, updates: Partial<AmbiguousRow>) => void;
   updateUnresolved: (uid: string, updates: Partial<UnresolvedRow>) => void;
-  startEdit: (uid: string, step: Exclude<ReviewEditStep, 'idle'>) => void;
-  closeEdit: () => void;
-  setEditingStep: (step: ReviewEditStep) => void;
-  handleEditChange: (updates: ReviewRowUpdates) => void;
+  /** Патч ряда из общего флоу правки еды (useFoodEntryFlow, target 'proposal'). */
+  updateRow: (uid: string, patch: ProposalCommit) => void;
   commit: () => Promise<boolean>;
 }
 
@@ -182,9 +157,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const [unresolved, setUnresolved] = useState<UnresolvedRow[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [editingUid, setEditingUid] = useState<string | null>(null);
-  const [editingStep, setEditingStep] = useState<ReviewEditStep>('idle');
-
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeRequestIdRef = useRef<string | null>(null);
@@ -233,7 +205,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       const resolvedRows: ResolvedRow[] = response.resolved.map((r) => {
         const uid = makeUid();
         choices.set(uid, { originalName: r.originalName, matcherChoice: r.productId });
-        return { ...r, uid, enabled: true, ...EMPTY_FLAGS };
+        return { ...r, uid, enabled: true, choice: null, ...EMPTY_FLAGS };
       });
       const ambiguousRows: AmbiguousRow[] = response.ambiguous.map((a) => {
         const uid = makeUid();
@@ -243,6 +215,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           ...a,
           uid,
           enabled: true,
+          choice: null,
           selectedId: a.candidates[0]?.id ?? null,
           ...EMPTY_FLAGS,
         };
@@ -255,7 +228,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         // catalog matcher can't see. A hit pre-fills `manual`, so the row renders
         // like a manual rescue and rides the existing commit path (productId).
         const local = cands.length > 0 ? matchLocalProduct(u.originalName, cands) : null;
-        return { ...u, uid, manual: local, enabled: true, ...EMPTY_FLAGS };
+        return { ...u, uid, manual: local, enabled: true, choice: null, ...EMPTY_FLAGS };
       });
 
       setResolved(resolvedRows);
@@ -466,10 +439,10 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     setUnresolved((prev) => {
       let changed = false;
       const next = prev.map((u) => {
-        // Never touch a row the user hand-picked (`foodEdited`) or dismissed
-        // (`enabled === false` — it can't commit, so a fill/re-check is moot and
-        // would only flash a product onto a struck-through row).
-        if (u.foodEdited || !u.enabled) return u;
+        // Never touch a row the user hand-picked (`foodEdited` / `choice`) or
+        // dismissed (`enabled === false` — it can't commit, so a fill/re-check is
+        // moot and would only flash a product onto a struck-through row).
+        if (u.foodEdited || u.choice || !u.enabled) return u;
         // An auto-matched row is kept only while its product still exists. A
         // product deleted elsewhere while the review is open would otherwise
         // ride into commit as an orphan `productId` — re-match (or clear).
@@ -505,6 +478,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       let timeEdited = 0;
       let qtyEdited = 0;
 
+      // Что ряд реально отправит в базу: ручной выбор (`choice`, в т.ч. блюдо)
+      // перебивает матчерский. Раньше телеметрия смотрела только на матчерский
+      // id и записывала правку через поиск как «accepted-top1».
+      const userChoiceOf = (row: ReviewRow, matcherId: string | null): string | null =>
+        row.choice ? (row.choice.productId ?? row.choice.dishId) : matcherId;
+
       for (const r of committedRows.resolved) {
         if (r.foodEdited) foodEdited += 1;
         if (r.timeEdited) timeEdited += 1;
@@ -513,12 +492,13 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         itemsCommitted += 1;
         const original = choices.get(r.uid);
         if (!original) continue;
+        const userChoice = userChoiceOf(r, r.productId) ?? '';
         corrections.push({
           originalName: original.originalName,
           matcherChoice: original.matcherChoice,
-          userChoice: r.productId,
+          userChoice,
           correctionType:
-            r.productId === original.matcherChoice ? 'accepted-top1' : 'manual-search',
+            userChoice === original.matcherChoice ? 'accepted-top1' : 'manual-search',
         });
       }
 
@@ -526,18 +506,21 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         if (a.foodEdited) foodEdited += 1;
         if (a.timeEdited) timeEdited += 1;
         if (a.qtyEdited) qtyEdited += 1;
-        if (!a.enabled || !a.selectedId) continue;
+        const userChoice = userChoiceOf(a, a.selectedId);
+        if (!a.enabled || !userChoice) continue;
         itemsCommitted += 1;
         const original = choices.get(a.uid);
         if (!original) continue;
         corrections.push({
           originalName: original.originalName,
           matcherChoice: original.matcherChoice,
-          userChoice: a.selectedId,
+          userChoice,
           correctionType:
-            a.selectedId === original.matcherChoice
+            userChoice === original.matcherChoice
               ? 'accepted-top1'
-              : 'switched-ambiguous',
+              : a.choice
+                ? 'manual-search'
+                : 'switched-ambiguous',
         });
       }
 
@@ -545,14 +528,15 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         if (u.foodEdited) foodEdited += 1;
         if (u.timeEdited) timeEdited += 1;
         if (u.qtyEdited) qtyEdited += 1;
-        if (!u.enabled || !u.manual) continue;
+        const userChoice = userChoiceOf(u, u.manual?.id ?? null);
+        if (!u.enabled || !userChoice) continue;
         itemsCommitted += 1;
         const original = choices.get(u.uid);
         if (!original) continue;
         corrections.push({
           originalName: original.originalName,
           matcherChoice: '',
-          userChoice: u.manual.id,
+          userChoice,
           correctionType: 'manual-search',
         });
       }
@@ -683,8 +667,6 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     setResolved([]);
     setAmbiguous([]);
     setUnresolved([]);
-    setEditingUid(null);
-    setEditingStep('idle');
     lastAppliedParseResultRef.current = null;
   }, []);
 
@@ -734,6 +716,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
         'productId' in updates ||
         'selectedId' in updates ||
         'manual' in updates ||
+        'choice' in updates ||
         'name' in updates
       ) {
         flags.foodEdited = true;
@@ -783,108 +766,49 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     [resolved, ambiguous, unresolved],
   );
 
-  const startEdit = useCallback((uid: string, step: Exclude<ReviewEditStep, 'idle'>) => {
-    setEditingUid(uid);
-    setEditingStep(step);
-  }, []);
-
-  const closeEdit = useCallback(() => {
-    setEditingUid(null);
-    setEditingStep('idle');
-  }, []);
-
-  const editingRowView = useMemo<ReviewRowView | null>(() => {
-    if (!editingUid) return null;
-    const r = resolved.find((row) => row.uid === editingUid);
-    if (r) {
-      return {
-        uid: r.uid,
-        time: r.time,
-        quantity: r.quantity,
-        productId: r.productId,
-        productName: r.name,
-        details: r.details,
-        originalName: r.originalName,
-      };
-    }
-    const a = ambiguous.find((row) => row.uid === editingUid);
-    if (a) {
-      const sel = a.candidates.find((c) => c.id === a.selectedId) ?? a.candidates[0];
-      return {
-        uid: a.uid,
-        time: a.time,
-        quantity: a.quantity,
-        productId: a.selectedId,
-        productName: sel?.name ?? '',
-        details: a.details,
-        originalName: a.originalName,
-      };
-    }
-    const u = unresolved.find((row) => row.uid === editingUid);
-    if (u) {
-      return {
-        uid: u.uid,
-        time: u.time,
-        quantity: u.quantity,
-        productId: u.manual?.id ?? null,
-        productName: u.manual?.name ?? '',
-        details: u.details,
-        originalName: u.originalName,
-      };
-    }
-    return null;
-  }, [editingUid, resolved, ambiguous, unresolved]);
-
-  const handleEditChange = useCallback(
-    (updates: ReviewRowUpdates) => {
-      if (!editingUid) return;
-      const cat = findCategory(editingUid);
+  // Единственная точка правки ряда: патч приезжает из общего флоу еды
+  // (useFoodEntryFlow, target 'proposal') — того же, что правит еду расписания.
+  // Выбор еды кладём в `choice` поверх матчерского: он один умеет ссылаться на
+  // блюдо, и он же не ломает семантику кандидатов (`selectedId`) и подбора
+  // (`manual`) — по ним ряд по-прежнему рисует чипы и «оригинал»-хинт.
+  const updateRow = useCallback(
+    (uid: string, patch: ProposalCommit) => {
+      const cat = findCategory(uid);
       if (!cat) return;
-      if (cat === 'resolved') {
-        const u: Partial<ResolvedRow> = {};
-        if (updates.time !== undefined) u.time = updates.time;
-        if (updates.quantity !== undefined) u.quantity = updates.quantity;
-        if (updates.productId !== undefined) u.productId = updates.productId;
-        if (updates.name !== undefined) u.name = updates.name;
-        if (updates.details !== undefined) u.details = updates.details;
-        updateResolved(editingUid, u);
-      } else if (cat === 'ambiguous') {
-        const u: Partial<AmbiguousRow> = {};
-        if (updates.time !== undefined) u.time = updates.time;
-        if (updates.quantity !== undefined) u.quantity = updates.quantity;
-        if (updates.productId !== undefined) u.selectedId = updates.productId;
-        if (updates.details !== undefined) u.details = updates.details;
-        updateAmbiguous(editingUid, u);
-      } else {
-        const u: Partial<UnresolvedRow> = {};
-        if (updates.time !== undefined) u.time = updates.time;
-        if (updates.quantity !== undefined) u.quantity = updates.quantity;
-        if (updates.productId !== undefined) {
-          u.manual = {
-            id: updates.productId,
-            name: updates.name ?? '',
-            score: 1,
-          };
-        }
-        if (updates.details !== undefined) u.details = updates.details;
-        updateUnresolved(editingUid, u);
-      }
+      const hasFood = patch.variant === 'dish' ? !!patch.dishId : !!patch.productId;
+      const updates = {
+        time: patch.time,
+        quantity: patch.quantity,
+        details: patch.details,
+        ...(hasFood
+          ? {
+              choice: {
+                variant: patch.variant,
+                productId: patch.productId,
+                dishId: patch.dishId,
+                name: patch.foodName ?? '',
+              } satisfies RowChoice,
+            }
+          : {}),
+      };
+      if (cat === 'resolved') updateResolved(uid, updates);
+      else if (cat === 'ambiguous') updateAmbiguous(uid, updates);
+      else updateUnresolved(uid, updates);
     },
-    [editingUid, findCategory, updateResolved, updateAmbiguous, updateUnresolved],
+    [findCategory, updateResolved, updateAmbiguous, updateUnresolved],
   );
 
-  const totalToAdd = useMemo(() => {
-    const a = resolved.filter((r) => r.enabled).length;
-    const b = ambiguous.filter((x) => x.enabled && x.selectedId).length;
-    const c = unresolved.filter((u) => u.enabled && u.manual).length;
-    return a + b + c;
-  }, [resolved, ambiguous, unresolved]);
+  const committable = useMemo(
+    () => selectCommittable({ resolved, ambiguous, unresolved }),
+    [resolved, ambiguous, unresolved],
+  );
+  const totalToAdd = committable.length;
 
   const commit = useCallback(async (): Promise<boolean> => {
     if (isSubmitting || totalToAdd === 0) return false;
     setIsSubmitting(true);
     try {
-      const committed = selectCommittable({ resolved, ambiguous, unresolved });
+      const committed = committable;
 
       if (committed.length === 0) {
         setIsSubmitting(false);
@@ -915,9 +839,12 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
                 await addScheduleFood({
                   date,
                   time: c.time,
-                  type: 'food',
+                  // Ряд может указывать на БЛЮДО — юзер выбрал его вручную через
+                  // поиск из предложки (матчер блюда не подбирает).
+                  type: c.type,
                   quantity: c.quantity,
                   productId: c.productId,
+                  dishId: c.dishId,
                   details: c.details ?? '',
                   id: newScheduleIds[i],
                 });
@@ -932,6 +859,9 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
           () =>
             db.transaction('rw', db.dish_items, async () => {
               for (const [i, c] of committed.entries()) {
+                // Ингредиент блюда — всегда продукт (поиск в этом контексте
+                // products-only, блюдо в блюдо не вкладывается).
+                if (c.type !== 'food' || !c.productId) continue;
                 await addDishItem({
                   dishId,
                   productId: c.productId,
@@ -991,9 +921,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   }, [
     isSubmitting,
     totalToAdd,
-    resolved,
-    ambiguous,
-    unresolved,
+    committable,
     target,
     userId,
     sendTelemetryIfNotSent,
@@ -1021,20 +949,13 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
     totalToAdd,
     isSubmitting,
 
-    editingUid,
-    editingStep,
-    editingRowView,
-
     toggleResolved,
     toggleAmbiguous,
     toggleUnresolved,
     updateResolved,
     updateAmbiguous,
     updateUnresolved,
-    startEdit,
-    closeEdit,
-    setEditingStep,
-    handleEditChange,
+    updateRow,
     commit,
   };
 }

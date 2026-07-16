@@ -90,7 +90,9 @@ describe('collectFoods — bracket-tag for dish details', () => {
         categories: [],
         serving_basis: '100g',
         serving_unit: null,
+        description: '',
         created_at: ISO,
+        updated_at: ISO,
       },
       {
         id: 'p-meat',
@@ -101,10 +103,18 @@ describe('collectFoods — bracket-tag for dish details', () => {
         categories: [],
         serving_basis: '100g',
         serving_unit: null,
+        description: '',
         created_at: ISO,
+        updated_at: ISO,
       },
     ]);
-    await db.dishes.add({ id: 'd-borsch', name: 'Борщ', created_at: ISO });
+    await db.dishes.add({
+      id: 'd-borsch',
+      name: 'Борщ',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     await db.dish_items.bulkAdd([
       {
         id: 'di1',
@@ -113,6 +123,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
         quantity: 200,
         details: 'печёная',
         created_at: ISO,
+        updated_at: ISO,
       },
       {
         id: 'di2',
@@ -121,6 +132,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
         quantity: 150,
         details: 'тушёная 2ч',
         created_at: ISO,
+        updated_at: ISO,
       },
     ]);
     await db.schedule_foods.add({
@@ -133,6 +145,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
       product_id: null,
       dish_id: 'd-borsch',
       created_at: ISO,
+      updated_at: ISO,
     });
 
     const out = await collectFoods([dayKey]);
@@ -157,9 +170,17 @@ describe('collectFoods — bracket-tag for dish details', () => {
       categories: [],
       serving_basis: '100g',
       serving_unit: null,
+      description: '',
       created_at: ISO,
+      updated_at: ISO,
     });
-    await db.dishes.add({ id: 'd-borsch', name: 'Борщ', created_at: ISO });
+    await db.dishes.add({
+      id: 'd-borsch',
+      name: 'Борщ',
+      description: '',
+      created_at: ISO,
+      updated_at: ISO,
+    });
     await db.dish_items.add({
       id: 'di1',
       dish_id: 'd-borsch',
@@ -167,6 +188,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
       quantity: 200,
       details: '',
       created_at: ISO,
+      updated_at: ISO,
     });
     await db.schedule_foods.add({
       id: 'sf1',
@@ -178,6 +200,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
       product_id: null,
       dish_id: 'd-borsch',
       created_at: ISO,
+      updated_at: ISO,
     });
 
     const out = await collectFoods([dayKey]);
@@ -194,7 +217,9 @@ describe('collectFoods — bracket-tag for dish details', () => {
       categories: [],
       serving_basis: '100g',
       serving_unit: null,
+      description: '',
       created_at: ISO,
+      updated_at: ISO,
     });
     await db.schedule_foods.add({
       id: 'sf-apple',
@@ -206,6 +231,7 @@ describe('collectFoods — bracket-tag for dish details', () => {
       product_id: 'p-apple',
       dish_id: null,
       created_at: ISO,
+      updated_at: ISO,
     });
 
     const out = await collectFoods([dayKey]);
@@ -231,7 +257,9 @@ describe('collectNutrientsByDay — per-day anchor', () => {
       categories: [],
       serving_basis: '100g',
       serving_unit: null,
+      description: '',
       created_at: ISO,
+      updated_at: ISO,
     });
     await db.schedule_foods.add({
       id: 'sf-chicken',
@@ -243,6 +271,7 @@ describe('collectNutrientsByDay — per-day anchor', () => {
       product_id: 'p-chicken',
       dish_id: null,
       created_at: ISO,
+      updated_at: ISO,
     });
 
     const out = await collectNutrientsByDay([dayKey]);

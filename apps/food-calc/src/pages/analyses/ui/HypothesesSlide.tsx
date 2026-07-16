@@ -83,8 +83,8 @@ const HypothesesSlide = ({ topSlot }: Props) => {
       }
       topContentRight={
         <InfoButton
-          tone="ghost"
-          size={40}
+          tone="soft"
+          size={44}
           aria-label={t('analyses.hypotheses.infoAria')}
           onClick={openInfo}
         />

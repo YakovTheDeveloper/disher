@@ -39,8 +39,10 @@
   // База — тёплая бумага: в неё растворяется низ обложки до того, как её накроет
   // белый лист. Тот же приём слоистости, что HomeHero (обложка тает в фон экрана).
   background: var(--sys-color-surface-0);
-
-  @include field-depth(1);
+  // field-depth здесь НЕ нужен: форма (её field-инпуты) живёт на `.sheet`
+  // (surface-2), не на `.screen` — well объявляет .sheet. Бывший `field-depth(1)`
+  // был вдвойне сломан: `1` вместо ИМЕНИ токена → `var(1)` невалиден (инпуты
+  // падали на статик-дефолт), да и стоял не на той поверхности.
 }
 
 // ─── Hero-обложка ──────────────────────────────────────────────
@@ -137,6 +139,10 @@
   padding-block: var(--space-6);
   padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
   background: var(--sys-color-surface-2);
+  // Лист несёт форму (AuthForm) → её field-инпуты (--sys-field-*) выводят well из
+  // ЭТОЙ поверхности (surface-2), на один шаг темнее. Без этого инпуты падали на
+  // статик-дефолт field-chip-palette (тёплая бумага), не совпадая с листом.
+  @include field-depth(--sys-color-surface-2);
   border-top-left-radius: var(--sys-radius-sheet);
   border-top-right-radius: var(--sys-radius-sheet);
   @include surface-elevation(2);

@@ -1,22 +1,7 @@
-// ─── Global ambient backdrop ─────────────────────────────────────────────
-// Единый источник свечения для ВСЕХ страниц (design-DNA «ambient-backdrop
-// page chrome»), запечён на `.main` (баком 2026-06-22: форки mint-sky/
-// lavender-cream/sunrise/plain сняты, выбран peach-rose).
-//
-// peach-rose — тёплый peach + холодный rose, СОСРЕДОТОЧЕН В НИЖНЕЙ ЧАСТИ экрана
-// (а не из верхних углов): задача ambient — подсветить контейнер Screen снизу,
-// приподнять его карточку над фоном. Glow'и стоят у нижней кромки (`at … 100%+`)
-// и поднимаются вверх, угасая в transparent; НЕОДНОРОДНЫ (два пятна разного
-// размера/тона со смещением) → свечение «живое», а не ровная заливка.
-// Контент-лист (`.headerOverlap`) остаётся opaque — строки списка никогда не
-// читаются поверх свечения; ambient проступает только сквозь обвязку.
 .main {
     display: flex;
     width: 100vw;
     height: 100dvh;
     position: relative;
     overflow: hidden;
-    background:
-        radial-gradient(ellipse 78% 42% at 26% 104%, rgba(253, 230, 200, 0.55), transparent 70%),
-        radial-gradient(ellipse 56% 30% at 90% 100%, rgba(252, 225, 235, 0.5), transparent 62%);
 }

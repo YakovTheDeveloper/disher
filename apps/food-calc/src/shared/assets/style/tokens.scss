@@ -216,7 +216,7 @@
 
   // ─── Elevation (M0) — depth = interactivity — #elevation ─────
   // ref-shadow-* = recipes; sys-elevation-* = the only component API.
-  // Warm-coal undertone rgba(45,38,28) (warm-soft v2). GT: tds/elevation-palette-2026.md
+  // Warm-coal undertone rgba(45,38,28) (warm-soft v2).
   --ref-shadow-0: none;
   --ref-shadow-1: 0 1px 2px rgba(45, 38, 28, 0.07), 0 2px 6px rgba(45, 38, 28, 0.06); // action-rest
   --ref-shadow-2: 0 1px 2px rgba(45, 38, 28, 0.12), 0 4px 10px rgba(45, 38, 28, 0.143); // action-hover / raised bar
@@ -291,6 +291,12 @@
 
   // ─── Bottom action (unified height) — #bottom-action ─────────
   --bottom-action-h: 72px; // shared by all bottom bars/buttons (no edge "jump")
+
+  // Высота нижнего скрима (миксин `bottom-fade()`). Вдвое выше кнопки НАМЕРЕННО:
+  // градиент должен начинать таять заметно выше неё, иначе читается как плашка с
+  // размытым краем, а не как воздух. env() тут, а не у консьюмера: скрим всегда
+  // прибит к нижней кромке экрана и обязан покрывать системную панель целиком.
+  --sys-bottom-fade-h: calc(var(--bottom-action-h) * 2 + env(safe-area-inset-bottom, 0px));
 
   // ─── Press-feedback — #press-feedback ────────────────────────
   // Asymmetric: instant enter (same frame as touch), soft fade out.

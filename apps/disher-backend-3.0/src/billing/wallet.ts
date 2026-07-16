@@ -3,7 +3,7 @@ import { pool } from "../api/db.js";
 import { InsufficientBalanceError } from "./errors.js";
 import { PRICES_KOP, WELCOME_GRANT_KOP, type Feature } from "./prices.js";
 
-// Prepaid ruble wallet — see tds/billing-credits-2026-06-08.md.
+// Prepaid ruble wallet.
 //
 // `wallet_ledger` is the immutable source of truth; `wallet.balance_kop` is a
 // fast mirror that the atomic conditional decrement reads/writes. All money is

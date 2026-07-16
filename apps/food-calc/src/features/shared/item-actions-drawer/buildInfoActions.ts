@@ -29,8 +29,6 @@ export function buildInfoActions(item: InfoItem): ItemAction[] {
     return [
       {
         label: 'Информация о блюде',
-        // Единственное навигационное действие стека = его акцент (уголь-filled).
-        variant: 'system',
         // Блюдо открывается боковым DishDrawer (read-only превью; стрелка в его
         // шапке ведёт на страницу /dish/:id).
         onClick: () =>
@@ -47,8 +45,6 @@ export function buildInfoActions(item: InfoItem): ItemAction[] {
     return [
       {
         label: 'Информация о продукте',
-        // Единственное навигационное действие стека = его акцент (уголь-filled).
-        variant: 'system',
         // Продукт открывается боковым ProductDrawer (страница /product/:id
         // инактивирована). Имя для шапки подъедет из useProduct внутри дровера.
         onClick: () =>

@@ -274,7 +274,7 @@ const FoodSchedule = ({
                             />
                           );
                         });
-                      })() as unknown as JSX.Element
+                      })() as unknown as React.JSX.Element
                     }
                   </TimeGroup>
                 </Fragment>

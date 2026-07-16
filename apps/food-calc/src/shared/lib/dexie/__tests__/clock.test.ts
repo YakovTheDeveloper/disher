@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { nextStamp, observeStamp } from '@/shared/lib/dexie/write';
+import { nextStamp, observeStamp, resetClock } from '@/shared/lib/dexie/write';
 
 // The monotonic high-water clock behind `updated_at`. It must never emit a stamp
 // that goes backwards relative to (a) stamps it already issued or (b) stamps it
@@ -21,21 +21,39 @@ describe('monotonic high-water clock', () => {
     }
   });
 
-  it('nextStamp() never drops below an observed (future) peer stamp', () => {
-    const future = '2099-01-01T00:00:00.000Z';
+  it('nextStamp() never drops below an observed (near-future) peer stamp', () => {
+    // A plausibly-fast peer, inside the accepted skew ceiling (well under a day).
+    const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     observeStamp(future);
 
     const s = nextStamp();
-    // A behind wall clock would emit "now" (< 2099); the high-water mark forces
+    // A behind wall clock would emit "now" (< future); the high-water mark forces
     // the next stamp strictly past the peer's.
     expect(Date.parse(s)).toBeGreaterThan(Date.parse(future));
   });
 
   it('keeps issuing strictly-increasing stamps after observing a future stamp', () => {
-    observeStamp('2099-01-01T00:00:00.000Z');
+    observeStamp(new Date(Date.now() + 60 * 60 * 1000).toISOString());
     const a = Date.parse(nextStamp());
     const b = Date.parse(nextStamp());
     expect(b).toBeGreaterThan(a);
+  });
+
+  it('observeStamp() refuses a far-future poison stamp (И-17)', () => {
+    const before = Date.parse(nextStamp()); // sane near-now floor
+    observeStamp('9999-12-31T23:59:59.999Z'); // hand-edited export / broken formatter
+    const after = Date.parse(nextStamp());
+    // The mark must NOT have jumped to year 9999 — the next stamp stays near now,
+    // just past the previous one, not centuries ahead.
+    expect(after).toBeGreaterThan(before);
+    expect(after).toBeLessThan(Date.now() + 24 * 60 * 60 * 1000);
+  });
+
+  it('resetClock() clears the persisted high-water mark (И-13)', () => {
+    observeStamp(new Date(Date.now() + 60 * 60 * 1000).toISOString());
+    expect(Number(localStorage.getItem(HWM_KEY))).toBeGreaterThan(Date.now());
+    resetClock();
+    expect(localStorage.getItem(HWM_KEY)).toBeNull();
   });
 
   it('observeStamp() ignores absent / unparseable input without throwing', () => {

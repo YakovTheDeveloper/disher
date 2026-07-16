@@ -1,16 +1,23 @@
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import { ProposalFoodItem, type ProposalFoodItemProps } from './ProposalFoodItem';
 
-// Смена label-стратегии (было: FoodName-как-label; стало: внешний TapTarget-как-
-// label вокруг имени во FoodEntryCard) — эти тесты страхуют focus-capture rename-
-// флоу: pointerdown по имени ДОЛЖЕН застолбить uid ряда в dataset input-цели ДО
-// фокуса. Родитель (InlineWriteFoodReview.handleReviewFocusCapture) читает
-// dataset.activeItemUid на focus и вызывает startEdit; отвались стэш — правка
-// открыла бы НЕ тот ряд (или молчала). См. handoff food-entry-card-refactor.
+// Ряд предложки правится ОДНИМ флоу еды: имя / количество / время — label-триггеры
+// на инпуты шагов (ModalByLabel-канон), инлайн-полей в ряду нет. Имя ряда с
+// подобранной едой ведёт в ХАБ-чузер (CHOOSE_INPUT: «Поменять еду»/«…особенности»);
+// у ещё-нераспознанного (pending) — СРАЗУ в поиск (менять особенности не у чего).
+// Эти тесты страхуют делегацию: pointerdown ДОЛЖЕН застолбить uid ряда в dataset
+// инпута-цели ДО фокуса. Родитель (InlineWriteFoodReview.handleEditFocusCapture)
+// читает dataset.activeItemUid на focus и праймит им флоу; отвались стэш — правка
+// открыла бы НЕ тот ряд (или молчала).
 
-const SEARCH_INPUT_ID = 'proposal-edit-search';
+const INPUT_IDS: ProposalFoodItemProps['inputIds'] = {
+  SEARCH_INPUT: 'proposal-edit-search',
+  QUANTITY_INPUT: 'proposal-edit-quantity',
+  TIME_INPUT: 'proposal-edit-time',
+  CHOOSE_INPUT: 'proposal-edit-choose',
+};
 
 const baseItem: ProposalFoodItemProps['item'] = {
   name: 'Яблоко',
@@ -21,18 +28,21 @@ const baseItem: ProposalFoodItemProps['item'] = {
 };
 
 function renderProposal(overrides: Partial<ProposalFoodItemProps> = {}) {
-  // searchInputId-цель = всегда-смонтированный edit-search input предложки; в реале
-  // он живёт СНАРУЖИ ряда. Кладём в body, чтобы document.getElementById его нашёл.
-  const trigger = document.createElement('input');
-  trigger.id = SEARCH_INPUT_ID;
-  document.body.appendChild(trigger);
+  // Инпуты шагов живут в реале СНАРУЖИ ряда (внутри модалок). Кладём в body,
+  // чтобы document.getElementById их нашёл.
+  const triggers = Object.fromEntries(
+    Object.entries(INPUT_IDS).map(([key, id]) => {
+      const input = document.createElement('input');
+      input.id = id;
+      document.body.appendChild(input);
+      return [key, input];
+    })
+  ) as Record<keyof typeof INPUT_IDS, HTMLInputElement>;
 
   const props: ProposalFoodItemProps = {
     uid: 'uid-1',
     item: baseItem,
-    searchInputId: SEARCH_INPUT_ID,
-    onCommitTime: vi.fn(),
-    onCommitQuantity: vi.fn(),
+    inputIds: INPUT_IDS,
     ...overrides,
   };
   // ProposalFoodItem рендерит <li> (LongPressRow) — оборачиваем в <ul>, чтобы не
@@ -42,7 +52,7 @@ function renderProposal(overrides: Partial<ProposalFoodItemProps> = {}) {
       <ProposalFoodItem {...props} />
     </ul>
   );
-  return { trigger };
+  return triggers;
 }
 
 afterEach(() => {
@@ -50,21 +60,55 @@ afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('ProposalFoodItem — focus-capture rename флоу', () => {
-  it('pointerdown по имени стэшит uid ряда в dataset input-цели', () => {
-    const { trigger } = renderProposal({ uid: 'uid-42' });
+describe('ProposalFoodItem — делегация правки во флоу еды', () => {
+  it('pointerdown по имени (ряд с едой) стэшит uid в dataset инпута ЧУЗЕРА', () => {
+    const triggers = renderProposal({ uid: 'uid-42' });
 
-    const name = screen.getByText('Яблоко');
-    fireEvent.pointerDown(name);
+    fireEvent.pointerDown(screen.getByText('Яблоко'));
 
-    expect(trigger.dataset.activeItemUid).toBe('uid-42');
+    expect(triggers.CHOOSE_INPUT.dataset.activeItemUid).toBe('uid-42');
   });
 
-  it('тап-зона имени = <label htmlFor={searchInputId}> (iOS-focus канон)', () => {
+  it('pointerdown по имени pending-ряда (нет еды) стэшит uid в dataset ПОИСКА', () => {
+    const triggers = renderProposal({ uid: 'uid-42', isUnresolved: true });
+
+    // У нераспознанного имя-fallback = оригинал ('яблочко'), тап ведёт прямо в поиск.
+    fireEvent.pointerDown(screen.getByText('яблочко'));
+
+    expect(triggers.SEARCH_INPUT.dataset.activeItemUid).toBe('uid-42');
+  });
+
+  it('pointerdown по количеству стэшит uid в dataset инпута количества', () => {
+    const triggers = renderProposal({ uid: 'uid-42' });
+
+    fireEvent.pointerDown(screen.getByText('150'));
+
+    expect(triggers.QUANTITY_INPUT.dataset.activeItemUid).toBe('uid-42');
+  });
+
+  it('pointerdown по времени стэшит uid в dataset инпута времени', () => {
+    const triggers = renderProposal({ uid: 'uid-42' });
+
+    fireEvent.pointerDown(screen.getByText('8:30'));
+
+    expect(triggers.TIME_INPUT.dataset.activeItemUid).toBe('uid-42');
+  });
+
+  it('имя / количество / время = <label htmlFor> на инпуты шагов (iOS-focus канон)', () => {
     renderProposal();
 
-    const label = screen.getByText('Яблоко').closest('label');
-    expect(label).not.toBeNull();
-    expect(label).toHaveAttribute('for', SEARCH_INPUT_ID);
+    // Ряд с едой: имя → хаб-чузер.
+    expect(screen.getByText('Яблоко').closest('label')).toHaveAttribute(
+      'for',
+      INPUT_IDS.CHOOSE_INPUT
+    );
+    expect(screen.getByText('150').closest('label')).toHaveAttribute(
+      'for',
+      INPUT_IDS.QUANTITY_INPUT
+    );
+    expect(screen.getByText('8:30').closest('label')).toHaveAttribute(
+      'for',
+      INPUT_IDS.TIME_INPUT
+    );
   });
 });

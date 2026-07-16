@@ -43,8 +43,6 @@ import styles from './Card.module.scss';
  * Типографика «by construction»: текст-слот (children = строка) оборачивается в
  * `<Text role>` + `<TapTarget>`; node-escape (готовый кластер `[qty][имя]`,
  * `<CardTime>`, лента чипов) рендерится сырым — узел владеет собой целиком.
- *
- * См. tds/ANALYSIS/card-chassis-simplify-2026-06-25.md
  */
 
 type TapProps = {

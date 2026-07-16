@@ -1,0 +1,6 @@
+// Один «оценочный вариант» правки: поле имени над линейкой (зеркалит EventCreateModal).
+.aspect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

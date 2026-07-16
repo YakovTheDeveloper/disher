@@ -7,7 +7,7 @@ import type { ProductRow } from '@/shared/lib/dexie/schema';
 //
 // Catalog rows share `ProductRow` shape with user products so a single mapper
 // works on both. There is no `/api/catalog` endpoint and no Dexie catalog
-// table — see apps/food-calc/tds/ANALYSIS/zero-base-rewrite-2026-05-09.md.
+// table.
 
 // Catalog rows are build-route data: read-only, never written or merged, so
 // they carry no `updated_at` (a user-route/LWW field). Cast through `unknown`

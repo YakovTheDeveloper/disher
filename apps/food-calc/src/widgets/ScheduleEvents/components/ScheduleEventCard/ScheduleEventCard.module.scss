@@ -51,30 +51,10 @@
   color: var(--sys-color-text-secondary);
 }
 
-.chipTag {
-  background-color: var(--sys-color-chip-tint);
-  color: var(--sys-color-text-secondary);
-}
-
-
-.scaleBar {
-  display: inline-block;
-  width: 32px;
-  height: 4px;
-  border-radius: var(--sys-radius-tmp);
-  background-color: var(--sys-color-chip-tint-strong);
-  position: relative;
-  overflow: hidden;
-  vertical-align: middle;
-}
-
-.scaleFill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  border-radius: var(--sys-radius-tmp);
-  background-color: var(--sys-color-text-secondary);
+// Значение аспекта (0..10) — акцентный вес рядом с тихим лейблом.
+.aspectValue {
+  font-weight: 600;
+  color: var(--sys-color-text-primary);
 }
 
 // «Недавно добавлено» marker переехал в LongPressRow (правый жёлоб вне подложки,

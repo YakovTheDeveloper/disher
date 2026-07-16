@@ -10,15 +10,12 @@
   height: 100%;
 }
 
-// Action stack = canon Button rows (system-secondary, или 'system' для главной).
-// Soft-tonal, icon+label, 48px touch-floor — the primitive owns the look now.
-// Боковой инсет + верхний зазор отданы DrawerLayout (нижний дровер, default 24/12)
-// — здесь только вертикальный ритм.
-.actions {
+// Нав-ряды секции «Перейти» (SettingRow) — стоят вплотную, их делит тающая бровка
+// внутри самого ряда (`.row::after`), а не зазор. Боковой инсет + межсекционный
+// ярус ведёт ActionList/DrawerLayout; тут только колонка (1:1 с AnalysisHubDrawer).
+.rows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding-bottom: 12px;
 }
 
 .editSection {
@@ -54,9 +51,4 @@
 .editRow > label {
   height: auto;
   aspect-ratio: 1;
-}
-
-// Подпись в верхнем стеке (Информация о продукте/блюде) — центрируется в кнопке.
-.editBtnLabel {
-  margin: auto;
 }

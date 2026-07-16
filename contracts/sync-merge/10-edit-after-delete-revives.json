@@ -1,0 +1,56 @@
+{
+  "name": "10-edit-after-delete-revives",
+  "description": "An incoming row newer than a known tombstone revives it. The tombstone is kept (it still rides the blob until the TTL prunes it) but it no longer suppresses the row.",
+  "status": "canon",
+  "local": {
+    "tombstones": [
+      {
+        "id": "p1",
+        "table": "products",
+        "deleted_at": "2026-03-01T10:00:00.000Z"
+      }
+    ]
+  },
+  "incoming": {
+    "products": [
+      {
+        "id": "p1",
+        "name": "reborn",
+        "source": "",
+        "nutrients": {},
+        "portions": [],
+        "categories": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "description": "",
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "updated_at": "2026-03-01T10:01:00.000Z"
+      }
+    ],
+    "tombstones": []
+  },
+  "expected": {
+    "products": [
+      {
+        "categories": [],
+        "created_at": "2026-03-01T10:00:00.000Z",
+        "description": "",
+        "id": "p1",
+        "name": "reborn",
+        "nutrients": {},
+        "portions": [],
+        "serving_basis": "100g",
+        "serving_unit": null,
+        "source": "",
+        "updated_at": "2026-03-01T10:01:00.000Z"
+      }
+    ],
+    "tombstones": [
+      {
+        "deleted_at": "2026-03-01T10:00:00.000Z",
+        "id": "p1",
+        "table": "products"
+      }
+    ]
+  }
+}

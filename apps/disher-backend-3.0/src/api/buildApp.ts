@@ -7,6 +7,7 @@ import path from "path";
 import { readFileSync, existsSync } from "fs";
 import { suggestionsRoutes } from "./routes/suggestions.js";
 import { freeTextFoodRoutes } from "./routes/free-text-food.js";
+import { freeTextEventRoutes } from "./routes/free-text-event.js";
 import { matcherTelemetryRoutes } from "./routes/matcher-telemetry.js";
 import { bugReportRoutes } from "./routes/bug-reports.js";
 import { userReportsRoutes } from "./routes/user-reports.js";
@@ -230,6 +231,14 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
       await scope.register(freeTextFoodRoutes);
     },
     { prefix: "/api/free-text-food" },
+  );
+  await app.register(
+    async (scope) => {
+      scope.addHook("preHandler", requireTrustedOrigin);
+      scope.addHook("preHandler", requireUser);
+      await scope.register(freeTextEventRoutes);
+    },
+    { prefix: "/api/free-text-event" },
   );
   // matcher-telemetry is the ONE deliberate exemption from requireTrustedOrigin.
   // It writes a client-controlled body to disk per request and CANNOT be gated:

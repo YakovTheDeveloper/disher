@@ -3,9 +3,9 @@ import { useState, useCallback } from 'react';
 export type RangeTab = 'from' | 'to' | 'duration';
 
 const RANGE_TAB_LABELS: Record<RangeTab, string> = {
-  from: 'ОТ',
-  to: 'ДО',
-  duration: 'Длит.',
+  from: 'от',
+  to: 'до',
+  duration: 'длит.',
 };
 
 const RANGE_TABS: RangeTab[] = ['from', 'to', 'duration'];
@@ -36,7 +36,7 @@ export type TimeRangeState = {
   from: string;
   to: string;
   duration: string;
-  /** true only after the user explicitly changed "to" or "duration" */
+  /** true when the event has an end (интервал включён) */
   toExplicitlySet: boolean;
 };
 
@@ -50,10 +50,17 @@ const isValidHHMM = (t: string | undefined | null): t is string =>
   typeof t === 'string' && /^\d{1,2}:\d{2}$/.test(t);
 
 export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeRangeParams) => {
+  // Какое из полей правит герой-циферблат. `to` и `duration` — два способа ввести
+  // ОДИН конец (абсолютное время vs длительность), не отдельные состояния события:
+  // данные хранят только endTime.
   const [activeTab, setActiveTab] = useState<RangeTab>('from');
+  // Есть ли у события конец вообще. Точечное событие (90% случаев) — интервал выкл,
+  // никакого от/до-хрома. Включается опт-ином (чекбокс «Задать конец»).
+  const [intervalOn, setIntervalOn] = useState(() => isValidHHMM(initialTo));
   const [fromTime, setFromTime] = useState(initialFrom);
   const [toTime, setToTime] = useState(() => (isValidHHMM(initialTo) ? initialTo : initialFrom));
-  const [toExplicit, setToExplicit] = useState(() => isValidHHMM(initialTo));
+
+  const toExplicit = intervalOn;
 
   const durationMinutes = (() => {
     const diff = timeToMinutes(toTime) - timeToMinutes(fromTime);
@@ -77,15 +84,14 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
       // Recalculate: keep duration, shift "to"
       const newTo = minutesToTime(timeToMinutes(time) + durationMinutes);
       setToTime(newTo);
-      notify(time, newTo, toExplicit);
+      notify(time, newTo, intervalOn);
     },
-    [durationMinutes, notify, toExplicit],
+    [durationMinutes, notify, intervalOn],
   );
 
   const handleToFinish = useCallback(
     (time: string) => {
       setToTime(time);
-      setToExplicit(true);
       notify(fromTime, time, true);
     },
     [fromTime, notify],
@@ -97,11 +103,36 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
       const durMins = timeToMinutes(durString);
       const newTo = minutesToTime(timeToMinutes(fromTime) + durMins);
       setToTime(newTo);
-      setToExplicit(true);
       notify(fromTime, newTo, true);
     },
     [fromTime, notify],
   );
+
+  /**
+   * Вкл/выкл интервала (чекбокс «Задать конец»). Вкл → редактируем конец («до»);
+   * выкл → событие только со стартом (endTime очищается). Возвращает вкладку, на
+   * которую переведено редактирование, — вызывающий синхронизирует дисплей.
+   */
+  const setInterval = useCallback(
+    (on: boolean): RangeTab => {
+      setIntervalOn(on);
+      if (on) {
+        setActiveTab('to');
+        notify(fromTime, toTime, true);
+        return 'to';
+      }
+      setActiveTab('from');
+      notify(fromTime, toTime, false);
+      return 'from';
+    },
+    [fromTime, toTime, notify],
+  );
+
+  /** Выбор поля, которое правит циферблат (от / до / длит). */
+  const selectField = useCallback((tab: RangeTab): RangeTab => {
+    setActiveTab(tab);
+    return tab;
+  }, []);
 
   /** What onFinish + initialTime the inner TimeChoose should use for the active tab */
   const currentTimeProps = (() => {
@@ -117,7 +148,9 @@ export const useTimeRange = ({ initialFrom, initialTo, onChangeRange }: UseTimeR
 
   return {
     activeTab,
-    setActiveTab,
+    intervalOn,
+    setInterval,
+    selectField,
     fromTime,
     toTime,
     durationTime,

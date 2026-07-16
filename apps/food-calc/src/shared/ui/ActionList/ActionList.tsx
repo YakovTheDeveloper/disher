@@ -1,6 +1,6 @@
 import type { ElementType, ReactNode } from 'react';
 import clsx from 'clsx';
-import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import styles from './ActionList.module.scss';
 
 type ActionListProps = {

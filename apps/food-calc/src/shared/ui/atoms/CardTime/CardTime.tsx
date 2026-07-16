@@ -1,14 +1,23 @@
 import clsx from 'clsx';
 import { InlineTimeEditor } from '@/shared/ui/TimeChoose';
+import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 import styles from './CardTime.module.scss';
 
 export type CardTimeProps = {
   value: string;
-  onCommit: (next: string) => void;
+  onCommit?: (next: string) => void;
   /** Форматирование строки покоя (правка всё равно на сырой "HH:MM"). */
   formatDisplay?: (value: string) => string;
   /** Dedup: время совпадает с рядом выше → сильно гасим (тап всё равно правит). */
   dim?: boolean;
+  /**
+   * Задан → время НЕ правится инлайн, а становится `<label htmlFor>`: тап
+   * делегирует фокус инпуту модалки (ModalByLabel-канон, iOS-safe). Так правит
+   * предложка — правка ряда идёт единым флоу еды, а не полем в строке.
+   */
+  htmlFor?: string;
+  /** Stash id/uid правимой строки в dataset инпута ДО фокуса (label-режим). */
+  onPointerDown?: () => void;
 };
 
 /**
@@ -19,14 +28,32 @@ export type CardTimeProps = {
  *
  * Используется food-семейством (HP / предложка). Событие = label с диапазоном,
  * другой механизм правки → свой `.time`, не этот примитив.
- *
- * См. tds/ANALYSIS/cardshell-unification-2026-06-25.md
  */
-export function CardTime({ value, onCommit, formatDisplay, dim }: CardTimeProps) {
+export function CardTime({
+  value,
+  onCommit,
+  formatDisplay,
+  dim,
+  htmlFor,
+  onPointerDown,
+}: CardTimeProps) {
+  if (htmlFor != null) {
+    return (
+      <TapTarget
+        as="label"
+        htmlFor={htmlFor}
+        onPointerDown={onPointerDown}
+        className={clsx(styles.display, dim && styles.dim)}
+      >
+        {formatDisplay ? formatDisplay(value) : value}
+      </TapTarget>
+    );
+  }
+
   return (
     <InlineTimeEditor
       value={value}
-      onCommit={onCommit}
+      onCommit={onCommit ?? (() => {})}
       formatDisplay={formatDisplay}
       displayClassName={clsx(styles.display, dim && styles.dim)}
       editClassName={styles.edit}

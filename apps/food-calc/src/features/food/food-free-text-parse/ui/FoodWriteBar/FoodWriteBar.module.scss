@@ -79,6 +79,7 @@
 // секции, а не как отступленный текст инпута. Голос — тот же `<Heading
 // role="headline">`, что нёс header SheetCard, откуда заголовок переехал.
 .readyHeader {
+    position: relative; // анкер для absolute ⓘ (не сдвигает центрированный заголовок)
     flex: 1;
     min-width: 0;
     display: flex;
@@ -86,10 +87,24 @@
     // Заголовок «Предложения» — по центру пилюли (запрос 2026-07-05). justify +
     // text-align центрируют текст в поле readyHeader (flex:1 занимает пилюлю).
     justify-content: center;
-    text-align: center;
     min-height: var(--pill-h);
+}
+
+.readyHeaderTitle {
+    text-align: center;
     padding: 0;
     margin: 0;
+}
+
+// ⓘ-подсказка по разбору — в правом инсете пилюли, на месте снятой медали «Список».
+// Absolute, чтобы «Все верно?» оставался по центру пилюли (не смещался под кнопку).
+// Popover порталится (FloatingPortal в PopoverTrigger) → пилюля его не клипует.
+.readyHint {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    display: inline-flex;
 }
 
 // ─── Вход «список еды» — монета-печать RoundButton ─────────────────────────────

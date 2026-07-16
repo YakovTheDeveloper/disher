@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { authProvider, type AppUser, type AuthError } from '@/shared/lib/auth/authProvider';
 import { db } from '@/shared/lib/dexie/schema';
+import { resetClock } from '@/shared/lib/dexie/write';
 import { Sentry } from '@/shared/lib/observability/sentry';
 import { defaultUserMessage, type ErrorKind } from '@/shared/lib/errors/classify';
 import { clear as idbKeyvalClear } from 'idb-keyval';
@@ -22,6 +23,11 @@ async function wipeLocalData(): Promise<void> {
   // idb-keyval clear only leaves stale Zustand drafts, no user data is lost.
   // eslint-disable-next-line no-restricted-syntax
   await idbKeyvalClear().catch(() => {});
+  // The monotonic clock's high-water mark lives in localStorage (survives both
+  // wipes above). Reset it on identity switch so user A's fast/poisoned clock
+  // can't leak future stamps into user B's fleet (И-13) — same shared-device
+  // hazard the data wipe closes, same explicit reset the sync-consent flag gets.
+  resetClock();
 }
 
 // Ceiling for the final pre-signOut sync. `fetch` has no default timeout and the

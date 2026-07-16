@@ -1,0 +1,86 @@
+// EventsWriteBar — событие-специфика дока. Messenger-пилюля (инпут + send +
+// медаль) живёт в общем WriteBarShell. Тут: док (бар + review-панель разбора) +
+// вход «Вручную» (медаль-печать RoundButton). Зеркалит FoodWriteBar.
+
+// ─── Док = бар + панель разбора ──────────────────────────────────────────────
+// bottomBar Screen = absolute-overlay (bottom:0). flex-колонка: бар сверху,
+// панель разбора НИЖЕ бара — контент естественным продолжением вниз, в место
+// клавиатуры. keyboard-stick лифтит весь `.dock` через inline transform.
+.dock {
+  display: flex;
+  flex-direction: column;
+}
+
+// «Бар + панель = один кусок» (merged-dock): пока панель открыта, единую плашку
+// несёт сам `.dock` (surface-2 + верхнее скругление + одна тень), `overflow:hidden`
+// клипует детей по радиусу. Бар ложится заподлицо (снимаем его плашку). В покое
+// `.dock` прозрачен — плашку показывает сам бар, resting-вид не меняется.
+.dock[data-open] {
+  background: var(--sys-color-surface-2);
+  border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
+  overflow: hidden;
+  box-shadow: var(--sys-elevation-2);
+}
+
+.dock[data-open] .bar {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+// Панель разбора ниже бара — свой внутренний скролл при длинном списке (max-height
+// по dvh); overscroll containment чтобы скролл не «протекал» в список под панелью.
+.reviewPanel {
+  display: flex;
+  flex-direction: column;
+  max-height: 65dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-2) var(--sys-inset-page) 0;
+  animation: reviewPanelRise 0.22s var(--easing-default);
+}
+
+@keyframes reviewPanelRise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewPanel {
+    animation: none;
+  }
+}
+
+// ─── Ready-заголовок на месте инпута (fieldOverride) ─────────────────────────
+// Well пилюли погашен на override (WriteBarShell [data-field-override]) → заголовок
+// лежит плоско, по центру пилюли. Голос — тот же Heading role="headline".
+.readyHeader {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--pill-h);
+}
+
+.readyHeaderTitle {
+  text-align: center;
+  padding: 0;
+  margin: 0;
+}
+
+// ─── Вход «Вручную» — монета-печать RoundButton в trailingSlot ───────────────
+// В потоке справа от пилюли, за фейдинг-дивайдером (не плавает, floating={false}).
+.manualCtaTrail {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}

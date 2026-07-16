@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from './TimeChoose.module.scss';
 import clsx from 'clsx';
+import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { TimeNow } from './TimeNow';
@@ -39,31 +40,6 @@ const formatDurationLabel = (mins: number): string => {
   return `${h} ч ${m} мин`;
 };
 
-const RangeTabs = ({
-  activeTab,
-  onTabChange,
-  tabs,
-  tabLabels,
-}: {
-  activeTab: RangeTab;
-  onTabChange: (tab: RangeTab) => void;
-  tabs: RangeTab[];
-  tabLabels: Record<RangeTab, string>;
-}) => (
-  <ChoiceGroup
-    className={styles.rangeTabs}
-    aria-label="Диапазон времени"
-    value={activeTab}
-    onChange={(v) => onTabChange(v as RangeTab)}
-  >
-    {tabs.map((tab) => (
-      <ChoiceItem key={tab} value={tab} className={styles.rangeTab}>
-        {tabLabels[tab]}
-      </ChoiceItem>
-    ))}
-  </ChoiceGroup>
-);
-
 const TimeChoose = ({
   onFinish,
   initialTime,
@@ -96,15 +72,18 @@ const TimeChoose = ({
   // дисплей "залипает" на времени прошлой сессии, пока родительский draft.time
   // уже сброшен на "сейчас" — пользователь видит 16:00, а «Далее» коммитит 14:24
   // (время попадает в draft только через onFinish, а при нетронутом поле он молчит).
-  // Источник правды — initialTime (как в InlineTimeEditor): пере-синхронизируем
-  // дисплей на каждое изменение initialTime. В range-режиме своё per-tab состояние
-  // (rangeHours/rangeMinutes), его не трогаем.
-  useEffect(() => {
-    if (isRange) return;
+  // Источник правды — initialTime. Правим стейт ВО ВРЕМЯ рендера (а не в useEffect):
+  // React перерисует до пейнта и до детей, поэтому кадра со старым временем не
+  // существует — иначе он красится и перезаписывается под кареткой на фокусе
+  // (react.dev «You Might Not Need an Effect»). В range-режиме своё per-tab
+  // состояние (rangeHours/rangeMinutes), его не трогаем.
+  const [prevInitialTime, setPrevInitialTime] = useState(initialTime);
+  if (!isRange && initialTime !== prevInitialTime) {
+    setPrevInitialTime(initialTime);
     const [h, m] = initialTime.split(':');
     setHours(h);
     setMinutes(m);
-  }, [initialTime, isRange]);
+  }
 
   // In range mode, the inner time input is driven by the active tab
   const effectiveOnFinish = isRange ? timeRange.currentTimeProps.onFinish : onFinish;
@@ -114,18 +93,28 @@ const TimeChoose = ({
   const [rangeHours, setRangeHours] = useState<string>(effectiveInitialTime.split(':')[0]);
   const [rangeMinutes, setRangeMinutes] = useState<string>(effectiveInitialTime.split(':')[1]);
 
-  // Sync range hours/minutes when tab changes
-  const handleTabChange = (tab: RangeTab) => {
-    timeRange.setActiveTab(tab);
-    const timeForTab =
-      tab === 'from'
-        ? timeRange.fromTime
-        : tab === 'to'
-          ? timeRange.toTime
-          : timeRange.durationTime;
-    setRangeHours(timeForTab.split(':')[0]);
-    setRangeMinutes(timeForTab.split(':')[1]);
+  const timeForTab = (tab: RangeTab): string =>
+    tab === 'from'
+      ? timeRange.fromTime
+      : tab === 'to'
+        ? timeRange.toTime
+        : timeRange.durationTime;
+
+  // Действия над интервалом возвращают вкладку, на которую переведено редактирование, —
+  // синхронизируем по ней дисплей герой-циферблата.
+  const syncDisplay = (tab: RangeTab) => {
+    const t = timeForTab(tab);
+    setRangeHours(t.split(':')[0]);
+    setRangeMinutes(t.split(':')[1]);
   };
+
+  const handleFieldSelect = (tab: RangeTab) => syncDisplay(timeRange.selectField(tab));
+  const handleIntervalToggle = (on: boolean) => syncDisplay(timeRange.setInterval(on));
+
+  // Таб «до» подсвечен и когда правим абсолютный конец ('to'), и когда правим его
+  // как длительность ('duration') — оба редактируют один конец.
+  const secondFieldActive = timeRange.activeTab !== 'from';
+  const isDurationActive = timeRange.activeTab === 'duration';
 
   const activeHours = isRange ? rangeHours : hours;
   const activeMinutes = isRange ? rangeMinutes : minutes;
@@ -147,34 +136,62 @@ const TimeChoose = ({
         role="group"
         aria-label="Time input"
       >
-        <div className={clsx(isRange && styles.rangeRow)}>
-          <TimeInput
-            variant={isNative ? 'native' : 'manual'}
-            hours={activeHours}
-            minutes={activeMinutes}
-            setHours={activeSetHours}
-            setMinutes={activeSetMinutes}
-            onFinish={effectiveOnFinish}
-            hourAriaLabel={hourAriaLabel}
-            minuteAriaLabel={minuteAriaLabel}
-            inputId={inputId}
-            keepKeyboardOnFinish={keepKeyboardOnFinish}
-          />
-          {isRange && (
-            <RangeTabs
-              activeTab={timeRange.activeTab}
-              onTabChange={handleTabChange}
-              tabs={timeRange.tabs}
-              tabLabels={timeRange.tabLabels}
-            />
-          )}
-        </div>
-        {isRange && timeRange.toExplicit && (
-          <Text as="div" role="body" className={styles.rangeSummary} aria-live="polite">
-            {timeRange.fromTime} – {timeRange.toTime} ·{' '}
-            {formatDurationLabel(timeRange.durationMinutes)}
-          </Text>
+        {isRange && timeRange.intervalOn && (
+          <ChoiceGroup
+            className={styles.rangeTabs}
+            variant="segmented"
+            aria-label="Что редактируем"
+            value={secondFieldActive ? 'to' : 'from'}
+            onChange={(v) => handleFieldSelect(v as RangeTab)}
+          >
+            <ChoiceItem value="from" className={styles.rangeTab}>
+              {timeRange.tabLabels.from}
+            </ChoiceItem>
+            <ChoiceItem value="to" className={styles.rangeTab}>
+              {timeRange.tabLabels.to}
+            </ChoiceItem>
+          </ChoiceGroup>
         )}
+
+        <TimeInput
+          variant={isNative ? 'native' : 'manual'}
+          hours={activeHours}
+          minutes={activeMinutes}
+          setHours={activeSetHours}
+          setMinutes={activeSetMinutes}
+          onFinish={effectiveOnFinish}
+          hourAriaLabel={hourAriaLabel}
+          minuteAriaLabel={minuteAriaLabel}
+          inputId={inputId}
+          keepKeyboardOnFinish={keepKeyboardOnFinish}
+        />
+
+        {isRange && timeRange.intervalOn && (
+          <div className={styles.rangeSummary} aria-live="polite">
+            <Text as="span" role="caption" className={styles.rangeSummaryText}>
+              от {timeRange.fromTime} · до {timeRange.toTime}
+            </Text>
+            {/* Длительность — и readout, и вход: тап переводит циферблат в ввод
+                длительности (тот же конец, другое представление). */}
+            <button
+              type="button"
+              className={clsx(styles.durationChip, isDurationActive && styles.durationChipActive)}
+              aria-pressed={isDurationActive}
+              onClick={() => handleFieldSelect('duration')}
+            >
+              {formatDurationLabel(timeRange.durationMinutes)}
+            </button>
+          </div>
+        )}
+
+        {isRange && (
+          <LabeledCheckbox
+            checked={timeRange.intervalOn}
+            onChange={handleIntervalToggle}
+            label="Задать конец"
+          />
+        )}
+
         <div className={styles.buttonsWrapper}>
           <TimeNow onFinish={onNowSelect} time={`${activeHours}:${activeMinutes}`}>
             <button className={clsx(styles.toggleButton, styles.nowButton)}>Сейчас</button>

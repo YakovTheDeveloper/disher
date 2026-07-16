@@ -74,16 +74,10 @@ export const ModalShell = ({ children, className, headerScroll = 'collapse' }: P
       <HeaderCollapseProvider value={{ collapse, onScroll: onCollapseScroll }}>
       <FooterSlotContext.Provider value={footerSlot}>
         <div ref={collapseRef} className={`${s.wrapper} ${className ?? ''}`}>
-          <div className={s.springOrbs} aria-hidden>
-            <span className={`${s.orb} ${s.orb1}`} />
-            <span className={`${s.orb} ${s.orb2}`} />
-            <span className={`${s.orb} ${s.orb3}`} />
-            <span className={`${s.orb} ${s.orb4}`} />
-            <span className={`${s.orb} ${s.orb5}`} />
-          </div>
           {children}
-          {/* Сиблинг .body: сюда портируется фикс-бар actions, минуя fade-маску тела. */}
-          <div ref={setFooterSlot} />
+          {/* Сиблинг .body: сюда портируется фикс-бар actions, минуя fade-маску тела.
+              Класс несёт ярус над нижним скримом (ModalShell.module.scss). */}
+          <div ref={setFooterSlot} className={s.footerSlot} />
         </div>
       </FooterSlotContext.Provider>
       </HeaderCollapseProvider>

@@ -34,15 +34,6 @@
   }
 }
 
-// Типографику (caption-ярус, italic-голос) несёт <Text role="caption"> —
-// класс держит раскладку (отступы, левый hairline) + контекстный цвет.
-.originalText {
-  margin: 0;
-  padding: 4px var(--space-3);
-  border-left: 2px solid var(--sys-color-text-tertiary);
-  color: var(--sys-color-text-secondary);
-}
-
 // Пустое состояние «ничего не распозналось» — на примитиве EmptyState (без
 // action). Класс держит только позиционирование/центрирование внутри SheetCard.
 .empty {
@@ -146,16 +137,16 @@
   // ряду. Левый резерв ставится УСЛОВНО через `data-rescue-slot='true'`:
   // outerRescue появляется только для unresolved-без-manual, и резерв
   // нужен только в той секции, где такие ряды есть. Иначе у
-  // resolved/ambiguous rows было бы 28px пустого пространства слева.
+  // resolved/ambiguous rows было бы пустое пространство слева.
   //
-  // Per-row padding-left не работает: outerRescue `left: -28px` от
-  // .itemRow.border-box.left, а wrap.padding=12px < 28px и
-  // wrap.overflow:hidden → кнопка обрезалась бы. Резерв через padding на
-  // .list делает outerRescue.left = list.padding-area.left → внутри wrap.
-  padding-right: 28px;
+  // Резерв = ширина кнопки (40px тап-таргет) + зазор до ряда: кнопки сидят
+  // absolute в этом padding-желобе (`right/left: -42px`), «вне контейнера ряда»
+  // по запросу юзера. Per-row padding-left не работает: outerRescue отсчитывает
+  // `left` от .itemRow.border-box.left, а wrap.overflow:hidden обрезал бы кнопку.
+  padding-right: 44px;
 
   &[data-rescue-slot='true'] {
-    padding-left: 28px;
+    padding-left: 44px;
   }
 }
 
@@ -164,27 +155,30 @@
 // anchor'ом. Внутреннего .rescueBtn в ProposalFoodItem больше нет.
 .outerRescue {
   position: absolute;
-  left: -28px;
+  left: -42px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  // 40px тап-таргет (touch-floor ≥40 для inner-контролов). Подложка-плитка
+  // (--sys-color-surface-icon-tile, канон soft-tile) видна В ПОКОЕ — юзер просил
+  // «с подложкой» + большую кликабельную область.
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: none;
-  background: transparent;
+  background: var(--sys-color-surface-icon-tile);
   border-radius: var(--sys-radius-indicator);
-  color: var(--sys-color-text-tertiary);
+  color: var(--sys-color-icon);
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), transform 0.12s ease;
 
   svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 
   &:hover,
@@ -205,19 +199,21 @@
 
 .outerDelete {
   position: absolute;
-  right: -28px;
+  right: -42px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  // 40px тап-таргет + видимая подложка-плитка в покое (см. .outerRescue): юзер
+  // просил крестик «с подложкой» и большую кликабельную область (было 24px голым).
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: none;
-  background: transparent;
+  background: var(--sys-color-surface-icon-tile);
   border-radius: var(--sys-radius-indicator);
-  color: var(--sys-color-text-tertiary);
+  color: var(--sys-color-icon);
   font-size: var(--sys-icon-size-sm);
   line-height: 1;
   cursor: pointer;
@@ -241,7 +237,14 @@
 
   // Свич × ↔ ↶. Оба glyph'а монтированы (для screen-readers свич идёт
   // через aria-label); opacity-flip без transition, мгновенно — согласовано
-  // с мгновенным появлением strikethrough-линии.
+  // с мгновенным появлением strikethrough-линии. Стопка живёт в СВОЁЙ обёртке
+  // (.dismissGlyphs), а не на самой кнопке: каркас кнопки — примитив IconButton,
+  // его display мы не переопределяем.
+  .dismissGlyphs {
+    display: grid;
+    place-items: center;
+  }
+
   .iconDismiss,
   .iconUndo {
     grid-area: 1 / 1;
@@ -249,9 +252,6 @@
     align-items: center;
     justify-content: center;
   }
-
-  display: grid;
-  place-items: center;
 
   .iconUndo {
     opacity: 0;

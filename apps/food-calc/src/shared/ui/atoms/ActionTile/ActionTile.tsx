@@ -48,7 +48,6 @@ export function ActionTile({
   art,
   emphasis,
   inverse,
-  muted,
   dot,
   disabled,
   onClick,
@@ -57,7 +56,7 @@ export function ActionTile({
   'data-date': dataDate,
 }: Props) {
   const press = usePressFeedback();
-  const cls = clsx(s.tile, emphasis && s.emphasis, inverse && s.inverse, muted && s.muted, className);
+  const cls = clsx(s.tile, emphasis && s.emphasis, inverse && s.inverse, className);
   const pressed = (!disabled && press.pressed) || undefined;
 
   const body = (

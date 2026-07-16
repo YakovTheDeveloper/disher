@@ -12,7 +12,7 @@
     // База экрана = surface-0 (стол) → surface-aware дефолт глубины поля для любого
     // прямого page-level поля на экране (стратегия C). Всплывающие модалки/дроверы
     // портируются ВНЕ .screen и переопределяют сами; write-бар (surface-1) — тоже.
-    @include field-depth(--sys-color-surface-0);
+    @include field-depth(--sys-color-screen-surface);
     // Off-white поверхность всего экрана: за листом, в его боковых полях и в зоне
     // под прозрачной нижней панелью (куда растворяется маска скроллера) — один тон.
     background: var(--sys-color-screen-surface);

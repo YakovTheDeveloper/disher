@@ -9,35 +9,60 @@
 //   ambiguous  → a.enabled && a.selectedId
 //   unresolved → u.enabled && u.manual && u.manual.id
 
+// Ручной выбор еды на ряду (юзер прошёл поиск из предложки). Перебивает то, что
+// подобрал матчер, и — в отличие от него — может указывать на БЛЮДО.
+export type RowChoice = {
+  variant: 'product' | 'dish';
+  productId: string | null;
+  dishId: string | null;
+  name: string;
+} | null;
+
 export interface CommittedItem {
-  productId: string;
+  type: 'food' | 'dish';
+  productId: string | null;
+  dishId: string | null;
   quantity: number;
   time: string;
   details: string;
 }
 
-interface ResolvedFilterInput {
+interface RowBase {
   enabled: boolean;
-  productId: string;
+  choice?: RowChoice;
   quantity: number;
   time: string;
   details: string;
 }
 
-interface AmbiguousFilterInput {
-  enabled: boolean;
+interface ResolvedFilterInput extends RowBase {
+  productId: string;
+}
+
+interface AmbiguousFilterInput extends RowBase {
   selectedId: string | null;
-  quantity: number;
-  time: string;
-  details: string;
 }
 
-interface UnresolvedFilterInput {
-  enabled: boolean;
+interface UnresolvedFilterInput extends RowBase {
   manual: { id: string } | null;
-  quantity: number;
-  time: string;
-  details: string;
+}
+
+// На что ряд ссылается ПОСЛЕ ручных правок: `choice` (если юзер выбирал еду сам)
+// перебивает выбор матчера. `null` — ряд не на что коммитить (нераспознанный без
+// подбора / уточнение без выбранного кандидата).
+function effectiveRef(
+  choice: RowChoice | undefined,
+  matcherProductId: string | null,
+): Omit<CommittedItem, 'quantity' | 'time' | 'details'> | null {
+  if (choice) {
+    if (choice.variant === 'dish') {
+      return choice.dishId ? { type: 'dish', productId: null, dishId: choice.dishId } : null;
+    }
+    return choice.productId
+      ? { type: 'food', productId: choice.productId, dishId: null }
+      : null;
+  }
+  return matcherProductId ? { type: 'food', productId: matcherProductId, dishId: null } : null;
 }
 
 export interface SelectCommittableInput {
@@ -69,35 +94,14 @@ export function countTotal(input: SelectCommittableInput): number {
 export function selectCommittable(input: SelectCommittableInput): CommittedItem[] {
   const out: CommittedItem[] = [];
 
-  for (const r of input.resolved) {
-    if (!r.enabled) continue;
-    out.push({
-      productId: r.productId,
-      quantity: r.quantity,
-      time: r.time,
-      details: r.details,
-    });
-  }
+  const push = (row: RowBase, ref: ReturnType<typeof effectiveRef>) => {
+    if (!row.enabled || !ref) return;
+    out.push({ ...ref, quantity: row.quantity, time: row.time, details: row.details });
+  };
 
-  for (const a of input.ambiguous) {
-    if (!a.enabled || !a.selectedId) continue;
-    out.push({
-      productId: a.selectedId,
-      quantity: a.quantity,
-      time: a.time,
-      details: a.details,
-    });
-  }
-
-  for (const u of input.unresolved) {
-    if (!u.enabled || !u.manual || !u.manual.id) continue;
-    out.push({
-      productId: u.manual.id,
-      quantity: u.quantity,
-      time: u.time,
-      details: u.details,
-    });
-  }
+  for (const r of input.resolved) push(r, effectiveRef(r.choice, r.productId));
+  for (const a of input.ambiguous) push(a, effectiveRef(a.choice, a.selectedId));
+  for (const u of input.unresolved) push(u, effectiveRef(u.choice, u.manual?.id ?? null));
 
   return out;
 }

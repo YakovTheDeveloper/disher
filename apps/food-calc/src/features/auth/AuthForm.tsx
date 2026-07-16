@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import { consumeOAuthReturnError } from '@/shared/lib/auth/oauthReturn';
+import { DEV_LOGIN_EMAIL, DEV_LOGIN_PASSWORD } from '@/shared/config/devLogin';
 import styles from './AuthForm.module.scss';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 
@@ -39,6 +40,7 @@ export function AuthForm({ layout }: Props) {
   const isLoading = useAuthStore((s) => s.isLoading);
   const error = useAuthStore((s) => s.error);
   const signInWithTelegram = useAuthStore((s) => s.signInWithTelegram);
+  const signIn = useAuthStore((s) => s.signIn);
   const clearError = useAuthStore((s) => s.clearError);
   const reportOAuthReturnError = useAuthStore((s) => s.reportOAuthReturnError);
 
@@ -73,6 +75,20 @@ export function AuthForm({ layout }: Props) {
           >
             Войти через Telegram
           </Button>
+
+          {/* Dev-only shortcut into the account seeded by the backend
+              (seed-dev.ts). Stripped from prod builds via import.meta.env.DEV. */}
+          {import.meta.env.DEV && (
+            <Button
+              variant="system"
+              type="button"
+              className={styles.telegramBtn}
+              onClick={() => signIn(DEV_LOGIN_EMAIL, DEV_LOGIN_PASSWORD)}
+              disabled={isLoading}
+            >
+              Войти (Dev)
+            </Button>
+          )}
 
           {error && (
             <p id="auth-form-error" className={styles.fieldError} role="alert">

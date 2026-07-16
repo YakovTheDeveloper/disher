@@ -1,0 +1,7 @@
+// Один «оценочный вариант»: поле имени над линейкой. Зазор — row-ярус; между
+// вариантами внутри секции ActionList.Section кладёт свой row-зазор.
+.aspect {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

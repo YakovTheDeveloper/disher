@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { asInsights, asObservations } from '../types';
 
 // Frontend mirror of the backend parser (apps/disher-backend-3.0/src/shared/
-// analysis-output.ts). The spec (tds/hypotheses-insights.md §2.3, D4, D8)
-// requires the SAME valence coercion and the SAME relaxed grounding gate
+// analysis-output.ts). The contract requires the SAME valence coercion and
+// the SAME relaxed grounding gate
 // (survive on days OR foods) on both sides — the backend twin is covered by
 // analysis-output.test.ts; this locks the frontend half so the two can't drift.
 
