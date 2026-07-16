@@ -34,6 +34,17 @@ if (!existsSync(path.join(REPO_ROOT, 'pnpm-workspace.yaml'))) {
   );
 }
 
+// The root resolving correctly does not mean the corpus is there. Without this,
+// a missing contracts/ makes readdirSync below throw a raw ENOENT at module load
+// — an error that names a path, not the problem. The corpus is the contract the
+// second client conforms to; its absence must say so.
+if (!existsSync(CORPUS)) {
+  throw new Error(
+    `golden.test.ts: conformance corpus missing at ${CORPUS}. It is tracked in git — ` +
+      `a missing corpus means the tree is broken, not that fixtures are optional.`,
+  );
+}
+
 const REGEN = process.env.GOLDEN_REGEN === '1';
 
 /** merge() mutates its argument, and a regen rewrites the WHOLE fixture — inputs
