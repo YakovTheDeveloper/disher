@@ -10,9 +10,8 @@ import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { WallpaperPicker } from '@/features/wallpaper';
 import { CardPalettePicker } from '@/features/card-palette';
-import { dump, apply, deleteBackup, isSnapshotShaped } from '@/shared/lib/snapshot';
+import { dump, apply, isSnapshotShaped } from '@/shared/lib/snapshot';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
-import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { BalanceSection } from './BalanceSection';
 import { TelegramLinkRow } from './TelegramLinkRow';
 import { SettingRow } from '@/shared/ui/atoms/SettingRow';
@@ -25,7 +24,6 @@ import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import MoonIcon from '@/shared/assets/icons/moon.svg?react';
 import SunIcon from '@/shared/assets/icons/sun.svg?react';
 import EyeIcon from '@/shared/assets/icons/eye.svg?react';
-import CloudIcon from '@/shared/assets/icons/cloud.svg?react';
 import DownloadIcon from '@/shared/assets/icons/download.svg?react';
 import UploadIcon from '@/shared/assets/icons/upload.svg?react';
 import LogoutIcon from '@/shared/assets/icons/logout.svg?react';
@@ -33,10 +31,8 @@ import FlagIcon from '@/shared/assets/icons/flag.svg?react';
 import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
-import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 import { useColorModeStore } from '@/shared/lib/color-mode';
 import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
-import SyncDisableDrawer from './SyncDisableDrawer';
 import { ReportProblemModal } from '@/features/feedback';
 
 const downloadJson = (name: string, obj: unknown) => {
@@ -71,8 +67,6 @@ const pickJson = (): Promise<unknown> =>
 export function ProfileDrawer() {
   const email = useAuthStore((s) => s.email);
   const signOut = useAuthStore((s) => s.signOut);
-  const syncEnabled = useSyncPrefStore((s) => s.syncEnabled);
-  const setSyncEnabled = useSyncPrefStore((s) => s.setSyncEnabled);
   const colorMode = useColorModeStore((s) => s.mode);
   const setColorMode = useColorModeStore((s) => s.setMode);
   const navigate = useNavigate();
@@ -90,32 +84,6 @@ export function ProfileDrawer() {
   // Отзыв чужих сессий — сетевой вызов без своей модалки; флаг держит ряд
   // задизейбленным, чтобы двойной тап не слал второй запрос.
   const [revoking, setRevoking] = useState(false);
-
-  // Cloud-sync toggle. Enabling is benign/immediate (re-push local via the
-  // pull-first syncNow chokepoint — never a bare push that could clobber the
-  // vault). Disabling is the private/destructive path: warn via SyncDisableDrawer
-  // (with a data-export offer), and only on confirm flip the flag OFF and erase
-  // the server copy (consent withdrawal). On cancel the switch stays ON (it
-  // reads from the store, which we never touched).
-  const handleSyncToggle = async (next: boolean) => {
-    if (next) {
-      setSyncEnabled(true);
-      // Re-push through the tracked wrapper so a failed re-enable is visible
-      // (toaster + store) instead of a console-only log.
-      void runSyncTracked({ surfaceToast: true });
-      return;
-    }
-    const confirmed = await drawerStore.show(SyncDisableDrawer, {});
-    if (confirmed !== true) return; // cancel / swipe-close → stays ON
-    setSyncEnabled(false);
-    try {
-      await deleteBackup();
-    } catch (e) {
-      // Best-effort: the flag is already OFF (no further egress); the vault
-      // erase can be retried by toggling OFF again, or it never existed (404).
-      console.error('vault erase on sync-off failed', e);
-    }
-  };
 
   const handleExport = async () => {
     const today = new Date().toISOString().slice(0, 10);
@@ -171,7 +139,7 @@ export function ProfileDrawer() {
     // The barrier against a stray tap is the typed-confirm modal («удалить»),
     // not a collapsed section — so the danger row can sit open in the drawer.
     // The modal is also where the sync-aware backup offer now lives.
-    const confirmed = await modalStore.show(SignOutConfirmModal, { syncEnabled });
+    const confirmed = await modalStore.show(SignOutConfirmModal, {});
     if (confirmed !== true) return;
     // The modal already ran the final sync (and, on failure, got an explicit
     // "выйти всё равно") — don't run it a second time here.
@@ -263,38 +231,13 @@ export function ProfileDrawer() {
             </div>
           </ActionList.Section>
 
-          {/*
-          Синхронизация — облачный бэкап включён по умолчанию. Тумблер OFF ведёт
-          через предупреждающий drawer (выгрузка + удаление серверной копии);
-          ON — мгновенный re-push через syncNow (pull-first). Статус синхры —
-          отдельной строкой под рядом (не смешан с тумблером).
-        */}
-          <ActionList.Section label="Синхронизация">
-            <div className={styles.rows}>
-              <SettingRow
-                icon={<CloudIcon width={18} height={18} />}
-                label="Облачная копия"
-                sub="Хранить данные в облаке, синхронизировать между устройствами"
-                trailing={
-                  <Switch
-                    checked={syncEnabled}
-                    onChange={handleSyncToggle}
-                    aria-label="Облачная синхронизация"
-                  />
-                }
-              />
-            </div>
-            {/* Ambient sync-status — переехал сюда из HomeTopBar. Ничего не рендерит
-              в покое; показывает «Офлайн» / «Синхронизирую…» / «Не сохранено» +
-              иконку-повтор. Обёртка hug-left, чтобы danger-фон не растягивался на
-              всю ширину секции. */}
-            <div className={styles.syncStatus}>
-              <SyncStatusChip />
-            </div>
-          </ActionList.Section>
-
           {/* Данные — раскрыты рядами (аккордеон убран): два действия не стоят
-            свёртки. Действия = ряды-кнопки, не кнопки-плашки. */}
+            свёртки. Действия = ряды-кнопки, не кнопки-плашки.
+            Своей секции «Синхронизация» больше нет: тумблер снесён (синк всегда
+            ВКЛ), а чип в покое не рендерит НИЧЕГО — отдельный заголовок стоял бы
+            над пустотой. Чип приехал сюда: показывает «Офлайн» / «Синхронизирую…»
+            / «Не сохранено» + иконку-повтор. Обёртка hug-left, чтобы danger-фон не
+            растягивался на всю ширину секции. */}
           <ActionList.Section label="Данные">
             <div className={styles.rows}>
               <SettingRow
@@ -309,6 +252,9 @@ export function ProfileDrawer() {
                 trailing={<ChevronGlyph />}
                 onClick={handleImport}
               />
+            </div>
+            <div className={styles.syncStatus}>
+              <SyncStatusChip />
             </div>
           </ActionList.Section>
 

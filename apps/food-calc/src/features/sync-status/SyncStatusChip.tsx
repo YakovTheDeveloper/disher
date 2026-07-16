@@ -1,7 +1,6 @@
 import { useSyncStatusStore } from '@/shared/lib/sync/sync-status-store';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
-import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 import Text from '@/shared/ui/atoms/Typography/Text/Text';
 import RefreshIcon from '@/shared/assets/icons/refresh.svg?react';
 import styles from './SyncStatusChip.module.scss';
@@ -16,11 +15,7 @@ import styles from './SyncStatusChip.module.scss';
 // quiet persistent one for users who dismissed the toast.
 export function SyncStatusChip() {
   const state = useSyncStatusStore((s) => s.state);
-  const syncEnabled = useSyncPrefStore((s) => s.syncEnabled);
   const online = useOnline();
-
-  // Sync turned off (consent withdrawn) — nothing to report; on-device only.
-  if (!syncEnabled) return null;
 
   if (!online) {
     return (

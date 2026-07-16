@@ -27,11 +27,7 @@ const BACKUP_LABEL: Record<BackupState, string> = {
 // решает это осознанно, а не узнаёт постфактум.
 type Phase = 'confirm' | 'syncing' | 'sync-failed';
 
-export type SignOutConfirmModalProps = BaseModalProps<boolean> & {
-  /** Sync ON → облачная страховка есть, предлагаем свежий бэкап; OFF → копии в
-   *  облаке нет, предупреждаем (восстановить будет нечем). */
-  syncEnabled: boolean;
-};
+export type SignOutConfirmModalProps = BaseModalProps<boolean>;
 
 /**
  * Подтверждение выхода. Выход стирает локальный Dexie + idb-keyval — барьер от
@@ -40,7 +36,7 @@ export type SignOutConfirmModalProps = BaseModalProps<boolean> & {
  * эту модалку, а не выходит. Резолвится `true` (выйти) либо `false`/`undefined`
  * (отмена / закрытие жестом).
  */
-function SignOutConfirmModal({ syncEnabled, onClose }: SignOutConfirmModalProps) {
+function SignOutConfirmModal({ onClose }: SignOutConfirmModalProps) {
   const [value, setValue] = useState('');
   const [backup, setBackup] = useState<BackupState>('idle');
   const [phase, setPhase] = useState<Phase>('confirm');
@@ -59,12 +55,6 @@ function SignOutConfirmModal({ syncEnabled, onClose }: SignOutConfirmModalProps)
   // выход остаётся возможен, но уже как осознанный выбор потерять изменения.
   // Резолвим `true` только после того, как решение принято.
   const handleConfirm = async () => {
-    if (!syncEnabled) {
-      // Облачной копии нет по определению — синхронизировать нечего, предупреждение
-      // про «восстановить нечем» пользователь уже прочитал выше.
-      onClose(true);
-      return;
-    }
     setPhase('syncing');
     const ok = await finalSyncBeforeSignOut();
     if (ok) {
@@ -119,22 +109,19 @@ function SignOutConfirmModal({ syncEnabled, onClose }: SignOutConfirmModalProps)
         <ModalShell.Body>
           <ModalShell.Title>Выйти из аккаунта?</ModalShell.Title>
           <Text role="caption" className={s.message}>
-            {syncEnabled
-              ? 'Данные на этом устройстве очистятся. Они хранятся в облаке и вернутся при следующем входе — но лучше сохранить свежую копию прямо сейчас.'
-              : 'Данные на этом устройстве очистятся. Синхронизация выключена — копии в облаке нет, восстановить не получится. Скачайте копию в разделе «Данные» перед выходом.'}
+            Данные на этом устройстве очистятся. Они хранятся в облаке и вернутся при
+            следующем входе — но лучше сохранить свежую копию прямо сейчас.
           </Text>
 
-          {syncEnabled ? (
-            <Button
-              variant="system-secondary"
-              flat
-              fullWidth
-              onClick={handleBackup}
-              disabled={backup === 'saving' || syncing}
-            >
-              {BACKUP_LABEL[backup]}
-            </Button>
-          ) : null}
+          <Button
+            variant="system-secondary"
+            flat
+            fullWidth
+            onClick={handleBackup}
+            disabled={backup === 'saving' || syncing}
+          >
+            {BACKUP_LABEL[backup]}
+          </Button>
 
           {/* Типовой барьер: точное слово «удалить» разблокирует выход. */}
           <label className={s.field}>

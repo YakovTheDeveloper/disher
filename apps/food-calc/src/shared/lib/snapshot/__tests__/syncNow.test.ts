@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Privacy chokepoint: syncNow() must not let user data leave the device when the
-// per-device consent flag (sync-pref) is OFF. We mock the only HTTP transport
-// (authedFetch) so any pull (GET) or push (PUT) shows up as a recorded call,
-// and drive the real sync-pref store via setState — this exercises the real
-// isSyncEnabled() wiring, not a stubbed gate.
+// syncNow() is the single sync path (BackupGate mount + manual buttons). We mock
+// the only HTTP transport (authedFetch) so the pull (GET) and push (PUT) show up
+// as recorded calls.
+//
+// This file used to test the privacy chokepoint — syncNow() refusing to move data
+// while the per-device consent flag was OFF. That flag was removed 2026-07-16
+// (sync is always on; the server is the only store), so the gate it guarded no
+// longer exists. What survives is the transport contract: pull, then push.
 
 const authedFetch = vi.fn();
 vi.mock('@/shared/lib/api/authedFetch', () => ({
@@ -12,7 +15,6 @@ vi.mock('@/shared/lib/api/authedFetch', () => ({
 }));
 
 import { syncNow } from '@/shared/lib/snapshot';
-import { useSyncPrefStore } from '@/shared/lib/sync-pref';
 
 const makeResponse = (status: number) =>
   ({
@@ -29,20 +31,12 @@ beforeEach(() => {
     if (method === 'PUT') return Promise.resolve(makeResponse(204));
     return Promise.resolve(makeResponse(404));
   });
-  useSyncPrefStore.setState({ syncEnabled: true });
 });
 
-describe('syncNow privacy gate', () => {
-  it('does NOT pull or push when sync is disabled', async () => {
-    useSyncPrefStore.setState({ syncEnabled: false });
-    await syncNow();
-    expect(authedFetch).not.toHaveBeenCalled();
-  });
-
-  it('pushes when sync is enabled', async () => {
-    useSyncPrefStore.setState({ syncEnabled: true });
+describe('syncNow', () => {
+  it('pulls before pushing', async () => {
     await syncNow();
     const methods = authedFetch.mock.calls.map((c) => c[1]?.method ?? 'GET');
-    expect(methods).toContain('PUT');
+    expect(methods).toEqual(['GET', 'PUT']);
   });
 });

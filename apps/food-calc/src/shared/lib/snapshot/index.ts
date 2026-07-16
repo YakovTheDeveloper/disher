@@ -3,14 +3,18 @@ import { db, type TombstoneRow } from '@/shared/lib/dexie/schema';
 import { observeStamp } from '@/shared/lib/dexie/write';
 import { authedFetch } from '@/shared/lib/api/authedFetch';
 import { API_BASE } from '@/shared/lib/api/base';
-import { isSyncEnabled } from '@/shared/lib/sync-pref';
 
 // Snapshot vault transports + reconciliation.
 //
 // Three local ops:
 //   • dump()  — read every table into a plain blob (push payload / file export)
-//   • apply() — REPLACE every table from a blob (file-restore; stamps a missing
-//               updated_at from created_at so pre-merge exports gain the LWW key)
+//   • apply() — REPLACE every table from a blob. TEST-ONLY since 2026-07-16: the
+//               file-restore path was removed (sync is always on, the server is
+//               the only store). Its two remaining callers are the e2e bridge and
+//               the conformance simulator, whose device-swap NEEDS replace
+//               semantics — merge() would union one device's rows into the other.
+//               Do not delete; do not "fix" its observeStamp gap (И-3) — with no
+//               product path there is nothing to fix.
 //   • merge() — per-row LWW union by updated_at + tombstone-apply, in one rw-tx;
 //               incoming rows are written via db.table.put DIRECTLY so their
 //               foreign updated_at is preserved (never re-stamped to now())
@@ -221,15 +225,6 @@ export async function pull(signal?: AbortSignal): Promise<Snapshot | null> {
   return (await r.json()) as Snapshot;
 }
 
-// Erase the server vault when the user withdraws consent to cloud sync (turns
-// the Settings switch OFF). Idempotent on the server (204 even if no row) — and
-// we also treat a 404 as success. Local Dexie is the source of truth and is
-// untouched, so re-enabling sync re-pushes it.
-export async function deleteBackup(): Promise<void> {
-  const r = await authedFetch(URL, { method: 'DELETE' });
-  if (!r.ok && r.status !== 404) throw statusError('delete', r.status);
-}
-
 // Backup HTTP failures carry the numeric `status` so the sync path can tell a
 // 401 (bearer expired mid-session → handleSessionExpired) from a 5xx (retry).
 // classifyError treats any object with a numeric `status` as response-like.
@@ -245,14 +240,6 @@ function statusError(op: string, status: number): Error & { status: number } {
 // clobber unpulled remote changes (the backend blob is whole-snapshot LWW).
 // Runs lock-less where the Web Locks API is unavailable (older engines, tests).
 //
-// PRIVACY CHOKEPOINT: when the user has turned cloud sync OFF, no user data may
-// leave the device. The gate is enforced here — the one function every sync path
-// (BackupGate mount, manual Settings/Profile buttons, future callers) routes
-// through — so privacy is structural, not per-call-site. Checked twice: once on
-// the fast path (don't even take the lock) and again INSIDE the lock before
-// push(), so a mid-flight OFF (flipped while a sync was already running) is
-// honoured and an in-progress run can't push after consent was withdrawn.
-//
 // `signal` bounds BOTH ways this can hang forever: the HTTP round-trips (fetch
 // has no default timeout) and the wait for the Web Lock (another tab holding
 // 'disher-sync' blocks the grant indefinitely). An abort rejects the returned
@@ -261,9 +248,7 @@ function statusError(op: string, status: number): Error & { status: number } {
 // without racing a merge() that is still writing rows back in.
 export async function syncNow(opts: { signal?: AbortSignal } = {}): Promise<void> {
   const { signal } = opts;
-  if (!isSyncEnabled()) return; // fast path: sync off → no pull/merge/push
   const run = async () => {
-    if (!isSyncEnabled()) return; // re-check under the lock: honour a mid-flight OFF
     const incoming = await pull(signal);
     if (incoming) await merge(incoming);
     await pruneTombstones(); // GC expired tombstones before they ride the blob up

@@ -19,11 +19,6 @@ vi.mock('@/shared/lib/sync/runSync', () => ({
 const mockOnline = { value: true };
 vi.mock('@/shared/lib/hooks/useOnline', () => ({ useOnline: () => mockOnline.value }));
 
-const mockPref = { syncEnabled: true };
-vi.mock('@/shared/lib/sync-pref', () => ({
-  useSyncPrefStore: (sel: (s: typeof mockPref) => unknown) => sel(mockPref),
-}));
-
 vi.mock('./SyncStatusChip.module.scss', () => ({
   default: new Proxy({}, { get: (_t, p: string) => `ssc-${String(p)}` }),
 }));
@@ -34,7 +29,6 @@ beforeEach(() => {
   runSyncTracked.mockReset();
   mockSync.state = 'failed';
   mockOnline.value = true;
-  mockPref.syncEnabled = true;
 });
 
 describe('SyncStatusChip', () => {
@@ -53,8 +47,8 @@ describe('SyncStatusChip', () => {
     expect(runSyncTracked).toHaveBeenCalledWith({ surfaceToast: true });
   });
 
-  it('renders nothing when sync is turned off', () => {
-    mockPref.syncEnabled = false;
+  it('renders nothing at rest (idle/synced, online)', () => {
+    mockSync.state = 'synced';
     const { container } = render(<SyncStatusChip />);
     expect(container).toBeEmptyDOMElement();
   });

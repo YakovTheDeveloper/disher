@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { db } from '@/shared/lib/dexie/schema';
-import { isSyncEnabled } from '@/shared/lib/sync-pref';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
 
 // On mount, reconcile with the vault via syncNow() (pull → merge → push) under
@@ -17,10 +16,6 @@ export function BackupGate({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        // Sync turned off (consent withdrawn) — never pull/merge/push. Render
-        // immediately from local Dexie; data stays on-device. (Default is ON, so
-        // existing users keep today's behaviour.)
-        if (!isSyncEnabled()) return;
         const counts = await Promise.all(db.tables.map((t) => t.count()));
         if (counts.some((c) => c > 0)) {
           // Local data present — render now, reconcile in the background.

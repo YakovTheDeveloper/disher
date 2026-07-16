@@ -19,11 +19,6 @@ vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
 vi.mock('@/app/router', () => ({ RouterLinks: { Root: '/', Admin: '/admin' } }));
 vi.mock('@/features/admin/useIsAdmin', () => ({ useIsAdmin: () => false }));
 
-const mockSyncPref = { syncEnabled: true, setSyncEnabled: vi.fn() };
-vi.mock('@/shared/lib/sync-pref', () => ({
-  useSyncPrefStore: (selector: (s: typeof mockSyncPref) => unknown) => selector(mockSyncPref),
-}));
-
 const mockColorMode = { mode: 'light' as 'light' | 'dark', setMode: vi.fn() };
 vi.mock('@/shared/lib/color-mode', () => ({
   useColorModeStore: (selector: (s: typeof mockColorMode) => unknown) => selector(mockColorMode),
@@ -32,10 +27,8 @@ vi.mock('@/shared/lib/color-mode', () => ({
 vi.mock('@/shared/lib/snapshot', () => ({
   dump: vi.fn(),
   apply: vi.fn(),
-  deleteBackup: vi.fn(),
+  isSnapshotShaped: vi.fn(() => true),
 }));
-
-vi.mock('@/shared/lib/sync/runSync', () => ({ runSyncTracked: vi.fn() }));
 
 const mockShow = vi.fn();
 vi.mock('@/shared/ui/modal-store', () => ({ modalStore: { show: (...a: unknown[]) => mockShow(...a) } }));

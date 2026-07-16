@@ -56,7 +56,7 @@ beforeEach(() => {
 
 describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
   it('confirm is disabled until the exact word is typed', () => {
-    render(<SignOutConfirmModal syncEnabled onClose={vi.fn()} />);
+    render(<SignOutConfirmModal onClose={vi.fn()} />);
 
     expect(confirmBtn()).toBeDisabled();
 
@@ -68,14 +68,14 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
   });
 
   it('normalizes case and surrounding spaces', () => {
-    render(<SignOutConfirmModal syncEnabled onClose={vi.fn()} />);
+    render(<SignOutConfirmModal onClose={vi.fn()} />);
     fireEvent.change(barrierField(), { target: { value: '  УДАЛИТЬ ' } });
     expect(confirmBtn()).toBeEnabled();
   });
 
   it('resolves onClose(true) only after the barrier is armed + the final sync lands', async () => {
     const onClose = vi.fn();
-    render(<SignOutConfirmModal syncEnabled onClose={onClose} />);
+    render(<SignOutConfirmModal onClose={onClose} />);
 
     // Disabled button — click is a no-op.
     fireEvent.click(confirmBtn());
@@ -90,20 +90,9 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
 
   it('cancel resolves onClose(false)', () => {
     const onClose = vi.fn();
-    render(<SignOutConfirmModal syncEnabled onClose={onClose} />);
+    render(<SignOutConfirmModal onClose={onClose} />);
     fireEvent.click(screen.getByRole('button', { name: 'Отмена' }));
     expect(onClose).toHaveBeenCalledWith(false);
-  });
-
-  it('sync OFF: no final sync to run — confirm resolves straight through', async () => {
-    const onClose = vi.fn();
-    render(<SignOutConfirmModal syncEnabled={false} onClose={onClose} />);
-
-    fireEvent.change(barrierField(), { target: { value: 'удалить' } });
-    fireEvent.click(confirmBtn());
-
-    await waitFor(() => expect(onClose).toHaveBeenCalledWith(true));
-    expect(finalSyncBeforeSignOut).not.toHaveBeenCalled();
   });
 });
 
@@ -112,7 +101,7 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
 // is about to wipe. Never resolve true behind the user's back — ask.
 describe('SignOutConfirmModal (failed final sync)', () => {
   const arm = (onClose: (v?: boolean) => void) => {
-    render(<SignOutConfirmModal syncEnabled onClose={onClose} />);
+    render(<SignOutConfirmModal onClose={onClose} />);
     fireEvent.change(barrierField(), { target: { value: 'удалить' } });
     fireEvent.click(confirmBtn());
   };
