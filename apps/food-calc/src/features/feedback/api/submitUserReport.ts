@@ -1,5 +1,6 @@
 import { API_BASE } from '@/shared/lib/api/base';
 import { authedFetch } from '@/shared/lib/api/authedFetch';
+import { throwApiError } from '@/shared/lib/api/apiError';
 import { getPwaTag } from '@/shared/lib/observability/pwaTag';
 
 // Prod-safe user report: text + auto-collected client metadata → pg via the
@@ -18,14 +19,8 @@ export async function submitUserReport(text: string): Promise<void> {
     }),
   });
 
-  if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      const body = await res.json();
-      if (typeof body?.error === 'string') msg = body.error;
-    } catch {
-      // keep HTTP code
-    }
-    throw new Error(msg);
-  }
+  // Reading `{error}` by hand here missed the problem+json shape the backend's
+  // setErrorHandler returns for 401/403/500, so those surfaced as a bare
+  // "HTTP 500". throwApiError understands both shapes.
+  if (!res.ok) await throwApiError(res);
 }
