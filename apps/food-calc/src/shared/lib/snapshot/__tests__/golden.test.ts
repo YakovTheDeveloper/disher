@@ -16,7 +16,7 @@ import { mergedState, canon } from './support/world';
 //
 // status: 'canon'          — intended behaviour. A diff here is a regression.
 // status: 'pins-known-bug' — pins behaviour we know is WRONG (see
-//                            tds/ANALYSIS/sync-invariants.md). Kept because the
+//                            contracts/sync-merge/INVARIANTS.md). Kept because the
 //                            second client must be bit-compatible with what
 //                            production actually ships, not with the ideal. When
 //                            the bug is fixed, these fixtures change — that diff

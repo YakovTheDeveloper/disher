@@ -16,7 +16,7 @@ import {
 // Algebraic properties of merge(), and characterisations of the places where it
 // does NOT have them.
 //
-// Registry of the underlying invariants: tds/ANALYSIS/sync-invariants.md.
+// Registry of the underlying invariants: contracts/sync-merge/INVARIANTS.md.
 //
 // Two kinds of test live here, and the difference is load-bearing:
 //

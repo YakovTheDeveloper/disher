@@ -6,7 +6,9 @@ incoming vault blob into local state. The web PWA is the reference implementatio
 one — is expected to run these same files through its own merge and land on the same bytes.
 
 The invariants these fixtures encode, and the failure scenario behind each, are written up in
-[`apps/food-calc/tds/ANALYSIS/sync-invariants.md`](../../apps/food-calc/tds/ANALYSIS/sync-invariants.md).
+[`INVARIANTS.md`](./INVARIANTS.md) — next to the fixtures, deliberately. It used to live in
+`apps/food-calc/tds/`, which is git-ignored: the corpus was shipping to a second writer with its
+own semantics unreadable.
 
 ## Fixture shape
 
