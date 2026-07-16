@@ -1,6 +1,7 @@
 import Fastify, { FastifyError, FastifyInstance, FastifyServerOptions } from "fastify";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
+import swagger from "@fastify/swagger";
 import fastifyStatic from "@fastify/static";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -101,6 +102,60 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     origin: corsOriginDelegate,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  });
+
+  // Spec generation. MUST be registered before any route — @fastify/swagger
+  // collects routes as they register, so anything mounted earlier is invisible
+  // to it.
+  //
+  // The spec is a function of what actually got registered, and registration is
+  // NODE_ENV-dependent (the dev-only block near the bottom of this file). A dump
+  // taken on a dev machine therefore advertises routes production does not
+  // serve — see scripts/dump-openapi.ts, which builds under NODE_ENV=production
+  // for exactly this reason.
+  await app.register(swagger, {
+    // better-auth mounts ONE catch-all (`/api/auth/*`) accepting every method,
+    // so the spec can only describe it as exactly that: a wildcard with eight
+    // verbs and no shapes. That documents nothing and would generate one
+    // garbage client method. Auth is better-auth's contract, described by their
+    // docs; our spec covers our routes. Hiding keeps the artifact honest rather
+    // than padded.
+    transform: ({ schema, url, route }) =>
+      url.startsWith("/api/auth")
+        ? { schema: { ...schema, hide: true }, url, route }
+        : { schema, url, route },
+    openapi: {
+      // Pinned deliberately, NOT inherited: 9.8.1 already defaults to 3.0.3
+      // (lib/spec/openapi/utils.js), but the version is a contract with the
+      // client generators — Kotlin's are still 3.0-only — not an implementation
+      // detail we let a minor bump decide.
+      openapi: "3.0.3",
+      info: {
+        title: "Disher API",
+        version: "1.0.0",
+        description:
+          "Backend for the Disher food diary. Errors share one RFC 9457-subset " +
+          "problem+json shape — see api/errors.ts.",
+      },
+      components: {
+        securitySchemes: {
+          // The session is an httpOnly cookie; better-auth prepends `__Secure-`
+          // whenever baseURL is https, which includes the self-signed dev server
+          // (auth/server.ts:214-216) — so the name is the same in dev and prod.
+          //
+          // OpenAPI has no first-class cookie-session type; `apiKey`/`in: cookie`
+          // is the canonical way to spell it. A non-browser client cannot use
+          // this scheme (httpOnly is a browser mechanism) — the token path that
+          // makes the API reachable from native code is Phase 1 (Б-1) and will
+          // add a `bearerAuth` scheme beside this one.
+          cookieSession: {
+            type: "apiKey",
+            in: "cookie",
+            name: "__Secure-disher1.session_token",
+          },
+        },
+      },
+    },
   });
 
   await app.register(betterAuthPlugin);
