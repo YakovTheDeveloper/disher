@@ -1,60 +1,37 @@
-// Frontend mirror of the backend analysis contract (apps/disher-backend-3.0/
-// src/shared/analysis-output.ts). THREE distinct output entities, deliberately
-// separate:
-//   • observation — a neutral pattern the model saw. Read-only reference, NOT
-//                   saveable, no valence. Display only.
-//   • insight     — a good/bad takeaway about the user (valence positive|
-//                   negative) the user can save to themselves («+ к себе»).
-//   • hypothesis  — a testable experiment the user can save (the former «idea card»).
+// The analysis contract's SHAPES come from @disher/contracts — one TypeBox
+// declaration both apps derive from. This file used to re-type them by hand
+// under a "Frontend mirror of the backend analysis contract" header, kept true
+// by eye; the entities are documented at the declaration now.
+//
+// The COERCIONS below stay, and stay hand-written: they read a jsonb column of
+// unvalidated LLM output and are deliberately permissive (drop a malformed
+// finding rather than crash, default an unknown strength to 'weak', accept the
+// legacy `days` spelling of `suggestedDays`). That is behaviour a schema cannot
+// express, so it is not a mirror of types — it is a mirror of the server's
+// parser, and it stays until the server validates that column before INSERT.
+//
 // `summary` rides in the `result_md` column so its pending('')/failed('⚠️…')
 // sentinels keep working. The backend parser is the single point that splits
-// observations from insights (it demotes neutral insights) — these frontend
-// coercions are straight pass-throughs so older persisted rows keep rendering.
+// observations from insights (it demotes neutral ones) — these coercions are
+// straight pass-throughs so older persisted rows keep rendering.
+import type {
+  AnalysisStrength,
+  AnalysisValence,
+  AnalysisObservation,
+  AnalysisInsight,
+  AnalysisHypothesis,
+  AppliedHypothesis,
+} from '@disher/contracts';
 
-export type AnalysisStrength = 'weak' | 'moderate' | 'clear';
-
-// Valence — whether an insight is a good combination (synergy, e.g. iron +
-// vitamin C) or a bad one (antagonism / поведенческий минус). Orthogonal to
-// `strength` (confidence): one says good/bad, the other says how sure. The LLM
-// classifies it; 'neutral' is a legacy/fallback marker (a neutral finding is an
-// observation, not an insight).
-export type AnalysisValence = 'positive' | 'negative' | 'neutral';
-
-export type AnalysisEvidence = {
-  days: string[];
-  foods?: string[];
-  events?: string[];
-};
-
-// A neutral pattern for reference — insight shape MINUS valence.
-export type AnalysisObservation = {
-  title: string;
-  detail: string;
-  strength: AnalysisStrength;
-  evidence: AnalysisEvidence;
-};
-
-export type AnalysisInsight = {
-  title: string;
-  detail: string;
-  valence: AnalysisValence;
-  strength: AnalysisStrength;
-  evidence: AnalysisEvidence;
-};
-
-export type AnalysisHypothesis = {
-  title: string;
-  body: string;
-  suggestedDays?: number;
-};
-
-// Frozen snapshot of a hypothesis the user ticked when starting the analysis.
-// Immutable — survives editing or deleting the live hypothesis.
-export type AppliedHypothesis = {
-  id: string;
-  title: string;
-  body: string;
-};
+export type {
+  AnalysisStrength,
+  AnalysisValence,
+  AnalysisEvidence,
+  AnalysisObservation,
+  AnalysisInsight,
+  AnalysisHypothesis,
+  AppliedHypothesis,
+} from '@disher/contracts';
 
 export type Analysis = {
   id: string;

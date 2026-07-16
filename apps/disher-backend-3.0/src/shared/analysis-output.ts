@@ -9,65 +9,31 @@
 // IdeaCard shape here and the asIdeaCards filter in sync.
 
 // ─── Output entities ───
-// THREE distinct things the analysis emits, deliberately separate buckets:
-//   • observation — a neutral regularity the model SAW in the data. Read-only,
-//                   not the user's to keep — pure reference. NO valence (it makes
-//                   no good/bad claim). The anti-hallucination lever (grounded
-//                   evidence) still applies.
-//   • insight     — a takeaway ABOUT the user that is good or bad and worth
-//                   remembering: a lucky/unlucky combination, a nutrient synergy
-//                   or antagonism. ALWAYS carries a valence (positive|negative);
-//                   the user can save it to themselves. A neutral "insight" is a
-//                   category error — it is really an observation, and the parser
-//                   demotes it.
-//   • hypothesis  — a testable mini-experiment the user can save to themselves
-//                   (this is the former `ideaCard`, renamed to its real meaning).
-// `summary` is a 1–2 sentence overview persisted into analyses.result_md so the
-// existing pending('')/failed('⚠️…') sentinels on that column keep working.
+// The shapes moved to @disher/contracts (TypeBox → Static<>), where the SPA
+// derives them too — they used to be declared here and re-typed by hand in
+// food-calc/src/features/analysis/api/types.ts. Re-exported so every existing
+// importer of this module keeps its import.
+//
+// What stays here is everything a schema cannot say: the prompt spec, and the
+// permissive parser that salvages a malformed LLM answer instead of refusing it.
+export type {
+  AnalysisStrength,
+  AnalysisValence,
+  AnalysisEvidence,
+  AnalysisObservation,
+  AnalysisInsight,
+  AnalysisHypothesis,
+  AnalysisOutput,
+} from "@disher/contracts";
 
-export type AnalysisStrength = "weak" | "moderate" | "clear";
-
-// Whether an insight reads as a good thing or a bad thing. ORTHOGONAL to
-// `strength` (confidence) — a "clear" insight can be negative. "neutral" is only
-// a coercion fallback / observation marker: a neutral finding is an observation,
-// not an insight, so the parser never KEEPS a neutral insight (it demotes it).
-export type AnalysisValence = "positive" | "negative" | "neutral";
-
-export type AnalysisEvidence = {
-  days: string[]; // concrete day keys from the window — non-empty for an insight
-  foods?: string[];
-  events?: string[];
-};
-
-// A neutral pattern for reference. Same shape as an insight MINUS valence — it
-// makes no good/bad claim, so there is no valence field to misread.
-export type AnalysisObservation = {
-  title: string;
-  detail: string;
-  strength: AnalysisStrength;
-  evidence: AnalysisEvidence;
-};
-
-export type AnalysisInsight = {
-  title: string;
-  detail: string;
-  valence: AnalysisValence;
-  strength: AnalysisStrength;
-  evidence: AnalysisEvidence;
-};
-
-export type AnalysisHypothesis = {
-  title: string;
-  body: string;
-  suggestedDays?: number;
-};
-
-export type AnalysisOutput = {
-  summary: string;
-  observations: AnalysisObservation[];
-  insights: AnalysisInsight[];
-  hypotheses: AnalysisHypothesis[];
-};
+import type {
+  AnalysisStrength,
+  AnalysisEvidence,
+  AnalysisObservation,
+  AnalysisInsight,
+  AnalysisHypothesis,
+  AnalysisOutput,
+} from "@disher/contracts";
 
 // Inline JSON contract embedded in the system prompt. Whatever this string
 // describes is what tryParseOutput expects to receive — both sides must move

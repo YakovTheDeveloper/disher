@@ -5,7 +5,7 @@
 # Build context MUST be the REPO ROOT (compose: build.context: ../..,
 # dockerfile: apps/disher-backend-3.0/Dockerfile) — the pnpm workspace install
 # needs pnpm-workspace.yaml, the lockfile, tsconfig.base.json and EVERY member's
-# package.json (apps/disher-backend-3.0 + apps/food-calc).
+# package.json (apps/disher-backend-3.0 + apps/food-calc + packages/contracts).
 #
 # Why a builder stage instead of trusting `pnpm deploy` to ship everything:
 #   `pnpm --prod deploy` honours .gitignore, and BOTH `dist/` and `data/` are
@@ -45,16 +45,26 @@ WORKDIR /repo
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/disher-backend-3.0/package.json apps/disher-backend-3.0/package.json
 COPY apps/food-calc/package.json apps/food-calc/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
 
 # Install only the backend subgraph (food-calc source is never needed here —
 # its manifest is present solely so the frozen lockfile validates).
 RUN pnpm install --frozen-lockfile --filter @disher/backend...
 
+# @disher/contracts is a workspace DEPENDENCY of the backend, so its source must
+# be here to compile. It is needed at BUILD time only: the backend imports it
+# with `import type`, which tsc erases — nothing under dist/ references it at
+# runtime. It still ships in the prod deploy below (pnpm resolves the workspace
+# link), which costs a few KB and keeps the tree honest.
+COPY packages/ packages/
+
 # Backend source + assets (the rest of the context; .dockerignore trims the fat).
 COPY apps/disher-backend-3.0/ apps/disher-backend-3.0/
 
+# `@disher/backend...` (with the trailing dots) builds the DEPENDENCIES first —
+# the backend's tsc needs contracts' emitted .d.ts, not its source.
 # Compile: tsc -p tsconfig.build.json -> dist/src/... (+ dist/scripts/, harmless).
-RUN pnpm --filter @disher/backend build
+RUN pnpm --filter @disher/backend... build
 
 # Bake the embedding model into a cache dir the runtime will read offline.
 # (@xenova v2 ignores HF_HOME/TRANSFORMERS_CACHE; env.cacheDir == MODEL_CACHE_DIR
