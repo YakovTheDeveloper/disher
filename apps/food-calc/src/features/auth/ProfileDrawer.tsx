@@ -10,8 +10,7 @@ import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { WallpaperPicker } from '@/features/wallpaper';
 import { CardPalettePicker } from '@/features/card-palette';
-import { dump, apply, isSnapshotShaped } from '@/shared/lib/snapshot';
-import { ConfirmModal } from '@/shared/ui/ConfirmModal';
+import { dump } from '@/shared/lib/snapshot';
 import { BalanceSection } from './BalanceSection';
 import { TelegramLinkRow } from './TelegramLinkRow';
 import { SettingRow } from '@/shared/ui/atoms/SettingRow';
@@ -25,7 +24,6 @@ import MoonIcon from '@/shared/assets/icons/moon.svg?react';
 import SunIcon from '@/shared/assets/icons/sun.svg?react';
 import EyeIcon from '@/shared/assets/icons/eye.svg?react';
 import DownloadIcon from '@/shared/assets/icons/download.svg?react';
-import UploadIcon from '@/shared/assets/icons/upload.svg?react';
 import LogoutIcon from '@/shared/assets/icons/logout.svg?react';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
 import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
@@ -44,23 +42,6 @@ const downloadJson = (name: string, obj: unknown) => {
   a.click();
   URL.revokeObjectURL(url);
 };
-
-const pickJson = (): Promise<unknown> =>
-  new Promise((res, rej) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      if (!file) return rej(new Error('cancelled'));
-      try {
-        res(JSON.parse(await file.text()));
-      } catch (e) {
-        rej(e);
-      }
-    };
-    input.click();
-  });
 
 // Closed via the DrawerLayout handle / swipe, or by `signOut` resetting the
 // overlay stores — so it never reads the injected `onClose`.
@@ -85,38 +66,12 @@ export function ProfileDrawer() {
   // задизейбленным, чтобы двойной тап не слал второй запрос.
   const [revoking, setRevoking] = useState(false);
 
+  // Экспорт — «твои данные твои», НЕ бэкап: загрузить файл обратно нечем
+  // (импорт снесён 2026-07-16, сервер — единственное хранилище). Подпись «Скачать
+  // копию в файл» возврата не обещает — не превращать её в обещание.
   const handleExport = async () => {
     const today = new Date().toISOString().slice(0, 10);
     downloadJson(`disher-${today}.json`, await dump());
-  };
-
-  // «Загрузить из файла» — apply() деструктивно ЗАМЕНЯЕТ всю базу. Раньше это
-  // шло без спроса и без проверки: выбрал не тот файл (или не-снапшот JSON) —
-  // снёс данные. Теперь два барьера (И-16): (1) валидация формы снапшота до
-  // касания базы, (2) confirm-модалка перед заменой.
-  const handleImport = async () => {
-    let snap: unknown;
-    try {
-      snap = await pickJson();
-    } catch (e) {
-      if ((e as Error)?.message === 'cancelled') return; // пустой выбор — молча выходим
-      toaster.error('Не удалось прочитать файл — это не JSON');
-      return;
-    }
-    if (!isSnapshotShaped(snap)) {
-      toaster.error('Это не похоже на файл резервной копии Disher');
-      return;
-    }
-    const confirmed = await modalStore.show(ConfirmModal, {
-      title: 'Загрузить и заменить данные?',
-      message:
-        'Данные на этом устройстве будут заменены содержимым файла. Убедитесь, что выбрали правильную резервную копию.',
-      confirmLabel: 'Заменить',
-      tone: 'danger',
-    });
-    if (confirmed !== true) return;
-    await apply(snap);
-    window.location.reload();
   };
 
   // «Я потерял телефон». Сессия опаковая, не ротируется и живёт 365 дней —
@@ -231,13 +186,13 @@ export function ProfileDrawer() {
             </div>
           </ActionList.Section>
 
-          {/* Данные — раскрыты рядами (аккордеон убран): два действия не стоят
-            свёртки. Действия = ряды-кнопки, не кнопки-плашки.
-            Своей секции «Синхронизация» больше нет: тумблер снесён (синк всегда
-            ВКЛ), а чип в покое не рендерит НИЧЕГО — отдельный заголовок стоял бы
-            над пустотой. Чип приехал сюда: показывает «Офлайн» / «Синхронизирую…»
-            / «Не сохранено» + иконку-повтор. Обёртка hug-left, чтобы danger-фон не
-            растягивался на всю ширину секции. */}
+          {/* Данные — ряд-кнопка, не кнопка-плашка. «Загрузить из файла» снесён
+            2026-07-16 вместе с тумблером: сервер — единственное хранилище, и
+            восстановление = зайти в аккаунт, а не подсунуть файл.
+            Своей секции «Синхронизация» больше нет: чип в покое не рендерит
+            НИЧЕГО — отдельный заголовок стоял бы над пустотой. Чип приехал сюда:
+            показывает «Офлайн» / «Синхронизирую…» / «Не сохранено» + иконку-повтор.
+            Обёртка hug-left, чтобы danger-фон не растягивался на всю ширину. */}
           <ActionList.Section label="Данные">
             <div className={styles.rows}>
               <SettingRow
@@ -245,12 +200,6 @@ export function ProfileDrawer() {
                 label="Скачать копию в файл"
                 trailing={<ChevronGlyph />}
                 onClick={handleExport}
-              />
-              <SettingRow
-                icon={<UploadIcon width={18} height={18} />}
-                label="Загрузить из файла"
-                trailing={<ChevronGlyph />}
-                onClick={handleImport}
               />
             </div>
             <div className={styles.syncStatus}>

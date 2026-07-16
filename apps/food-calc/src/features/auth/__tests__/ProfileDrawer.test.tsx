@@ -24,11 +24,7 @@ vi.mock('@/shared/lib/color-mode', () => ({
   useColorModeStore: (selector: (s: typeof mockColorMode) => unknown) => selector(mockColorMode),
 }));
 
-vi.mock('@/shared/lib/snapshot', () => ({
-  dump: vi.fn(),
-  apply: vi.fn(),
-  isSnapshotShaped: vi.fn(() => true),
-}));
+vi.mock('@/shared/lib/snapshot', () => ({ dump: vi.fn() }));
 
 const mockShow = vi.fn();
 vi.mock('@/shared/ui/modal-store', () => ({ modalStore: { show: (...a: unknown[]) => mockShow(...a) } }));
@@ -88,8 +84,14 @@ describe('ProfileDrawer (VariantD root)', () => {
     render(<ProfileDrawer />);
 
     expect(screen.getByRole('button', { name: 'Скачать копию в файл' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Загрузить из файла' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /выйти из аккаунта/i })).toBeInTheDocument();
+  });
+
+  // Импорт снесён 2026-07-16 (сервер — единственное хранилище). Ряд не должен
+  // вернуться незаметно: экспорт без импорта — осознанно дорога в один конец.
+  it('offers no file-import row — restore is signing in, not picking a file', () => {
+    render(<ProfileDrawer />);
+    expect(screen.queryByRole('button', { name: /загрузить из файла/i })).toBeNull();
   });
 
   it('does not sign out when the typed-confirm modal is cancelled', async () => {

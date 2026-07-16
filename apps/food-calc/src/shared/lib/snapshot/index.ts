@@ -81,8 +81,9 @@ export async function dump(): Promise<Snapshot> {
   return out;
 }
 
-// Give an imported row the LWW key if it predates updated_at: updated_at falls
-// back to created_at. Rows without created_at (e.g. tombstones) pass through.
+// Give a row the LWW key if it predates updated_at: updated_at falls back to
+// created_at. Rows without created_at (e.g. tombstones) pass through. Only apply()
+// calls this, so it is test-only for the same reason apply() is.
 function stampImportRow(row: unknown): unknown {
   if (row && typeof row === 'object') {
     const r = row as Record<string, unknown>;
@@ -93,20 +94,7 @@ function stampImportRow(row: unknown): unknown {
   return row;
 }
 
-// Guard the file-restore path (И-16): apply() destructively replaces every table,
-// so a wrong file must be rejected BEFORE it wipes the base. A valid snapshot is a
-// plain object whose every value is an array and which carries at least one table
-// this app knows — enough to reject an unrelated JSON file (a photo's metadata,
-// another app's export) without hard-coding the full schema.
-const KNOWN_SNAPSHOT_KEYS = new Set<string>([...DOMAIN_TABLES, 'tombstones']);
-export function isSnapshotShaped(x: unknown): x is Snapshot {
-  if (!x || typeof x !== 'object' || Array.isArray(x)) return false;
-  const rec = x as Record<string, unknown>;
-  const keys = Object.keys(rec);
-  if (!keys.some((k) => KNOWN_SNAPSHOT_KEYS.has(k))) return false;
-  return keys.every((k) => Array.isArray(rec[k]));
-}
-
+// TEST-ONLY (see the header note). Destructively REPLACES every table.
 export async function apply(s: Snapshot): Promise<void> {
   await db.transaction('rw', db.tables, async () => {
     await Promise.all(db.tables.map((t) => t.clear()));
