@@ -16,6 +16,22 @@ describe("global problem+json error handler", () => {
     app.get("/__boom", async () => {
       throw new Error("boom with SECRET internal detail");
     });
+    // A schema'd route, so the validation branch is exercised through the real
+    // Ajv → setErrorHandler path rather than a hand-built error object.
+    app.post(
+      "/__validated",
+      {
+        schema: {
+          body: {
+            type: "object",
+            required: ["text"],
+            additionalProperties: false,
+            properties: { text: { type: "string" }, count: { type: "integer" } },
+          },
+        },
+      },
+      async () => ({ ok: true }),
+    );
   });
 
   afterAll(async () => {
@@ -43,6 +59,44 @@ describe("global problem+json error handler", () => {
     });
     expect(res.json().instance).toBe("req-12345");
     expect(res.headers["x-request-id"]).toBe("req-12345");
+  });
+
+  it("a missing required field → 400 problem+json keyed on that field", async () => {
+    const res = await app.inject({ method: "POST", url: "/__validated", payload: {} });
+    // 400, not 422 — see the validation branch in toProblem.
+    expect(res.statusCode).toBe(400);
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+
+    const body = res.json();
+    expect(body.code).toBe("bad_request");
+    expect(body.status).toBe(400);
+    expect(body.instance).toBeTruthy();
+    // `required` names the member in params, not instancePath — the key must
+    // still come out as the bare field name, not "(root)".
+    expect(body.fieldErrors).toEqual({ text: expect.stringContaining("required") });
+    expect(body.detail).toContain("body");
+  });
+
+  it("a wrong-typed field → 400 keyed on its instancePath", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: "/__validated",
+      payload: { text: "hi", count: "not-a-number" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().fieldErrors).toEqual({ count: expect.stringMatching(/integer/i) });
+  });
+
+  it("an extra property is STRIPPED, not rejected (Fastify's removeAdditional)", async () => {
+    // Pinning the surprise: `additionalProperties: false` under Fastify's
+    // default Ajv does not 400 — it silently drops the member. Routes that must
+    // refuse an unknown field cannot lean on the schema for it.
+    const res = await app.inject({
+      method: "POST",
+      url: "/__validated",
+      payload: { text: "hi", bogus: 1 },
+    });
+    expect(res.statusCode).toBe(200);
   });
 
   it("a thrown route → 500 problem+json that never leaks a stack to the client", async () => {

@@ -124,6 +124,64 @@ function hasStatusCode(err: unknown): err is { statusCode: number; message?: str
   );
 }
 
+/** One entry of the raw Ajv error array Fastify attaches when a route schema rejects. */
+interface ValidationEntry {
+  instancePath?: string;
+  keyword?: string;
+  params?: Record<string, unknown>;
+  message?: string;
+}
+
+/** True for a Fastify schema-validation failure (FST_ERR_VALIDATION). */
+function hasValidation(
+  err: unknown,
+): err is { validation: ValidationEntry[]; validationContext?: string } {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    Array.isArray((err as { validation?: unknown }).validation)
+  );
+}
+
+/**
+ * The field a single Ajv error is about. For most keywords that is
+ * `instancePath` ("/items/0/name" → "items.0.name"). `required` is the
+ * exception: its path points at the PARENT object and the missing member's
+ * name only exists in `params`.
+ */
+function fieldOf(entry: ValidationEntry): string {
+  const base = (entry.instancePath ?? "").replace(/^\//, "").replace(/\//g, ".");
+  const missing = entry.params?.missingProperty;
+  if (entry.keyword === "required" && typeof missing === "string" && missing) {
+    return base ? `${base}.${missing}` : missing;
+  }
+  return base || "(root)";
+}
+
+/**
+ * Ajv errors → the `fieldErrors` extension. Keys are bare field names, not
+ * "body.text": Fastify validates one context per request (it throws on the
+ * first that fails), so the context can live in `detail` without ambiguity,
+ * and the frontend can map a key straight onto its input.
+ *
+ * In practice this map usually holds exactly ONE entry: Fastify's Ajv runs with
+ * `allErrors: false` (its default, and the one Ajv itself recommends against
+ * changing for untrusted input — allErrors turns a crafted body into
+ * quadratic work). A map is still the right shape: it stays additive if that
+ * ever changes, and it is already the FE-facing contract.
+ */
+export function fieldErrorsFromValidation(
+  validation: ValidationEntry[],
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const entry of validation) {
+    const field = fieldOf(entry);
+    if (field in out) continue;
+    out[field] = entry.message ?? "is invalid";
+  }
+  return out;
+}
+
 function codeForStatus(status: number): ErrorCode {
   const hit = (Object.entries(CODES) as [ErrorCode, number][]).find(([, s]) => s === status);
   if (hit) return hit[0];
@@ -150,6 +208,21 @@ export function toProblem(
     code = err.code;
     detail = err.detail;
     extensions = err.extensions;
+  } else if (hasValidation(err)) {
+    // MUST precede hasStatusCode: Fastify's validation error carries
+    // statusCode 400 too, so the generic branch would swallow it and ship the
+    // raw Ajv sentence as the only signal. Status stays 400 (not the 422 the
+    // `unprocessable` constructor uses) — hand-written `reply.status(400)`
+    // checks live beside schema'd ones on the same routes, and one validation
+    // status is worth more than a more correct one applied to half of them.
+    status = 400;
+    code = "bad_request";
+    const fieldErrors = fieldErrorsFromValidation(err.validation);
+    extensions = { fieldErrors };
+    const where = err.validationContext ?? "request";
+    detail = `Invalid ${where}: ${Object.entries(fieldErrors)
+      .map(([field, message]) => `${field} ${message}`)
+      .join("; ")}`;
   } else if (hasStatusCode(err)) {
     status = err.statusCode;
     code = codeForStatus(status);
