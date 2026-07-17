@@ -3,7 +3,7 @@ import { parse, isValid } from 'date-fns';
 import { drawerStore } from '@/shared/ui';
 import { ScheduleNavigatorDrawer } from '@/features/schedule-navigator';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
-import { useAppRoutes } from '@/app/routing/useAppRoutes';
+import { useAppRoutes } from '@/shared/lib/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import { HubButton } from '@/shared/ui/HubButton';

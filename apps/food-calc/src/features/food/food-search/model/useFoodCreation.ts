@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
-import { RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/shared/config/routes';
 import { ProductDrawer } from '@/features/food/product-drawer';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import toaster from '@/shared/lib/toaster/toaster';

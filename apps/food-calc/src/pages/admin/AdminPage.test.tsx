@@ -16,9 +16,6 @@ vi.mock('@/features/admin/useIsAdmin', () => ({
   useAdminGate: () => ({ isAdmin: h.isAdmin, retry: vi.fn() }),
 }));
 vi.mock('@/shared/lib/api/admin', () => ({ fetchAdminUsers: vi.fn() }));
-// RouterLinks only — importing the real module would pull the whole page graph
-// + createBrowserRouter side effects into the test.
-vi.mock('@/app/router', () => ({ RouterLinks: { Root: '/', Admin: '/admin' } }));
 vi.mock('@/shared/ui/drawer-store', () => ({ drawerStore: { show: vi.fn() } }));
 vi.mock('@/features/admin/TopupDrawer', () => ({ TopupDrawer: () => null }));
 vi.mock('@/features/admin/UserLedgerDrawer', () => ({ UserLedgerDrawer: () => null }));

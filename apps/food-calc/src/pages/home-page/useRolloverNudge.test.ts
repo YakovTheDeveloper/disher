@@ -7,12 +7,6 @@ const { navigateSpy } = vi.hoisted(() => ({ navigateSpy: vi.fn() }));
 // needs no Router context.
 vi.mock('react-router-dom', () => ({ useNavigate: () => navigateSpy }));
 
-// Avoid pulling the whole app graph (router.tsx imports App + every page) just
-// for the URL builder.
-vi.mock('@/app/router', () => ({
-  RouterUrls: { Schedule: (id: string) => `/schedule/${id}` },
-}));
-
 vi.mock('@/shared/lib/toaster/toaster', () => ({
   default: {
     notify: vi.fn(),

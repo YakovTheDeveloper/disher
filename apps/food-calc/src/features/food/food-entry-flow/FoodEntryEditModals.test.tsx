@@ -12,7 +12,6 @@ Element.prototype.scrollIntoView = vi.fn();
 // ── mocks: heavy children + router/drawer deps stubbed so the test exercises
 // only the edit-modal shell (title + step gating). ────────────────────────────
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
-vi.mock('@/app/router', () => ({ RouterUrls: { getDish: (id: string) => `/dish/${id}` } }));
 vi.mock('@/shared/lib/viewTransition', () => ({ pushNavigate: vi.fn() }));
 vi.mock('@/shared/ui/drawer-store', () => ({ drawerStore: { show: vi.fn() } }));
 vi.mock('@/features/food/product-drawer', () => ({ ProductDrawer: () => null }));

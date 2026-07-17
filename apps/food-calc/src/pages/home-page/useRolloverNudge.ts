@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/shared/config/routes';
 import toaster from '@/shared/lib/toaster/toaster';
 
 // Формат ключа даты в роуте `/schedule/:id`. Дублирует литерал из router.tsx

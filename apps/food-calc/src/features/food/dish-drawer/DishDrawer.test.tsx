@@ -45,11 +45,6 @@ vi.mock('@/shared/ui/DrawerLayout', () => ({
   ),
 }));
 
-// RouterUrls живёт в router.tsx (тянет всё дерево роутов) — мокаем только геттер.
-vi.mock('@/app/router', () => ({
-  RouterUrls: { getDish: (id: string) => `/dish/${id}` },
-}));
-
 import { DishDrawer } from './DishDrawer';
 
 describe('DishDrawer', () => {

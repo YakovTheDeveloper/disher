@@ -30,7 +30,7 @@ vi.mock('@/features/schedule-navigator', () => ({
 }));
 vi.mock('@/features/analysis/AnalysisHubDrawer', () => ({ AnalysisHubDrawer: () => null }));
 vi.mock('@/features/auth', () => ({ AccountPanel: () => null }));
-vi.mock('@/app/routing/useAppRoutes', () => ({
+vi.mock('@/shared/lib/routing/useAppRoutes', () => ({
   useAppRoutes: () => ({ toScheduleBuilder: h.toScheduleBuilder }),
 }));
 

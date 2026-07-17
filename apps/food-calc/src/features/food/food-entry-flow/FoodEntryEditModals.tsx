@@ -6,7 +6,7 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { TimeChoose } from '@/shared/ui/TimeChoose';
 import { DetailsStep } from '@/features/food/details-chips';
-import { RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/shared/config/routes';
 import { pushNavigate } from '@/shared/lib/viewTransition';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { drawerStore } from '@/shared/ui/drawer-store';

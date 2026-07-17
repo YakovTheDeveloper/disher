@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router';
-import { RouterLinks, RouterUrls } from '@/app/router';
+import { RouterLinks, RouterUrls } from '@/shared/config/routes';
 
 export interface UseAppRoutesOptions {
     fallbackUrl?: string;

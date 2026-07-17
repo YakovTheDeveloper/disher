@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { router } from '@/app/router';
+import { navigateTo } from '@/shared/lib/routing/navigator';
 import type { ErrorKind } from '@/shared/lib/errors/classify';
 
 export interface ToastAction {
@@ -48,7 +48,7 @@ function buildAction(action?: ToastAction) {
             // (state.from = where the toast was shown). Global VT cleanup clears
             // data-vt-type on transition.finished.
             document.documentElement.dataset.vtType = 'push';
-            void router.navigate(action.href, {
+            navigateTo(action.href, {
                 viewTransition: true,
                 state: { from: window.location.pathname + window.location.search },
             });

@@ -31,11 +31,6 @@ vi.mock('../AboutDiscoveriesDrawer', () => ({ AboutDiscoveriesDrawer: () => null
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', () => ({ useNavigate: () => mockNavigate }));
 
-// A transitive import (toaster → @/app/router) runs `createBrowserRouter` at module
-// load, which the bare react-router-dom mock above can't satisfy. Stub the router
-// module so that heavy graph never loads.
-vi.mock('@/app/router', () => ({ router: { navigate: vi.fn() } }));
-
 const foods = vi.fn();
 const events = vi.fn();
 vi.mock('@/entities/schedule-food', () => ({ useScheduleFoods: () => foods() }));

@@ -5,7 +5,7 @@ import { authProvider } from '@/shared/lib/auth/authProvider';
 import toaster from '@/shared/lib/toaster/toaster';
 import { defaultUserMessage } from '@/shared/lib/errors/classify';
 import { useIsAdmin } from '@/features/admin/useIsAdmin';
-import { RouterLinks } from '@/app/router';
+import { RouterLinks } from '@/shared/config/routes';
 import styles from './ProfileDrawer.module.scss';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { WallpaperPicker } from '@/features/wallpaper';

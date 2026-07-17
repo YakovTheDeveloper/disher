@@ -16,6 +16,7 @@ import { installGlobalErrorHandlers } from '@/shared/lib/errors/installGlobalErr
 import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePressure';
 import { installPwaAutoUpdate } from '@/app/pwa-update';
 import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
+import { setNavigator } from '@/shared/lib/routing/navigator';
 
 // Build-штамп в консоль — всегда, включая прод: при отладке PWA-обновления с
 // телефона (chrome://inspect) это первая строка, отличающая «не обновилось»
@@ -85,6 +86,12 @@ navigator.storage
 // (документированный WebKit-воркэраунд, Apple Safari Web Content Guide).
 // passive → не блокирует скролл; вне iOS — безвредный no-op.
 document.addEventListener('touchstart', () => {}, { passive: true });
+
+// Plug the router into shared's navigator socket, so `shared` code (toaster
+// action buttons) can navigate without importing `app/router` back upward.
+setNavigator((to, options) => {
+  void router.navigate(to, options);
+});
 
 installE2EBridge();
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { RouterLinks } from '@/app/router';
+import { RouterLinks } from '@/shared/config/routes';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { Text, Numeral } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';

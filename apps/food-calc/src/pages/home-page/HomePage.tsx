@@ -1,4 +1,4 @@
-import { RouterLinks } from '@/app/router';
+import { RouterLinks } from '@/shared/config/routes';
 import { useCallback, useEffect, useMemo, type Ref } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FoodSchedule } from '@/widgets/FoodSchedule';

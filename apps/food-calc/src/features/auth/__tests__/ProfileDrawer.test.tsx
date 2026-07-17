@@ -12,11 +12,10 @@ vi.mock('../auth-store', () => ({
   useAuthStore: (selector: (s: typeof mockAuth) => unknown) => selector(mockAuth),
 }));
 
-// The «Админка» entry pulls in useNavigate + useIsAdmin + RouterLinks. Stub them
-// so this test stays isolated (no Router provider, no probe): the admin row is
-// hidden (useIsAdmin → false), leaving the rows under test unchanged.
+// The «Админка» entry pulls in useNavigate + useIsAdmin. Stub them so this test
+// stays isolated (no Router provider, no probe): the admin row is hidden
+// (useIsAdmin → false), leaving the rows under test unchanged.
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }));
-vi.mock('@/app/router', () => ({ RouterLinks: { Root: '/', Admin: '/admin' } }));
 vi.mock('@/features/admin/useIsAdmin', () => ({ useIsAdmin: () => false }));
 
 const mockColorMode = { mode: 'light' as 'light' | 'dark', setMode: vi.fn() };

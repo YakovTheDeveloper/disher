@@ -7,7 +7,7 @@ import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
-import { RouterUrls } from '@/app/router';
+import { RouterUrls } from '@/shared/config/routes';
 import type { BaseDrawerProps } from '@/shared/ui';
 import s from './DishDrawer.module.scss';
 

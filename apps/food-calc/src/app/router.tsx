@@ -7,29 +7,12 @@ import AnalysesPage from '@/pages/analyses/AnalysesPage.tsx';
 import AdminPage from '@/pages/admin/AdminPage.tsx';
 import VerifyEmailPage from '@/pages/auth/VerifyEmailPage.tsx';
 import RouteError from '@/shared/ui/error/RouteError.tsx';
+import { RouterLinks } from '@/shared/config/routes';
 
 // Standalone dev-«предложки» (/suggestion_<id>) — top-level sibling <App>, вне
 // AuthGate. Автодискавери эфемерных папок s_*/ через glob; на чистом чекауте
 // пусто. См. app/development-features/.
 import { devRoute } from '@/app/development-features/devRoutes';
-
-export enum RouterLinks {
-  Root = '/',
-  Food = '/food',
-  DishBuilder = '/dish',
-
-  Dish = '/dish/:id',
-  ScheduleBuilder = '/schedule',
-  Analyses = '/analyses',
-  Admin = '/admin',
-  VerifyEmail = '/auth/verify-email',
-}
-
-export const RouterUrls = {
-  Schedule: (id: string) => `/schedule/${id}`,
-  getDish: (id: string) => `/dish/${id}`,
-  getDishDraft: () => `/dish/draft`,
-};
 
 export const router = createBrowserRouter([
   {
