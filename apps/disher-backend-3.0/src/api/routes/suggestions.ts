@@ -495,7 +495,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
           });
         } else {
           // Paid step: debit before the OpenRouter call (cache hits are free).
-          // req.userId comes from the requireUser preHandler added on the scope
+          // req.userId comes from the requireUser onRequest hook added on the scope
           // in buildApp; absent only in the pure-pipeline unit tests.
           if (req.userId) {
             if (!(await chargeOr402(req, reply, "dish_suggestions", requestId))) return;

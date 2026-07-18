@@ -392,7 +392,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
                     innerClassName={styles.dishFoodListItem}
                     onLongPress={() => openActionsDrawer(item)}
                     quantity={item.quantity}
-                    unit="г"
                     onCommitQuantity={(quantity) =>
                       safeMutate(
                         () => updateDishItem(item.id, { quantity }),

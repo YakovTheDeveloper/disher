@@ -222,22 +222,42 @@
     }
 }
 
-// ─── Плавающая монета создания («Новая еда») ─────────────────────────────────
-// Круглая монета RoundButton внизу-справа `.content` (position:relative): дуга
-// «Новая еда» + плюс-глиф. `--medal-size` наследуется в медаль (RoundButton его
-// только ЧИТАЕТ через var(), не переопределяет) → задаёт диаметр 64px. Кегль дуги
-// не трогаем: медаль жёстко объявляет `--wb-arc-size:17px` на себе (перебил бы
-// любой inherited), а «Новая еда» короче боевого «Список еды» → влезает. z-index
-// ниже FAB «наверх» (20). useKeyboardStick (mode:'transform') на клавиатуре поднимает
-// узел translateY, сохраняя absolute-якорь right:12px, чтобы монета липла над клавой
-// и НЕ уезжала влево (mode:'fixed' растягивал бы left:0/right:0 → сдвиг к левому краю).
+// ─── Плавающая тёмная монета-акцент создания («Новая еда») ───────────────────
+// Круглая монета RoundButton (look="elevated" → тёмная, белый текст) — дуга «Новая
+// еда» + гравюра-клош. Портуется в document.body (SearchFood.tsx), поэтому fixed к
+// вьюпорту, а не absolute к `.content`. `--medal-size` наследуется в медаль (RoundButton
+// его только ЧИТАЕТ через var(), не переопределяет) → диаметр 64px. Кегль дуги не
+// трогаем: медаль жёстко объявляет `--wb-arc-size:17px` на себе. useKeyboardStick
+// (mode:'transform') поднимает узел translateY над клавиатурой, сохраняя якорь right.
 .createFab {
-    position: absolute;
-    right: 0;
+    // Портуется в document.body (см. SearchFood.tsx) → fixed к вьюпорту, z-index выше
+    // полноэкранной ModalByLabel (z:1000), чтобы «пробить» её fade: родительская
+    // прозрачность через портал не наследуется, поэтому монета появляется акцентом.
+    position: fixed;
+    right: var(--sys-inset-page);
     bottom: calc(12px + env(safe-area-inset-bottom));
-    z-index: 15;
+    z-index: 1001;
     display: flex;
     --medal-size: 64px;
+    // Быстрый собственный вход (ТОЛЬКО opacity — transform занят useKeyboardStick),
+    // чтобы монета вспыхивала акцентом, а не вплывала вместе с общим fade модалки.
+    animation: createFabIn 180ms var(--easing-default) both;
+}
+
+@keyframes createFabIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .createFab {
+        animation: none;
+    }
 }
 
 // Монета «Новая еда» несёт elevated-режим (look="elevated" → sys-elevation важного

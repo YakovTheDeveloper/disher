@@ -23,6 +23,14 @@ type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : vo
 //    finished, it calls `finishClose(id)`, which fully removes the instance.
 // No magic timer — exit duration is governed by the real CSS transition.
 
+// A heterogeneous registry: one array holds modals with mutually unrelated prop
+// types. Each entry needs its OWN P, which TS can't express without existential
+// types — the erased `any` here is what a `∃P` would be if the language had one.
+// The type safety lives at the `show<P>()` boundary below, where P is captured
+// and `props` is checked against the component; nothing reads these fields back
+// out expecting a specific shape. Widening to `unknown` doesn't work: the manager
+// spreads `props` into the component, which `unknown` forbids.
+/* eslint-disable @typescript-eslint/no-explicit-any -- existential P, see above */
 interface ModalInstance {
   id: string;
   Component: React.ComponentType<any>;
@@ -31,6 +39,7 @@ interface ModalInstance {
   historyHandler: () => void;
   phase: 'mounting' | 'open' | 'closing';
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface ModalState {
   instances: ModalInstance[];
@@ -40,6 +49,11 @@ const useModalStore = create<ModalState>(() => ({
   instances: [],
 }));
 
+// `BaseModalProps<any>` as the constraint, not `<unknown>`: it must accept a modal
+// declaring ANY result type, and `BaseModalProps<unknown>` would only match those
+// whose onClose takes unknown. P itself is inferred exactly — that's what keeps
+// `props` and the resolved value honest for the caller.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constraint must admit every R
 function show<P extends BaseModalProps<any>>(
   Component: React.ComponentType<P>,
   props: Omit<P, 'onClose'>,
@@ -66,6 +80,10 @@ function show<P extends BaseModalProps<any>>(
   });
 }
 
+// Untyped by construction: close(id) is called from the manager and from history
+// pops, which know the id but not which modal's R it belongs to. The value is
+// passed straight to that instance's own resolve().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- caller can't know R from an id
 function close(id: string, result?: any) {
   const instance = useModalStore.getState().instances.find((i) => i.id === id);
   if (!instance) return;
@@ -95,6 +113,7 @@ function finishClose(id: string) {
   }));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- same as close(): R unknown at the call site
 function closeLast(result?: any) {
   const open = useModalStore
     .getState()

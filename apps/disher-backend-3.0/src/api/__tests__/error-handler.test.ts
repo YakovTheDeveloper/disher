@@ -87,6 +87,23 @@ describe("global problem+json error handler", () => {
     expect(res.json().fieldErrors).toEqual({ count: expect.stringMatching(/integer/i) });
   });
 
+  it("a NUMERIC string for an integer → 400, not a coerced number", async () => {
+    // The ratchet on `coerceTypes: false` (api/ajv-options.ts), and the reason it
+    // has to be a numeric string rather than "not-a-number": Fastify's Ajv default
+    // (`coerceTypes: 'array'`) would REWRITE "500" to 500 before the handler ever
+    // saw it. This is not a style point — POST /api/admin/users/:id/topup takes an
+    // integer `amountKop`, so under the default a caller sending "500" would move
+    // real money on a route that answers 400 today. The admin matrix cannot be the
+    // only guard: it needs TEST_DATABASE_URL and skips without one.
+    const res = await app.inject({
+      method: "POST",
+      url: "/__validated",
+      payload: { text: "hi", count: "500" },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().fieldErrors).toEqual({ count: expect.stringMatching(/integer/i) });
+  });
+
   it("an extra property is STRIPPED, not rejected (Fastify's removeAdditional)", async () => {
     // Pinning the surprise: `additionalProperties: false` under Fastify's
     // default Ajv does not 400 — it silently drops the member. Routes that must
@@ -112,5 +129,26 @@ describe("global problem+json error handler", () => {
     const serialized = JSON.stringify(body);
     expect(serialized).not.toMatch(/"stack"/);
     expect(serialized).not.toMatch(/\bat \w+.*:\d+:\d+/); // stack-frame shape
+  });
+
+  it("an anonymous caller with a malformed body → 401, never a 400 quoting our schema", async () => {
+    // The ratchet on requireUser's hook phase. Fastify runs schema validation
+    // BETWEEN onRequest and preHandler, so a guard left on preHandler sits behind
+    // Ajv: a caller with no session and a bad body would be told which field is
+    // wrong — a free readout of the private shape — instead of being refused, and
+    // would have had its body parsed (up to bodyLimit, 5MB) first.
+    //
+    // A real route, not a synthetic one: the phase is a property of how buildApp
+    // wires the scope, which a hand-registered route would not exercise. Origin is
+    // trusted here on purpose, so requireTrustedOrigin passes and requireUser is
+    // the guard under test; `text: 123` violates the route's schema.
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/user-reports/",
+      headers: { origin: "http://localhost:5173" },
+      payload: { text: 123 },
+    });
+    expect(res.statusCode).toBe(401);
+    expect(res.json().fieldErrors).toBeUndefined();
   });
 });

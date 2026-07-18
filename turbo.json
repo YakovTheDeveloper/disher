@@ -13,10 +13,26 @@
     "lint": {
       "outputs": []
     },
+    // ^build on both: @disher/contracts is consumed through its `dist/`
+    // (exports → dist/index.d.ts) and dist/ is gitignored, so on a fresh clone —
+    // i.e. every CI run — `typecheck`/`test` without this edge fail with
+    // «Cannot find module '@disher/contracts'». Locally it only ever passed
+    // because someone had already built it.
     "test": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    // Same edge, and here it is a RUNTIME need, not just types: the script boots
+    // buildApp, which reaches @disher/contracts through analyze.ts →
+    // shared/analysis-output.ts and imports TypeBox VALUES from its dist/.
+    // Running it as a bare `pnpm --filter` only worked because some earlier CI
+    // step happened to have built contracts already.
+    "spec:check": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "clean": {

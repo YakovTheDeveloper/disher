@@ -27,6 +27,8 @@ import { requireTrustedOrigin } from "../auth/require-origin.js";
 import { pool } from "./db.js";
 import { isMatcherReady } from "./food-matcher.js";
 import { toProblem } from "./errors.js";
+import { AJV_OPTIONS } from "./ajv-options.js";
+import { ERROR_SCHEMAS, responsesFor } from "./openapi-responses.js";
 import { resolveRequestId } from "../billing/http.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,9 +37,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // codebase they carry an `operationId` (a client generator names its methods
 // from it; without one it invents a name out of the path) and describe the
 // INPUT only — see routes/README-ish note in api/errors.ts for why the handler,
-// not Ajv, keeps the bounds. No `response` schemas anywhere: Fastify uses those
-// to SERIALIZE, silently dropping members the schema omits, which is a
-// behaviour change and a separate decision from documenting the input.
+// not Ajv, keeps the bounds. Responses are documented too, but NOT here: a
+// `response` member on a route schema would make Fastify serialize with it and
+// silently drop everything the schema omits. They live in api/openapi-responses.ts
+// and are grafted on in the swagger `transform` below, which the plugin applies
+// to a local copy — so they reach the spec and never reach the serializer.
 const NUTRIENT_ARTICLES_SCHEMA = {
   operationId: "listNutrientArticles",
   tags: ["content"],
@@ -119,18 +123,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     // trustProxy parses X-Forwarded-For so req.ip is the real client. Safe
     // because the only hop in front of Fastify is our own Caddy.
     trustProxy: true,
-    ajv: {
-      customOptions: {
-        // OFF, against Fastify's default. Coercion REWRITES the body before the
-        // handler sees it, which silently voids the "schema = shape, handler =
-        // semantics" split every route schema here is written to: POST
-        // /api/admin/users/:id/topup refuses a stringy `amountKop: "500"` today,
-        // and with coercion an integer schema would hand the handler a clean
-        // 500 and credit the wallet. Clients send JSON, which already has the
-        // types; the string-typed querystrings are parsed by their handlers.
-        coerceTypes: false,
-      },
-    },
+    // See api/ajv-options.ts — shared with the tests that must validate the way
+    // production does.
+    ajv: AJV_OPTIONS,
     ...(httpsOptions ? { https: httpsOptions } : {}),
   });
 
@@ -166,10 +161,27 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     // garbage client method. Auth is better-auth's contract, described by their
     // docs; our spec covers our routes. Hiding keeps the artifact honest rather
     // than padded.
-    transform: ({ schema, url, route }) =>
-      url.startsWith("/api/auth")
-        ? { schema: { ...schema, hide: true }, url, route }
-        : { schema, url, route },
+    //
+    // The second job of this hook is response documentation. @fastify/swagger
+    // builds the doc from the schema RETURNED here, against a local variable —
+    // `route.schema` is never mutated (lib/spec/openapi/index.js) — so a
+    // `response` added here reaches the spec and never reaches
+    // fast-json-stringify. That is the whole reason the table lives in
+    // openapi-responses.ts instead of on the routes: on a route it would switch
+    // serialization on and silently drop unlisted members in production.
+    //
+    // Without it @fastify/swagger emits `{200: {description: 'Default Response'}}`
+    // per operation, which is not silence — `responses` is REQUIRED in OpenAPI
+    // 3.0.3 — it is a claim of 200 on routes that answer 204, 402 or 503.
+    transform: ({ schema, url, route }) => {
+      if (url.startsWith("/api/auth")) {
+        return { schema: { ...schema, hide: true }, url, route };
+      }
+      const response = responsesFor(
+        (schema as { operationId?: unknown } | undefined)?.operationId,
+      );
+      return { schema: response ? { ...schema, response } : schema, url, route };
+    },
     openapi: {
       // Pinned deliberately, NOT inherited: 9.8.1 already defaults to 3.0.3
       // (lib/spec/openapi/utils.js), but the version is a contract with the
@@ -184,6 +196,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
           "problem+json shape — see api/errors.ts.",
       },
       components: {
+        // The two live error bodies + the 402 shape. See openapi-responses.ts
+        // for why there are two rather than one.
+        schemas: ERROR_SCHEMAS,
         securitySchemes: {
           // The session is an httpOnly cookie; better-auth prepends `__Secure-`
           // whenever baseURL is https, which includes the self-signed dev server
@@ -317,8 +332,17 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   // Ajv, so a forged request with a malformed body got a 400 describing our
   // schema instead of a flat 403 — the csrf-origin-guard ratchet caught exactly
   // that when the route schemas landed. onRequest also refuses before the (up
-  // to 5MB) body is parsed. requireUser stays a preHandler, so origin is still
-  // checked ahead of the session lookup.
+  // to 5MB) body is parsed.
+  //
+  // requireUser/requireAdmin are onRequest for the SAME reason, which the first
+  // pass missed: left on preHandler they too sat behind Ajv, so an anonymous
+  // caller with a malformed body got a 400 quoting our schema instead of a 401,
+  // and every unauthenticated request parsed its body before being refused.
+  // Both guards read headers only, which is the condition @fastify/auth names
+  // for hoisting auth to onRequest. Origin is still checked ahead of the
+  // session lookup: within a scope, hooks run in registration order, and for
+  // routes whose guard lives in the route module the parent scope's onRequest
+  // runs before the child's.
 
   // suggestions + free-text-food are PAID (debit the wallet per LLM call). They
   // used to be anonymous (IP-rate-limited) — the app now mandates signup
@@ -329,7 +353,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(
     async (scope) => {
       scope.addHook("onRequest", requireTrustedOrigin);
-      scope.addHook("preHandler", requireUser);
+      scope.addHook("onRequest", requireUser);
       await scope.register(suggestionsRoutes);
     },
     { prefix: "/api/suggestions" },
@@ -337,7 +361,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(
     async (scope) => {
       scope.addHook("onRequest", requireTrustedOrigin);
-      scope.addHook("preHandler", requireUser);
+      scope.addHook("onRequest", requireUser);
       await scope.register(freeTextFoodRoutes);
     },
     { prefix: "/api/free-text-food" },
@@ -345,7 +369,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
   await app.register(
     async (scope) => {
       scope.addHook("onRequest", requireTrustedOrigin);
-      scope.addHook("preHandler", requireUser);
+      scope.addHook("onRequest", requireUser);
       await scope.register(freeTextEventRoutes);
     },
     { prefix: "/api/free-text-event" },
@@ -385,7 +409,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<BuiltApp> {
     { prefix: "/api" },
   );
   // Admin panel (topup + roles). NOT dev-gated — it's a production feature; the
-  // requireAdmin preHandler (self-applied in the module) is the security gate.
+  // requireAdmin onRequest guard (self-applied in the module) is the security gate.
   await app.register(
     async (scope) => {
       scope.addHook("onRequest", requireTrustedOrigin);

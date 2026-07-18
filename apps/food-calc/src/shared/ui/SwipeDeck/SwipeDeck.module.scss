@@ -81,3 +81,31 @@
 .heroSlot {
     min-height: var(--deck-hero-h, 0);
 }
+
+// Скрим полосы топ-бара. Страничный дим-бэкдроп (WriteBarShell `.focusOverlay`)
+// заперт в Embla-стекинге слайда (transform + contain) и до плавающего бара (z:10)
+// не достаёт — поэтому его полосу кроет ОТДЕЛЬНЫЙ оверлей здесь, на уровне
+// `.container`, ПОВЕРХ бара (z:11). `.focusOverlay` стартует ПОД баром
+// (`top: --top-bar-h`), так что оба скрима стыкуются встык одним тоном — без
+// двойного затемнения промежутков между пилюлями (шва). Показывается ТОЛЬКО когда
+// write-бар гасит страницу на ВИДИМОМ слайде (`data-slide-current`) → предложка
+// экрана 1 не тушит общий бар на экране 2 (оба слайда Embla смонтированы разом).
+// pointer-events на видимом скриме — кнопки под ним намеренно некликабельны, пока
+// открыта предложка (выход — тап по большому скриму страницы).
+.topBarScrim {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--top-bar-h);
+    z-index: 11;
+    background: var(--sys-color-scrim);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.24s var(--easing-default);
+}
+
+.container:has([data-slide-current] [data-writebar-dim]) .topBarScrim {
+    opacity: 1;
+    pointer-events: auto;
+}

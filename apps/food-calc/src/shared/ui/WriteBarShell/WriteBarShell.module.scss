@@ -55,6 +55,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    align-items: center;
+    gap: var(--space-2);
     // Боковой инсет страницы (--sys-inset-page) — пилюля отступает от кромок
     // экрана; медаль вынесена на уровень `.wrap` и анкорится `right:0` к padding-
     // box, поэтому продолжает парить у самой кромки, игнорируя этот инсет.
@@ -88,15 +90,23 @@
 }
 
 // ─── Focus overlay: dim the page so the accent falls on the bar (opt-in) ─────
-// Затемняющий бэкдроп на фокусе (проп `focusOverlay`, включён у Еды). Fixed
-// inset:0, но живёт ВНУТРИ `.wrap` при z-index:-1 → плашка дока (surface-2) +
-// пилюля + подсказка красятся ПОВЕРХ него (bright), а страница под баром гаснет.
-// Тап по затемнению = blur инпута (dismiss). Плавный фейд по `[data-visible]`
-// (expanded) — без вспышки прежнего глобального Screen-scrim (тот дёргался на
-// `:has(:focus)`, снят 2026-06-23). Цвет — канон-скрим бэкдропов (тёплый уголь).
+// Затемняющий бэкдроп на фокусе (проп `focusOverlay`, включён у Еды). Fixed, но
+// живёт ВНУТРИ `.wrap` при z-index:-1 → плашка дока (surface-2) + пилюля +
+// подсказка красятся ПОВЕРХ него (bright), а страница под баром гаснет. Тап по
+// затемнению = blur инпута (dismiss). Плавный фейд по `[data-visible]` (expanded).
+// Цвет — канон-скрим бэкдропов (тёплый уголь).
+//
+// `top` = `--top-bar-h` (SwipeDeck): бэкдроп начинается ПОД плавающим топ-баром,
+// а его полосу красит отдельный `.topBarScrim` SwipeDeck'а (z:11, над баром z:10).
+// Оба тем же `--sys-color-scrim`, стыкуются встык одним тоном → нет двойного
+// затемнения промежутков между пилюлями (шва). Вне SwipeDeck `--top-bar-h` не
+// задан → fallback 0 → бэкдроп кроет экран целиком, как раньше (обратная совместимость).
 .focusOverlay {
     position: fixed;
-    inset: 0;
+    top: var(--top-bar-h, 0px);
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: -1;
     background: var(--sys-color-scrim);
     opacity: 0;
@@ -128,7 +138,7 @@
 
 // Центральная колонка — сам текст подсказки (первый потомок дока). Кладём в track 2;
 // равные боковые 1fr держат его по центру.
-.hintDock > :first-child {
+.hintDock> :first-child {
     grid-column: 2;
     min-width: 0;
 }

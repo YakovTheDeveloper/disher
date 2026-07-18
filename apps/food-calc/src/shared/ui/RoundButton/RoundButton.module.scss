@@ -210,21 +210,56 @@
     box-shadow: none;
 }
 
-// Elevated-режим — «висит в воздухе»: БЕЗ бордер-обводки, отрыв несёт sys-elevation
-// важного объекта (`--sys-elevation-action-raised`, shadow-2). 3px-spread оставляем
-// — это ПЛАШКА-подложка дуг (тот же цвет surface-2, не видимый кант), НЕ обводка.
-// Плавающий FAB «Новая еда» в поиске (`.createFab`, вне бара).
+// Elevated-режим — ТЁМНАЯ «монета-акцент», висящая в воздухе: тёмная floating-поверхность
+// + БЕЛЫЙ текст дуг ПО УМОЛЧАНИЮ (акцент падает на неё при заходе в SearchFood), гравюра
+// инвертируется в светлую. Press ИНВЕРТИТ в светлый (ниже). Флип 2026-07-18: раньше монета
+// была светлой (surface-2/0) с холодным тёмным текстом, а на press дуги оставались тёмными
+// на тёмной ink-заливке → «одна тёмная масса»; теперь rest = инверсия, press = светлый, оба
+// согласованы. Отрыв несёт sys-elevation важного объекта (БЕЗ бордер-обводки; 3px-spread =
+// плашка-подложка дуг того же тёмного цвета, не кант). Плавающий FAB «Новая еда» в поиске
+// (`.createFab`, вне бара; портуется в body — см. SearchFood).
 .roundButton[data-look='elevated'] {
-    --medal-plate: var(--sys-color-surface-2);
-    --medal-coin: var(--sys-color-surface-0);
+    --medal-plate: var(--sys-color-surface-floating);
+    --medal-coin: var(--sys-color-surface-floating);
     box-shadow:
-        0 0 0 3px var(--medal-plate, var(--sys-color-surface-2)),
+        0 0 0 3px var(--sys-color-surface-floating),
         var(--sys-elevation-action-raised);
 }
 
 // Внутренний диск без собственной лифт-тени — подъём несёт вся медаль.
 .roundButton[data-look='elevated']::before {
     box-shadow: none;
+}
+
+// Гравюра на тёмной монете — инвертируем в светлую (screen), как press-инверсия базы.
+.roundButton[data-look='elevated'] .roundButtonImg {
+    filter: invert(1);
+    mix-blend-mode: screen;
+}
+
+// Press — ИНВЕРСИЯ в светлый: диск светлеет, текст/гравюра темнеют, ink-подложка `::after`
+// гасится. Специфичность (0,3–4,1) бьёт и rest-elevated, и базовый `[data-pressed]`.
+.roundButton[data-look='elevated'][data-pressed] {
+    &::before {
+        background: var(--sys-color-surface-floating-pressed);
+    }
+
+    &::after {
+        opacity: 0;
+    }
+
+    .roundButtonArc text {
+        fill: var(--sys-color-text-cold-strong);
+    }
+
+    .roundButtonCenter {
+        color: var(--sys-color-text-cold-strong);
+    }
+
+    .roundButtonImg {
+        filter: none;
+        mix-blend-mode: multiply;
+    }
 }
 
 // Bare-режим — «голая» медаль: прозрачный фон, БЕЗ диска/плашки, только тонкий
@@ -264,13 +299,13 @@
     transform: translate(-50%, -50%) scale(1.5);
 }
 
-// Яркий ХОЛОДНЫЙ текст дуг + глиф-нода (cold near-black, парный к воздушному подъёму).
+// Текст дуг + глиф-нода — светлые (on-floating) на тёмной монете по умолчанию.
 .roundButton[data-look='elevated'] .roundButtonArc text {
-    fill: var(--sys-color-text-cold-strong);
+    fill: var(--sys-color-text-on-floating);
 }
 
 .roundButton[data-look='elevated'] .roundButtonCenter {
-    color: var(--sys-color-text-cold-strong);
+    color: var(--sys-color-text-on-floating);
 }
 
 [data-expanded] .roundButton[data-inline] {

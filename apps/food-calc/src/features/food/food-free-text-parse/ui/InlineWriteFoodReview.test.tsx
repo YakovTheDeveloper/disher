@@ -8,7 +8,6 @@ import type { UseWriteFoodFlowResult, UnresolvedRow } from '../model/useWriteFoo
 // Тяжёлые дочерние оверлеи предложки тянут Router/store-контекст (useNavigate и
 // т.п.). Тест проверяет обвязку + раскладку секций, не их нутро — мокаем в null.
 vi.mock('./ProposalEditModals', () => ({ ProposalEditModals: () => null }));
-vi.mock('./AddToListPopover', () => ({ AddToListPopover: () => null }));
 
 // Минимальный mock flow — все функции no-op, состояние задаём через overrides.
 function makeFlow(overrides: Partial<UseWriteFoodFlowResult> = {}): UseWriteFoodFlowResult {

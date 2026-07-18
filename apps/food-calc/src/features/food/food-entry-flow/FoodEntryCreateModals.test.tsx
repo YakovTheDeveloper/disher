@@ -216,24 +216,27 @@ describe('FoodEntryCreateModals (schedule) — commit stamps current time', () =
   });
 });
 
-describe('FoodEntryCreateModals (schedule) — create-step header literal', () => {
-  it('shows "Новое блюдо" (no БАД) when creating a dish', () => {
+// Заголовок стал variant-агностичным («Создать еду») — вариант выбирается ВНУТРИ
+// формы («Какая это еда? Продукт / Блюдо»). Поэтому здесь больше нет ни
+// повариантного литерала, ни сторожа согласования («Новый блюдо») — согласовывать
+// нечего. Что осталось живым: БАД-блок положен только продукту.
+describe('FoodEntryCreateModals (schedule) — create-step', () => {
+  it('creating a dish: общий заголовок, БАД не предлагается', () => {
     render(<Harness target={SCHEDULE} />);
     focusInput(SCH_IDS.SEARCH_INPUT);
     fireEvent.click(screen.getByTestId('pick-create-dish'));
     focusInput(SCH_IDS.CREATE_INPUT);
-    expect(expanded().textContent).toContain('Новое блюдо');
-    expect(expanded().textContent).not.toContain('Новый блюдо');
-    // БАД-блок только для продукта.
+    expect(expanded().textContent).toContain('Создать еду');
     expect(expanded().textContent).not.toContain('Таблетка');
   });
 
-  it('shows "Новый продукт" when creating a product', () => {
+  it('creating a product: общий заголовок, БАД предлагается', () => {
     render(<Harness target={SCHEDULE} />);
     focusInput(SCH_IDS.SEARCH_INPUT);
     fireEvent.click(screen.getByTestId('pick-create-product'));
     focusInput(SCH_IDS.CREATE_INPUT);
-    expect(expanded().textContent).toContain('Новый продукт');
+    expect(expanded().textContent).toContain('Создать еду');
+    expect(expanded().textContent).toContain('Таблетка / лекарство / БАД');
   });
 });
 
@@ -318,7 +321,7 @@ describe('FoodEntryCreateModals — supplement (БАД) offered on schedule only
     focusInput(DISH_IDS.SEARCH_INPUT);
     fireEvent.click(screen.getByTestId('pick-create-product'));
     focusInput(DISH_IDS.CREATE_INPUT);
-    expect(expanded().textContent).toContain('Новый продукт');
+    expect(expanded().textContent).toContain('Создать еду'); // шаг создания действительно открыт
     expect(expanded().textContent).not.toContain('Таблетка / лекарство / БАД');
   });
 

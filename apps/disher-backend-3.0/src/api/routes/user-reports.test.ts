@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
+import { AJV_OPTIONS } from "../ajv-options.js";
 
 // The prod route is auth-gated (requireUser → verifyUserSession) and writes to
 // pg. Mock both boundaries: a fake pool captures the INSERT params, and the
@@ -25,8 +26,11 @@ const { userReportsRoutes } = await import("./user-reports.js");
 const url = "/api/user-reports/";
 const AUTH = { cookie: "disher.session_token=test-token" };
 
+// `ajv: AJV_OPTIONS` is not decoration — a bare `Fastify()` validates with
+// Fastify's DEFAULTS, which disagree with ours on coerceTypes. Without this the
+// suite below tests an app we do not ship.
 async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify();
+  const app = Fastify({ ajv: AJV_OPTIONS });
   app.decorateRequest("userId", "");
   await app.register(userReportsRoutes, { prefix: "/api/user-reports" });
   await app.ready();
@@ -79,10 +83,14 @@ describe("POST /api/user-reports — validation", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  // Fastify's default ajv (coerceTypes + removeAdditional) SANITIZES rather than
-  // 400-rejects: a wrong-typed text is coerced to a string, and unknown fields
-  // are stripped before the handler. Both are acceptable for this text-only sink.
-  it("coerces a wrong-typed text to string (ajv default)", async () => {
+  // The two ajv options this route's behaviour hangs on pull in OPPOSITE
+  // directions, so both are pinned here.
+  //
+  // coerceTypes is OFF (api/ajv-options.ts), against Fastify's default: a
+  // wrong-typed `text` is REJECTED, not coerced to "123". This test used to
+  // assert the coercion — and passed, because it built a bare `Fastify()` whose
+  // defaults are not ours. It was green while pinning the opposite of prod.
+  it("rejects a wrong-typed text — coerceTypes is off (NOT Fastify's default)", async () => {
     const app = await buildApp();
     const res = await app.inject({
       method: "POST",
@@ -90,8 +98,8 @@ describe("POST /api/user-reports — validation", () => {
       headers: AUTH,
       payload: { text: 123 },
     });
-    expect(res.statusCode).toBe(200);
-    expect(lastParams()[2]).toBe("123");
+    expect(res.statusCode).toBe(400);
+    expect(query).not.toHaveBeenCalled();
   });
 
   it("strips an unexpected extra field, never binding it (removeAdditional)", async () => {

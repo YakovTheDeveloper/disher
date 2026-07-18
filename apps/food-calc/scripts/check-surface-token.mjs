@@ -97,8 +97,8 @@ function surfaceFills(src, selector) {
   // the selector (needed once a surface root @includes a field-depth mixin). The
   // registry holds only top-level roots, so `;` can't smuggle in a nested rule.
   const re = new RegExp(`(?:^|\\}|;)\\s*${sel}\\s*\\{`, 'g');
-  let m;
-  while ((m = re.exec(src))) {
+  // The body scans from re.lastIndex — the match object itself is never read.
+  while (re.exec(src)) {
     let depth = 0;
     let buf = '';
     for (let i = re.lastIndex; i < src.length; i++) {

@@ -6,14 +6,120 @@
     "description": "Backend for the Disher food diary. Errors share one RFC 9457-subset problem+json shape — see api/errors.ts."
   },
   "components": {
+    "schemas": {
+      "Problem": {
+        "title": "Problem",
+        "type": "object",
+        "description": "RFC 9457 subset (`application/problem+json`) produced by the global error handler. `code` is the stable machine contract; `instance` is the request id, echoed as X-Request-Id. A 5xx `detail` is stripped in production. Extension members are flat per RFC 9457 §3.2.",
+        "required": [
+          "status",
+          "code",
+          "title",
+          "instance"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "Same value as the HTTP status."
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "bad_request",
+              "unauthorized",
+              "forbidden",
+              "not_found",
+              "payload_too_large",
+              "unprocessable",
+              "rate_limited",
+              "internal_error",
+              "ai_provider_error",
+              "service_unavailable",
+              "ai_timeout"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Human summary of `code`."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Specific message. Absent for 5xx in production."
+          },
+          "instance": {
+            "type": "string",
+            "description": "Request id — quote it in a bug report."
+          },
+          "fieldErrors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per-field validation messages. Usually ONE entry — Ajv runs with allErrors:false."
+          },
+          "needKop": {
+            "type": "integer"
+          },
+          "haveKop": {
+            "type": "integer"
+          },
+          "retryAfter": {
+            "type": "integer",
+            "description": "Seconds to wait before retrying."
+          }
+        }
+      },
+      "ErrorEnvelope": {
+        "title": "ErrorEnvelope",
+        "type": "object",
+        "description": "The hand-written error body (`application/json`) sent straight from a handler or an auth guard, bypassing the error handler. `error` is a human sentence, not a stable slug.",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "description": "Upstream message, truncated. Only on 502 from analyze-dish."
+          }
+        }
+      },
+      "InsufficientBalance": {
+        "title": "InsufficientBalance",
+        "type": "object",
+        "description": "The 402 body of every paid route. Sent directly by billing/http.ts and kept byte-compatible with its historical shape — it never passes through the error handler.",
+        "required": [
+          "error",
+          "needKop",
+          "haveKop"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "insufficient_balance"
+            ]
+          },
+          "needKop": {
+            "type": "integer",
+            "description": "Price of the call, in kopecks."
+          },
+          "haveKop": {
+            "type": "integer",
+            "description": "Current wallet balance, in kopecks."
+          }
+        }
+      }
+    },
     "securitySchemes": {
       "cookieSession": {
         "type": "apiKey",
         "in": "cookie",
         "name": "__Secure-disher1.session_token"
       }
-    },
-    "schemas": {}
+    }
   },
   "paths": {
     "/articles/nutrients": {
@@ -25,7 +131,29 @@
         "description": "Nutrient article folders available under /content/nutrients.",
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "One entry per article folder. An unreadable directory answers 200 with [].",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "One entry per article folder. An unreadable directory answers 200 with [].",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "folder": {
+                        "type": "string"
+                      },
+                      "nutrientId": {
+                        "type": "string"
+                      },
+                      "nutrientName": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -49,7 +177,24 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The article's raw markdown.",
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No article folder by that name.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         }
       }
@@ -63,7 +208,31 @@
         "description": "Liveness — the process is up. Never touches the DB.",
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The process is up. Says nothing about the DB or the matcher.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The process is up. Says nothing about the DB or the matcher.",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "description": "Seconds since process start."
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -77,7 +246,69 @@
         "description": "Readiness — Postgres reachable AND the embedding matcher initialized. 503 when not.",
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Ready — Postgres reachable AND the matcher initialized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ready — Postgres reachable AND the matcher initialized.",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "db": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "matcherReady": {
+                      "type": "boolean"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not ready — the DB ping failed or the matcher is still loading. Same body shape as 200; orchestrators gate on the status code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Not ready — the DB ping failed or the matcher is still loading. Same body shape as 200; orchestrators gate on the status code.",
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "not-ready"
+                      ]
+                    },
+                    "db": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "down"
+                      ]
+                    },
+                    "matcherReady": {
+                      "type": "boolean"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -119,7 +350,109 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Suggested products for the dish.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Suggested products for the dish."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-IP hourly rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The LLM provider failed or returned something unparseable. Any charge was refunded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The embedding matcher is still initializing — retry in a few seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -185,7 +518,99 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Suggested nutrient values for the product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Suggested nutrient values for the product."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-IP hourly rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The LLM provider failed or returned something unparseable. Any charge was refunded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -242,7 +667,109 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Parsed food items, matched against the catalog.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Parsed food items, matched against the catalog."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-IP hourly rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The LLM provider failed or returned something unparseable. Any charge was refunded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The embedding matcher is still initializing — retry in a few seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -281,7 +808,99 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Parsed events.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Parsed events."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-IP hourly rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The LLM provider failed or returned something unparseable. Any charge was refunded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -432,8 +1051,33 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Default Response"
+          "204": {
+            "description": "Recorded."
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Per-IP telemetry rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -450,8 +1094,11 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": true,
                 "title": "BackupSnapshot",
-                "description": "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it."
+                "description": "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it.",
+                "type": "object",
+                "properties": {}
               }
             }
           },
@@ -463,8 +1110,58 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Default Response"
+          "204": {
+            "description": "Snapshot stored. Last write wins."
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -481,7 +1178,52 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The snapshot exactly as the client stored it. The server never inspects it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The snapshot exactly as the client stored it. The server never inspects it."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No snapshot for this user."
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -497,8 +1239,43 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Default Response"
+          "204": {
+            "description": "Vault erased. Idempotent — 204 whether or not a row existed."
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -549,7 +1326,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Report stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Report stored.",
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -621,7 +1464,84 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The pending (or, on a repeat POST, the existing) analysis row.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The pending (or, on a repeat POST, the existing) analysis row."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The id exists but belongs to another user. The charge was refunded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -640,7 +1560,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The user's analyses, newest first (max 500).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The user's analyses, newest first (max 500)."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -669,7 +1631,59 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "One analysis. Empty `result_md` = still running.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "One analysis. Empty `result_md` = still running."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such analysis for this user. A malformed id answers 404, not 400 — deliberate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       },
@@ -696,7 +1710,68 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Deleted.",
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Already gone, not this user's, or a malformed id. The frontend treats it as success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -754,7 +1829,74 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The dish breakdown. `observations` and `hypotheses` are always empty here.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The dish breakdown. `observations` and `hypotheses` are always empty here."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Wallet cannot cover the price. Nothing was charged and no work was started.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsufficientBalance"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The LLM provider failed or returned something unparseable. Any charge was refunded.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -773,7 +1915,58 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Current balance. Creates the wallet (welcome grant) on first read.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Current balance. Creates the wallet (welcome grant) on first read.",
+                  "type": "object",
+                  "properties": {
+                    "balanceKop": {
+                      "type": "integer"
+                    },
+                    "balanceRub": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -802,7 +1995,64 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Ledger entries, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Ledger entries, newest first."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -821,7 +2071,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Flat per-feature prices in kopecks, keyed by feature.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Flat per-feature prices in kopecks, keyed by feature."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing or untrusted `Origin` — requireTrustedOrigin refused before the session lookup.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -840,7 +2132,35 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The caller is an admin. The body is intentionally empty — the status IS the answer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The caller is an admin. The body is intentionally empty — the status IS the answer.",
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -859,7 +2179,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Every user + wallet balance.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Every user + wallet balance."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -879,15 +2241,24 @@
                 "additionalProperties": false,
                 "title": "TopupRequest",
                 "type": "object",
+                "required": [
+                  "amountKop",
+                  "reason",
+                  "requestId"
+                ],
                 "properties": {
                   "amountKop": {
-                    "description": "Positive integer, kopecks."
+                    "minimum": 1,
+                    "description": "Amount to credit, in kopecks.",
+                    "type": "integer"
                   },
                   "reason": {
-                    "description": "Non-empty, <= 200 chars."
+                    "description": "Shown in the ledger. Non-empty after trim, <= 200 chars.",
+                    "type": "string"
                   },
                   "requestId": {
-                    "description": "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true."
+                    "description": "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true.",
+                    "type": "string"
                   }
                 }
               }
@@ -911,7 +2282,74 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "The credit result. A repeat with the same requestId returns `alreadyApplied: true`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The credit result. A repeat with the same requestId returns `alreadyApplied: true`."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No user with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -958,7 +2396,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "Auth diagnostics, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Auth diagnostics, newest first."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -996,7 +2476,49 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "User-submitted reports, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "User-submitted reports, newest first."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }
@@ -1033,7 +2555,64 @@
         ],
         "responses": {
           "200": {
-            "description": "Default Response"
+            "description": "One user's ledger, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "One user's ledger, newest first."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON, a body that fails the route schema (problem+json with `fieldErrors`), or a bound the handler owns and the schema does not (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session cookie, or it is expired/invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Untrusted `Origin`, or the session is not an admin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unhandled failure (problem+json; `detail` stripped in production) or an unconfigured DB (application/json).",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
           }
         }
       }

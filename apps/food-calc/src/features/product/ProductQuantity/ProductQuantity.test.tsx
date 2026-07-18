@@ -30,9 +30,12 @@ function renderQuantity({
 }
 
 describe('ProductQuantity — portions carousel', () => {
+  // По роли, а не по placeholder: тот сейчас декоративный «0» и менялся уже дважды,
+  // хотя сам инпут никуда не девался — привязка к нему ловила смену копирайта, а не
+  // пропажу поля.
   it('always renders the quantity input', () => {
     renderQuantity();
-    expect(screen.getByPlaceholderText('Количество')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
   it('renders no portion chips when no portions provided', () => {

@@ -313,6 +313,14 @@ export function useFoodEntryFlow({
   // как `<label htmlFor={QUANTITY_INPUT}>`, onFocusCapture флипнет шаг после
   // делегирования фокуса (CLAUDE.md «Label focus delegation»). БАД-нутриенты
   // (per 1 шт) пишутся для product-варианта на обоих таргетах.
+  //
+  // Предложка — исключение: её ряд уже несёт количество и время из разбора, шага
+  // «Порция» за созданием нет, поэтому «Создать» ЗАВЕРШАЕТ флоу и коммитит ряд сам
+  // (зеркалит proposal-ветку handleFoodSelect). Коммит стоит внутри .then, а не
+  // рядом с оптимистичным штампом: ряд не должен сослаться на продукт, запись
+  // которого упала. Кнопка на этом таргете — обычная, не label (см.
+  // FoodEntryCreateModals): делегация в QUANTITY_INPUT подняла бы шаг порции
+  // поверх только что закрытого флоу.
   const handleConfirmCreate = useCallback(
     (
       name: string,
@@ -331,16 +339,27 @@ export function useFoodEntryFlow({
       const variant = draft.variant;
       if (variant !== 'product' && variant !== 'dish') return;
       const id = crypto.randomUUID();
-      setDraft((d) => ({
-        ...d,
-        variant,
-        productId: variant === 'product' ? id : null,
-        dishId: variant === 'dish' ? id : null,
-        foodName: trimmed,
-        // БАД считается per-serving (1 = одна капсула/таблетка). Дефолт 100 в
-        // createEmptyDraft рассчитан на еду (граммы) — для supplement даёт абсурд.
-        quantity: opts?.isSupplement ? 1 : d.quantity,
-      }));
+      // БАД считается per-serving (1 = одна капсула/таблетка). Дефолт 100 в
+      // createEmptyDraft рассчитан на еду (граммы) — для supplement даёт абсурд.
+      const quantity = opts?.isSupplement ? 1 : draft.quantity;
+
+      const proposal = target.kind === 'proposal' ? target : null;
+      const committedRow = proposal ? editingItem : null;
+      const patch = draft;
+      if (proposal) {
+        setStep('idle');
+        setEditingItem(null);
+        setDraft(createEmptyDraft());
+      } else {
+        setDraft((d) => ({
+          ...d,
+          variant,
+          productId: variant === 'product' ? id : null,
+          dishId: variant === 'dish' ? id : null,
+          foodName: trimmed,
+          quantity,
+        }));
+      }
       // Откат флоу, если запись в Dexie упала (quota / IDB locked) — иначе
       // draft.productId укажет на несуществующую строку и handleCommit запишет
       // orphan. safeMutate покажет ошибку тостером, мы просто разматываем в idle.
@@ -366,6 +385,17 @@ export function useFoodEntryFlow({
           rollback();
           return;
         }
+        if (proposal && committedRow) {
+          proposal.onCommit(committedRow.id, {
+            time: patch.time,
+            quantity,
+            details: patch.details.trim(),
+            variant,
+            productId: variant === 'product' ? id : null,
+            dishId: variant === 'dish' ? id : null,
+            foodName: trimmed,
+          });
+        }
         const n = opts?.nutrients;
         if (variant === 'product' && n && Object.keys(n).length > 0) {
           void safeMutate(
@@ -375,7 +405,7 @@ export function useFoodEntryFlow({
         }
       });
     },
-    [draft.variant, mode, isProposal],
+    [draft, mode, isProposal, target, editingItem],
   );
 
   const handleFoodSelect = async (payload: {

@@ -75,15 +75,15 @@ describe('HomeTopBar — noInterruptGuard', () => {
 });
 
 describe('HomeTopBar — date button content', () => {
-  it('shows the short weekday plus the day-of-month as a small superscript', () => {
-    // DATE = 15-05-2026 → пятница (short «Пт», курсив) + мелкое тонкое число дня
-    // «15» надстрочником-«степенью» в углу (2026-07-12 — силуэт календаря снят).
+  it('renders only the weekday (casing via CSS, day-of-month hidden)', () => {
+    // DATE = 15-05-2026 → пятница. Аббревиатуру отдаём СЫРУЮ строчную («пт») —
+    // casing («Пт») несёт CSS text-transform: capitalize, не строка. Число дня
+    // временно скрыто (2026-07-18 — оставлен только день недели).
     render(<HomeTopBar date={DATE} />);
     const btn = screen.getByLabelText('Выбрать дату');
 
-    expect(btn.textContent).toContain('Пт');
-    expect(btn.textContent).toContain('15');
-    // Guard против отката к старому мета dd.mm (напр. «15.05») — только день «степенью».
-    expect(btn.textContent).not.toMatch(/\d\d\.\d\d/);
+    expect(btn.textContent).toContain('пт');
+    // Число дня и старый мета dd.mm НЕ рендерятся — только день недели.
+    expect(btn.textContent).not.toMatch(/\d/);
   });
 });

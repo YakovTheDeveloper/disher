@@ -150,7 +150,7 @@ export async function analyzeDishRoutes(
   app: FastifyInstance,
   opts: AnalyzeDishRouteOptions = {},
 ) {
-  app.addHook("preHandler", requireUser);
+  app.addHook("onRequest", requireUser);
 
   app.post(
     "/analyze-dish",

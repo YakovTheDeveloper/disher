@@ -6,6 +6,7 @@ import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { useUserId } from '@/shared/lib/auth/useUserId';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
+import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
 import { useHaptic } from '@/shared/lib/hooks/useHaptic';
 import toaster from '@/shared/lib/toaster/toaster';
 import { classifyError, defaultUserMessage } from '@/shared/lib/errors/classify';
@@ -246,6 +247,7 @@ export function useWriteEventFlow(scheduleId: string): UseWriteEventFlowResult {
 
     const newIds = committable.map(() => crypto.randomUUID());
     markAdded(newIds);
+    if (newIds[0]) scrollToNewRow(newIds[0]);
 
     const result = await safeMutate(
       () =>

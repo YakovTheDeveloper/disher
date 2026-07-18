@@ -9,7 +9,7 @@ import { PRICES_KOP, rubFromKop } from "../../billing/prices.js";
 // grant) on first read via getBalance/listLedger → ensureWallet.
 
 export async function billingRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", requireUser);
+  app.addHook("onRequest", requireUser);
 
   app.get(
     "/balance",

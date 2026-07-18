@@ -6,7 +6,7 @@ import { EditableQuantity } from './EditableQuantity';
 
 function renderQty({ value = 100 }: { value?: number } = {}) {
   const onCommit = vi.fn();
-  const utils = render(<EditableQuantity value={value} unit="г" onCommit={onCommit} />);
+  const utils = render(<EditableQuantity value={value} onCommit={onCommit} />);
   const input = screen.getByRole('textbox') as HTMLInputElement;
   return { onCommit, input, ...utils };
 }
@@ -63,7 +63,7 @@ describe('EditableQuantity', () => {
     const { input, rerender } = renderQty({ value: 100 });
     expect(input).toHaveValue('100');
 
-    rerender(<EditableQuantity value={180} unit="г" onCommit={vi.fn()} />);
+    rerender(<EditableQuantity value={180} onCommit={vi.fn()} />);
     expect(screen.getByRole('textbox')).toHaveValue('180');
   });
 });

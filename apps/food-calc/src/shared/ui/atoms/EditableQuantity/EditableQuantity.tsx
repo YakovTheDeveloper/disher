@@ -1,13 +1,10 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { QtyStack } from '@/shared/ui/atoms/QtyStack';
 import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 
 interface EditableQuantityProps {
   /** Authoritative quantity from the data layer (props/Dexie). */
   value: number;
-  /** Unit label under the value — parent-supplied (getQtyUnit(product) vs «г»);
-   *  компонент unit-агностичен. */
-  unit: ReactNode;
   /** Вызывается на РЕАЛЬНОЕ изменение (draft !== value && > 0) при blur. */
   onCommit: (next: number) => void;
   /**
@@ -45,7 +42,6 @@ interface EditableQuantityProps {
  */
 export function EditableQuantity({
   value,
-  unit,
   onCommit,
   dataEntityEdit,
   htmlFor,
@@ -63,7 +59,7 @@ export function EditableQuantity({
   // новое количество приедет сверху, из флоу.
   if (htmlFor != null) {
     return (
-      <QtyStack as="label" unit={unit} htmlFor={htmlFor} onPointerDown={onPointerDown}>
+      <QtyStack as="label" htmlFor={htmlFor} onPointerDown={onPointerDown}>
         {value}
       </QtyStack>
     );
@@ -75,7 +71,6 @@ export function EditableQuantity({
 
   return (
     <QtyStack
-      unit={unit}
       mirror={String(draft)}
       data-entity-edit={dataEntityEdit || undefined}
       onKeyDown={(e: React.KeyboardEvent) => {

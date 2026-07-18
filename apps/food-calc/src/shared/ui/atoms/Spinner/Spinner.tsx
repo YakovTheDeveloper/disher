@@ -12,7 +12,7 @@ interface SpinnerProps {
 
 const Spinner: React.FC<SpinnerProps> = ({
   size = 18,
-  color = "rgb(76, 175, 80)",
+  color = "var(--sys-color-text-accent)",
   ariaLabel = "Loading...",
   initialWidth = 0,
   finalWidth = 50,

@@ -78,7 +78,7 @@ describe('DishDrawer', () => {
     useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
     useDishItemsWithProducts.mockReturnValue([]);
     const { getByText, queryByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    expect(getByText(/нет ингредиентов/i)).toBeInTheDocument();
+    expect(getByText(/здесь пока пусто/i)).toBeInTheDocument();
     expect(queryByTestId('foods-nutrients')).toBeNull();
   });
 
@@ -102,8 +102,13 @@ describe('DishDrawer', () => {
     expect(getByTestId('body').textContent).toContain('Продукт');
   });
 
+  // Блюдо С ингредиентами: стрелка в шапке условна (`items.length > 0`) — у пустого
+  // её намеренно нет, туда уводит кнопка «Перейти к блюду» внутри empty-state.
   it('стрелка «на страницу» закрывает дровер ДО навигации (обязательный pop оверлея)', () => {
     useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
+    useDishItemsWithProducts.mockReturnValue([
+      { id: 'i1', quantity: 50, product: { name: 'свёкла' } },
+    ]);
     const order: string[] = [];
     const onClose = vi.fn(() => order.push('close'));
     goToPage.mockImplementation(() => order.push('navigate'));

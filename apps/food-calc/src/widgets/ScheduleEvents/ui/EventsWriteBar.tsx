@@ -12,6 +12,7 @@ import { addScheduleEvent } from '@/entities/schedule-event';
 import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
+import { scrollToNewRow } from '@/features/food/food-entry-flow/scrollToNewRow';
 import toaster from '@/shared/lib/toaster/toaster';
 import { useWriteEventFlow } from '../model/useWriteEventFlow';
 import EventCreateModal, { type AspectDraft } from './EventCreateModal';
@@ -37,8 +38,22 @@ const PLACEHOLDER_EXAMPLES = [
   'Принял витамин D утром',
 ];
 
-const HINT_LABEL = 'Например';
-const HINT = 'Спал с 23 до 7, качество сна 6 из 10,\nне просыпался';
+// Подсказка бара за ⓘ в доке над баром (бумажка-поповер, а не инлайн-раскрытие,
+// 2026-07-17). Что умеет онлайн-путь + куда деться без сети. Выделение понятий —
+// <strong> (вес): Onest без курсива. Пример формата живёт в PLACEHOLDER_EXAMPLES.
+const EVENT_HINT = (
+  <>
+    <p>
+      Опишите, что происходит, обычными словами — событие, период и оценки от 0 до
+      10: например, <strong>«спал с 23:00 до 7:00, качество сна 6»</strong>.
+      Разберём в карточку сами.
+    </p>
+    <p>
+      Распознавание работает <strong>только онлайн</strong>. Без сети добавьте
+      событие <strong>вручную</strong> — кнопкой справа.
+    </p>
+  </>
+);
 
 // Офлайн-черновик: линейка стартует в середине — нейтральная точка отсчёта.
 const DEFAULT_ASPECT_VALUE = 5;
@@ -120,6 +135,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
     offlineSubmittingRef.current = false;
     if (!result.ok) return;
     markAdded([result.value]);
+    scrollToNewRow(result.value);
     setOfflineText('');
     setOfflineAspects(emptyAspects());
     setOfflineOpen(false);
@@ -171,8 +187,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         fieldOverride={panelOpen ? readyHeader : undefined}
         overlayVisible={panelOpen}
         blurOnSubmit
-        hint={HINT}
-        hintLabel={HINT_LABEL}
+        hintPopover={EVENT_HINT}
         minRows={1}
         trailingSlot={
           panelOpen ? undefined : (

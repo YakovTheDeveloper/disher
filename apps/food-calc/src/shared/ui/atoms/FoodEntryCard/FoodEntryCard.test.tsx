@@ -19,7 +19,6 @@ function renderCard() {
       <FoodEntryCard
         id="fe-1"
         quantity={150}
-        unit="г"
         onCommitQuantity={vi.fn()}
         name={{ name: 'Айва' }}
       />

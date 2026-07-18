@@ -1,0 +1,11 @@
+# Deliberately surgical: no `* text=auto`, which would renormalize the whole repo
+# in one unreviewable diff. Only files whose bytes are compared by a gate belong
+# here.
+
+# `npm run spec:check` byte-compares this file against a freshly generated string
+# that always ends its lines with \n. This box has core.autocrlf=true, so a fresh
+# checkout would rewrite the working copy to CRLF and the gate would fail claiming
+# «the routes generate a different spec than the committed one» — when only the
+# line endings differ. Verified: CRLF copy → FAIL, LF copy → OK. Pin it to LF so
+# the artifact is identical on Windows and on the Linux CI runner.
+apps/disher-backend-3.0/openapi.json text eol=lf

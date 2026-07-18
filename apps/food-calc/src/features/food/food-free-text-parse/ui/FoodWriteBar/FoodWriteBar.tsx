@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { WriteBarShell } from '@/shared/ui/WriteBarShell';
 import type { SendState } from '@/shared/ui/WriteBarShell';
 import { RoundButton } from '@/shared/ui/RoundButton';
-import { FoodHintButton } from '@/shared/ui/FoodHintButton';
+import { HintButton } from '@/shared/ui/HintButton';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -42,21 +42,40 @@ const PLACEHOLDER_EXAMPLES = [
   'Творог 200 г, горсть орехов',
 ];
 
-// Подсказка-пример над баром в фокусе. Метка «Например» едет отдельной строкой
-// по центру сверху (hintLabel), пример-тело — строкой ниже (hint). Переносы тела
-// — через `\n` (CSS white-space: pre-line); без них длинные строки авто-переносит.
-const HINT_LABEL = 'Например';
-const HINT = '9:40 гречка 80, сливочное масло 10,\nяйцо 80, вода 200, хлеб 100, сыр 30';
+// Подсказка free-text-бара — за ⓘ в доке над баром (бумажка-поповер, а не инлайн-
+// раскрытие, 2026-07-17). Два абзаца: что делает бар + формат ввода, и зачем нужно
+// онлайн-распознавание. Выделение действий/понятий — тегом <strong> (вес): Onest
+// без курсива. Пример формата в самом баре живёт отдельно (PLACEHOLDER_EXAMPLES).
+const FREETEXT_HINT = (
+  <>
+    <p>
+      Этот бар превращает <strong>рукописную строку</strong> в карточки расписания.
+      Пишите свободно, как в заметке: время, еду и вес в граммах — например,{' '}
+      <strong>«9:40 гречка 80, яйцо 80, хлеб 100»</strong>. Время и вес
+      необязательны, но с ними разбор точнее.
+    </p>
+    <p>
+      Распознавание работает <strong>только онлайн</strong>: оно нужно, чтобы{' '}
+      <strong>структурировать</strong> еду для анализа и подтянуть её нутриенты.
+    </p>
+  </>
+);
 
-// Подсказки по правке разбора — за ⓘ в шапке предложки. Коротко про три жеста
-// правки ряда (замена еды по имени, правка кол-ва/времени, судьба нераспознанного).
+// Подсказки по правке разбора — за ⓘ в шапке предложки «Все верно?». Два абзаца:
+// как работает распознавание (онлайн, каталог, два жеста правки) и зачем оно нужно.
+// Выделение действий — тегом <strong> (вес), а не курсивом: Onest без курсива.
 const REVIEW_HINT = (
   <>
-    Нажмите на название — заменить продукт.
-    <br />
-    Нажмите на количество или время — поправить.
-    <br />
-    Не распознанное собрано отдельной группой — его можно добавить в свой список.
+    <p>
+      Режим «рукописный текст → карточки» работает только онлайн. Еда из базового
+      каталога распознаётся; если нет — можно либо <strong>заменить</strong>{' '}
+      предложенную еду, кликнув на название, либо <strong>добавить</strong> эту еду
+      в свою коллекцию, кликнув на плюсик.
+    </p>
+    <p>
+      Распознавание нужно, чтобы структурировать еду для анализа, а также чтобы
+      получить её нутриенты.
+    </p>
   </>
 );
 
@@ -125,9 +144,9 @@ export const FoodWriteBar = ({
   }, [panelOpen, dockRef]);
 
   // Приглушение верхнего бара (HomeTopBar) на открытой панели больше НЕ живёт тут:
-  // WriteBarShell ставит `data-writebar-dim` на body (через refcount-счётчик), когда
-  // его focusOverlay видим (здесь — через `overlayVisible={panelOpen}`), и хром
-  // гасит себя по флагу (см. writeBarDimStore + HomeTopBar.module.scss).
+  // WriteBarShell ставит `data-writebar-dim` на свой корень `.wrap` (здесь — через
+  // `overlayVisible={panelOpen}`), а SwipeDeck кроет полосу бара отдельным скримом
+  // ТОЛЬКО когда дим-бар лежит на видимом слайде (см. SwipeDeck `.topBarScrim`).
 
   // Ready-state: панель предложки открыта → free-text-инпут больше не нужен
   // (пишут в предложку, не в бар). Его место занимает заголовок «Все верно?»,
@@ -144,10 +163,10 @@ export const FoodWriteBar = ({
         Все верно?
       </Heading>
       {/* ⓘ top-right — тот же канон-примитив, что подсказка в шапке модалки еды
-          (FoodHintButton = InfoButton + PopoverTrigger). Место в правом инсете
+          (HintButton = InfoButton + PopoverTrigger). Место в правом инсете
           пилюли освобождает снятая на открытой панели медаль «Список». */}
       <span className={s.readyHint}>
-        <FoodHintButton hint={REVIEW_HINT} ariaLabel="Подсказки по разбору" size={40} glyphSize={20} />
+        <HintButton hint={REVIEW_HINT} ariaLabel="Подсказки по разбору" size={40} glyphSize={20} />
       </span>
     </div>
   );
@@ -211,8 +230,7 @@ export const FoodWriteBar = ({
         // pending-вид: спиннер-монета + «Распознаём…». Раньше фокус держался, чтобы
         // дотечь до панели-скелетона; теперь панели во время loading нет.
         blurOnSubmit
-        hint={HINT}
-        hintLabel={HINT_LABEL}
+        hintPopover={FREETEXT_HINT}
         minRows={1}
         trailingSlot={
           // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,

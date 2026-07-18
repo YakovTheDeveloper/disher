@@ -48,7 +48,7 @@ const BODY_SCHEMA = Type.Object(
 );
 
 export async function userReportsRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", requireUser);
+  app.addHook("onRequest", requireUser);
 
   app.post<{ Body: UserReportBody }>(
     "/",

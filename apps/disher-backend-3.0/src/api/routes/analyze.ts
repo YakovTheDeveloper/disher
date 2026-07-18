@@ -149,7 +149,7 @@ export async function analyzeRoutes(
   app: FastifyInstance,
   opts: AnalyzeRouteOptions = {},
 ) {
-  app.addHook("preHandler", requireUser);
+  app.addHook("onRequest", requireUser);
 
   app.post(
     "/analyze",

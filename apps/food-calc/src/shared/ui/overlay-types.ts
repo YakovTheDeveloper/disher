@@ -3,15 +3,23 @@ import React from "react";
 /**
  * Base props for drawer components managed by DrawerStore.
  * All drawers must accept onClose callback.
+ *
+ * `R = any` (not `unknown`): the default is what a drawer that never declares a
+ * result gets, and its `onClose()` must stay callable with whatever the caller
+ * has. Under `unknown` the store's `show<P extends BaseDrawerProps<any>>`
+ * constraint would stop matching those drawers.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- default R for result-less drawers
 export interface BaseDrawerProps<R = any> {
   onClose: (result?: R) => void;
 }
 
 /**
  * Base props for modal components managed by ModalStore.
- * All modals must accept onClose callback.
+ * All modals must accept onClose callback. `R = any` for the same reason as
+ * BaseDrawerProps above.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- default R for result-less modals
 export interface BaseModalProps<R = any> {
   onClose: (result?: R) => void;
 }

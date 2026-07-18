@@ -61,6 +61,7 @@ const ALLOW = [
   'shared/ui/atoms/Typography/Text/Text.module.scss', //          примитив <Text role>
   'shared/ui/atoms/Typography/QuietLabel/QuietLabel.module.scss', // примитив <QuietLabel> (serif-italic тихий указатель)
   'shared/ui/atoms/Typography/Numeral/Numeral.module.scss', //    примитив <Numeral> (числовой ярус tnum/lnum)
+  'shared/ui/atoms/Typography/NumeralMarker/NumeralMarker.module.scss', // примитив <NumeralMarker> (тихий хвостик при числе: единица/знак %)
   'shared/ui/atoms/Typography/FieldLabel/FieldLabel.module.scss', // метка поля (раскладка над <Text role="label">)
   'shared/ui/atoms/Card/Card.module.scss', //    compound-каркас карточки: Card.Time = numeral-sm tabular-nums BY CONSTRUCTION (typo-дом числа карточки, пир <Numeral>; см. card-chassis-simplify-2026-06-25)
   'shared/assets/style/mixin.scss', //   text-role() + field-mixin (корневая публикация)

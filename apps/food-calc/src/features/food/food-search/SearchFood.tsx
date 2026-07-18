@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import styles from './SearchFood.module.scss';
 import { FoodActionCard } from './food-action-card';
@@ -310,28 +311,35 @@ const SearchFood = ({
         </button>
       )}
 
-      {/* Плавающая круглая монета «Новая еда» внизу-справа — тот же RoundButton,
-          что Food-бар на HomePage: дуга «Новая еда» сверху + гравюра-клош в центре
-          (не плюс — тот читался убого) + paper-облик. Сама по себе `<label
-          htmlFor={CREATE_INPUT}>` — делегирует фокус инпуту имени в модалке
-          создания → onFocusCapture хоста флипнет шаг на 'create' (канон Label
-          focus delegation — setStep НЕ зовём, только stash варианта+имени через
-          onPickCreate в onClick). Дефолт-вариант product; в модалке переключается
-          сегментом. Имя = текущий запрос (префилл). Липнет над клавиатурой
-          (useKeyboardStick). */}
-      {showCreateDock && createInputHtmlFor && (
-        <div ref={setCreateFabRef} className={styles.createFab} {...medalDataAttrs}>
-          <RoundButton
-            htmlFor={createInputHtmlFor}
-            ariaLabel="Создать новую еду"
-            arcTop="Новая еда"
-            img={medalImg}
-            floating={false}
-            look="elevated"
-            onClick={() => onPickCreate?.('product', searchQuery.trim())}
-          />
-        </div>
-      )}
+      {/* Плавающая тёмная монета-акцент «Новая еда» — тот же RoundButton, что Food-бар
+          на HomePage: дуга «Новая еда» сверху + гравюра-клош в центре (не плюс — тот
+          читался убого). Портуется в document.body, чтобы «пробить» fade полноэкранной
+          ModalByLabel (родительская прозрачность не наследуется через портал — иначе по
+          вложенности монета не может её перебить). Гейт `isActive`: портал ЖИВЁТ вне
+          collapsed-поддерева модалки, поэтому рендерим его только когда шаг поиска активен
+          — иначе монета «утекала» бы на экран при свёрнутой модалке. Сама по себе `<label
+          htmlFor={CREATE_INPUT}>` — делегирует фокус инпуту имени в модалке создания →
+          onFocusCapture хоста флипнет шаг на 'create' (канон Label focus delegation —
+          setStep НЕ зовём, только stash варианта+имени через onPickCreate в onClick).
+          Имя = текущий запрос (префилл). Липнет над клавиатурой (useKeyboardStick). */}
+      {isActive &&
+        showCreateDock &&
+        createInputHtmlFor &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div ref={setCreateFabRef} className={styles.createFab} {...medalDataAttrs}>
+            <RoundButton
+              htmlFor={createInputHtmlFor}
+              ariaLabel="Создать новую еду"
+              arcTop="Новая еда"
+              img={medalImg}
+              floating={false}
+              look="elevated"
+              onClick={() => onPickCreate?.('product', searchQuery.trim())}
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
@@ -477,7 +485,6 @@ const SearchFoodHeavy = ({
       const itemWithNutrients = richNutrient?.id
         ? {
             ...item,
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             getTotalNutrients: (_qty: number) => {
               const entries = nutrientMap.get(item.id);
               if (!entries) return {};

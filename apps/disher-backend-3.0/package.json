@@ -17,6 +17,7 @@
     "typecheck:scripts": "tsc -p tsconfig.json --noEmit",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo",
     "spec:dump": "cross-env NODE_ENV=production tsx scripts/dump-openapi.ts",
+    "spec:check": "cross-env NODE_ENV=production tsx scripts/dump-openapi.ts --check",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:reset:test": "tsx scripts/db-reset.ts --target=test --yes --quiet",
     "db:reset:remote": "tsx scripts/db-reset.ts --target=remote",

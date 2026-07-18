@@ -69,4 +69,3 @@ export function groupItemsByTime<T extends TimeBasedItem>(
 
   return groups;
 }
-

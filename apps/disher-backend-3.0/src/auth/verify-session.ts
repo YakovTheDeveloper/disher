@@ -1,5 +1,6 @@
 // Better-auth session verifier. Sole auth path for protected routes; called
-// from the `requireUser` preHandler hook (auth/require-user.ts).
+// from the `requireUser` onRequest hook (auth/require-user.ts) — headers only, no
+// body, which is what lets it run that early.
 
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { fromNodeHeaders } from "better-auth/node";

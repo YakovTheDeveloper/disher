@@ -3,8 +3,14 @@ import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalShell } from '@/shared/ui/ModalShell';
 import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
-import { FoodHintButton } from '@/shared/ui/FoodHintButton';
+import { HintButton } from '@/shared/ui/HintButton';
 import { CHANGE_DESCRIPTION_INPUT_ID } from './constants';
+
+// Свободный текст описания — место для состава БАД-компонентов, которые НЕ
+// отслеживаются как нутриенты. Хинт живёт у потребителя (примитив HintButton
+// доменно-нейтрален), показывается только для продукта (showHint).
+const SUPPLEMENT_DESCRIPTION_HINT =
+  'Если это БАД, можно добавить состав дополнительных компонентов (не нутриенты).';
 
 type Props = {
   currentDescription: string;
@@ -63,7 +69,11 @@ const ChangeDescriptionModal = ({
           <ModalShell.Header
             title="Изменить описание"
             onBack={onClose}
-            trailing={showHint ? <FoodHintButton /> : undefined}
+            trailing={
+              showHint ? (
+                <HintButton hint={SUPPLEMENT_DESCRIPTION_HINT} ariaLabel="Подсказка про описание" />
+              ) : undefined
+            }
           />
           <ModalShell.Body>
             <AutoGrowSearch

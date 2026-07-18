@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Heading, Numeral, Text } from '@/shared/ui/atoms/Typography';
+import { Heading, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
 import { formatAmount } from '@/shared/lib/formatNumber';
 import { isIntegerUnit } from '@/entities/nutrient/model';
 import s from './NutrientMeterRow.module.scss';
@@ -40,7 +40,7 @@ function NutrientMeterRowInner({ name, value, norm, pct, hasNorm, unit, dataName
   const valueUnit = (display: React.ReactNode) => (
     <span className={s.footTgt}>
       <Numeral as="span" size="sm">{display}</Numeral>
-      <Text as="span" role="caption" className={s.footUnit}>{unit}</Text>
+      <NumeralMarker kind="unit" className={s.footUnit}>{unit}</NumeralMarker>
     </span>
   );
 
@@ -51,7 +51,7 @@ function NutrientMeterRowInner({ name, value, norm, pct, hasNorm, unit, dataName
         {hasNorm ? (
           <span className={s.pctFlush}>
             <Numeral as="span" size="base" weight="regular">{pct}</Numeral>
-            <Numeral as="span" size="sm" weight="thin" className={s.pctFlushSign}>%</Numeral>
+            <NumeralMarker kind="sign" className={s.pctFlushSign}>%</NumeralMarker>
           </span>
         ) : (
           valueUnit(curDisplay)

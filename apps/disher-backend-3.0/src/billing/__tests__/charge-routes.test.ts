@@ -12,6 +12,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { createTestUser, type TestUser } from "../../test/auth-helpers.js";
 import { makeTestPool, truncateAllUserData } from "../../test/db-helpers.js";
 import { requireUser } from "../../auth/require-user.js";
+import { AJV_OPTIONS } from "../../api/ajv-options.js";
 import { PRICES_KOP, WELCOME_GRANT_KOP } from "../prices.js";
 
 // Billing wiring across the five paid endpoints: debit-on-real-call,
@@ -119,16 +120,21 @@ afterEach(() => {
 
 // ─── JSON routes: free-text-food + suggestions ───
 //
-// Registered exactly like buildApp — requireUser on a scope, route inside.
+// Registered like buildApp — requireUser on an `onRequest` hook of a scope, route
+// inside, and the SAME Ajv options. Both details are load-bearing rather than
+// cosmetic: a bare `Fastify()` validates with Fastify's Ajv defaults, not ours
+// (coerceTypes is off in production), and `preHandler` would put the guard behind
+// Ajv, so a session-less call with a bad body would 400 here and 401 in prod.
+// Either divergence makes this file guard an app that does not exist.
 
 async function buildJsonApp(
   routes: (app: FastifyInstance) => Promise<void>,
   prefix: string,
 ): Promise<FastifyInstance> {
-  const app = Fastify({ logger: false });
+  const app = Fastify({ logger: false, ajv: AJV_OPTIONS });
   await app.register(
     async (scope) => {
-      scope.addHook("preHandler", requireUser);
+      scope.addHook("onRequest", requireUser);
       await scope.register(routes);
     },
     { prefix },

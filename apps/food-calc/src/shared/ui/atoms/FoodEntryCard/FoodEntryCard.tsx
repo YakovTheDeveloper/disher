@@ -27,7 +27,6 @@ type CardRootProps = Omit<ComponentProps<typeof Card.Root>, 'children'>;
 
 export type FoodEntryCardProps = CardRootProps & {
   quantity: number;
-  unit: string;
   onCommitQuantity?: (quantity: number) => void;
   /** Screen прячет нижний бар на время инлайн-правки количества (только расписание). */
   qtyDataEntityEdit?: boolean;
@@ -62,7 +61,6 @@ export type FoodEntryCardProps = CardRootProps & {
 
 export function FoodEntryCard({
   quantity,
-  unit,
   onCommitQuantity,
   qtyDataEntityEdit,
   qtyHtmlFor,
@@ -87,7 +85,6 @@ export function FoodEntryCard({
       <Card.Qty>
         <EditableQuantity
           value={quantity}
-          unit={unit}
           onCommit={onCommitQuantity ?? (() => {})}
           dataEntityEdit={qtyDataEntityEdit}
           htmlFor={qtyHtmlFor}

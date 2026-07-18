@@ -71,8 +71,12 @@ function SignOutConfirmModal({ onClose }: SignOutConfirmModalProps) {
     return (
       <ModalLayout a11yLabel="Синхронизация перед выходом не удалась">
         <ModalShell>
+          <ModalShell.Header
+            title="Не удалось сохранить в облако"
+            onBack={() => onClose(false)}
+            backLabel="Остаться"
+          />
           <ModalShell.Body>
-            <ModalShell.Title>Не удалось сохранить в облако</ModalShell.Title>
             <Text role="caption" className={s.message}>
               Последняя синхронизация перед выходом не прошла — нет сети или сервер не отвечает.
               Изменения, сделанные после прошлой синхронизации, есть только на этом устройстве, а
@@ -106,8 +110,16 @@ function SignOutConfirmModal({ onClose }: SignOutConfirmModalProps) {
   return (
     <ModalLayout a11yLabel="Выйти из аккаунта">
       <ModalShell>
+        <ModalShell.Header
+          title="Выйти из аккаунта?"
+          onBack={() => {
+            // Зеркалит `disabled` у «Отмена»: пока идёт финальный push, уход из
+            // модалки оставил бы sync без адресата решения.
+            if (!syncing) onClose(false);
+          }}
+          backLabel="Отмена"
+        />
         <ModalShell.Body>
-          <ModalShell.Title>Выйти из аккаунта?</ModalShell.Title>
           <Text role="caption" className={s.message}>
             Данные на этом устройстве очистятся. Они хранятся в облаке и вернутся при
             следующем входе — но лучше сохранить свежую копию прямо сейчас.

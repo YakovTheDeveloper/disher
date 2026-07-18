@@ -12,57 +12,29 @@ vi.mock('@/entities/hypothesis', () => ({
 }));
 
 const TITLE_PLACEHOLDER = 'Ваша гипотеза?';
-const BODY_PLACEHOLDER = 'Что именно проверяем? (необязательно)';
 
 beforeEach(() => {
   saveHypothesis.mockClear();
 });
 
-describe('HypothesisWriteBar — title-first', () => {
-  it('disables «Подробности» until there is a title, enables it once typed', () => {
-    render(<HypothesisWriteBar onCreated={() => {}} />);
-    const clip = screen.getByRole('button', { name: 'Добавить подробности' });
-    expect(clip).toBeDisabled();
-
-    fireEvent.change(screen.getByPlaceholderText(TITLE_PLACEHOLDER), {
-      target: { value: 'Сон и кофе' },
-    });
-    expect(clip).toBeEnabled();
-  });
-
-  it('drops the body when the title is cleared to empty (no orphan body)', () => {
-    render(<HypothesisWriteBar onCreated={() => {}} />);
-    const title = screen.getByPlaceholderText(TITLE_PLACEHOLDER);
-    const body = screen.getByPlaceholderText(BODY_PLACEHOLDER);
-
-    fireEvent.change(title, { target: { value: 'Сон и кофе' } });
-    fireEvent.change(body, { target: { value: 'детали' } });
-    expect(body).toHaveValue('детали');
-
-    // Clear the title → body must be wiped so it can't ride into the next one.
-    fireEvent.change(title, { target: { value: '' } });
-    expect(body).toHaveValue('');
-  });
-});
-
+// Title-only creation (2026-07-17): the bar writes a bare title; the optional
+// `body` is filled later via EditHypothesisModal on row-tap, so the create path
+// always saves `body: ''`.
 describe('HypothesisWriteBar — submit', () => {
-  it('Enter creates the hypothesis with title + body, then clears + reports the id', async () => {
+  it('Enter creates the hypothesis with an empty body, then clears + reports the id', async () => {
     const onCreated = vi.fn();
     render(<HypothesisWriteBar onCreated={onCreated} />);
     const title = screen.getByPlaceholderText(TITLE_PLACEHOLDER);
-    const body = screen.getByPlaceholderText(BODY_PLACEHOLDER);
 
     fireEvent.change(title, { target: { value: 'Сон и кофе' } });
-    fireEvent.change(body, { target: { value: 'детали' } });
     fireEvent.keyDown(title, { key: 'Enter' });
 
     await waitFor(() =>
-      expect(saveHypothesis).toHaveBeenCalledWith({ title: 'Сон и кофе', body: 'детали' }),
+      expect(saveHypothesis).toHaveBeenCalledWith({ title: 'Сон и кофе', body: '' }),
     );
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith('new-id'));
     // Cleared on success.
     expect(title).toHaveValue('');
-    expect(body).toHaveValue('');
   });
 
   it('does not submit an empty title', () => {

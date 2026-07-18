@@ -31,14 +31,17 @@ type Props = {
   keepKeyboardOnFinish?: boolean;
 };
 
-const formatDurationLabel = (mins: number): string => {
-  if (!Number.isFinite(mins) || mins <= 0) return '0 мин';
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  if (h === 0) return `${m} мин`;
-  if (m === 0) return `${h} ч`;
-  return `${h} ч ${m} мин`;
-};
+// Фича «чип длительности» временно снята из UI (2026-07-18). Функционал ввода
+// длительности живёт в useTimeRange (ветка activeTab === 'duration'), но входа из
+// интерфейса больше нет. Хелпер-подпись оставлен закомментированным на возврат.
+// const formatDurationLabel = (mins: number): string => {
+//   if (!Number.isFinite(mins) || mins <= 0) return '0 мин';
+//   const h = Math.floor(mins / 60);
+//   const m = mins % 60;
+//   if (h === 0) return `${m} мин`;
+//   if (m === 0) return `${h} ч`;
+//   return `${h} ч ${m} мин`;
+// };
 
 const TimeChoose = ({
   onFinish,
@@ -114,7 +117,8 @@ const TimeChoose = ({
   // Таб «до» подсвечен и когда правим абсолютный конец ('to'), и когда правим его
   // как длительность ('duration') — оба редактируют один конец.
   const secondFieldActive = timeRange.activeTab !== 'from';
-  const isDurationActive = timeRange.activeTab === 'duration';
+  // Чип длительности снят из UI — флаг активности его вкладки закомментирован.
+  // const isDurationActive = timeRange.activeTab === 'duration';
 
   const activeHours = isRange ? rangeHours : hours;
   const activeMinutes = isRange ? rangeMinutes : minutes;
@@ -171,16 +175,9 @@ const TimeChoose = ({
             <Text as="span" role="caption" className={styles.rangeSummaryText}>
               от {timeRange.fromTime} · до {timeRange.toTime}
             </Text>
-            {/* Длительность — и readout, и вход: тап переводит циферблат в ввод
-                длительности (тот же конец, другое представление). */}
-            <button
-              type="button"
-              className={clsx(styles.durationChip, isDurationActive && styles.durationChipActive)}
-              aria-pressed={isDurationActive}
-              onClick={() => handleFieldSelect('duration')}
-            >
-              {formatDurationLabel(timeRange.durationMinutes)}
-            </button>
+            {/* Чип длительности (readout + вход в ввод длительности) снят из UI
+                2026-07-18. Ввод длительности остаётся в useTimeRange, вернуть чип
+                можно этим блоком: handleFieldSelect('duration'). */}
           </div>
         )}
 

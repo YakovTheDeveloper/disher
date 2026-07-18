@@ -1,10 +1,7 @@
 import { useCallback, useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createProduct } from '@/entities/product/api/mutations';
-import { safeMutate } from '@/shared/lib/safeMutate';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { SheetCard } from '@/shared/ui/SheetCard';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import CrossIcon from '@/shared/assets/icons/cross.svg?react';
@@ -12,7 +9,6 @@ import { useFoodEntryFlow, type ProposalEditItem } from '@/features/food/food-en
 import type { UseWriteFoodFlowResult, UnresolvedRow } from '../model/useWriteFoodFlow';
 import { ProposalFoodItem } from './ProposalFoodItem';
 import { ProposalEditModals } from './ProposalEditModals';
-import { AddToListPopover } from './AddToListPopover';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import styles from './InlineWriteFoodReview.module.scss';
 import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
@@ -69,7 +65,6 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     toggleResolved,
     toggleAmbiguous,
     toggleUnresolved,
-    updateUnresolved,
     updateRow,
     commit,
     cancel,
@@ -141,31 +136,22 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     [primeEdit, toEditItem]
   );
 
-  // «+» у нераспознанного ряда → bottom-sheet «Новый продукт» через drawerStore
-  // (drawer-side-via-store). onCreateNew возвращает успех: drawer закрывается
-  // только если createProduct прошёл (на провале остаётся открытым, тостер уже сообщил).
-  const openRescueDrawer = useCallback(
-    (uid: string, originalName: string) => {
-      void drawerStore.show(
-        AddToListPopover,
-        {
-          initialName: originalName,
-          onUseExisting: (productId: string, name: string) =>
-            updateUnresolved(uid, { manual: { id: productId, name, score: 1 } }),
-          onCreateNew: async (name: string) => {
-            const result = await safeMutate(
-              () => createProduct({ name }),
-              'Не удалось создать продукт'
-            );
-            if (!result.ok) return false;
-            updateUnresolved(uid, { manual: { id: result.value, name, score: 1 } });
-            return true;
-          },
-        },
-        { side: 'bottom' }
-      );
+  // «+» у нераспознанного ряда → шаг «Создать еду» ТОГО ЖЕ флоу правки (ModalByLabel,
+  // один инстанс на всю предложку), а НЕ поиск: тап по имени ряда уже ведёт в поиск,
+  // и «+» несёт другое намерение — «такой еды нет, заведи». Свой drawer-дубль
+  // «Новый продукт» снят. Имя преднаполнять не нужно: primeEdit кладёт в draft
+  // foodName = originalName ряда, а шаг создания синкает createName из него.
+  //
+  // Stash uid на pointerdown, БЕЗ state update — тот же паттерн, что в
+  // ProposalFoodItem: setState здесь раскрыл бы ModalByLabel между pointerdown и
+  // pointerup, и native click приземлился бы по координатам на «назад» раскрытой
+  // модалки. Праймит флоу родительский onFocusCapture, уже на focus-событии.
+  const stashRescueUid = useCallback(
+    (uid: string) => () => {
+      const trigger = document.getElementById(editIds.CREATE_INPUT);
+      if (trigger) trigger.dataset.activeItemUid = uid;
     },
-    [updateUnresolved]
+    [editIds.CREATE_INPUT]
   );
 
   const readyCount = resolved.length + ambiguous.length + unresolved.length;
@@ -219,15 +205,15 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
     return (
       <li key={u.uid} className={styles.itemRow} data-dismissed={u.enabled ? undefined : 'true'}>
         {!picked && (
-          <button
-            type="button"
+          <label
             className={styles.outerRescue}
-            onClick={() => openRescueDrawer(u.uid, u.originalName)}
-            aria-label="Добавить в свой список"
-            title="Добавить в свой список"
+            htmlFor={editIds.CREATE_INPUT}
+            onPointerDown={stashRescueUid(u.uid)}
+            aria-label="Создать еду"
+            title="Создать еду"
           >
             <PlusIcon />
-          </button>
+          </label>
         )}
         <ProposalFoodItem
           uid={u.uid}

@@ -5,7 +5,7 @@ import { grant, listLedger } from "../../billing/wallet.js";
 import { pool } from "../db.js";
 
 // Admin API (prefix /api/admin). Every route is gated by the self-applied
-// requireAdmin preHandler (server-side guard — invariant 5). MVP surface: list
+// requireAdmin onRequest guard (server-side guard — invariant 5). MVP surface: list
 // users with balances, top up a wallet with a reason, read a user's ledger.
 //
 // All error responses are plain `reply.code(...).send({error})` — NOT thrown
@@ -30,22 +30,25 @@ interface TopupBody {
   requestId?: unknown;
 }
 
-// This route moves money, so its schema documents the shape and refuses to
-// judge anything else: every member is `Unknown` and the handler's matrix
-// (positive integer / non-empty reason <= 200 / requestId 1..100 / not
-// "welcome") remains the single gate, exactly as its tests assert. Typing
-// `amountKop` here would put Ajv in front of that matrix for no gain — and if
-// Fastify's default type coercion were ever restored (buildApp turns it off),
-// a stringy "500" would arrive at the handler as a clean 500 and get credited.
+// This route moves money, so its schema states the types rather than hiding
+// them: an untyped member documents nothing, and a generator renders it as a
+// bare `Any` on the one field that decides an amount.
+//
+// An earlier revision made every member `Unknown` on the theory that a typed
+// `amountKop` would let a stringy "500" through. It does not — coerceTypes is
+// off (api/ajv-options.ts), so Ajv rejects `"500"`, `null` and `1.5` here with
+// the same 400 the handler's matrix returns. The schema and the matrix agree;
+// the matrix stays because it also owns what a schema cannot say (reason
+// non-empty AFTER trim, "welcome" reserved) and because it, not Ajv, produces
+// the `{error}` bodies the admin panel reads.
 const TOPUP_BODY_SCHEMA = Type.Object(
   {
-    amountKop: Type.Optional(Type.Unknown({ description: "Positive integer, kopecks." })),
-    reason: Type.Optional(Type.Unknown({ description: "Non-empty, <= 200 chars." })),
-    requestId: Type.Optional(
-      Type.Unknown({
-        description: "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true.",
-      }),
-    ),
+    amountKop: Type.Integer({ minimum: 1, description: "Amount to credit, in kopecks." }),
+    reason: Type.String({ description: "Shown in the ledger. Non-empty after trim, <= 200 chars." }),
+    requestId: Type.String({
+      description:
+        "Idempotency key, 1..100 chars. 'welcome' is reserved. A repeat returns alreadyApplied:true.",
+    }),
   },
   { additionalProperties: false, title: "TopupRequest" },
 );
@@ -58,7 +61,7 @@ const USER_ID_PARAMS = Type.Object({ id: Type.String() });
 const LIMIT_QUERY = Type.Object({ limit: Type.Optional(Type.String()) });
 
 export async function adminRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", requireAdmin);
+  app.addHook("onRequest", requireAdmin);
 
   // Probe used by the client to learn "am I an admin?" when role !== 'admin'
   // (env-bootstrap admins have role='user'). 401/403 are handled by requireAdmin.

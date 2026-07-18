@@ -9,5 +9,5 @@ export function setupGlobalLog() {
         console.log('%c' + message, style); // eslint-disable-line no-console
     };
 
-    (globalThis as any).log = window.log;
+    globalThis.log = window.log;
 }

@@ -1,0 +1,112 @@
+# Every gate here was verified green on a clean checkout before being added.
+# A CI that is red on arrival gets ignored within a week and is worse than none —
+# so nothing lands in this file until it passes for the right reason.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Superseding a PR push is free — only the tip matters. Superseding a main push
+  # is not: two merges in quick succession would leave the first commit with a
+  # cancelled run and no verdict, forever.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  static:
+    name: typecheck · lint · build · spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the version from the root package.json `packageManager` field.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Via turbo, not tsc directly: @disher/contracts is consumed through its
+      # gitignored dist/, so the task graph has to build it first (turbo.json
+      # gives typecheck a ^build edge). A bare tsc here dies with
+      # «Cannot find module '@disher/contracts'» on a fresh clone.
+      - name: typecheck (frontend + backend + contracts)
+        run: pnpm typecheck
+
+      - name: lint (frontend)
+        run: pnpm --filter @disher/frontend lint
+
+      # Steiger (FSD): only fsd/forbidden-imports is on (steiger.config.ts silences
+      # the other 16 rules + baselines the 10 pre-existing findings). Guards the
+      # app/router cycle break (5779de6e) from regressing — a new upward or
+      # cross-slice import fails the build.
+      - name: lint:arch — FSD import-direction gate (frontend)
+        run: pnpm --filter @disher/frontend lint:arch
+
+      - name: lint:style — design-token gates (frontend)
+        run: pnpm --filter @disher/frontend lint:style
+
+      - name: build (frontend)
+        run: pnpm --filter @disher/frontend build
+
+      # Two ways the artifact starts lying, one command: DRIFT (a route's schema
+      # was edited and openapi.json never regenerated — which already happened:
+      # the committed spec sat 1615 lines behind the TypeBox work of d6045f7d)
+      # and PLACEHOLDERS (a response description @fastify/swagger had to invent).
+      # Writes nothing, needs no DB and no secrets — it only builds the route
+      # table. Via turbo for the same ^build edge as above: this one boots
+      # buildApp, so it needs contracts' dist/ at RUNTIME, not just its types.
+      - name: OpenAPI spec matches the routes
+        run: pnpm turbo run spec:check --filter=@disher/backend
+
+      - name: unit tests (frontend)
+        run: pnpm turbo run test --filter=@disher/frontend
+
+  backend:
+    name: backend tests (postgres)
+    runs-on: ubuntu-latest
+
+    # The backend suite is integration-grade: global-setup drops the schema,
+    # applies db/migrations/*.sql and the specs write real rows. No DB ⇒ every
+    # DB-touching suite silently describe.skip's, which would make this job a
+    # green rubber stamp.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: disher_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/disher_test
+      # buildApp hard-requires it; nothing here signs a session that outlives the
+      # job, so a literal is correct — this is not a secret, and wiring a real one
+      # would only invite reusing it somewhere that matters.
+      BETTER_AUTH_SECRET: ci-not-a-real-secret-0000000000000000000000000000
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # turbo again for the ^build edge to @disher/contracts.
+      - name: tests (backend)
+        run: pnpm turbo run test --filter=@disher/backend

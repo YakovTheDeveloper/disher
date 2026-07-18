@@ -65,6 +65,27 @@ export const SwipeDeck = ({
   arrowHint = 'all',
 }: Props) => {
   const swipeableRef = useRef<SwipeableRef>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Помечаем ВИДИМЫЙ слайд атрибутом `data-slide-current` — императивно (querySelector +
+  // setAttribute), zero-render, ровно как scroll-hide пишет `data-topbar-hide`. На нём
+  // держится scoped-дим топ-бара: `.topBarScrim` (см. SwipeDeck.module.scss) зажигается
+  // ТОЛЬКО когда write-бар гасит страницу на ВИДИМОМ слайде
+  // (`.container:has([data-slide-current] [data-writebar-dim])`). Без этого предложка
+  // экрана 1 тушила бы ОБЩИЙ топ-бар и на экране 2 (оба слайда Embla смонтированы разом).
+  const markCurrent = useCallback((index: number) => {
+    const frames = containerRef.current?.querySelectorAll<HTMLElement>('[data-slide-index]');
+    frames?.forEach((frame) => {
+      if (Number(frame.dataset.slideIndex) === index) frame.setAttribute('data-slide-current', '');
+      else frame.removeAttribute('data-slide-current');
+    });
+  }, []);
+
+  // Первый видимый слайд помечаем на маунте: Embla стартует на `defaultSlide` и
+  // `onIndexChange` для него НЕ стреляет (indexRef уже равен ему), поэтому ставим сами.
+  useEffect(() => {
+    markCurrent(defaultSlide);
+  }, [markCurrent, defaultSlide]);
 
   // Dev-инвариант: плитки строятся из `screens`, контент — из `slides`. При
   // рассинхроне длин слайд получит `topSlot=undefined` (без плиток) тихо —
@@ -81,12 +102,14 @@ export const SwipeDeck = ({
   // `data-topbar-hide` на `.shell` бара императивно — свайп остаётся zero-render.
   const { shellRef, setHide, api } = useTopBarScrollHideController();
 
-  // Смена слайда → бар видим («с верха»), затем опц. побочка страницы. Императивно,
-  // без подписки на индекс → Page не ре-рендерится на свайпе.
-  const handleIndexChange = useCallback(() => {
+  // Смена слайда → бар видим («с верха»), пометка видимого слайда, затем опц.
+  // побочка страницы. Императивно, без подписки на индекс → Page не ре-рендерится
+  // на свайпе. Swipeable зовёт onIndexChange(newIndex, total) — берём индекс.
+  const handleIndexChange = useCallback((index: number) => {
     setHide('none');
+    markCurrent(index);
     onIndexChange?.();
-  }, [setHide, onIndexChange]);
+  }, [setHide, markCurrent, onIndexChange]);
 
   const handleSelect = useCallback((idx: number) => {
     swipeableRef.current?.goToPage(idx);
@@ -128,8 +151,12 @@ export const SwipeDeck = ({
   );
 
   return (
-    <div className={s.container} data-deck-hero={heroForSlide ? '' : undefined}>
+    <div ref={containerRef} className={s.container} data-deck-hero={heroForSlide ? '' : undefined}>
       {renderTopBar(shellRef)}
+      {/* Скрим полосы топ-бара: единственный оверлей, что достаёт до плавающего
+          бара (страничный дим заперт в Embla-слайде). Зажигается по CSS, ТОЛЬКО
+          когда write-бар гасит страницу на видимом слайде — см. SwipeDeck.module.scss. */}
+      <div className={s.topBarScrim} aria-hidden="true" />
       <div className={s.swipeArea} data-nav-align={align}>
         <TopBarScrollHideContext.Provider value={api}>
           <div className={s.tabsAnchor}>
@@ -141,7 +168,7 @@ export const SwipeDeck = ({
               onIndexChange={handleIndexChange}
             >
               {slides.map((slide, i) => (
-                <div key={i} className={s.slideFrame}>
+                <div key={i} className={s.slideFrame} data-slide-index={i}>
                   {slide.render(topSlots[i])}
                 </div>
               ))}

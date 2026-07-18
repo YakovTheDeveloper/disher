@@ -72,16 +72,29 @@ describeIfReady("test infrastructure", () => {
     expect(Number(afterAccount.rows[0].count)).toBe(0);
   });
 
-  it("init migration created all 8 disher tables", async () => {
+  // Postgres holds only what the SERVER writes. The domain tables this once
+  // listed (products / dishes / dish_items / schedule_foods / daily_norms /
+  // periods) moved to Dexie in the 2026-05-09 zero-base pivot — the user's rows
+  // reach the server as ONE jsonb snapshot in `user_backups`, never as columns.
+  // `periods` is doubly gone: dropped from Dexie itself in schema v7. Asserting
+  // them here guarded a schema the architecture deliberately deleted.
+  //
+  // There is deliberately no mirror test asserting the domain tables are ABSENT:
+  // nobody recreates `products` in pg by accident, and whoever did it on purpose
+  // would delete the guard in the same breath. It caught nothing and cost a
+  // hand-copied list that had already drifted out of sync with DOMAIN_TABLES.
+  it("migrations created the server-side tables", async () => {
     const expected = [
-      "products",
-      "dishes",
-      "dish_items",
-      "dish_portions",
-      "schedule_foods",
-      "schedule_events",
-      "daily_norms",
-      "periods",
+      "user_backups", // snapshot vault — the whole user route
+      "analyses", // server-written LLM jobs
+      "users", // better-auth
+      "session",
+      "account",
+      "verification",
+      "wallet", // billing
+      "wallet_ledger",
+      "auth_events",
+      "user_reports",
     ];
     const { rows } = await pool.query<{ table_name: string }>(
       `select table_name from information_schema.tables

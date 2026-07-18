@@ -1,0 +1,46 @@
+// Tooling project: build/test configs, the design-token gate scripts and the Vite
+// plugins. It exists so ESLint's type-aware rules have a program for the files
+// OUTSIDE src — without it the parser rejected every one of them
+// ("file was not found in any of the provided project(s)"), which meant ~40 files
+// silently skipped every rule.
+//
+// Deliberately separate from tsconfig.json rather than widening its `include`:
+// tsconfig.json backs the `typecheck` gate (tsc --noEmit), and pulling scripts
+// into that gate would change what typecheck asserts. Lint scope and typecheck
+// scope are different questions.
+//
+// Dotfiles (.stylelintrc.cjs) are listed in `files` — TypeScript's `include`
+// wildcards do not match a leading dot.
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "allowJs": true,
+        "checkJs": false,
+        "types": ["node"],
+        // vitest.setup.ts imports `@/app/i18n`, and Vite resolves that at runtime
+        // — but this project owns the file and tsconfig.base.json has no `paths`,
+        // so without these the module never enters the program. Harmless for a
+        // side-effect import; the first TYPED import from `@/` here would silently
+        // go unchecked instead of erroring. Mirrors tsconfig.json's aliases.
+        "baseUrl": "./",
+        "paths": {
+            "@icons/*": ["src/shared/assets/icons/*"],
+            "@/*": ["src/*"]
+        }
+    },
+    "files": [
+        ".stylelintrc.cjs",
+        "create-boilerplate-component.js",
+        "eslint.config.ts",
+        "playwright.config.ts",
+        "steiger.config.ts",
+        "stylelint-legacy-baseline.cjs",
+        "typo-encapsulation-baseline.cjs",
+        "vite.config.ts",
+        "vitest.config.ts",
+        "vitest.setup.ts"
+    ],
+    "include": ["scripts/**/*", "vite-plugins/**/*"],
+    "exclude": ["scripts/**/__fixtures__/**"]
+}

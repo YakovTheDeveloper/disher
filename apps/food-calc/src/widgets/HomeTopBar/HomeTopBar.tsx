@@ -7,8 +7,11 @@ import { useAppRoutes } from '@/shared/lib/routing/useAppRoutes';
 import { AccountPanel } from '@/features/auth';
 import { QuietLabel, Text } from '@/shared/ui/atoms/Typography';
 import { HubButton } from '@/shared/ui/HubButton';
-import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 import styles from './HomeTopBar.module.scss';
+
+// Дата-сегмент = день недели рядом с числом в ряд («Пт 18»). casing дня недели —
+// фиксированный CSS-capitalize (сырьё Intl строчное «пт»); день — холодный ink,
+// число — тёплый, чтобы слегка различались.
 
 type Props = {
   date: string;
@@ -74,16 +77,16 @@ type Props = {
   hubAriaLabel?: string;
 };
 
-// Подпись пилюли-навигации — короткий день недели («Пт») обычным текстом по центру +
-// мелкое тонкое число месяца `dd` надстрочником-«степенью» (стиль в `.dateDay`). dd.mm
-// целиком не влезает, не смещая текст с центра, поэтому только день. Относительные слова
-// сняты 2026-07-10; силуэт-графика календаря и DesignBar-варианты сняты 2026-07-12.
+// Подпись пилюли-навигации — короткий день недели рядом с числом дня, в ряд (стиль
+// `.dateStack`). casing дня несёт CSS (text-transform: capitalize), поэтому отдаём
+// СЫРУЮ строчную аббревиатуру Intl («пт»), без capitalize в строке. Возможный
+// хвостовой «.» у некоторых движков срезаем.
 const formatDateParts = (input: string): { weekday: string; day: string } => {
   const date = parse(input, 'dd-MM-yyyy', new Date());
   if (!isValid(date)) return { weekday: input, day: '' };
-  const weekday = capitalizeFirst(
-    new Intl.DateTimeFormat('ru-RU', { weekday: 'short' }).format(date),
-  );
+  const weekday = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' })
+    .format(date)
+    .replace('.', '');
   return { weekday, day: String(date.getDate()).padStart(2, '0') };
 };
 
@@ -177,9 +180,13 @@ const HomeTopBar = ({
           {dateButtonLabel != null ? (
             <span className={styles.dateLabel}>{dateButtonLabel}</span>
           ) : (
-            <Text as="span" role="label" className={styles.dateWeekday}>
-              {dateParts.weekday}
-              {dateParts.day && <sup className={styles.dateDay}>{dateParts.day}</sup>}
+            // Только день недели (число временно скрыто, см. закомментированный
+            // спан ниже). Голос — роль `label` обёртки, вес 700 как у соседней «О!».
+            <Text as="span" role="label" className={styles.dateStack}>
+              <span className={styles.dateColWeekday}>{dateParts.weekday}</span>
+              {/* Число дня временно скрыто — оставлен только день недели.
+              {dateParts.day && <span className={styles.dateColDay}>{dateParts.day}</span>}
+              */}
             </Text>
           )}
         </button>

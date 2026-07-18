@@ -10,21 +10,29 @@ import { requireUser } from "../../auth/require-user.js";
 // The body is opaque jsonb. The server has no schema for user data — the
 // client dumps every Dexie table and applies the same blob on a fresh device.
 
-// The snapshot must stay UNCONSTRAINED, and `Type.Unknown()` (an empty schema)
-// is the only spelling that guarantees it: anything with `properties` +
-// `additionalProperties: false` would make Fastify's Ajv (removeAdditional is
-// on by default) silently DELETE every table the schema failed to name, and
-// this body is the user's whole diary. The server has no schema for user data
-// by design — the client dumps its Dexie tables and applies the blob verbatim
-// on a fresh device.
-const SNAPSHOT_SCHEMA = Type.Unknown({
-  title: "BackupSnapshot",
-  description:
-    "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it.",
-});
+// The snapshot's CONTENTS must stay unconstrained — the server has no schema for
+// user data by design; the client dumps its Dexie tables and applies the blob
+// verbatim on a fresh device, so naming any table here would date the contract.
+//
+// `additionalProperties: true` is what makes that safe, and it is load-bearing:
+// Fastify's Ajv runs `removeAdditional: true`, which DELETES unlisted members —
+// but only under `additionalProperties: false`, which a bare Type.Object emits
+// nowhere. Spelled this way Ajv passes the diary through untouched, unnamed
+// tables and all (verified by probe), while the spec gets to say "a JSON object"
+// instead of "literally anything" — and a bare string or array in the body is
+// refused instead of being stored as the user's whole vault.
+const SNAPSHOT_SCHEMA = Type.Object(
+  {},
+  {
+    additionalProperties: true,
+    title: "BackupSnapshot",
+    description:
+      "Opaque client snapshot (every Dexie table). The server stores it as jsonb and never inspects it.",
+  },
+);
 
 export async function backupRoutes(app: FastifyInstance) {
-  app.addHook("preHandler", requireUser);
+  app.addHook("onRequest", requireUser);
 
   app.put(
     "/",
@@ -39,10 +47,17 @@ export async function backupRoutes(app: FastifyInstance) {
     },
     async (req, reply) => {
       if (!pool) return reply.status(500).send({ error: "DB not configured" });
+      // `received_at` must be re-stamped on the UPDATE branch too: the column
+      // default only fires on INSERT, so without this it would freeze at the
+      // very first push and record nothing thereafter. It exists to keep a
+      // wrong-clock offset recoverable (row claims 2036, arrived 2026 ⇒ ~10y
+      // fast) — see db/migrations/20260716120000_backup_received_at.sql.
       await pool.query(
         `insert into public.user_backups (user_id, snapshot)
          values ($1::uuid, $2::jsonb)
-         on conflict (user_id) do update set snapshot = excluded.snapshot`,
+         on conflict (user_id) do update set
+           snapshot    = excluded.snapshot,
+           received_at = now()`,
         [req.userId, req.body],
       );
       return reply.code(204).send();

@@ -1,3 +1,8 @@
+// @vitest-environment node
+//
+// node, not the jsdom default: this suite reads its own .scss off disk and never
+// touches the DOM. Under jsdom `import.meta.url` is an http:// URL, so
+// fileURLToPath() throws «The URL must be of scheme file» before a single test runs.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';

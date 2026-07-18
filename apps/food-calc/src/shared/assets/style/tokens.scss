@@ -33,6 +33,10 @@
   --sys-inset-page: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
   --sys-inset-modal-fullscreen: var(--space-3); // 12 — single Screen gutter (canon 2026-06-22)
   --sys-inset-card: var(--space-4); // 16 — гор. инсет контента карточки-плитки (еда/анализ)
+  // 16 — воздух внутри бумажки-подсказки (tooltip). Свой дом, а не заимствованный
+  // --sys-inset-card: воздух — то, чем записка отличается от плашки, и он должен
+  // ехать отдельным рычагом от инсета карточки-плитки.
+  --sys-inset-tooltip: var(--space-4);
   --sys-bottom-drawer-inset: var(--space-6); // 24 — краевой инсет нижнего дровера (full-width лист)
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
@@ -108,6 +112,22 @@
   --sys-text-caption-weight: 500;
   --sys-text-caption-line: 1.4;
   --sys-text-caption-tracking: 0;
+
+  // Hint — проза бумажки-подсказки (tooltip за ⓘ). Своя роль, а не caption:
+  // caption — однострочная ПОДПИСЬ (13/1.4), а подсказка живёт абзацем в
+  // несколько строк и на трекинге подписи слипается. Править --sys-text-caption-*
+  // под неё нельзя — роль ходит по всему приложению, правка утекла бы.
+  // 14 — между caption (мелко для прозы) и body (крупно для записки);
+  // 1.55 — воздух между строк, тем и читается абзацем.
+  --sys-text-hint-size: 14px;
+  --sys-text-hint-weight: 500;
+  --sys-text-hint-line: 1.55;
+  --sys-text-hint-tracking: 0;
+
+  // Мера строки бумажки — в `ch`, а НЕ в rem/px: ch привязан к кеглю, поэтому
+  // мера едет за --sys-text-hint-size сама. На rem (как было — max-width: 15rem)
+  // поднятый кегль молча укоротил бы строку в знаках и абзац бы рассыпался.
+  --sys-measure-tooltip: 32ch;
 
 
   --sys-color-text-quiet: var(--ref-color-neutral-900);
@@ -228,6 +248,10 @@
   --sys-elevation-action-hover: var(--ref-shadow-2); // lever hovered/focused
   --sys-elevation-action-pressed: var(--ref-shadow-0); // pressed: shadow compresses ≤ rest
   --sys-elevation-overlay: var(--ref-shadow-3); // drawer/modal/popover/dropdown/sheet
+  // Бумажка-подсказка (tooltip) — НЕ overlay: ref-shadow-3 это тень дровера и
+  // модалки (три слоя, разлёт 28px), и записка шириной в треть экрана под ней
+  // читается как парящая панель. ref-shadow-2 держит её покойно лежащей на листе.
+  --sys-elevation-tooltip: var(--ref-shadow-2);
 
   // Dock — нижний прикреплённый лист (position:fixed bottom:0) приподнимается НАД
   // контентом: тень светит ВВЕРХ (отрицательный y), чего нет у drop-рунгов.
@@ -649,7 +673,7 @@
   --sys-color-text-action-accent-soft: var(--sys-color-text-accent); // indigo-600
 
 
-  --sys-color-surface-track: var(--ref-color-neutral-200); // #ebe9e5 · светлый фон-трек прогресса (FoodActionCard.richValue, NutrientCard.progressBar)
+  --sys-color-surface-track: var(--ref-color-neutral-200); // #ebe9e5 · светлый фон-трек прогресса (NutrientMeterRow.meterTrack, FoodActionCard.richTrack, NutrientCard.progressBar)
   --sys-color-surface-fill: var(--ref-color-cool-500); // #6f7689 · сплошная заливка поверх -track (= --sys-color-icon, холодный серый); парный к -track, бывший nt-accent градиент
 
   // border · action (secondary press border (system) = ink-заливка)
@@ -676,6 +700,10 @@
   --sys-radius-cta: var(--radius-md); // CTA pills (separate lever from indicator)
   --sys-radius-container: var(--radius-md); // 12 — card/panel/surface
   --sys-radius-small-cell: var(--radius-sm); // 12 — card/panel/surface
+  // 4 — бумажка-подсказка. Метафора «бирка/записка»: минимальные скругления. Она
+  // НЕ маленькая копия панели (--sys-radius-container = 12), поэтому и радиус свой.
+  // Рамки у неё нет намеренно — канон Divider («никаких border вокруг элемента»).
+  --sys-radius-tooltip: var(--radius-xs);
   // Метафора: ПОСТОЯННОЕ/моё = круглое (sheet 40, лист-контент); ТРАНЗИЕНТНОЕ/не-моё
   // = квадратнее (drawer 24). Все дроверы — нижние И боковые — «система тебя спрашивает»,
   // выезжают поверх листа → отделены от него меньшим радиусом. Живёт на DrawerLayout

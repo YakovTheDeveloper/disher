@@ -11,9 +11,15 @@ import { fileURLToPath } from "node:url";
 // tests TRUNCATE between specs (see ./db-helpers.ts) — this setup is the
 // once-per-run hard reset that guarantees schema matches the latest .sql.
 //
-// Skips silently if TEST_DATABASE_URL is not set so CI without DB stays
-// green. The DB-touching tests themselves also describe.skip on missing env,
-// so a missing setup just means those suites won't run.
+// Without TEST_DATABASE_URL this skips and the DB-touching suites describe.skip
+// themselves — 16 of the 28 spec files. That is a convenience for a laptop with
+// no postgres, and a trap anywhere else: a green run that proved nothing looks
+// exactly like a green run that proved everything.
+//
+// So it is a convenience ONLY off CI. Under CI a missing URL is a hard failure:
+// the postgres service in .github/workflows/ci.yml exists precisely so those 16
+// files run, and if the env line ever rots, the job must go red rather than
+// rubber-stamp the 12 pure-logic files as a full suite.
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -33,6 +39,13 @@ function listMigrations(): string[] {
 export async function setup(): Promise<void> {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) {
+    if (process.env.CI) {
+      throw new Error(
+        "[test-setup] TEST_DATABASE_URL is not set under CI. Refusing to run: the " +
+          "DB-touching suites would skip and the job would pass having proved nothing. " +
+          "Check the `env:` block of the backend job in .github/workflows/ci.yml.",
+      );
+    }
     console.warn(
       "[test-setup] TEST_DATABASE_URL not set — DB-touching suites will skip. " +
         "Set it in apps/disher-backend-3.0/.env to run the full suite.",
@@ -73,6 +86,18 @@ export async function setup(): Promise<void> {
   // assertion. Re-enable per-test by setting RESEND_API_KEY back if you ever
   // want to assert the dispatch payload (consider MSW for that).
   delete process.env.RESEND_API_KEY;
+
+  // Same class of leak as Resend above, and it bites harder. The dev .env sets
+  // ANALYSIS_CRITIC=on, and runAnalysisJob's `callCritic` defaults to
+  // makeCriticCall() — a REAL fetch to openrouter.ai. Tests inject only
+  // `callLLM`, so the critic stage stayed live: every analyze spec with a
+  // non-empty draft made a paid network call to CRITIC_MODEL, and the real
+  // model (correctly) pruned the fixture's ungrounded «ins» insight — which is
+  // why `insights` came back [] and each job took ~3s instead of milliseconds.
+  // That also made the fire-and-forget job outlive its test and deadlock the
+  // next truncate. Off by default; a spec that wants the critic passes its own
+  // callCritic.
+  process.env.ANALYSIS_CRITIC = "off";
 
   const pool = new pg.Pool({
     connectionString: url,

@@ -70,7 +70,6 @@ export const ProposalFoodItem = ({
       className={styles.group}
       style={paletteStyle}
       quantity={item.quantity}
-      unit="г"
       qtyHtmlFor={inputIds.QUANTITY_INPUT}
       onQtyPointerDown={stashUid(inputIds.QUANTITY_INPUT)}
       name={nameContent}

@@ -19,7 +19,9 @@ function curatedTarget(prop, legacy) {
 }
 const map = loadTokenMap();
 const resolved = new Map();
-for (const name of map.keys()) { try { resolved.set(name, resolveToken(name, map).trim().replace(/\s+/g,' ')); } catch {} }
+// A token that won't resolve (dangling ref, cycle) is simply absent from the
+// census — that's the report's subject matter, not an error to raise here.
+for (const name of map.keys()) { try { resolved.set(name, resolveToken(name, map).trim().replace(/\s+/g,' ')); } catch { /* unresolvable — omitted */ } }
 const VARONLY = /^var\(\s*(--[A-Za-z0-9-]+)\s*\)$/;
 function classify(value, prop) {
   const m = value.match(VARONLY);

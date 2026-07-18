@@ -19,7 +19,10 @@
   background: var(--sys-color-surface-2);
   border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
   overflow: hidden;
+
   box-shadow: var(--sys-elevation-2);
+
+
 }
 
 .dock[data-open] .bar {

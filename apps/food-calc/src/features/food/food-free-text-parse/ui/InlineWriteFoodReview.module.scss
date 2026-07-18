@@ -151,8 +151,9 @@
 }
 
 // Внешняя rescue-кнопка (+) — симметрия с outerDelete. Появляется ТОЛЬКО
-// для unresolved-без-manual: open AddToListPopover с e.currentTarget как
-// anchor'ом. Внутреннего .rescueBtn в ProposalFoodItem больше нет.
+// для unresolved-без-подбора. Это `<label htmlFor>` шага поиска флоу правки,
+// а не button: вид ей задаёт этот блок целиком (browser-стилей у label нет).
+// Внутреннего .rescueBtn в ProposalFoodItem больше нет.
 .outerRescue {
   position: absolute;
   left: -42px;

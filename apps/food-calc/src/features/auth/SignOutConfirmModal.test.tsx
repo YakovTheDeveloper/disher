@@ -21,11 +21,14 @@ vi.mock('@/shared/ui/ModalShell', () => {
   function Body({ children }: { children: ReactNode }) {
     return <div>{children}</div>;
   }
-  function Title({ children }: { children: ReactNode }) {
-    return <h2>{children}</h2>;
+  // Chrome stub: render only the title so the barrier logic is isolated (the
+  // real back-arrow is shell chrome, not under test — and rendering it as a
+  // button would collide with the inline «Отмена» role query below).
+  function Header({ title }: { title: ReactNode }) {
+    return <h2>{title}</h2>;
   }
   ModalShell.Body = Body;
-  ModalShell.Title = Title;
+  ModalShell.Header = Header;
   return { ModalShell };
 });
 

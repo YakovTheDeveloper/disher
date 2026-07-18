@@ -3,10 +3,10 @@ import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { InfoButton } from '@/shared/ui/atoms/Button';
+import { HintButton } from '@/shared/ui/HintButton';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { RotatingPlaceholder } from './RotatingPlaceholder';
 import { WriteBarHint } from './WriteBarHint';
-import { writeBarDim } from './writeBarDimStore';
 import s from './WriteBarShell.module.scss';
 
 // Поверхность бара = стандартное поле формы проекта (warm well + внутренняя тень)
@@ -134,6 +134,14 @@ export interface WriteBarShellProps {
    */
   hintLabel?: string;
   /**
+   * Opt-in: rich hint shown behind an ⓘ that opens a floating paper popover
+   * (`HintButton`) instead of the inline `WriteBarHint` reveal. When set, the
+   * dock renders the ⓘ-popover and IGNORES `hint`/`hintLabel` + the inline toggle
+   * — Food's free-text explainer. Other bars (Events/Hypotheses) leave this off
+   * and keep the inline mechanism unchanged.
+   */
+  hintPopover?: ReactNode;
+  /**
    * Dim the page behind the bar on focus (`expanded`) so the accent falls on the
    * bar + its hint. ON by default for ALL write bars (per request 2026-07-05).
    * This is the successor to the global Screen focus-scrim removed 2026-06-23 —
@@ -193,6 +201,7 @@ export const WriteBarShell = ({
   fieldOverride,
   hint,
   hintLabel,
+  hintPopover,
   focusOverlay = true,
   overlayVisible = false,
   className,
@@ -216,21 +225,16 @@ export const WriteBarShell = ({
     if (!expanded) setHintOpen(false);
   }, [expanded]);
 
-  // Пока этот бар гасит страницу своим focusOverlay (фокус ИЛИ форсированный
-  // overlayVisible) — держим ref в общем счётчике дима, который ставит флаг
-  // `data-writebar-dim` на body. Плавающая chrome НАД свайп-зоной (HomeTopBar)
-  // дим-оверлеем не достаётся: он заперт в stacking-контексте Embla-трека
-  // (transform) на z:0, а бар парит на z:10 в `.container`. Поэтому хром приглушает
-  // СЕБЯ по флагу через CSS (см. HomeTopBar.module.scss). Счётчик (а не голый булев)
-  // нужен потому, что оба слайда Embla (еда + события) смонтированы разом → их димы
-  // могут перекрыться; refcount не даёт cleanup одного затереть флаг другого
-  // (см. writeBarDimStore).
+  // Этот бар гасит страницу своим focusOverlay (фокус ИЛИ форсированный
+  // overlayVisible). Помечаем корень `.wrap` атрибутом `data-writebar-dim` —
+  // декларативно, без стора. Плавающая chrome НАД свайп-зоной (HomeTopBar) дим-
+  // оверлеем не достаётся: он заперт в stacking-контексте Embla-слайда (contain:
+  // strict → paint) на z:auto, а бар парит на z:10 в `.container`. Поэтому полосу
+  // топ-бара красит ОТДЕЛЬНЫЙ scrim у SwipeDeck (`.topBarScrim`, z:11), и он
+  // показывается ТОЛЬКО когда дим-бар лежит на ВИДИМОМ слайде — SwipeDeck читает
+  // `:has([data-slide-current] [data-writebar-dim])`. Так предложка экрана 1 больше
+  // не тушит общий бар на экране 2 (оба слайда Embla смонтированы разом).
   const dimsPage = focusOverlay && (expanded || overlayVisible);
-  useEffect(() => {
-    if (!dimsPage) return;
-    writeBarDim.acquire();
-    return writeBarDim.release;
-  }, [dimsPage]);
 
   // Карусель примеров: монтируется, когда переданы примеры И caller-гейт
   // `examplesActive` (список айтемов пуст). Сам цикл крутится только пока инпут
@@ -276,6 +280,9 @@ export const WriteBarShell = ({
       data-expanded={expanded || undefined}
       // Marker for the Screen focus-scrim (`:has([data-write-bar] textarea:focus)`).
       data-write-bar=""
+      // Читается SwipeDeck'ом (`:has([data-slide-current] [data-writebar-dim])`):
+      // топ-бар-scrim гаснет/зажигается по этому флагу на ВИДИМОМ слайде.
+      data-writebar-dim={dimsPage || undefined}
       // Непрозрачная плашка красит нижнюю кромку → забирает safe-area-инсет у слота
       // Screen `.bottomBar`, иначе системная панель PWA остаётся цвета экрана.
       data-edge-bleed=""
@@ -291,27 +298,43 @@ export const WriteBarShell = ({
           onPointerDown={() => document.getElementById(inputId)?.blur()}
         />
       ) : null}
-      {(hint || hintLabel) && expanded ? (
+      {(hint || hintLabel || hintPopover) && expanded ? (
         // Док подсказки: грид «колонка · центр · колонка». Текст (WriteBarHint)
         // в центральной колонке строго по ЦЕНТРУ (равные боковые 1fr), кнопка ⓘ —
         // в правой колонке. Всё в потоке. Монтируется ТОЛЬКО на фокусе (expanded),
         // иначе в покое кнопка-колонка резервировала бы высоту над пилюлей.
         <div className={s.hintDock}>
-          <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
           {/* preventDefault на pointerdown ОБЁРТКИ (не самой кнопки — там
               onPointerDown занят usePressFeedback внутри IconButton) держит фокус
               на textarea: без него тап по ⓘ сбросил бы фокус → onBlur → бар
-              схлопнулся бы, не успев показать текст. */}
-          <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
-            <InfoButton
-              tone="soft"
-              size={44}
-              aria-label={hintOpen ? 'Скрыть подсказку' : 'Показать подсказку'}
-              aria-expanded={hintOpen}
-              tabIndex={expanded ? 0 : -1}
-              onClick={() => setHintOpen((open) => !open)}
-            />
-          </div>
+              схлопнулся бы, не успев показать/раскрыть подсказку. useClick поповера
+              висит на click — preventDefault на pointerdown ему не мешает. */}
+          {hintPopover ? (
+            // Опт-ин (Еда): ⓘ открывает плавающую бумажку-поповер вместо инлайн-
+            // раскрытия. WriteBarHint/hintOpen в этом режиме не участвуют.
+            <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
+              <HintButton
+                hint={hintPopover}
+                ariaLabel="Как работает распознавание еды"
+                size={44}
+                tone="soft"
+              />
+            </div>
+          ) : (
+            <>
+              <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
+              <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
+                <InfoButton
+                  tone="soft"
+                  size={44}
+                  aria-label={hintOpen ? 'Скрыть подсказку' : 'Показать подсказку'}
+                  aria-expanded={hintOpen}
+                  tabIndex={expanded ? 0 : -1}
+                  onClick={() => setHintOpen((open) => !open)}
+                />
+              </div>
+            </>
+          )}
         </div>
       ) : null}
       {/* barLine = the glass pill row (left slot + field + send). The medal is no

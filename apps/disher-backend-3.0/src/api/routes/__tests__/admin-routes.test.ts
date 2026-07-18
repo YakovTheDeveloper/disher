@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import Fastify, { type FastifyInstance } from "fastify";
+import { AJV_OPTIONS } from "../../ajv-options.js";
 import { createTestUser, type TestUser } from "../../../test/auth-helpers.js";
 import { makeTestPool, truncateAllUserData } from "../../../test/db-helpers.js";
 import { WELCOME_GRANT_KOP } from "../../../billing/prices.js";
@@ -23,7 +24,9 @@ async function promoteToAdmin(userId: string): Promise<void> {
 beforeAll(async () => {
   if (!ready) return;
   const { adminRoutes } = await import("../admin.js");
-  app = Fastify({ logger: false });
+  // ajv: AJV_OPTIONS, not a bare Fastify — the topup matrix below asserts that a
+  // stringy amountKop is a 400, which is only true with coerceTypes off.
+  app = Fastify({ logger: false, ajv: AJV_OPTIONS });
   await app.register(adminRoutes, { prefix: "/api/admin" });
   await app.ready();
   pool = makeTestPool();

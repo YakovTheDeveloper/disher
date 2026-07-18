@@ -57,19 +57,19 @@ describe('FoodWriteBar — ready-заголовок ↔ инпут', () => {
   afterEach(cleanup);
 
   // Дыра, которую этот тест сторожит: на `ready` инпут подменяется заголовком
-  // «Предложения» через `fieldOverride` (2026-07-02). Если оборвать проводку
+  // через `fieldOverride` (2026-07-02). Если оборвать проводку
   // `fieldOverride={panelOpen ? ...}` — заголовок тихо исчезнет и с бара, и с
   // листка предложки (там его тоже больше нет), а типы останутся зелёными.
-  it('ready: заголовок «Предложения» рендерится в баре', () => {
+  it('ready: заголовок «Все верно?» рендерится в баре', () => {
     renderBar(makeFlow({ state: 'ready' }));
-    expect(screen.getByRole('heading', { name: 'Предложения' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Все верно?' })).toBeInTheDocument();
   });
 
   // Обратная сторона: подмена условна (`panelOpen`). В покое бар — обычный
   // free-text-инпут, заголовка быть не должно.
-  it('idle: заголовка «Предложения» нет (обычный инпут-бар)', () => {
+  it('idle: заголовка «Все верно?» нет (обычный инпут-бар)', () => {
     renderBar(makeFlow({ state: 'idle' }));
-    expect(screen.queryByRole('heading', { name: 'Предложения' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Все верно?' })).toBeNull();
   });
 });
 

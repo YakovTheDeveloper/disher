@@ -223,23 +223,24 @@
     color: var(--sys-color-text-secondary);
 }
 
-.durationChip {
-    padding: 4px 10px;
-    border: 0;
-    border-radius: var(--sys-radius-control);
-    background: var(--sys-color-surface-2);
-    color: var(--sys-color-text-secondary);
-    font: inherit;
-    font-variant-numeric: tabular-nums;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 120ms ease, color 120ms ease;
-}
-
-.durationChipActive {
-    background: var(--sys-color-bg-selected);
-    color: var(--sys-color-text-system);
-}
+// Чип длительности снят из UI 2026-07-18 — стили запаркованы вместе с кнопкой в TimeChoose.tsx.
+// .durationChip {
+//     padding: 4px 10px;
+//     border: 0;
+//     border-radius: var(--sys-radius-control);
+//     background: var(--sys-color-surface-2);
+//     color: var(--sys-color-text-secondary);
+//     font: inherit;
+//     font-variant-numeric: tabular-nums;
+//     cursor: pointer;
+//     -webkit-tap-highlight-color: transparent;
+//     transition: background 120ms ease, color 120ms ease;
+// }
+//
+// .durationChipActive {
+//     background: var(--sys-color-bg-selected);
+//     color: var(--sys-color-text-system);
+// }
 
 // Голый <input type="time"> — санкционированный не-обёртываемый контекст (поле ввода,
 // нет HTML-узла под примитив). Селектор сужен до `input.nativeInput`, чтобы голос

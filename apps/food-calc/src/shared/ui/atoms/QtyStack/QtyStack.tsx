@@ -4,8 +4,6 @@ import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 import styles from './QtyStack.module.scss';
 
 type QtyStackOwnProps<T extends ElementType> = {
-  /** Единица измерения — спускается ПОД значение, по его левому краю. */
-  unit: ReactNode;
   /** Значение: текст (покой) ИЛИ <input> (правка). Свопит owner-карточка —
    *  состояние правки (draft/commit) у каждой карточки своё. */
   children: ReactNode;
@@ -26,17 +24,19 @@ export type QtyStackProps<T extends ElementType = 'span'> = QtyStackOwnProps<T> 
   Omit<ComponentPropsWithoutRef<T>, keyof QtyStackOwnProps<T>>;
 
 /**
- * QtyStack — количество вертикальной стопкой: значение сверху, единица прямо
- * под началом значения. Сам по себе тап-таргет (правка количества); владеет
- * прес-хромом (тёплый press-flash) и стабильной шириной (число↔input не дёргает
- * ряд). Раскладку строки держит CardLayout — это лишь содержимое title-кластера.
+ * QtyStack — голое количество в тап-зоне (правка количества); владеет прес-хромом
+ * (тёплый press-flash) и стабильной шириной (число↔input не дёргает ряд).
+ * Раскладку строки держит CardLayout — это лишь содержимое title-кластера.
+ *
+ * Единицу измерения НЕ показывает: в карточках её убрали намеренно (98d3f1b3),
+ * число читается из контекста столбика. Единица живёт только в шаге количества
+ * (useFoodEntryFlow → quantityContent.unit), у которого свой рендер.
  *
  * Полиморфен (как TapTarget): `as="span"` (default, inline-правка) ИЛИ
  * `as="label"` + htmlFor (правка через модалку, iOS focus-канон).
  */
 export function QtyStack<T extends ElementType = 'span'>({
   as,
-  unit,
   children,
   mirror,
   className,
@@ -52,7 +52,6 @@ export function QtyStack<T extends ElementType = 'span'>({
         )}
         {children}
       </span>
-      {/* <span className={styles.unit}>{unit}</span> */}
     </TapTarget>
   );
 }

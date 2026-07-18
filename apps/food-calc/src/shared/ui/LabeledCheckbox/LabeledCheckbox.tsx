@@ -1,5 +1,5 @@
 import styles from './LabeledCheckbox.module.scss';
-import React, { MutableRefObject } from 'react';
+import React, { type Ref } from 'react';
 import { Text } from '@/shared/ui/atoms/Typography';
 
 type Props = {
@@ -17,7 +17,8 @@ type Props = {
    */
   bare?: boolean;
   id?: string;
-  ref?: MutableRefObject<any>;
+  /** Лёг на внутренний `<input type="checkbox">` — отсюда и тип. */
+  ref?: Ref<HTMLInputElement>;
 };
 
 const LabeledCheckbox = ({ checked, onChange, label, trailing, disabled = false, bare = false, id, ref }: Props) => {

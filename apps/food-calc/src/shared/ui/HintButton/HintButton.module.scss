@@ -1,0 +1,35 @@
+// Бумажка-подсказка: проза за ⓘ. Голос несёт роль `hint` примитива <Text>; здесь —
+// только мера строки, тон и межабзацный ритм (геометрия панели живёт в
+// PopoverTrigger.module.scss `.content.hint`).
+.hint {
+  // Мера строки — главный рычаг читаемости абзаца. Токен в `ch`: мера привязана к
+  // кеглю роли и едет за ним сама (было max-width: 15rem — rem не знает о кегле).
+  max-width: var(--sys-measure-tooltip);
+  // Тон задаём ЯВНО, а не наследуем: подсказка висит и в модалке, и в write-баре —
+  // у наследуемого цвета там разные родители. Ближе к чёрному: нейтральный ink
+  // --sys-color-text-system (#221f19 near-black в light) вместо прежнего холодного
+  // cool-900 (был чуть синее). В dark токен флипается сам (→ near-white) — читаемо.
+  color: var(--sys-color-text-system);
+
+  p {
+    margin: 0;
+  }
+
+  p+p {
+    margin-top: var(--space-2);
+  }
+
+  // Выделенное действие («заменить»/«добавить») — жирнее (UA <strong>) + разрядка:
+  // разнесённые буквы делают из слова тихую кнопку, читаемую как жест. Разрядка —
+  // bespoke-голос именно этой бумажки, поэтому точечная амнистия typo-гейта.
+  strong {
+    /* typo-encapsulation-disable-next-line -- разрядка выделения ⓘ-подсказки: bespoke, не переносится в role-примитив */
+    letter-spacing: 0.03em;
+  }
+
+  text-align: justify;
+  text-justify: inter-word;
+  word-break: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}

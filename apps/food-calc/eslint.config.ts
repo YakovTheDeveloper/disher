@@ -1,11 +1,30 @@
-import { defineConfig } from 'eslint/config';
+import { defineConfig, globalIgnores } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
 import path from 'path';
 
 export default defineConfig([
+    // ESLint 9 ignores only node_modules/.git by default — it does NOT read
+    // .gitignore, so build output got linted as if it were source (dist/sw.js,
+    // the minified vendor bundles). `--ext ts,tsx` in the lint script looked like
+    // it scoped this, but --ext is a no-op under flat config (verified: `--ext qqq`
+    // still scanned 876 files) — scope belongs here, not on the CLI.
+    // `__fixtures__` carry deliberately-bad code (the design-tooling detector's
+    // known-bad / codemod input cases); stylelint already exempts them for the
+    // same reason.
+    globalIgnores([
+        'dist/**',
+        'dist-ssr/**',
+        'dev-dist/**',
+        'coverage/**',
+        'playwright-report/**',
+        'test-results/**',
+        '**/__fixtures__/**',
+        'vite.config.d.ts',
+    ]),
     js.configs.recommended,
     ...tseslint.configs.recommended,
     pluginReact.configs.flat.recommended,
@@ -46,7 +65,6 @@ export default defineConfig([
         // остаются под правилом (их чинили переносом записи ref в эффект).
         files: [
             'src/shared/ui/popover/PopoverTrigger/PopoverTrigger.tsx',
-            'src/features/food/food-free-text-parse/ui/AddToListPopover.tsx',
             'src/features/wallpaper/WallpaperHero.tsx',
             'src/shared/ui/ChangeHighlight/ChangeHighlight.tsx',
         ],
@@ -57,7 +75,10 @@ export default defineConfig([
     {
         languageOptions: {
             parserOptions: {
-                project: ['./tsconfig.json'], // ✅ link to your TS config
+                // All three projects, or the parser rejects every file the listed ones
+                // don't include. tsconfig.json covers src only — so the e2e specs and
+                // the tooling scripts failed to parse and thus skipped every rule.
+                project: ['./tsconfig.json', './tsconfig.test.json', './tsconfig.node.json'],
                 tsconfigRootDir: path.resolve(), // ✅ ensures absolute path
             },
         },
@@ -66,6 +87,83 @@ export default defineConfig([
             'react/react-in-jsx-scope': 'off',
             "react/prop-types": "off",
             'no-console': ['error', { allow: ['warn', 'error'] }],
+            // skipComments: a doc comment that shows `{/* … */}` as example syntax
+            // has to break the literal `*/`, or it terminates its own block — and a
+            // zero-width space is the only way to do that (comments have no escape
+            // sequences). See design-primitives/lib.mjs:87. Invisible chars in CODE
+            // still error, which is where the rule earns its keep.
+            'no-irregular-whitespace': ['error', { skipComments: true }],
+            // `_`-prefix = "unused on purpose": a param kept because the signature
+            // requires it (a callback's later arg, a documented shape). Without an
+            // opt-out the only way to silence those is deleting the name, which
+            // loses what it documented.
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+            ],
+        },
+    },
+    // Node tooling: the design-token gate scripts, build/test configs, the
+    // component generator. These run under Node, not in the browser, so they need
+    // node globals — without them every `process`/`require`/`module` read is a
+    // no-undef. (`no-undef` only fires on plain JS here: typescript-eslint's
+    // recommended preset disables it for TS, where the compiler already checks.)
+    // `no-console` is off because stdout IS these scripts' interface — a gate that
+    // can't print its violations is useless.
+    {
+        files: [
+            'scripts/**/*.{js,mjs,cjs,ts}',
+            '*.config.{js,mjs,cjs,ts}',
+            '.stylelintrc.cjs',
+            'stylelint-legacy-baseline.cjs',
+            'typo-encapsulation-baseline.cjs',
+            'create-boilerplate-component.js',
+            'vitest.setup.ts',
+        ],
+        languageOptions: {
+            globals: globals.node,
+        },
+        rules: {
+            'no-console': 'off',
+            // .cjs files are CommonJS by definition; require() is the module system,
+            // not a legacy import style to migrate off.
+            '@typescript-eslint/no-require-imports': 'off',
+        },
+    },
+    // Vendored browser client injected into index.html (see vite.config.ts) — it
+    // runs in the page, so it gets browser globals rather than node ones.
+    //
+    // Style rules are off: this is a verbatim copy of
+    // vite-plugin-react-click-to-component@4.2.2's client.js, kept diffable against
+    // upstream. Linting third-party code we don't author only creates pressure to
+    // edit it, which is exactly what makes the next version bump painful.
+    {
+        files: ['vite-plugins/**/*.client.js'],
+        languageOptions: {
+            globals: globals.browser,
+        },
+        rules: {
+            'no-console': 'off',
+            'no-empty': 'off',
+        },
+    },
+    // E2E specs: console output is the debugging channel when a Playwright run
+    // fails in CI with no browser to open. They ship to no user.
+    {
+        files: ['tests/e2e/**/*.ts'],
+        rules: {
+            'no-console': 'off',
+        },
+    },
+    // Dev «предложки» (see the /предложка skill): throwaway pages that exist to pick
+    // a design by looking at it, on dev-only routes. no-unescaped-entities wants
+    // `«»`/`"` spelled as HTML entities — a readability rule whose cost lands on
+    // prose that is the whole point of these pages, and whose benefit (a stray quote
+    // breaking JSX) never reaches a user here.
+    {
+        files: ['src/app/development-features/**/*.tsx'],
+        rules: {
+            'react/no-unescaped-entities': 'off',
         },
     },
     // Dexie write-contract enforcement (merge-sync). Every domain write must go

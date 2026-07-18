@@ -7,7 +7,7 @@ import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
-import { Text, Numeral } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
@@ -27,14 +27,15 @@ type Props = {
   dimTime?: boolean;
 };
 
-// Аспект = `label: value` (0..10) — компактный read-only чип. Число живёт в
-// тексте события тоже, но здесь оно = сама оценка (не дубль). Ушли от корзины-
-// стрелки/аналоговой полоски: модель теперь несёт явный `value`.
+// Аспект = `label value/10` (0..10) — компактный read-only чип. Число живёт в
+// тексте события тоже, но здесь оно = сама оценка (не дубль). Значение рендерим
+// инлайн-<span> внутри caption-обёртки → ТОТ ЖЕ кегль, что лейбл (было <Numeral>
+// со своим numeral-размером → рассинхрон, чип смотрелся некрасиво). Формат `N/10`.
 function formatAspectChip(atom: Atom, index: number) {
   return (
     <Text as="span" role="caption" className={clsx(styles.chip, styles.chipScale)} key={`aspect-${index}`}>
       {atom.label && <span>{atom.label}</span>}
-      <Numeral as="span" className={styles.aspectValue}>{atom.value}</Numeral>
+      <span className={styles.aspectValue}>{atom.value}/10</span>
     </Text>
   );
 }

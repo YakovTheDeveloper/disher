@@ -6,7 +6,6 @@ import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { updateScheduleFood } from '@/entities/schedule-food';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { safeMutate } from '@/shared/lib/safeMutate';
-import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 
 type Props = {
@@ -76,7 +75,6 @@ const ScheduleFoodItemInline = ({
       tod={getTimeOfDay(item.time)}
       onLongPress={onLongPress}
       quantity={item.quantity}
-      unit={getQtyUnit(item.product)}
       onCommitQuantity={(quantity) =>
         safeMutate(
           () => updateScheduleFood(item.id, { quantity }),

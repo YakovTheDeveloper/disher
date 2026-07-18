@@ -9,8 +9,11 @@ import styles from './Text.module.scss';
  *  2026-06-24 (Text стал role-only, как Heading): hint→role="caption",
  *  navTabQuiet→примитив <QuietLabel>, sectionLabel→<Heading role="title">.
  *  `card-caption` — особенности приёма пищи под именем еды («с кожурой»): тише
- *  caption (вес 450, шире трекинг) + холодно-нейтральный цвет (несёт цвет сам). */
-type TextRole = 'body' | 'label' | 'caption' | 'card-caption';
+ *  caption (вес 450, шире трекинг) + холодно-нейтральный цвет (несёт цвет сам).
+ *  `hint` — проза бумажки-подсказки за ⓘ (PopoverTrigger variant="hint"): между
+ *  caption и body по кеглю, но с воздухом между строк — caption это ПОДПИСЬ в одну
+ *  строку, а подсказка живёт абзацем. */
+type TextRole = 'body' | 'label' | 'caption' | 'card-caption' | 'hint';
 
 /** Ось ВЕСА (опц.) — перекрывает вес роли для «выбранного» акцента (концы диапазона
  *  календаря, активный день навигатора, выбранный чип). Зеркалит шкалу <Numeral>.

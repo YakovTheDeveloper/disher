@@ -1,12 +1,12 @@
 // HomeTopBar — top-of-home bar: avatar / nutrients / date selector.
 //
 // Shell look = the «floating» canon (detached translucent pill, soft elevation),
-// baked into `.shell` directly (2026-06-13 — the `ribbon` alt + the DesignBar
-// anchor were retired). The date button renders the short weekday («Пт», italic)
-// plus a small thin day-of-month `dd` set as a superscript «exponent» in the
-// upper-right corner (2026-07-12 — the calendar silhouette + DesignBar variants
-// were dropped; the dark pill had already flipped to the white soft look shared
-// with account/«О!»). The pill height comes from `$pill-h` so it stays in one grid.
+// baked into `.shell` directly (2026-06-13 — the `ribbon` alt was retired). The
+// date button renders the short weekday beside the day-of-month in a ROW («Пт 18»,
+// one equal type-size); the weekday is cold ink, the number warm, so they read as
+// slightly distinct glyphs. (2026-07-18 — the DesignBar casing/«fraction» variants
+// + the column layout were retired.) The pill height comes from `$pill-h` so it
+// stays in one grid with account/«О!».
 
 // Размер-пол для ВСЕХ круглых пилюль бара (account / «О!» / date) — единый источник,
 // чтобы они были одного диаметра и не разъезжались. SCSS-переменная (compile-time,
@@ -42,25 +42,10 @@ $pill-h: 48px;
     pointer-events: auto;
   }
 
-  // Любой write-бар гасит страницу своим focusOverlay (фокус ИЛИ открытая панель
-  // предложки) → он ставит `data-writebar-dim` на body через refcount-счётчик
-  // `writeBarDim` (см. writeBarDimStore.ts). Дим-оверлей заперт в stacking-
-  // контексте Embla-трека (transform → z:0 в `.container`), а пилюли бара парят на
-  // z:10 над ним — оверлей до них НЕ достаёт, поэтому бар приглушает СЕБЯ по флагу.
-  //
-  // Почему opacity, а не второй скрим поверх бара: страница ПОД баром уже затемнена
-  // первым скримом; второй скрим по всей полосе бара двойным затемнением дал бы
-  // тёмный прямоугольник со швом (прозрачные промежутки между пилюлями красятся
-  // дважды). opacity трогает ТОЛЬКО непрозрачное — сами пилюли; промежутки остаются
-  // как есть → без шва. 0.35 ≈ парность с 0.7-скримом страницы: пилюли тускнеют
-  // заодно со страницей, но не исчезают.
-  //
-  // Дим ЧИСТО ВИЗУАЛЬНЫЙ — pointer-events НЕ снимаем: аккаунт/«О!»/дата остаются
-  // кликабельны, чтобы из открытой предложки (или на любом экране) всегда был
-  // выход по chrome, а не только через cancel предложки.
-  :global(body[data-writebar-dim]) & {
-    opacity: 0.35;
-  }
+  // Приглушение бара на открытой предложке/фокусе живёт НЕ здесь: страницу гасит
+  // WriteBarShell `.focusOverlay`, а полосу самого бара кроет отдельный скрим
+  // SwipeDeck'а (`.topBarScrim`, z:11 над баром z:10), scoped по видимому слайду —
+  // так предложка экрана 1 не тушит общий бар на экране 2. См. SwipeDeck.module.scss.
 }
 
 .bar {
@@ -212,45 +197,37 @@ $pill-h: 48px;
     background var(--press-out) var(--easing-default);
 }
 
-// ─── Date-button (день недели курсивом + число «степенью») ──────────────────
-// Пилюля-навигация несёт короткий день недели («Пт») КУРСИВОМ по центру + мелкое тонкое
-// число месяца `dd` прямым надстрочником-«степенью» в правом-верхнем углу. Силуэт-графика
-// календаря и DesignBar-варианты сняты 2026-07-12. Голос несёт <Text role="label">;
-// первая буква капсом (Intl отдаёт «пт»). Кнопка «дизайнерская» — точечное исключение
-// линтера ниже намеренно (нет sys-token-рунга под мелкий 0.55em надстрочник).
-// Якорь для абсолютной «степени»: день недели центрируется flex'ом кнопки, а число
-// вынесено из инлайн-потока (position: absolute ниже), поэтому центрируется РОВНО
-// «Чт», а не пара «Чт+число» — иначе надстрочник сдвигал бы слово влево от центра.
-.dateWeekday {
-  position: relative;
-  // Слово слегка левее геометрического центра — оптический центр с учётом «степени»
-  // справа читается ровнее, чем строгий флекс-центр. Целые пиксели → чёткий рендер.
-  transform: translateX(-4px);
+// ─── Date-button (день недели рядом с числом, в ряд) ─────────────────────────
+// Пилюля-навигация несёт короткий день недели РЯДОМ с числом дня, в ряд; оба глифа
+// КУРСИВОМ и ОДНОГО кегля — наследуют размер роли `label` у обёртки `.dateStack`,
+// per-span font-size не задаём (типо-гейт не трогаем). Голос несёт <Text role="label">.
+.dateStack {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.2em;
   color: var(--sys-color-text-system);
   font-style: italic;
   line-height: 1;
-
-  &::first-letter {
-    text-transform: uppercase;
-  }
 }
 
-// Число месяца — маленькая тонкая ПРЯМАЯ «степень» в правом-верхнем углу слова (курсив
-// дня на неё не распространяется). Абсолют относительно `.dateWeekday`: убран из инлайн-
-// потока, чтобы не занимать ширину и не смещать центрированное слово; сидит у правого-
-// верхнего угла глифа как показатель степени.
-.dateDay {
-  position: absolute;
-  left: 100%;
-  top: -5px;
-  margin-left: 1px;
-  /* typo-encapsulation-disable -- bespoke надстрочный глиф «степени» числа дня: absolute em-размер, не текст в потоке — в role-примитив не переносится */
-  font-weight: 500;
-  font-style: normal;
+.dateColWeekday {
+  font-style: italic;
   line-height: 1;
-  /* stylelint-disable-next-line scale-unlimited/declaration-strict-value */
-  font-size: 12px;
+  // Вес + кегль как у соседней «О!» (bespoke бренд-глиф 700 @ lg) — один день
+  // недели в пилюле читается плотнее и крупнее. Цвет — обычный чёрный ink от `.dateStack`.
+  /* typo-encapsulation-disable -- вес и кегль как у соседнего bespoke «О!»-глифа */
+  font-weight: 700;
+  font-size: var(--sys-text-size-lg);
   /* typo-encapsulation-enable */
+  // Оптический сдвиг влево — курсивный глиф «Пт» иначе кажется смещённым вправо в круге.
+  margin-left: -2px;
+}
+
+.dateColDay {
+  font-style: italic;
+  line-height: 1;
 }
 
 // Press — мягкое затемнение белой пилюли (как HubButton), контур календаря

@@ -8,7 +8,7 @@ import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FormLayout } from '@/shared/ui/form/FormLayout';
-import { FoodHintButton } from '@/shared/ui/FoodHintButton';
+import { HintButton } from '@/shared/ui/HintButton';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
@@ -22,6 +22,12 @@ import {
   STEP_LABELS,
 } from './useFoodEntryFlow';
 import styles from './FoodEntryCreateModals.module.scss';
+
+// Свободный текст описания — место для состава БАД-компонентов, которые НЕ
+// отслеживаются как нутриенты. Хинт живёт у потребителя (примитив HintButton
+// доменно-нейтрален), показывается только где еда МОЖЕТ быть БАД.
+const SUPPLEMENT_DESCRIPTION_HINT =
+  'Если это БАД, можно добавить состав дополнительных компонентов (не нутриенты).';
 
 type Props = {
   /** Create-флоу, поднятый страницей (useFoodEntryFlow({ mode: 'create', target })). */
@@ -168,6 +174,15 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
 
   const createVariantLabel = draft.variant === 'dish' ? 'блюдо' : 'продукт';
   const createTrimmed = createName.trim();
+
+  const confirmCreate = () =>
+    handleConfirmCreate(createName, {
+      isSupplement,
+      // Состав пишется для любого продукта (базис задаёт isSupplement: 100 г /
+      // 1 шт), не только для БАД.
+      nutrients: Object.keys(draftNutrients).length > 0 ? draftNutrients : undefined,
+      description: createDescription.trim() || undefined,
+    });
   // БАД-блок — только в РАСПИСАНИИ при создании продукта. В блюде БАД запрещён:
   // dish-калькулятор считает нутриенты в граммах (per-100g), serving-продукт дал
   // бы неверную сумму → БАД не создаём и не ищем в блюде (2026-06-20).
@@ -258,32 +273,6 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                   />
                 </FormLayout.Group>
 
-                {/* Описание — общее для продукта и блюда, необязательное. id вне
-                    INPUT_TO_STEP → фокус на нём не переключает шаг (early-return
-                    в handleFocusCapture). Мультилайн: без singleLine. Кнопка-инфо
-                    в трейлинге лейбла — только где еда МОЖЕТ быть БАД
-                    (showSupplementOption): в блюде/ингредиенте БАД нет. */}
-                <FormLayout.Group
-                  label="Описание"
-                  htmlFor={`${CREATE_INPUT}-desc`}
-                  trailing={
-                    showSupplementOption ? (
-                      // Размер плитки ⓘ = высота строки лейбла (16px × 1.2 ≈ 20),
-                      // иначе тайл выше текста и распирает ряд-заголовок группы.
-                      <FoodHintButton tone="soft" size={20} glyphSize={15} />
-                    ) : undefined
-                  }
-                >
-                  <AutoGrowSearch
-                    id={`${CREATE_INPUT}-desc`}
-                    value={createDescription}
-                    onChange={setCreateDescription}
-                    placeholder="Подробности (необяз.)"
-                    maxLength={2000}
-                    autoComplete="off"
-                  />
-                </FormLayout.Group>
-
                 {showVariantSegment && (
                   <FormLayout.Group label="Какая это еда?">
                     <ChoiceGroup
@@ -313,6 +302,39 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                     </ChoiceGroup>
                   </FormLayout.Group>
                 )}
+
+                {/* Описание — общее для продукта и блюда, необязательное. id вне
+                    INPUT_TO_STEP → фокус на нём не переключает шаг (early-return
+                    в handleFocusCapture). Мультилайн: без singleLine. Кнопка-инфо
+                    в трейлинге лейбла — только где еда МОЖЕТ быть БАД
+                    (showSupplementOption): в блюде/ингредиенте БАД нет. */}
+                <FormLayout.Group
+                  label="Описание"
+                  htmlFor={`${CREATE_INPUT}-desc`}
+                  trailing={
+                    showSupplementOption ? (
+                      // Размер плитки ⓘ = высота строки лейбла (16px × 1.2 ≈ 20),
+                      // иначе тайл выше текста и распирает ряд-заголовок группы.
+                      <HintButton
+                        hint={SUPPLEMENT_DESCRIPTION_HINT}
+                        ariaLabel="Подсказка про описание"
+                        tone="soft"
+                        size={20}
+                        glyphSize={15}
+                      />
+                    ) : undefined
+                  }
+                >
+                  <AutoGrowSearch
+                    id={`${CREATE_INPUT}-desc`}
+                    value={createDescription}
+                    onChange={setCreateDescription}
+                    placeholder="Подробности (необяз.)"
+                    maxLength={2000}
+                    autoComplete="off"
+                  />
+                </FormLayout.Group>
+
                 {showSupplementOption && (
                   <div className={styles.createSupplementRow}>
                     <LabeledCheckbox
@@ -339,52 +361,60 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                     />
                     {wantComposition && (
                       <div className={styles.supplementBlock}>
-                      {nutrientGroups.map((group) => {
-                        const isOpen = openGroup === group.name;
-                        const filledCount = group.content.filter(
-                          (n) => (draftNutrients[n.id] ?? 0) > 0
-                        ).length;
-                        return (
-                          // Примитив Accordion. lazyMount — тело монтируется только
-                          // пока открыто: групп 4 (до 19 карточек каждая) и always-
-                          // mount всех сразу зря крутил бы ~54 NutrientCardEditor;
-                          // iOS-делегация тут не страдает (тоггл — button, label→
-                          // input самодостаточны внутри карточки), поэтому lazy
-                          // безопасен. Кликабельность несёт вращающийся шеврон.
-                          <Accordion
-                            key={group.name}
-                            open={isOpen}
-                            onToggle={() => toggleGroup(group.name)}
-                            lazyMount
-                            className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
-                            headerClassName={styles.nutrientsToggle}
-                            bodyClassName={styles.nutrientsGrid}
-                            title={
-                              <Text as="span" role="label" className={styles.nutrientsToggleTitle}>
-                                {group.displayName}
-                              </Text>
-                            }
-                            trailing={
-                              filledCount > 0 ? (
-                                <Text as="span" role="caption" className={styles.nutrientsToggleHint}>
-                                  {filledCount} запис.
+                        {nutrientGroups.map((group) => {
+                          const isOpen = openGroup === group.name;
+                          const filledCount = group.content.filter(
+                            (n) => (draftNutrients[n.id] ?? 0) > 0
+                          ).length;
+                          return (
+                            // Примитив Accordion. lazyMount — тело монтируется только
+                            // пока открыто: групп 4 (до 19 карточек каждая) и always-
+                            // mount всех сразу зря крутил бы ~54 NutrientCardEditor;
+                            // iOS-делегация тут не страдает (тоггл — button, label→
+                            // input самодостаточны внутри карточки), поэтому lazy
+                            // безопасен. Кликабельность несёт вращающийся шеврон.
+                            <Accordion
+                              key={group.name}
+                              open={isOpen}
+                              onToggle={() => toggleGroup(group.name)}
+                              lazyMount
+                              className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
+                              headerClassName={styles.nutrientsToggle}
+                              bodyClassName={styles.nutrientsGrid}
+                              title={
+                                <Text
+                                  as="span"
+                                  role="label"
+                                  className={styles.nutrientsToggleTitle}
+                                >
+                                  {group.displayName}
                                 </Text>
-                              ) : null
-                            }
-                          >
-                            {group.content.map((nutrientData) => (
-                              <NutrientCardEditor
-                                key={nutrientData.id}
-                                content={nutrientData}
-                                variant="product-edit"
-                                className={styles.inlineCard}
-                                editValue={draftNutrients[nutrientData.id] ?? 0}
-                                onValueChange={handleNutrientChange}
-                              />
-                            ))}
-                          </Accordion>
-                        );
-                      })}
+                              }
+                              trailing={
+                                filledCount > 0 ? (
+                                  <Text
+                                    as="span"
+                                    role="caption"
+                                    className={styles.nutrientsToggleHint}
+                                  >
+                                    {filledCount} запис.
+                                  </Text>
+                                ) : null
+                              }
+                            >
+                              {group.content.map((nutrientData) => (
+                                <NutrientCardEditor
+                                  key={nutrientData.id}
+                                  content={nutrientData}
+                                  variant="product-edit"
+                                  className={styles.inlineCard}
+                                  editValue={draftNutrients[nutrientData.id] ?? 0}
+                                  onValueChange={handleNutrientChange}
+                                />
+                              ))}
+                            </Accordion>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -397,24 +427,21 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
               <ModalShell.ActionButtons
                 debugId="create-name"
                 right={
-                  createTrimmed ? (
+                  !createTrimmed ? (
+                    <ModalNextButton onClick={() => {}} label="Создать" disabled />
+                  ) : kind === 'proposal' ? (
+                    // Предложка: «Создать» — ФИНИШ, а не шаг. handleConfirmCreate сам
+                    // коммитит ряд (количество и время в нём уже есть из разбора), так
+                    // что делегировать фокус в QUANTITY_INPUT нечему: шаг порции
+                    // раскрылся бы поверх уже закрытого флоу.
+                    <ModalNextButton variant="finish" label="Создать" onClick={confirmCreate} />
+                  ) : (
                     <ModalNextButton
                       as="label"
                       htmlFor={QUANTITY_INPUT}
-                      onClick={() =>
-                        handleConfirmCreate(createName, {
-                          isSupplement,
-                          // Состав пишется для любого продукта (базис задаёт
-                          // isSupplement: 100 г / 1 шт), не только для БАД.
-                          nutrients:
-                            Object.keys(draftNutrients).length > 0 ? draftNutrients : undefined,
-                          description: createDescription.trim() || undefined,
-                        })
-                      }
+                      onClick={confirmCreate}
                       label="Создать"
                     />
-                  ) : (
-                    <ModalNextButton onClick={() => {}} label="Создать" disabled />
                   )
                 }
               />

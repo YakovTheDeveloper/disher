@@ -26,6 +26,57 @@
         transform: translateY(-4px) scale(0.96);
     }
 
+    // Бумажка-подсказка: проза за ⓘ, а не панель с контролами. Минимальные
+    // скругления + покойная тень (ref-2, не тень модалки) + свой воздух — записка
+    // лежит на листе, а не парит над ним. Окантовка — тающая двойная рамка-инсет
+    // (мотив гравюрной окантовки со «стола натуралиста»), но строго: не жёсткий
+    // border вокруг всего (это ловушка канона), а две hairline-линии, что
+    // РАСТВОРЯЮТСЯ к углам — тающий штрих в духе Divider (см. &.hint::before/after).
+    &.hint {
+        // Рамка — индиго-акцент: --sys-color-text-accent (indigo-700 в light,
+        // indigo-300 в dark — флипается сам, читается на обеих темах), приглушён
+        // color-mix'ом до hairline. Инсет отводит рамку от края, +--space-1 в
+        // padding — текст от рамки. (color-mix в custom-prop → мимо токен-гейта.)
+        --hint-frame-ink: color-mix(in oklch, var(--sys-color-text-accent) 30%, transparent);
+        --hint-frame-inset: 6px;
+
+        border-radius: var(--sys-radius-tooltip);
+        box-shadow: var(--sys-elevation-tooltip);
+        padding: calc(var(--sys-inset-tooltip) + var(--space-1));
+        // Ширину держит мера строки контента (--sys-measure-tooltip), не панель:
+        // короткая подсказка обязана резаться по тексту, а не растягиваться до 160px.
+        min-width: 0;
+    }
+
+    // Тающая двойная рамка: две концентричные hairline-линии, обе гаснут к углам.
+    // Растворение — объединение двух осевых масок-градиентов (mask-composite: add):
+    // линия видна на серединах сторон и уходит в ноль к углам ⇒ не прямоугольник.
+    // ::before — внешняя линия, ::after — внутренняя (на 3px глубже).
+    &.hint::before,
+    &.hint::after {
+        content: '';
+        position: absolute;
+        border: 1px solid var(--hint-frame-ink);
+        border-radius: var(--sys-radius-tooltip);
+        pointer-events: none;
+        -webkit-mask:
+            linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent),
+            linear-gradient(0deg, transparent, #000 15%, #000 85%, transparent);
+        -webkit-mask-composite: source-over;
+        mask:
+            linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent),
+            linear-gradient(0deg, transparent, #000 15%, #000 85%, transparent);
+        mask-composite: add;
+    }
+
+    &.hint::before {
+        inset: var(--hint-frame-inset);
+    }
+
+    &.hint::after {
+        inset: calc(var(--hint-frame-inset) + 3px);
+    }
+
     // Overlap mode: panel covers the trigger (top edges aligned), so it grows out of the
     // trigger corner. Zero padding lets a corner control (the ✕) sit flush over the trigger;
     // the panel body owns its own insets.

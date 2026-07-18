@@ -59,7 +59,13 @@ async function pollUntilDone(
   analysisId: string,
   headers: Record<string, string>,
 ): Promise<AnalysisResponse["analysis"]> {
-  for (let i = 0; i < 100; i++) {
+  // Wall-clock deadline, not an iteration count: the old `for (i < 100)` gave
+  // ~2s of budget for a job that regularly needed 2.7-3.9s, so the same spec
+  // passed or failed by luck. The job is fire-and-forget — the only honest wait
+  // is a clock. 5s is far above the sub-100ms this takes now that the critic no
+  // longer makes a live network call (see test/global-setup.ts).
+  const started = Date.now();
+  while (Date.now() - started < 5_000) {
     const res = await app.inject({
       method: "GET",
       url: `/api/analyses/${analysisId}`,
@@ -70,7 +76,7 @@ async function pollUntilDone(
     if (body.analysis.result_md !== "") return body.analysis;
     await new Promise((r) => setTimeout(r, 20));
   }
-  throw new Error("never done");
+  throw new Error(`never done after ${Date.now() - started}ms`);
 }
 
 beforeAll(async () => {

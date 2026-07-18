@@ -1,4 +1,4 @@
-import { useMemo, type PointerEvent as ReactPointerEvent } from 'react';
+import { useMemo, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import clsx from 'clsx';
 import { InfoButton } from '@/shared/ui/atoms/Button';
 import styles from './FoodActionCard.module.scss';
@@ -16,10 +16,9 @@ import { DishDrawer } from '@/features/food/dish-drawer';
 // (см. defensive-импорт в ProductDrawer/buildInfoActions).
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
 import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
-import { Text, QuietLabel, Numeral } from '@/shared/ui/atoms/Typography';
+import { Text, QuietLabel, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
 import { ArcLabel } from '@/shared/ui/ArcLabel/ArcLabel';
-import { formatNormPercent } from './formatNormPercent';
-import { formatAmount } from '@/shared/lib/formatNumber';
+import { formatAmount, formatPercent } from '@/shared/lib/formatNumber';
 
 type Props = {
   variant: 'product' | 'dish';
@@ -41,10 +40,6 @@ type Props = {
    *  один раз (user-норма ?? дефолт) и прокидывает сюда; undefined у нутриентов
    *  без нормы — тогда процент не рисуется. */
   richNutrientNorm?: number;
-  /** When true, the richness bar/value/fill use a grayscale ramp instead of the
-   *  green→amber hue scale. Set by SearchFood in strict-monochrome variants so
-   *  the screen stays achromatic. */
-  monoRichness?: boolean;
   /**
    * If provided, the name area becomes a <label htmlFor={htmlFor}> so a tap on
    * the text focuses the corresponding input (used by ModalByLabel step flows).
@@ -60,42 +55,6 @@ type Props = {
   mineFilter?: boolean;
 };
 
-// Богатство нутриентом: тускло-серый (мало) → мягкий жёлтый (середина) →
-// бледный светло-зелёный с желтизной (богато). Верх НЕ насыщенно-зелёный, а
-// лёгкий жёлто-зелёный, уходящий в бледно-жёлтый.
-const RICHNESS_COLORS = [
-  '#c6c5bf', // 0: none — тусклый серый
-  '#d4cfa6', // very low — серо-жёлтый
-  '#e0d589', // low-mid — приглушённый жёлтый
-  '#e7d771', // mid — мягкий жёлтый
-  '#dcd96f', // жёлто-зелёный (бледный)
-  '#cdda77', // лайм к жёлтому (бледный)
-  '#bfdb80', // светло-зелёный, к жёлтому
-  '#b2da84', // rich — лёгкий бледный жёлто-зелёный
-] as const;
-
-// Achromatic richness ramp — opt-in via the `monoRichness` prop for a
-// strict-monochrome host. Magnitude still reads, via value (light→dark gray)
-// instead of hue. Latent capability: SearchFood no longer requests it (its
-// paper-mono tone uses the colour ramp), but the prop stays for reuse.
-const RICHNESS_GRAYS = [
-  '#cfcfcf', // 0: none
-  '#b8b8b8',
-  '#9c9c9c',
-  '#7e7e7e',
-  '#646464',
-  '#4c4c4c',
-  '#363636',
-  '#222222',
-] as const;
-
-function getRichnessColor(ratio: number, mono = false): string {
-  const ramp = mono ? RICHNESS_GRAYS : RICHNESS_COLORS;
-  if (ratio <= 0) return ramp[0];
-  const idx = Math.min(Math.floor(ratio * (ramp.length - 1)), ramp.length - 1);
-  return ramp[idx];
-}
-
 const FoodActionCard = ({
   variant,
   item,
@@ -106,7 +65,6 @@ const FoodActionCard = ({
   richNutrientUnit,
   richNutrientMax = 0,
   richNutrientNorm,
-  monoRichness = false,
   htmlFor,
   mineFilter = false,
 }: Props) => {
@@ -238,14 +196,14 @@ const FoodActionCard = ({
     return Math.min(richNutrientValue / richNutrientMax, 1);
   }, [richNutrientValue, richNutrientMax]);
 
-  const richnessColor =
-    richNutrientValue !== null ? getRichnessColor(richness, monoRichness) : undefined;
+  // % от суточной нормы — БЕЗ знака: число и «%» разведены (число несёт цвет-
+  // акцент, «%» — тихий маркер), знак дорисовывает <NumeralMarker kind="sign">.
   const normPercent =
     richNutrientValue !== null &&
     richNutrientValue > 0 &&
     richNutrientNorm != null &&
     richNutrientNorm > 0
-      ? formatNormPercent((richNutrientValue / richNutrientNorm) * 100)
+      ? formatPercent((richNutrientValue / richNutrientNorm) * 100)
       : null;
 
   return (
@@ -260,39 +218,6 @@ const FoodActionCard = ({
       data-has-thumb={imageSrc || kindBadge ? '' : undefined}
       {...liHandlers}
     >
-      {richNutrientValue !== null && (
-        <span className={styles.richValue}>
-          {/* Цветная заливка квадрата (ширина = доля богатства, слева направо),
-              под числами (z-index:-1). Re-key по нутриенту → растёт заново. */}
-          {richness > 0 && (
-            <span
-              key={`fill-${richNutrientId}`}
-              className={styles.richValueFill}
-              style={{ width: `${richness * 100}%`, backgroundColor: richnessColor }}
-              aria-hidden
-            />
-          )}
-          {/* Число + единица в ОДНОЙ строке (baseline-aligned): единица —
-              тихий строчный хвостик справа от числа. Раньше единица стояла
-              отдельной третьей строкой → три строки не влезали в 44px по высоте
-              и верхнее число подрезалось overflow:hidden при включённой сортировке. */}
-          <span className={styles.richValueTop}>
-            <Numeral size="sm" weight="semibold">
-              {richNutrientValue > 0 ? formatAmount(richNutrientValue) : '—'}
-            </Numeral>
-            {richNutrientValue > 0 && richNutrientUnit && (
-              <Text as="span" role="caption" className={styles.richUnit}>
-                {richNutrientUnit}
-              </Text>
-            )}
-          </span>
-          {normPercent && (
-            <Numeral as="span" size="sm" weight="semibold" className={styles.richPercent}>
-              {normPercent}
-            </Numeral>
-          )}
-        </span>
-      )}
       {htmlFor ? (
         <label
           htmlFor={htmlFor}
@@ -328,6 +253,51 @@ const FoodActionCard = ({
             )}
           </span>
         </p>
+      )}
+      {/* Богатство нутриентом = тихая правая колонка чисел + «термометр»-заливка
+          ряда (ghost-row). Трек absolute внутри непозиционированной `.rich`
+          разрешается относительно `.wrapper` → бледная заливка кроет весь ряд
+          слева направо на долю богатства. См. .module.scss. */}
+      {richNutrientValue !== null && (
+        <span className={styles.rich}>
+          {/* 2×2 грид: колонка чисел (право-выровнены) + колонка маркеров (лево-
+              выровнены). Единицы и «%» садятся на ОДНУ вертикаль — границу колонок
+              грида (как выровненный жёлоб дровера, но без absolute-свисания: у
+              карточки справа стоит ⓘ, свисать некуда). Ячейки размещены явно
+              (grid-column/row), поэтому пропуск единицы/процента не смещает
+              соседей. */}
+          <span className={styles.richNums}>
+            <Numeral size="sm" weight="semibold" className={styles.richCellValue}>
+              {richNutrientValue > 0 ? formatAmount(richNutrientValue) : '—'}
+            </Numeral>
+            {richNutrientValue > 0 && richNutrientUnit && (
+              <NumeralMarker kind="unit" className={styles.richCellUnit}>
+                {richNutrientUnit}
+              </NumeralMarker>
+            )}
+            {normPercent && (
+              <>
+                <Numeral size="sm" weight="semibold" className={styles.richCellPercent}>
+                  {normPercent}
+                </Numeral>
+                <NumeralMarker kind="sign" className={styles.richCellSign}>
+                  %
+                </NumeralMarker>
+              </>
+            )}
+          </span>
+          <span className={styles.richTrack} aria-hidden>
+            {/* Re-key по нутриенту → заливка растёт заново при смене фильтра.
+                Уровень едет через --rich (scaleX), а не width — композит-only. */}
+            {richness > 0 && (
+              <span
+                key={`fill-${richNutrientId}`}
+                className={styles.richFill}
+                style={{ '--rich': richness } as CSSProperties}
+              />
+            )}
+          </span>
+        </span>
       )}
       {onInfoClick && (
         <span
@@ -376,7 +346,7 @@ const FoodActionCard = ({
       )}
       {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки.
           Не цветная — это признак владения, а не данные (цвет несёт левый квадрат-
-          гейдж richValue). В режиме «Мое» список целиком свой → маркер избыточен,
+          гейдж богатства). В режиме «Мое» список целиком свой → маркер избыточен,
           гасим (карточки читаются как обычные, вид несёт дуговой бейдж слева). */}
       {userCreated && !mineFilter && <span className={styles.ownerStripe} aria-hidden />}
     </li>

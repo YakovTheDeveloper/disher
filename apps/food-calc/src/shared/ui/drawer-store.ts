@@ -23,6 +23,11 @@ type InferResult<P> = P extends { onClose: (result?: infer R) => void } ? R : vo
 //    finished, it calls `finishClose(id)`, which fully removes the instance.
 // No magic timer — exit duration is governed by the real CSS transition.
 
+// Heterogeneous registry — one array, mutually unrelated prop types per entry.
+// The erased `any` stands in for an existential P that TS can't express; safety
+// lives at the `show<P>()` boundary. Full reasoning in modal-store.ts, which is
+// the same shape.
+/* eslint-disable @typescript-eslint/no-explicit-any -- existential P, see modal-store.ts */
 interface DrawerInstance {
   id: string;
   Component: React.ComponentType<any>;
@@ -35,6 +40,7 @@ interface DrawerInstance {
   // which DrawerLayout reads to pick its geometry.
   options: ResolvedDrawerOptions;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface DrawerState {
   instances: DrawerInstance[];
@@ -44,6 +50,9 @@ const useDrawerStore = create<DrawerState>(() => ({
   instances: [],
 }));
 
+// Constraint must admit a drawer declaring ANY result type — `BaseDrawerProps<unknown>`
+// would only match those whose onClose takes unknown. P itself is inferred exactly.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constraint must admit every R
 function show<P extends BaseDrawerProps<any>>(
   Component: React.ComponentType<P>,
   props: Omit<P, 'onClose'>,
@@ -86,6 +95,10 @@ function show<P extends BaseDrawerProps<any>>(
   });
 }
 
+// close(id) is called from the manager and from history pops — they know the id,
+// not which drawer's R it belongs to. The value goes straight to that instance's
+// own resolve().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- caller can't know R from an id
 function close(id: string, result?: any) {
   const instance = useDrawerStore.getState().instances.find((i) => i.id === id);
   if (!instance) return;
@@ -115,6 +128,7 @@ function finishClose(id: string) {
   }));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- same as close(): R unknown at the call site
 function closeLast(result?: any) {
   const open = useDrawerStore
     .getState()
