@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview --host",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:arch": "steiger ./src",
     "check:tokens": "node scripts/check-scale-tokens.mjs && node scripts/check-dead-token-refs.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs && node scripts/check-token-naming.mjs && node scripts/check-apca-contrast.mjs && node scripts/check-typo-encapsulation.mjs && node scripts/check-surface-token.mjs && node scripts/check-token-tier.mjs",
     "lint:style": "node scripts/check-scale-tokens.mjs && node scripts/check-dead-token-refs.mjs && node scripts/check-selected-token.mjs && node scripts/check-text-role.mjs && node scripts/check-token-naming.mjs && node scripts/check-apca-contrast.mjs && node scripts/check-typo-encapsulation.mjs && node scripts/check-surface-token.mjs && node scripts/check-token-tier.mjs && stylelint \"src/**/*.{scss,css}\" --max-warnings 0",
     "check:precache": "node scripts/check-precache.mjs",
@@ -61,6 +62,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
+    "@feature-sliced/steiger-plugin": "0.7.0",
     "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -87,6 +89,7 @@
     "prettier": "3.6.2",
     "sass": "^1.81.0",
     "sharp": "^0.34.5",
+    "steiger": "0.6.0",
     "stylelint": "^16",
     "stylelint-declaration-strict-value": "^1.11.1",
     "supabase": "^2.95.2",
