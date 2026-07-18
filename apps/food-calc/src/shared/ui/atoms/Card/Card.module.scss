@@ -2,6 +2,7 @@
 // LongPressRow (Card.Root композирует её). 2 строки, каждая = [start: течёт
 // (flex:1) | end: прибит (shrink:0)]. Слот задаёт ТИП (через <Text>) и ЦВЕТ здесь
 // — единственный источник типографики карточек.
+@import '@/shared/assets/style/mixin.scss';
 
 .card {
   // Ряд: [qty-столбик | контент-столбик]. qty (когда есть) садится на первую
@@ -53,8 +54,7 @@
 // появится карточка, где холодный тон не читается (напр. тёмная/насыщенная).
 .qtyCol {
   flex-shrink: 0;
-  color: var(--sys-color-text-on-hue-card);
-  font-weight: var(--sys-color-font-weight-on-hue-card);
+  @include card-numeric-tone; // холодный тон, в один голос с временем (кегль — от EditableQuantity)
 }
 
 .titleRow,
@@ -149,11 +149,10 @@
 }
 
 .time {
-  // base (16px), не sm (13px) — время = важный ридаут для пользователя; крупнее
-  // и в один голос с деталь-строкой body, чтобы садиться на общую базовую линию.
-  font-size: var(--sys-numeral-base);
-  color: var(--sys-color-text-secondary);
-  font-variant-numeric: tabular-nums;
+  // Тот же голос, что у CardTime (еда/предложка) — событие рендерит время сырым
+  // текстом-диапазоном через этот путь, но звучать должно идентично (была
+  // регрессия: text-secondary вместо холодного числового тона).
+  @include card-time-readout;
   white-space: nowrap;
 }
 

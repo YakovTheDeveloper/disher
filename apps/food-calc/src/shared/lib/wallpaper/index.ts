@@ -8,4 +8,15 @@ export {
   type WallpaperId,
   type WallpaperScreen,
 } from './wallpaper-catalog';
-export { useWallpaperStore, useWallpaperSrc } from './wallpaper-store';
+export {
+  useWallpaperStore,
+  useWallpaperSrc,
+  useWallpaperCrop,
+  isDefaultCrop,
+  responsiveHeroHeight,
+  HERO_HEIGHT_MIN,
+  HERO_HEIGHT_MAX,
+  HERO_ZOOM_MIN,
+  HERO_ZOOM_MAX,
+  type WallpaperCrop,
+} from './wallpaper-store';

@@ -136,6 +136,22 @@ textarea,
   user-select: text;
 }
 
+// Картинки и svg — декор, НИКОГДА не проза (Hero-обложки, миниатюры обоев, иконки,
+// гравюры лоадера). На iOS одного `user-select: none` мало: он гасит выделение
+// ТЕКСТА, а долгий тап по `<img>` открывает системный callout «Сохранить/Копировать
+// изображение» + синюю подсветку — за это отвечают `-webkit-touch-callout` и
+// `-webkit-user-drag`, не `user-select`. Гасим их разом на все картинки/svg (тот же
+// «один ресет вместо N», что и тап-таргеты выше). Re-enable не нужен — это не проза.
+// Бонус: кастомный long-press по обложке (WallpaperHero) больше не спорит с нативным
+// меню картинки.
+img,
+svg {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
 
 li {
   list-style: none;

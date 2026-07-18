@@ -3,7 +3,11 @@
 // can flip --overlay-opacity at the document level via :has().
 :root {
     --overlay-duration: 280ms;
-    --overlay-opacity: 0.5;
+    // База непрозрачности скрима — одна точка правды. interactiveBehind-дроверы
+    // (WallpaperDrawer) берут её ДОЛЮ (см. .clickThrough), поэтому «втрое слабее»
+    // следует за базой, а не хардкодит собственное число.
+    --overlay-opacity-base: 0.5;
+    --overlay-opacity: var(--overlay-opacity-base);
 }
 
 
@@ -41,6 +45,18 @@
     &[data-ending-style] {
         transition-duration: var(--sys-duration-drawer);
     }
+}
+
+// Click-through backdrop (interactiveBehind): страница под дровером кликабельна
+// (`pointer-events:none` — прозрачный fixed-inset:0 иначе перехватывает ВСЕ тапы,
+// opacity на попадание не влияет), обложка под ним тянется пальцами. Скрим при этом
+// НЕ убран полностью (как было), а лишь ослаблен — ВТРОЕ слабее базы (просьба
+// 2026-07-18): лёгкое затемнение отделяет лист, но фон остаётся читаемым.
+// Тап-по-фону-закрыть по-прежнему не срабатывает (backdrop не может быть
+// outside-press целью при pointer-events:none) — закрытие через крест / свайп / Escape.
+.clickThrough {
+    --overlay-opacity: calc(var(--overlay-opacity-base) / 3);
+    pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

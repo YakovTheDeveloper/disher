@@ -18,7 +18,7 @@ import { Select } from '@/shared/ui/atoms/Select';
 import { Button } from '@/shared/ui/atoms/Button';
 import { Accordion } from '@/shared/ui/Accordion';
 import { PlusIcon } from '@/shared/ui/atoms/icons/PlusIcon';
-import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
+import { FoodNormSections } from '@/features/dailyNorms/FoodNormSections';
 import { FoodPortionsManager } from '@/features/food/food-portions-manager';
 import {
   ChangeNameModal,
@@ -498,40 +498,38 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
               />
             ) : (
               <>
-                {/* Норма — отдельной строкой на всю ширину над блоком количества
-                    (и у еды, и у БАД). Ниже: еда — выбор количества, БАД — подпись
-                    «состав на 1 единицу». Всё ПРЯМО над таблицей нутриентов. */}
-                <div className={s.normRowFull}>
-                  <DailyNormButton className={s.normButtonFull} />
-                </div>
-                {isSupplement ? (
-                  <Text as="p" role="body" className={s.servingComposition}>Состав на одну единицу:</Text>
-                ) : (
-                  <>
-                    <div className={s.measureRow}>
-                      <div className={s.quantityControl}>
-                        <Select
-                          className={s.quantitySelect}
-                          ariaLabel="Способ измерения количества"
-                          value={selectValue}
-                          options={quantityOptions}
-                          onChange={handleQuantityModeChange}
-                        />
-                      </div>
-                    </div>
-                    {isCustom && (
-                      <div className={s.quantityInputRow}>
-                        <NumberInput
-                          value={displayQuantity}
-                          min={0}
-                          maxLength={4}
-                          className={s.quantityInput}
-                          onChange={(val) => setQuantity(val)}
-                        />
-                        <Text as="span" role="body" className={s.quantityUnit}>г</Text>
-                      </div>
-                    )}
-                  </>
+                {/* Норма + основа состава — секциями (общий FoodNormSections, те же
+                    ActionList.Section, что и корень «Аккаунта»). У БАД основа фиксирована
+                    (одна единица), у еды — селект способа измерения. Всё ПРЯМО над
+                    таблицей нутриентов. */}
+                <FoodNormSections
+                  composition={
+                    isSupplement ? (
+                      <Text as="span" role="body" className={s.servingComposition}>
+                        одну единицу
+                      </Text>
+                    ) : (
+                      <Select
+                        className={s.quantitySelect}
+                        ariaLabel="Способ измерения количества"
+                        value={selectValue}
+                        options={quantityOptions}
+                        onChange={handleQuantityModeChange}
+                      />
+                    )
+                  }
+                />
+                {!isSupplement && isCustom && (
+                  <div className={s.quantityInputRow}>
+                    <NumberInput
+                      value={displayQuantity}
+                      min={0}
+                      maxLength={4}
+                      className={s.quantityInput}
+                      onChange={(val) => setQuantity(val)}
+                    />
+                    <Text as="span" role="body" className={s.quantityUnit}>г</Text>
+                  </div>
                 )}
 
                 <NutrientMeterView getValue={getScaledValue} />

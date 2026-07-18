@@ -8,6 +8,7 @@ import { useScheduleFoods } from '@/entities/schedule-food';
 import { useScheduleEvents } from '@/entities/schedule-event';
 import type { ScheduleEvent } from '@/entities/schedule-event';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
+import { useWallpaperStore } from '@/shared/lib/wallpaper';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { HomeHero } from './ui/HomeHero';
@@ -43,6 +44,14 @@ const Page = ({ date }: { date: string }) => {
   // → topSlot'ы в SwipeDeck мемоизируются, memo() слайдов не сбрасывается.
   const heroForSlide = useCallback((i: number) => <HomeHero slide={i} />, []);
 
+  // Per-screen высота обложки (слайд 0 = Рацион, 1 = События; тот же маппинг, что
+  // SLIDE_TO_SCREEN в HomeHero). null → без override, действует responsive-клэмп.
+  const heights = useWallpaperStore((s) => s.heights);
+  const heroHeightForSlide = useCallback(
+    (i: number) => (i === 0 ? heights.ration : heights.events) ?? undefined,
+    [heights],
+  );
+
   // Заголовок-дата («Воскресенье, 5 июля») в правом-верхнем углу листа. Владелец —
   // HomePage; один элемент прокидывается в оба экрана дека (Рацион + События) через
   // `topContent` их `Screen`. Формат — чистая `formatDayHeading` (покрыта тестом).
@@ -68,7 +77,8 @@ const Page = ({ date }: { date: string }) => {
   // смене даты; `topBarHide` ставит сам виджет.
   const slides: DeckSlide[] = [
     {
-      // Экран 1 (Рацион, default) — уезжают только настройки (нутриенты+дата нужны).
+      // Экран 1 (Рацион, default). Топ-бар остаётся на месте при скролле —
+      // scroll-hide настроек отменён (кнопка настроек не уезжает).
       render: (topSlot) => (
         <FoodSchedule
           key={date}
@@ -76,12 +86,11 @@ const Page = ({ date }: { date: string }) => {
           items={items}
           topSlot={topSlot}
           topContent={dateHeading}
-          topBarHide="settings"
         />
       ),
     },
     {
-      // Экран 2 (События) — уезжают только настройки.
+      // Экран 2 (События). Топ-бар остаётся на месте при скролле.
       render: (topSlot) => (
         <ScheduleEvents
           key={date}
@@ -89,7 +98,6 @@ const Page = ({ date }: { date: string }) => {
           events={events}
           topSlot={topSlot}
           topContent={dateHeading}
-          topBarHide="settings"
         />
       ),
     },
@@ -102,6 +110,7 @@ const Page = ({ date }: { date: string }) => {
       defaultSlide={DEFAULT_SLIDE}
       renderTopBar={renderTopBar}
       heroForSlide={heroForSlide}
+      heroHeightForSlide={heroHeightForSlide}
       // Дек стал 2-слайдовым (Рацион ↔ События) — «middle-right» больше не имеет
       // среднего слайда, так что дефолт 'all': у неактивного соседа стрелка в его
       // сторону (вправо на «Рацион», влево на «События»).

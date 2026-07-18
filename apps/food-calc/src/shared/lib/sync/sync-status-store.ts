@@ -4,11 +4,11 @@ import { reportError } from '@/shared/lib/errors/report';
 
 // Status of the snapshot sync (pull → merge → push). Background sync used to
 // fail SILENTLY — the user believed their data was in the cloud when the push
-// had actually dropped. This store makes the outcome observable so the ambient
-// SyncStatusChip and the failure toaster (see runSync.ts) can render it.
+// had actually dropped. This store makes the outcome observable so the
+// SyncStatusBar and the failure toaster (see runSync.ts) can render it.
 //
 // It is deliberately NOT a scheduler: nothing here retries. Retry is user-driven
-// (the toaster's «Повторить», the manual Profile buttons). See [[backup-only-plan]].
+// (the SyncStatusBar refresh button, the manual Profile buttons). See [[backup-only-plan]].
 
 export type SyncState = 'idle' | 'syncing' | 'synced' | 'failed';
 

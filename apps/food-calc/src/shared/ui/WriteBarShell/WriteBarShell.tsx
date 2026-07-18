@@ -4,6 +4,7 @@ import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { InfoButton } from '@/shared/ui/atoms/Button';
 import { HintButton } from '@/shared/ui/HintButton';
+import { Heading } from '@/shared/ui/atoms/Typography';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { RotatingPlaceholder } from './RotatingPlaceholder';
 import { WriteBarHint } from './WriteBarHint';
@@ -142,6 +143,14 @@ export interface WriteBarShellProps {
    */
   hintPopover?: ReactNode;
   /**
+   * Тематический заголовок, встающий В ЛЕВОЙ колонке дока над баром на фокусе
+   * (`expanded`) — «Еда, её количество и во сколько» и т.п. Своя строка у каждого
+   * экрана. ⓘ (hintPopover/inline hint) остаётся в правой колонке. Когда не задан —
+   * левая колонка пуста (прежнее поведение). Не виден на `fieldOverride`-состоянии
+   * (ready-заголовок владеет пилюлей сам).
+   */
+  focusTitle?: string;
+  /**
    * Dim the page behind the bar on focus (`expanded`) so the accent falls on the
    * bar + its hint. ON by default for ALL write bars (per request 2026-07-05).
    * This is the successor to the global Screen focus-scrim removed 2026-06-23 —
@@ -202,6 +211,7 @@ export const WriteBarShell = ({
   hint,
   hintLabel,
   hintPopover,
+  focusTitle,
   focusOverlay = true,
   overlayVisible = false,
   className,
@@ -298,12 +308,18 @@ export const WriteBarShell = ({
           onPointerDown={() => document.getElementById(inputId)?.blur()}
         />
       ) : null}
-      {(hint || hintLabel || hintPopover) && expanded ? (
-        // Док подсказки: грид «колонка · центр · колонка». Текст (WriteBarHint)
-        // в центральной колонке строго по ЦЕНТРУ (равные боковые 1fr), кнопка ⓘ —
-        // в правой колонке. Всё в потоке. Монтируется ТОЛЬКО на фокусе (expanded),
-        // иначе в покое кнопка-колонка резервировала бы высоту над пилюлей.
+      {(hint || hintLabel || hintPopover || focusTitle) && expanded ? (
+        // Док подсказки: грид «левая · центр · правая». Тематический заголовок
+        // (focusTitle) — в ЛЕВОЙ колонке, текст-хинт (WriteBarHint) в центральной
+        // строго по ЦЕНТРУ (равные боковые 1fr), кнопка ⓘ — в правой. Всё в потоке.
+        // Монтируется ТОЛЬКО на фокусе (expanded), иначе в покое колонки
+        // резервировали бы высоту над пилюлей.
         <div className={s.hintDock}>
+          {focusTitle ? (
+            <Heading as="h2" role="title" className={s.dockTitle}>
+              {focusTitle}
+            </Heading>
+          ) : null}
           {/* preventDefault на pointerdown ОБЁРТКИ (не самой кнопки — там
               onPointerDown занят usePressFeedback внутри IconButton) держит фокус
               на textarea: без него тап по ⓘ сбросил бы фокус → onBlur → бар
@@ -322,7 +338,9 @@ export const WriteBarShell = ({
             </div>
           ) : (
             <>
-              <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
+              <div className={s.hintText}>
+                <WriteBarHint body={hint ?? ''} label={hintLabel} visible={hintOpen} />
+              </div>
               <div className={s.hintBtn} onPointerDown={(e) => e.preventDefault()}>
                 <InfoButton
                   tone="soft"

@@ -5,12 +5,13 @@ import { ModalShell } from '@/shared/ui/ModalShell';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
+import { SyncStatusBar } from '@/features/sync-status/SyncStatusBar';
 import { finalSyncBeforeSignOut } from './auth-store';
 import s from './SignOutConfirmModal.module.scss';
 
 // Точное слово-барьер: пока пользователь не наберёт его — деструктивная кнопка
 // заблокирована. Регистр/пробелы по краям нормализуем (см. `armed`).
-const CONFIRM_WORD = 'удалить';
+const CONFIRM_WORD = 'выйти';
 
 type BackupState = 'idle' | 'saving' | 'done' | 'error';
 
@@ -126,19 +127,19 @@ function SignOutConfirmModal({ onClose }: SignOutConfirmModalProps) {
           </Text>
 
           <Button
-            variant="system-secondary"
-            flat
+            variant="system"
             fullWidth
             onClick={handleBackup}
             disabled={backup === 'saving' || syncing}
           >
             {BACKUP_LABEL[backup]}
           </Button>
+          <SyncStatusBar />
 
-          {/* Типовой барьер: точное слово «удалить» разблокирует выход. */}
+          {/* Типовой барьер: точное слово «выйти» разблокирует выход. */}
           <label className={s.field}>
             <Text as="span" role="caption" className={s.fieldLabel}>
-              Введите «удалить», чтобы подтвердить
+              Введите «выйти», чтобы подтвердить
             </Text>
             <input
               className={s.input}

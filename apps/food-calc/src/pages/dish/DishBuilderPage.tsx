@@ -28,6 +28,7 @@ import {
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
+import { useWallpaperStore } from '@/shared/lib/wallpaper';
 import { useCardPalette } from '@/shared/lib/cardPalette';
 import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
@@ -201,6 +202,10 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     });
   }, [id, dishItems, writeFoodFlow, dish, handleSuggestIngredients]);
 
+  // Per-screen высота обложки «Блюдо» — одна на оба слайда дека (Блюдо/Порции).
+  const dishHeight = useWallpaperStore((s) => s.heights.dish) ?? undefined;
+  const heroHeightForSlide = useCallback(() => dishHeight, [dishHeight]);
+
   // Бар отдаётся в SwipeDeck через render-prop — каркас прокидывает `shellRef`
   // (scroll-hide). На блюде нет даты: пилюля-дата = иконка-календарь, переход к
   // расписанию остаётся; `noInterruptGuard` глушит date-switch confirm. Кнопка
@@ -347,7 +352,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           topContent={overviewTopContent}
           topContentRight={editNameButton}
           stickyTop={topSlot}
-          topBarHide="settings"
           overlay={
             <>
               <FoodEntryCreateModals flow={createFlow} />
@@ -368,6 +372,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
               inputId={writeFoodInputId}
               searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
               examplesActive={items.length === 0}
+              focusTitle="Еда и ее количество"
             />
           }
         >
@@ -420,7 +425,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
           headerOverlap
           topContent={nameHeading}
           stickyTop={topSlot}
-          topBarHide="settings"
           bottomBar={<AddPortionButton />}
           overlay={
             <PortionCreateModals
@@ -494,6 +498,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         defaultSlide={DEFAULT_SLIDE}
         renderTopBar={renderTopBar}
         heroForSlide={heroForSlide}
+        heroHeightForSlide={heroHeightForSlide}
       />
     </>
   );

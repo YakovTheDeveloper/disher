@@ -76,6 +76,8 @@ const RowStrip = ({ screen, className, selectedId, setWallpaper }: StripProps) =
     className={clsx(styles.strip, className)}
     role="radiogroup"
     aria-label={`Обои экрана «${screenLabel(screen)}»`}
+    // Драг по ленте (горизонтальный скролл) не должен уводиться в swipe-close дровера.
+    data-base-ui-swipe-ignore
   >
     {WALLPAPERS.map((w) => (
       <Thumb

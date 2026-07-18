@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { db } from '@/shared/lib/dexie/schema';
 import { runSyncTracked } from '@/shared/lib/sync/runSync';
+import { hideBootSplash } from '@/shared/lib/boot-splash';
 
 // On mount, reconcile with the vault via syncNow() (pull → merge → push) under
 // the 'disher-sync' lock. merge() handles both first-launch adoption (empty
@@ -38,6 +39,13 @@ export function BackupGate({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  // Первый реальный экран залогиненного пути рендерится за этим гейтом —
+  // снимаем стартовый сплэш ровно тогда, когда контент готов (а не на маунте:
+  // на первом запуске устройства гейт держит null, пока идёт pull+merge).
+  useEffect(() => {
+    if (ready) hideBootSplash();
+  }, [ready]);
 
   return ready ? <>{children}</> : null;
 }

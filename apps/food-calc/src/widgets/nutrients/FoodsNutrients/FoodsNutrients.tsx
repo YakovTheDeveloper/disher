@@ -3,7 +3,7 @@ import { NutrientMeterView } from '@/entities/nutrient/ui/NutrientMeterView';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
+import { FoodNormSections } from '@/features/dailyNorms/FoodNormSections';
 import { Text } from '@/shared/ui/atoms/Typography/Text';
 import styles from './FoodsNutrients.module.scss';
 
@@ -23,9 +23,7 @@ const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props)
           <Spinner size={16} />
         </div>
       )}
-      <div className={styles.normRow}>
-        <DailyNormButton />
-      </div>
+      <FoodNormSections />
       <NutrientMeterView getValue={getValue} />
       {missingNutrientNames.length > 0 && (
         <Text role="caption" className={styles.missing}>

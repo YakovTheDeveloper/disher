@@ -73,7 +73,6 @@ const HypothesesSlide = ({ topSlot }: Props) => {
     <Screen
       stickyTop={topSlot}
       headerOverlap
-      topBarHide="settings"
       topContent={
         hypotheses.length > 0 ? (
           <Text role="caption" className={styles.count}>

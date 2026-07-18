@@ -1,6 +1,6 @@
 import s from './HomeHero.module.scss';
 import { useWallpaperSrc, type WallpaperScreen } from '@/shared/lib/wallpaper';
-import { WallpaperHero } from '@/features/wallpaper';
+import { WallpaperHero, WallpaperImage } from '@/features/wallpaper';
 
 // Слайд дека → ключ экрана в каталоге обоев. HomePage сейчас 2-слайдовый
 // (0 = Рацион, 1 = События); «Открытия» схлопнут в /analyses 2026-07-02.
@@ -26,7 +26,7 @@ export const HomeHero = ({ slide = 0 }: { slide?: number }) => {
 
   return (
     <div className={s.root} aria-hidden>
-      <img key={src} src={src} className={`${s.heroImg} ${s.fadeIn}`} alt="" />
+      <WallpaperImage key={src} screen={screen} src={src} className={`${s.heroImg} ${s.fadeIn}`} />
       {/* Логотип Disher — белый masked-PNG, тот же ассет, что у Screen-watermark. */}
       <span className={s.logo} aria-hidden="true" />
       <WallpaperHero screen={screen} />

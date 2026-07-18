@@ -181,6 +181,12 @@ export default defineConfig({
         'icon-512.png',
         'icon-512-maskable.png',
         'apple-touch-icon.png',
+        // Гравюра boot-splash (index.html) + Suspense-фолбэка (момент 4) + лого-маска
+        // поверх неё. Точечное исключение из «картинки не прекешим» (см. workbox ниже):
+        // оба рисуются на КАЖДОМ холодном старте, поэтому должны быть в кеше сразу и
+        // офлайн — как PWA-иконки. Каталожные миниатюры/обои остаются в runtimeCaching.
+        'art/loader-analysis.png',
+        'logo/logo-white-no-fill.png',
       ],
       workbox: {
         // Картинки НЕ прекешим: 396 миниатюр каталога + обои тянулись бы при install
@@ -195,6 +201,29 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
+          // iOS 18 standalone-PWA: fetch с телом (POST/PUT/DELETE), который SW
+          // пропускает «насквозь» (нет respondWith), зависает внутри WebKit и
+          // умирает в `TypeError: Load failed`, НЕ выходя в сеть — логин из
+          // установленной PWA не работал вообще (nginx-логи 2026-07-18: от PWA
+          // доходят только GET; ни OPTIONS, ни POST). В Safari-вкладке тот же
+          // код работает. Воркэраунд: явный NetworkOnly-маршрут на не-GET к
+          // /api/ — SW отвечает respondWith(fetch(request)), этот путь багу не
+          // подвержен. Семантика не меняется (NetworkOnly = сеть без кеша).
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'POST',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'PUT',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'DELETE',
+          },
           {
             // Миниатюры каталога, обои, гравюры, hero. CacheFirst: скачалось один
             // раз при показе, дальше из кеша без похода в сеть. Заодно закрывает
@@ -334,9 +363,42 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        // Разделение вендорных библиотек (React, ReactDOM) для лучшего кеширования
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
+        // Вендоры бьём на кешируемые чанки, а каталог (~244 КБ JSON) выносим из
+        // главного бандла: раньше ВСЁ (либы + все экраны + каталог) лежало в одном
+        // 2.5 МБ чанке, который iOS Safari парсил секундами до первого кадра.
+        // React+ReactDOM держим ОДНИМ чанком — их разрыв ломает порядок инициализации.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            if (id.includes('/shared/data/catalog')) return 'catalog';
+            return undefined; // app-код: экраны уезжают в свои чанки через route-level lazy
+          }
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react';
+          if (id.includes('@base-ui') || id.includes('@floating-ui')) return 'vendor-baseui';
+          if (id.includes('motion')) return 'vendor-motion';
+          if (id.includes('dexie')) return 'vendor-dexie';
+          if (id.includes('@sentry')) return 'vendor-sentry';
+          if (id.includes('embla')) return 'vendor-embla';
+          if (id.includes('better-auth') || id.includes('better-call') || id.includes('nanostores'))
+            return 'vendor-auth';
+          if (id.includes('i18next')) return 'vendor-i18n';
+          if (
+            id.includes('react-markdown') ||
+            id.includes('remark') ||
+            id.includes('micromark') ||
+            id.includes('mdast') ||
+            id.includes('hast') ||
+            id.includes('unified') ||
+            id.includes('unist') ||
+            id.includes('vfile') ||
+            id.includes('property-information') ||
+            id.includes('decode-named-character-reference')
+          )
+            return 'vendor-markdown';
+          if (id.includes('react-router')) return 'vendor-router';
+          if (id.includes('date-fns')) return 'vendor-datefns';
+          if (id.includes('fuse')) return 'vendor-fuse';
+          if (id.includes('react-day-picker')) return 'vendor-daypicker';
+          return 'vendor';
         },
       },
     },

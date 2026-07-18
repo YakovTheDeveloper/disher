@@ -1,4 +1,5 @@
-// WallpaperHero — интерактивный слой над обложкой + floating-поповер выбора обоев.
+// WallpaperHero — интерактивный слой над обложкой. Long-press открывает нижний
+// дровер выбора обоев (WallpaperDrawer); своей панели тут больше нет.
 
 // Невидимая зона жеста: покрывает обложку целиком, ловит long-press. pointer-
 // events:auto (родитель-обложка = none). Короткий тап/свайп проходит к Embla —
@@ -10,41 +11,16 @@
   pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-x pan-y; // не воровать скролл/свайп у листа и Embla
-}
 
-// Панель-поповер (зеркалит PopoverTrigger.content: surface-2 + overlay-тень +
-// radius-container). Ширину капим, чтобы лента миниатюр скроллилась внутри, а не
-// растягивала поповер за экран.
-.popover {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  width: min(88vw, 360px);
-  padding: var(--space-3);
-  background: var(--sys-color-surface-2);
-  border-radius: var(--sys-radius-container);
-  box-shadow: var(--sys-elevation-overlay);
-  z-index: 1000;
+  // Правка (дровер открыт): забираем ВСЕ тач-жесты у браузера — pinch/pan едет
+  // через Pointer Events (иначе браузер сам скроллил/зумил бы страницу). Курсор
+  // grab — намёк, что обложку можно тянуть.
+  &[data-editing] {
+    touch-action: none;
+    cursor: grab;
 
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transform-origin: top center;
-  transition:
-    opacity var(--duration-fast) var(--easing-default),
-    transform var(--duration-fast) var(--easing-default);
-
-  @starting-style {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.96);
-  }
-}
-
-.title {
-  color: var(--sys-color-text-secondary);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .popover {
-    transition: none;
+    &:active {
+      cursor: grabbing;
+    }
   }
 }

@@ -3,6 +3,7 @@ import { ModalNextButton } from '@/shared/ui/ModalFooter';
 import { ActionList } from '@/shared/ui/ActionList';
 import { ScaleSlider } from '@/shared/ui/ScaleSlider';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
+import { Numeral } from '@/shared/ui/atoms/Typography';
 import { EVENT_CREATE_MAIN_INPUT_ID, ASPECT_PLACEHOLDERS } from './EventCreateModal.constants';
 import s from './EventCreateModal.module.scss';
 
@@ -54,13 +55,20 @@ const EventCreateModal = ({
         <ActionList.Section label="Оценочные варианты">
           {aspects.map((aspect, index) => (
             <div key={index} className={s.aspect}>
-              <AutoGrowSearch
-                singleLine
-                value={aspect.label}
-                onChange={(v) => onAspectChange(index, { label: v })}
-                placeholder={ASPECT_PLACEHOLDERS[index] ?? 'Оценочный вариант'}
-              />
+              <div className={s.head}>
+                <AutoGrowSearch
+                  singleLine
+                  className={s.label}
+                  value={aspect.label}
+                  onChange={(v) => onAspectChange(index, { label: v })}
+                  placeholder={ASPECT_PLACEHOLDERS[index] ?? 'Оценочный вариант'}
+                />
+                <Numeral as="output" size="lg" weight="bold" className={s.value}>
+                  {aspect.value}
+                </Numeral>
+              </div>
               <ScaleSlider
+                hideValue
                 value={aspect.value}
                 onChange={(v) => onAspectChange(index, { value: v })}
                 ariaLabel={aspect.label.trim() || `Оценочный вариант ${index + 1}, 0–10`}

@@ -31,6 +31,7 @@ vi.mock('react-i18next', () => ({
 Element.prototype.scrollIntoView = vi.fn();
 
 const { ScheduleNavigatorDrawer } = await import('../ScheduleNavigatorDrawer');
+const { AllDaysHeader } = await import('../ScheduleNavigator');
 
 beforeEach(() => {
   filledKeys.mockReturnValue([]);
@@ -97,5 +98,22 @@ describe('ScheduleNavigatorDrawer — month calendars', () => {
     filledKeys.mockReturnValue([]);
     render(<ScheduleNavigatorDrawer onClose={vi.fn()} />);
     expect(screen.getByRole('button', { name: /все дни/i })).toBeDisabled();
+  });
+});
+
+describe('AllDaysHeader — month paging', () => {
+  it('renders the shown month label and fires prev/next on the arrows', () => {
+    const onPrev = vi.fn();
+    const onNext = vi.fn();
+    render(
+      <AllDaysHeader monthDate={new Date(2026, 4, 15)} onPrev={onPrev} onNext={onNext} />
+    );
+    // Month name (LLLL, ru) + 2-digit year — the screen title now IS the month.
+    expect(screen.getByText("май'26")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Предыдущий месяц' }));
+    expect(onPrev).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Следующий месяц' }));
+    expect(onNext).toHaveBeenCalledTimes(1);
   });
 });

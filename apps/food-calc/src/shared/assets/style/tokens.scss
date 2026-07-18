@@ -38,6 +38,11 @@
   // ехать отдельным рычагом от инсета карточки-плитки.
   --sys-inset-tooltip: var(--space-4);
   --sys-bottom-drawer-inset: var(--space-6); // 24 — краевой инсет нижнего дровера (full-width лист)
+  // 24 — внутренний боковой отступ поля write-бара (текст ввода внутри пилюли).
+  // Держим как page×2, чтобы ехал за page-инсетом; потребляют .writeBarInput +
+  // выравнивание focus-заголовка над текстом ввода (WriteBarShell). Был локальный
+  // --input-container-inset на .wrap — вынесен в канон (запрос 2026-07-18).
+  --sys-inset-writebar-field: calc(var(--sys-inset-page) * 2);
 
   // ─── Stack (sys · stack · role) — vertical rhythm — #stack ───
   --sys-stack-row: var(--space-2); // 8 — tight pair: rows/fields/cards in one list; label → its control
@@ -474,6 +479,10 @@
   // grey (NOT the warm --sys-field-well-shade); brightens on dark so wells still
   // read inset.
   --sys-color-field-well-shade-neutral: #9e9e9e;
+  // Холодный вариант того же агента затемнения — слейт-грей (cool-500) вместо hue-free
+  // серого. Сдвигает канавку в холод, чтобы белые (surface-2) плитки/монеты на ней
+  // ВЫДЕЛЯЛИСЬ хью-контрастом, а не сливались с тёплым well'ом (лоток Well variant="coins").
+  --sys-color-field-well-shade-cool: var(--ref-color-cool-300);
 
 
 

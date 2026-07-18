@@ -1,14 +1,12 @@
 // CardTime — InlineTimeEditor на подложке карточки. Цвет/типографику ставим на
 // wrapper, InlineTimeEditor наследует (color/font: inherit). НЕ дублируем --tc
 // нейтрализацию — её делает InlineTimeEditor.edit.
+@import '@/shared/assets/style/mixin.scss';
 
 .display,
 .edit {
   padding-block: var(--sys-tap-pad-block);
-  font-size: var(--sys-numeral-base); // body-ярус (было numeral-sm 13) — время в один вес с qty, food-карточка «плюс-минус равна»
-  font-variant-numeric: tabular-nums;
-  color: var(--sys-color-text-on-hue-card);
-  font-weight: var(--sys-color-font-weight-on-hue-card);
+  @include card-time-readout; // общий голос времени карточки (тон + body-кегль + tabular)
 }
 
 // label-ветка (предложка) — без обёртки InlineTimeEditor, которая нормализует

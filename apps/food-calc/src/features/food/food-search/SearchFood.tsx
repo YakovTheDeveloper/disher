@@ -16,6 +16,7 @@ import { NutrientPickerDrawer } from './NutrientPickerDrawer';
 import { useScrollBottomIndicator } from '@/hooks/useScrollBottomIndicator';
 import { ScrollIndicator } from '@/shared/ui/ScrollIndicator';
 import { RoundButton } from '@/shared/ui/RoundButton';
+import addFoodIcon from '@/shared/assets/icons/add-food-icon.png';
 import { useKeyboardStick } from '@/shared/ui/hooks/useKeyboardStick';
 import {
   useHeaderCollapse,
@@ -23,17 +24,7 @@ import {
 } from '@/shared/ui/hooks/scrollEdgesContext';
 import { useFilteredFoods, useFoodCreation, useRichNutrientStore } from './model';
 import { FoodSearchEmpty } from './FoodSearchEmpty';
-import { useDesignVariant } from '@/shared/lib/useDesignVariant';
-import { mergeRefs } from '@/shared/lib/mergeRefs';
 import { useDebouncedValue } from '@/shared/lib/hooks/useDebouncedValue';
-
-// Гравюра-заглушка в центре медали «Новая еда» — flip'ается 🎨-баром вживую,
-// чтобы выбрать картинку глазами. Дефолт (первый) = plate-question.
-const MEDAL_IMG_BY_VARIANT = {
-  'plate-question': '/art/plate-question.png',
-  dish: '/art/dish.png',
-} as const;
-const MEDAL_VARIANTS = ['plate-question', 'dish'] as const;
 
 export type SearchMode = 'products-only' | 'dishes-only' | 'products-and-dishes';
 export type SearchFilter = 'all' | 'mine';
@@ -211,30 +202,17 @@ const SearchFood = ({
   // которые тоже глушились под фильтром богатства). При выборе нутриента поиск =
   // режим фильтра, создавать еду в нём нет смысла.
   const showCreateDock = Boolean(onPickCreate && createInputHtmlFor) && !richNutrient;
-  // Монета «Новая еда» липнет над клавиатурой. mode:'transform' (НЕ 'fixed'):
+  // Кнопка «Новая еда» липнет над клавиатурой. mode:'transform' (НЕ 'fixed'):
   // это ПРАВЫЙ FAB (position:absolute; right:12px), а не full-width бар. Режим
   // 'fixed' ставил left:0;right:0 → контейнер растягивался на всю ширину и flex
-  // без justify кидал монету к ЛЕВОМУ краю («уходит влево»). 'transform' только
+  // без justify кидал кнопку к ЛЕВОМУ краю («уходит влево»). 'transform' только
   // поднимает translateY на высоту клавы, сохраняя absolute-якорь right:12px:
   // `.content` full-height, его низ = низ экрана (layout viewport клавой не жмётся),
-  // подъём на высоту клавы сажает монету ровно над ней.
+  // подъём на высоту клавы сажает кнопку ровно над ней.
   const createFabRef = useKeyboardStick<HTMLDivElement>({
     mode: 'transform',
     enabled: showCreateDock,
   });
-
-  // Design-variant картинки медали «Новая еда» (см. MEDAL_* сверху). Anchor.ref
-  // (callback) мёржим с createFabRef (RefObject) на одном узле createFab —
-  // IntersectionObserver бара видит медаль, keyboard-stick продолжает её липить.
-  const { variant: medalVariant, anchor: medalAnchor } = useDesignVariant(
-    'SearchFoodMedal',
-    MEDAL_VARIANTS
-  );
-  const { ref: medalRef, ...medalDataAttrs } = medalAnchor;
-  const medalImg = MEDAL_IMG_BY_VARIANT[medalVariant];
-  // createFab несёт два потребителя узла: keyboard-stick (RefObject) + IO-anchor
-  // design-варианта (callback). Сливаем через mergeRefs — оба видят элемент.
-  const setCreateFabRef = useMemo(() => mergeRefs(createFabRef, medalRef), [createFabRef, medalRef]);
 
   return (
     <div className={styles.content}>
@@ -311,31 +289,33 @@ const SearchFood = ({
         </button>
       )}
 
-      {/* Плавающая тёмная монета-акцент «Новая еда» — тот же RoundButton, что Food-бар
-          на HomePage: дуга «Новая еда» сверху + гравюра-клош в центре (не плюс — тот
-          читался убого). Портуется в document.body, чтобы «пробить» fade полноэкранной
-          ModalByLabel (родительская прозрачность не наследуется через портал — иначе по
-          вложенности монета не может её перебить). Гейт `isActive`: портал ЖИВЁТ вне
-          collapsed-поддерева модалки, поэтому рендерим его только когда шаг поиска активен
-          — иначе монета «утекала» бы на экран при свёрнутой модалке. Сама по себе `<label
-          htmlFor={CREATE_INPUT}>` — делегирует фокус инпуту имени в модалке создания →
-          onFocusCapture хоста флипнет шаг на 'create' (канон Label focus delegation —
-          setStep НЕ зовём, только stash варианта+имени через onPickCreate в onClick).
-          Имя = текущий запрос (префилл). Липнет над клавиатурой (useKeyboardStick). */}
+      {/* Плавающая тёмная КРУГЛАЯ кнопка-акцент «Новая еда» — RoundButton
+          (look="elevated": тёмная floating-монета + белые глиф/текст). Плюс по центру,
+          дуга-подпись «Новая еда» снизу, тихий шеврон › на правом краю. Портуется в
+          document.body, чтобы «пробить» fade полноэкранной ModalByLabel (родительская
+          прозрачность не наследуется через портал — иначе по вложенности кнопка не может её перебить).
+          Гейт `isActive`: портал ЖИВЁТ вне collapsed-поддерева модалки, поэтому рендерим
+          его только когда шаг поиска активен — иначе кнопка «утекала» бы на экран при
+          свёрнутой модалке. Сама по себе `<label htmlFor={CREATE_INPUT}>` (as="label") —
+          делегирует фокус инпуту имени в модалке создания → onFocusCapture хоста флипнет
+          шаг на 'create' (канон Label focus delegation — setStep НЕ зовём, только stash
+          варианта+имени через onPickCreate в onClick). Имя = текущий запрос (префилл).
+          Липнет над клавиатурой (useKeyboardStick). */}
       {isActive &&
         showCreateDock &&
         createInputHtmlFor &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div ref={setCreateFabRef} className={styles.createFab} {...medalDataAttrs}>
+          <div ref={createFabRef} className={styles.createFab} data-dv="SearchFoodMedal">
             <RoundButton
               htmlFor={createInputHtmlFor}
               ariaLabel="Создать новую еду"
-              arcTop="Новая еда"
-              img={medalImg}
-              floating={false}
-              look="elevated"
               onClick={() => onPickCreate?.('product', searchQuery.trim())}
+              img={addFoodIcon}
+              arcBottom="Новая еда"
+              sideChevron
+              look="elevated"
+              floating={false}
             />
           </div>,
           document.body,

@@ -23,9 +23,9 @@
     border: none;
     border-radius: var(--sys-field-radius);
     background: linear-gradient(90deg,
-        var(--sys-field-bg-from) 0%,
-        var(--sys-field-bg-mid) 55%,
-        var(--sys-field-bg-to) 100%);
+            var(--sys-field-bg-from) 0%,
+            var(--sys-field-bg-mid) 55%,
+            var(--sys-field-bg-to) 100%);
     box-shadow: var(--sys-field-shadow-hairline);
     color: var(--sys-field-text);
     font-family: var(--sys-field-font-family);
@@ -35,6 +35,7 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: box-shadow 0.14s ease;
+    width: fit-content;
 
     &:hover,
     &[data-popup-open] {

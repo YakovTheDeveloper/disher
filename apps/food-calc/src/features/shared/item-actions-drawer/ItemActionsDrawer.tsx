@@ -1,6 +1,7 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { RoundButton } from '@/shared/ui/RoundButton';
+import { Well } from '@/shared/ui/Well';
 import { ActionList } from '@/shared/ui/ActionList';
 import { SettingRow } from '@/shared/ui/atoms/SettingRow';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
@@ -81,12 +82,14 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
           держит следующий ярус, корректный outline). */}
       <ActionList>
         {editActions && editActions.length > 0 && (
-          <ActionList.Section as="h3" label="Редактировать">
-            {/* Ряд медалей оставлен КАК ЕСТЬ (RoundButton look="bare"): дуговая
-                подпись + иконка по центру. НЕ конвертируем в SettingRow — медаль
-                несёт htmlFor-делегацию фокуса, специфичную для edit-флоу. */}
+          <ActionList.Section as="h3" label="Редактировать" italicLabel>
+            {/* Ряд медалей (RoundButton look="raised"): приподнятые surface-2 плитки
+                в утопленном лотке Well (variant="round") — паттерн «вдавленность +
+                приподнятые круглые плитки», един с монетами навигации. НЕ конвертируем
+                в SettingRow — медаль несёт htmlFor-делегацию фокуса edit-флоу. */}
             <div className={s.editSection}>
-              <div className={s.editRow}>
+              <Well variant="round">
+                <div className={s.editRow}>
                 {editActions.map((action, i) =>
                   action.htmlFor ? (
                     // Медаль = `<label htmlFor>`: тап фокусирует целевой edit-input,
@@ -97,7 +100,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
                     // focus-trap завернул бы делегацию назад.
                     <RoundButton
                       key={`${action.label}-${i}`}
-                      look="bare"
+                      look="raised"
                       floating={false}
                       htmlFor={action.htmlFor}
                       onClick={action.onClick}
@@ -109,7 +112,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
                     // Без htmlFor — обычная кнопка-медаль: закрыть-и-выполнить.
                     <RoundButton
                       key={`${action.label}-${i}`}
-                      look="bare"
+                      look="raised"
                       floating={false}
                       onClick={() => handleAction(action)}
                       ariaLabel={action.label}
@@ -118,13 +121,14 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
                     />
                   )
                 )}
-              </div>
+                </div>
+              </Well>
             </div>
           </ActionList.Section>
         )}
 
         {actions.length > 0 && (
-          <ActionList.Section as="h3" label="Перейти">
+          <ActionList.Section as="h3" label="Перейти" italicLabel>
             <div className={s.rows}>
               {actions.map((action, i) => (
                 <SettingRow

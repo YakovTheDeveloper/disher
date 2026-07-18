@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { useWallpaperSrc } from '@/shared/lib/wallpaper';
-import { WallpaperHero } from '@/features/wallpaper';
+import { WallpaperHero, WallpaperImage } from '@/features/wallpaper';
 import s from './DishHero.module.scss';
 
 // Гравюра-обложка конструктора блюда, над плитками-табами (паттерн AnalysesHero:
@@ -13,7 +13,7 @@ const DishHero = () => {
 
   return (
     <div className={s.root} aria-hidden>
-      <img src={src} className={s.heroImg} alt="" />
+      <WallpaperImage screen="dish" src={src} className={s.heroImg} />
       {/* Логотип Disher — белый masked-PNG, тот же ассет, что у Screen-watermark. */}
       <span className={s.logo} aria-hidden="true" />
       <WallpaperHero screen="dish" />

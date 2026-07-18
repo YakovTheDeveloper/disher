@@ -1,6 +1,7 @@
 import { Text } from '@/shared/ui/atoms/Typography';
 import { WALLPAPER_SCREENS } from '@/shared/lib/wallpaper';
 import { WallpaperStrip } from './WallpaperStrip';
+import { HeroHeightControl } from './HeroHeightControl';
 import styles from './WallpaperPicker.module.scss';
 
 /**
@@ -18,6 +19,7 @@ const WallpaperPicker = () => (
           {screen.label}
         </Text>
         <WallpaperStrip screen={screen.key} layout="columns" className={styles.bleed} />
+        <HeroHeightControl screen={screen.key} />
       </div>
     ))}
   </div>

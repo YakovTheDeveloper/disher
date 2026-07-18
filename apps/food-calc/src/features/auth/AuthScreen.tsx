@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { AuthForm } from './AuthForm';
 import { CheckInboxView } from './CheckInboxView';
 import { useAuthStore } from './auth-store';
 import { useKeyboardAwareScroll } from '@/shared/ui/hooks/useKeyboardAwareScroll';
 import { WALLPAPER_BY_ID } from '@/shared/lib/wallpaper';
+import { hideBootSplash } from '@/shared/lib/boot-splash';
 import styles from './AuthScreen.module.scss';
 
 /**
@@ -25,6 +27,11 @@ export function AuthScreen() {
   // в `.screen`: единственный скроллер (`overflow-y: auto`) + `padding-bottom:
   // var(--kb)`. Подробности и обоснование — в самом хуке.
   const scrollerRef = useKeyboardAwareScroll<HTMLDivElement>();
+
+  // Первый реальный экран незалогиненного пути — снимаем стартовый сплэш.
+  useEffect(() => {
+    hideBootSplash();
+  }, []);
 
   return (
     <div className={styles.screen} ref={scrollerRef}>

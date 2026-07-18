@@ -1,5 +1,6 @@
 import { memo, useCallback, type Ref } from 'react';
 import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
+import { useWallpaperStore } from '@/shared/lib/wallpaper';
 import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import AnalysesSlide from './ui/AnalysesSlide';
 import InsightsSlide from './ui/InsightsSlide';
@@ -35,6 +36,11 @@ const heroForSlide = (i: number) => (i === 1 ? <AnalysesHero /> : null);
 const AnalysesPage = () => {
   const feed = useAnalysesFeed();
 
+  // Дек = один экран обоев «Разборы»; высота обложки одинакова на всех трёх
+  // слайдах (Инсайты/Разборы/Гипотезы) → верхний отступ совпадает при свайпе.
+  const analysesHeight = useWallpaperStore((s) => s.heights.analyses) ?? undefined;
+  const heroHeightForSlide = useCallback(() => analysesHeight, [analysesHeight]);
+
   const renderTopBar = useCallback(
     (shellRef: Ref<HTMLDivElement>) => <AnalysesTopBar shellRef={shellRef} />,
     []
@@ -48,6 +54,7 @@ const AnalysesPage = () => {
         defaultSlide={1}
         renderTopBar={renderTopBar}
         heroForSlide={heroForSlide}
+        heroHeightForSlide={heroHeightForSlide}
         tablistLabel="Анализы: раздел"
         arrowHint="all"
       />

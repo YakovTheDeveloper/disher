@@ -1,8 +1,8 @@
 // RoundButton — the round "coin / stamp" affordance. Extracted 2026-07-12 from
 // the WriteBarShell medal (itself lifted 2026-06-09 from WriteFoodInput's round
 // coin). Shared by the Food bar (центр = клош-png, дуги «выбрать из /
-// списка еды»), the Analysis bar (центр = колба-иконка), the ItemActions edit row
-// (look="bare") and the schedule-navigator quick anchors (standalone button-mode).
+// списка еды»), the Analysis bar (центр = колба-иконка) and the ItemActions edit
+// row (look="raised"). (schedule-navigator quick anchors переехали на беспоке-монету.)
 // Collapses on focus via the row's `[data-expanded]` plain attribute (bar only).
 //
 // Геометрию (`--pill-h`, `--medal-size`) наследует от WriteBarShell `.wrap` внутри
@@ -111,7 +111,8 @@
             mix-blend-mode: screen;
         }
 
-        .roundButtonCenter {
+        .roundButtonCenter,
+        .roundButtonChevron {
             color: var(--press-fg-invert);
         }
 
@@ -202,12 +203,18 @@
     --medal-coin: var(--sys-color-surface-0);
     box-shadow:
         0 0 0 3px var(--medal-plate, var(--sys-color-surface-1)),
-        0 0 0 4px var(--sys-color-border-subtle);
+        0 0 0 4px var(--sys-color-border-default);
 }
 
 // Внутренний диск тоже без лифт-тени (плоская медаль).
 .roundButton[data-look='flat']::before {
     box-shadow: none;
+}
+
+// Дуговой текст на плоской медали — тёмный ink (не приглушённый secondary), чтобы
+// подпись «Список еды» читалась контрастнее на светлой панели HomePage.
+.roundButton[data-look='flat'] .roundButtonArc text {
+    fill: var(--sys-color-text-system);
 }
 
 // Elevated-режим — ТЁМНАЯ «монета-акцент», висящая в воздухе: тёмная floating-поверхность
@@ -252,7 +259,8 @@
         fill: var(--sys-color-text-cold-strong);
     }
 
-    .roundButtonCenter {
+    .roundButtonCenter,
+    .roundButtonChevron {
         color: var(--sys-color-text-cold-strong);
     }
 
@@ -262,41 +270,58 @@
     }
 }
 
-// Bare-режим — «голая» медаль: прозрачный фон, БЕЗ диска/плашки, только тонкий
-// круговой контур + лёгкий подъём. Дуговой текст + глиф лежат прямо на поверхности
-// дровера. Спецификость 0,2,0 бьёт дефолт `.roundButton` (фон/тень, 0,1,0).
-.roundButton[data-look='bare'] {
-    // Дугу ужимаем к центру (scale ниже) → текст дальше от рамки; размер шрифта
-    // подымаем, чтобы он остался прежним (17 / 0.88 ≈ 19).
-    --wb-arc-size: 19px;
-
-    margin: 0; // ряд-контейнер держит отступы через gap, не coin-margin бара
-    background: transparent;
-    // Тихий контур (subtle) + подъём важного объекта — медаль «висит» над телом
-    // дровера, а не вырезана линией.
-    border: 1px solid var(--sys-color-border-subtle);
-    box-shadow: var(--sys-elevation-action-raised);
+// Raised-режим — приподнятая СВЕТЛАЯ плитка (round-инстанс паттерна «вдавленный лоток
+// Well + приподнятые surface-2 плитки»): сплошной surface-2 диск (плашка+монета один
+// тон) + мягкая lift-тень action-rest, БЕЗ канта. В отличие от `elevated` (тёмная
+// монета-акцент) — светлый диск, всплывающий из холодной канавки Well. Тень — ОДна
+// `action-rest`, БЕЗ 3px-spread базы: беспоке-монета навигации (эталон, ScheduleNavigator
+// `.medal`) несёт ровно её, а surface-2-кольцо давало ItemActions лишний ободок и
+// расходилось с нав-монетой в том же лотке (короткие подписи не нуждаются в запасе
+// под хвосты букв, ради которого spread живёт в базе Food-бара). Спец. 0,2,0 > 0,1,0.
+.roundButton[data-look='raised'] {
+    --medal-plate: var(--sys-color-surface-2);
+    --medal-coin: var(--sys-color-surface-2);
+    box-shadow: var(--sys-elevation-action-rest);
 }
 
-// Диск-монету убираем — контур медали несёт сам border.
-.roundButton[data-look='bare']::before {
-    display: none;
+// Внутренний диск без собственной лифт-тени — подъём несёт вся медаль.
+.roundButton[data-look='raised']::before {
+    box-shadow: none;
 }
 
-// Дуговой текст: темнее (ink) + отодвинут от рамки (арка ужата к центру на 12%).
-.roundButton[data-look='bare'] .roundButtonArc {
-    transform: scale(0.88);
+// Press — СВЕТЛАЯ компрессия, как у беспоке-монеты навигации (эталон — ScheduleNavigator
+// `.medal`): тень компрессуется (canon: action-pressed ≤ rest), плитка ОСТАЁТСЯ светлой.
+// Базовый `[data-pressed]` (выше) заливает диск `--color-ink` и гасит дуги в белый —
+// это облик тёмных монет (Food/flat); для приподнятой светлой плитки он читался бы
+// «провалом в чёрное», расходясь с нав-монетой в том же лотке Well. Гасим инверсию:
+// диск держим surface-2, ink-подложку `::after` не показываем, текст оставляем тёмным.
+.roundButton[data-look='raised'][data-pressed] {
+    box-shadow: var(--sys-elevation-action-pressed);
+
+    &::before {
+        background: var(--medal-coin, var(--sys-color-surface-2));
+    }
+
+    &::after {
+        opacity: 0;
+    }
+
+    .roundButtonArc text {
+        fill: var(--sys-color-text-system);
+    }
+
+    .roundButtonCenter {
+        color: var(--sys-color-text-system);
+    }
 }
 
-.roundButton[data-look='bare'] .roundButtonArc text {
+// Дуговой текст + центр-глиф — тёмный ink на светлой плитке.
+.roundButton[data-look='raised'] .roundButtonArc text {
     fill: var(--sys-color-text-system);
 }
 
-// Центральный глиф крупнее в 1.5× (translate сохраняет центрирование базы) +
-// чёрный ink (currentColor у edit-глифов → тянет отсюда).
-.roundButton[data-look='bare'] .roundButtonCenter {
+.roundButton[data-look='raised'] .roundButtonCenter {
     color: var(--sys-color-text-system);
-    transform: translate(-50%, -50%) scale(1.5);
 }
 
 // Текст дуг + глиф-нода — светлые (on-floating) на тёмной монете по умолчанию.
@@ -305,6 +330,10 @@
 }
 
 .roundButton[data-look='elevated'] .roundButtonCenter {
+    color: var(--sys-color-text-on-floating);
+}
+
+.roundButton[data-look='elevated'] .roundButtonChevron {
     color: var(--sys-color-text-on-floating);
 }
 
@@ -345,7 +374,8 @@
         -2px 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-// Center glyph — engraving png (Food) ghosted by the coin.
+// Center glyph — engraving png (Food) ghosted by the coin. `--rb-img-nudge-x/-y`
+// (пропы imgNudgeX/imgNudgeY, inline) сдвигают картинку по осям, сохраняя центрирование.
 .roundButtonImg {
     position: absolute;
     top: 50%;
@@ -353,22 +383,66 @@
     z-index: 2;
     width: 60%;
     height: auto;
-    transform: translate(-50%, -50%);
+    transform: translate(
+        calc(-50% + var(--rb-img-nudge-x, 0px)),
+        calc(-50% + var(--rb-img-nudge-y, 0px))
+    );
     opacity: var(--tile-img-opacity);
     mix-blend-mode: multiply;
     pointer-events: none;
     user-select: none;
 }
 
-// Гравюра медали «Новая еда» на SearchFood (dish.png / plate-question.png) сидит
-// ниже и крупнее плейт-клоша: art-специфичная посадка под новые картинки. Анкор =
-// плоский `[data-dv='SearchFoodMedal']` (на `.createFab`, cross-module — как
+// Иконка медали «Новая еда» на SearchFood (add-food-icon.png — БЕЛАЯ гроздь+плюс со
+// свечением на ЧЁРНОМ фоне). Обратная полярность к прежним гравюрам (тёмное-на-светлом):
+// картинка нарисована ПОД тёмную поверхность → `screen` роняет чёрный фон, оставляя белый
+// глиф + гало; `filter: none` глушит invert(1) elevated-режима (тот был для тёмной гравюры).
+// Анкор = плоский `[data-dv='SearchFoodMedal']` (на `.createFab`, cross-module — как
 // `[data-write-bar]`); img-класс хешируется в ЭТОМ модуле → descendant матчится.
-// Спецификость 0,2,0 бьёт base `.roundButtonImg` (0,1,0). Без ghost-opacity.
-[data-dv='SearchFoodMedal'] .roundButtonImg {
-    top: 68%;
-    width: 85%;
+// [data-look='elevated'] в цепочке поднимает спецификость выше base-elevated-правила (0,3,1).
+[data-dv='SearchFoodMedal'] .roundButton[data-look='elevated'] .roundButtonImg {
+    top: 50%;
+    width: 82%;
     opacity: 1;
+    filter: none;
+    mix-blend-mode: screen;
+}
+
+// Press флешит монету белым (`--sys-color-surface-floating-pressed` = #fff). Base-elevated-
+// press гонит гравюру в multiply → у бело-на-чёрном png это чёрный квадрат. Держим screen:
+// на белом флеше глиф просто мягко вымывается в белый (150мс транзиент), без чёрной плашки.
+[data-dv='SearchFoodMedal'] .roundButton[data-look='elevated'][data-pressed] .roundButtonImg {
+    filter: none;
+    mix-blend-mode: screen;
+}
+
+// Plateless (медаль «Новое событие») — снимаем плашку-подложку: прозрачный фон,
+// без колец-теней, внутренний диск `::before` убран. Остаётся картинка/глиф + дуга
+// на голой поверхности бара. Press-ink `::after` НЕ трогаем — он даёт кружок-отклик
+// (с инверсией глифа/дуги базового `[data-pressed]`) даже без покоящегося диска.
+// Спецификость 0,2,0 бьёт облик-правила режимов (`[data-look='…']`, 0,2,0) порядком —
+// правило идёт ПОСЛЕ них в файле.
+.roundButton.plateless {
+    background: transparent;
+    box-shadow: none;
+
+    &::before {
+        display: none;
+    }
+}
+
+// Тень-подъём под медалью (проп shadow) — sys-elevation (единственный API теней).
+// Идёт ПОСЛЕ `.plateless` (равная спецификость 0,2,0) → бьёт его `box-shadow:none`
+// порядком, поэтому plateless-медаль всё равно «приподнята».
+.roundButton.shadow {
+    box-shadow: var(--sys-elevation-action-rest);
+}
+
+// Тонкая круговая обводка (проп outlined) — та же линия (--sys-color-border-default),
+// что окантовывает flat-медаль «Список еды» (там как внешнее box-shadow-кольцо). Даёт
+// краю плейтлесс-монеты форму. box-sizing:border-box у базы → рамка внутрь, диаметр тот же.
+.roundButton.outlined {
+    border: 1px solid var(--sys-color-border-default);
 }
 
 // Center node — icon variant (Analysis flask). Glyph = text-secondary (sys).
@@ -384,6 +458,28 @@
     color: var(--sys-color-text-secondary);
     pointer-events: none;
     user-select: none;
+}
+
+// Side chevron › — прижат к правому краю медали, по вертикали в центре. Цвет
+// наследует от глифа медали (currentColor; на elevated `.roundButtonChevron`
+// перекрашен в on-floating ниже — белый).
+.roundButtonChevron {
+    position: absolute;
+    top: 50%;
+    right: 6%;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-50%);
+    color: var(--sys-color-text-secondary);
+    pointer-events: none;
+    user-select: none;
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
 }
 
 // Two arc captions (top + bottom) — SVG textPath along semicircles.

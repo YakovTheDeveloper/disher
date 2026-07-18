@@ -1,0 +1,35 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Well — утопленный контейнер (инверсия SheetCard). Тон + inset-тень берём из
+// SURFACE-AWARE field-depth($surface): дно «канавки» на --sys-field-well-depth ниже
+// хоста, ОДНА inset-тень на весь блок (не по пилюле на часть). Тир выбирает
+// модификатор .onSurfaceN (он публикует --sys-field-* на элементе, база их читает).
+.well {
+  padding: var(--space-4);
+  border-radius: var(--sys-radius-container);
+  background-color: var(--sys-field-bg-from);
+  box-shadow: var(--sys-field-shadow);
+}
+
+.onSurface0 {
+  @include field-depth(--sys-color-surface-0);
+}
+
+.onSurface1 {
+  @include field-depth(--sys-color-surface-1);
+}
+
+.onSurface2 {
+  @include field-depth(--sys-color-surface-2);
+}
+
+// Вариант «под ряд КРУГЛЫХ кнопок»: капсульный радиус (гармоничен кругам внутри,
+// контейнерный 12px рядом с ними читается «квадратом») + ХОЛОДНАЯ и бледная канавка.
+// Знобы field-depth — var(), потому переопределение на элементе пересчитывает
+// color-mix лениво, порядок относительно .onSurfaceN не важен: grey-shade вместо
+// warm-brown уводит hue в холод, меньший depth поднимает дно почти к белому.
+.round {
+  --sys-field-well-shade: var(--sys-color-field-well-shade-cool);
+  --sys-field-well-depth: 3%;
+  border-radius: var(--sys-radius-indicator);
+}

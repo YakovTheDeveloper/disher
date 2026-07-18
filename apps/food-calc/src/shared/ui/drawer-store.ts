@@ -59,6 +59,15 @@ function show<P extends BaseDrawerProps<any>>(
   options?: DrawerOptions,
 ): Promise<InferResult<P> | undefined> {
   return new Promise((resolve) => {
+    // Ambient (`interactiveBehind`) drawers coexist with the PAGE, not with other
+    // drawers: their backdrop is transparent + click-through, so the live page behind
+    // can open a NEW drawer while the ambient one lingers underneath — and that same
+    // click-through backdrop means an outside tap can't dismiss it. So when any drawer
+    // opens, retire still-open ambient drawers first (e.g. WallpaperDrawer yields the
+    // moment a drawer opens from the hero page behind it).
+    for (const inst of useDrawerStore.getState().instances) {
+      if (inst.options.interactiveBehind && inst.phase !== 'closing') close(inst.id);
+    }
     const id = Math.random().toString(36).slice(2, 9);
     const historyHandler = () => closeLast();
     registerCloseHandler(historyHandler);
@@ -66,6 +75,7 @@ function show<P extends BaseDrawerProps<any>>(
       side: options?.side ?? 'bottom',
       width: options?.width,
       trapFocus: options?.trapFocus ?? true,
+      interactiveBehind: options?.interactiveBehind ?? false,
     };
     useDrawerStore.setState((state) => ({
       instances: [

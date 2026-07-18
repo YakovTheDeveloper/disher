@@ -49,7 +49,7 @@ describe('runSyncTracked', () => {
     expect(ok).toBe(false);
     expect(useSyncStatusStore.getState().state).toBe('failed');
     // The loud «не удалось сохранить» toaster was removed — the failure is
-    // surfaced only by the SyncStatusChip (Settings) reading the store.
+    // surfaced only by the SyncStatusBar (Settings) reading the store.
     expect(mockToastError).not.toHaveBeenCalled();
   });
 

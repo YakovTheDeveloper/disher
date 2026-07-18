@@ -80,10 +80,4 @@
   margin: 0;
 }
 
-// ─── Вход «Вручную» — монета-печать RoundButton в trailingSlot ───────────────
-// В потоке справа от пилюли, за фейдинг-дивайдером (не плавает, floating={false}).
-.manualCtaTrail {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-}
+// Вход «Вручную» — медаль `AddEventMedal` в trailingSlot (свой модуль-обёртка).

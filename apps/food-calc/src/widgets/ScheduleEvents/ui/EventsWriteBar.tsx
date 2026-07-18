@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { WriteBarShell, type SendState } from '@/shared/ui/WriteBarShell';
-import { RoundButton } from '@/shared/ui/RoundButton';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { useSwipeableLock } from '@/shared/ui/Swipeable/SwipeableLockContext';
@@ -17,14 +16,13 @@ import toaster from '@/shared/lib/toaster/toaster';
 import { useWriteEventFlow } from '../model/useWriteEventFlow';
 import EventCreateModal, { type AspectDraft } from './EventCreateModal';
 import { InlineWriteEventReview } from './InlineWriteEventReview';
+import { AddEventMedal } from './AddEventMedal';
 import {
   EVENT_CREATE_MAIN_INPUT_ID,
   EVENT_WRITE_INPUT_ID,
   ASPECT_COUNT,
 } from './EventCreateModal.constants';
 import s from './EventsWriteBar.module.scss';
-
-const EVENT_TILE_IMG = '/art/scale-2.png';
 
 const PLACEHOLDER = 'Опишите, что происходит';
 const LOADING_PLACEHOLDER = 'Распознаём…';
@@ -44,13 +42,12 @@ const PLACEHOLDER_EXAMPLES = [
 const EVENT_HINT = (
   <>
     <p>
-      Опишите, что происходит, обычными словами — событие, период и оценки от 0 до
-      10: например, <strong>«спал с 23:00 до 7:00, качество сна 6»</strong>.
-      Разберём в карточку сами.
+      Опишите, что происходит, обычными словами — событие, период и оценки от 0 до 10: например,{' '}
+      <strong>«спал с 23:00 до 7:00, качество сна 6»</strong>. Разберём в карточку сами.
     </p>
     <p>
-      Распознавание работает <strong>только онлайн</strong>. Без сети добавьте
-      событие <strong>вручную</strong> — кнопкой справа.
+      Распознавание работает <strong>только онлайн</strong>. Без сети добавьте событие{' '}
+      <strong>вручную</strong> — кнопкой справа.
     </p>
   </>
 );
@@ -130,7 +127,7 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
     const time = new Date().toTimeString().slice(0, 5);
     const result = await safeMutate(
       () => addScheduleEvent({ date: scheduleId, time, text: trimmed || undefined, atoms }),
-      'Не удалось создать событие',
+      'Не удалось создать событие'
     );
     offlineSubmittingRef.current = false;
     if (!result.ok) return;
@@ -148,17 +145,19 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
       if (!trimmed) return;
       // Распознавание требует сети (LLM). Офлайн — путь «Вручную» справа.
       if (!online) {
-        toaster.error('Нет сети — распознавание требует интернет. Добавьте вручную кнопкой справа.');
+        toaster.error(
+          'Нет сети — распознавание требует интернет. Добавьте вручную кнопкой справа.'
+        );
         return false; // держим фокус (blurOnSubmit)
       }
       flow.submit(trimmed);
     },
-    [flow, online],
+    [flow, online]
   );
 
   const computeSend = useCallback(
     ({ hasText }: { hasText: boolean }): SendState => ({ visible: hasText, enabled: hasText }),
-    [],
+    []
   );
 
   // На ready инпут бара уступает место заголовку — панель ниже несёт сам разбор.
@@ -171,7 +170,12 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
   );
 
   return (
-    <div className={s.dock} ref={dockRef} data-open={panelOpen || undefined} onFocusCapture={handleFocusCapture}>
+    <div
+      className={s.dock}
+      ref={dockRef}
+      data-open={panelOpen || undefined}
+      onFocusCapture={handleFocusCapture}
+    >
       <WriteBarShell
         className={s.bar}
         value={isLoading ? '' : flow.inputText}
@@ -188,21 +192,9 @@ const EventsWriteBar = ({ scheduleId }: Props) => {
         overlayVisible={panelOpen}
         blurOnSubmit
         hintPopover={EVENT_HINT}
+        focusTitle="Опишите событие"
         minRows={1}
-        trailingSlot={
-          panelOpen ? undefined : (
-            <div className={s.manualCtaTrail}>
-              <RoundButton
-                htmlFor={EVENT_CREATE_MAIN_INPUT_ID}
-                ariaLabel="Новое событие"
-                img={EVENT_TILE_IMG}
-                arcTop="Новое"
-                floating={false}
-                look="flat"
-              />
-            </div>
-          )
-        }
+        trailingSlot={panelOpen ? undefined : <AddEventMedal />}
       />
 
       {panelOpen && (

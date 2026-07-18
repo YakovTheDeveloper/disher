@@ -98,11 +98,7 @@ const FoodSchedule = ({
     (e: React.FocusEvent) => {
       const target = e.target as HTMLElement;
       const { QUANTITY_INPUT, DETAILS_INPUT, TIME_INPUT } = editIds;
-      if (
-        target.id !== QUANTITY_INPUT &&
-        target.id !== DETAILS_INPUT &&
-        target.id !== TIME_INPUT
-      ) {
+      if (target.id !== QUANTITY_INPUT && target.id !== DETAILS_INPUT && target.id !== TIME_INPUT) {
         return;
       }
       // Медаль ItemActionsDrawer только что делегировала фокус сюда — дровер
@@ -154,40 +150,40 @@ const FoodSchedule = ({
       void drawerStore.show(
         ItemActionsDrawer,
         {
-        title: item.product?.name ?? item.dish?.name ?? 'Еда',
-        onDelete: async () => {
-          const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
-          if (res.ok) toaster.success('Удалено');
-        },
-        actions: buildInfoActions(item),
-        // Ряд правок под «Информация…» = три голые медали (RoundButton): дуговая
-        // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
-        // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
-        // поднимает клавиатуру (императивный startEdit её не поднимал); handleEdit-
-        // FocusCapture закрывает этот дровер. onClick только праймит (primeEdit ставит
-        // editingItem + draft, БЕЗ setStep — шаг ставит focus-событие; синхронный
-        // setStep/close размонтировал бы label до делегирования). Подпись = arcTop
-        // (строчными на дуге). Ряд только у расписания — у ингредиента блюда «Время» нет.
-        editActions: [
-          {
-            label: 'количество',
-            icon: <QuantityIcon />,
-            htmlFor: editIds.QUANTITY_INPUT,
-            onClick: () => primeEdit(item),
+          title: item.product?.name ?? item.dish?.name ?? 'Еда',
+          onDelete: async () => {
+            const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
+            if (res.ok) toaster.success('Удалено');
           },
-          {
-            label: 'уточнения',
-            icon: <NoteIcon />,
-            htmlFor: editIds.DETAILS_INPUT,
-            onClick: () => primeEdit(item),
-          },
-          {
-            label: 'время',
-            icon: <ClockIcon />,
-            htmlFor: editIds.TIME_INPUT,
-            onClick: () => primeEdit(item),
-          },
-        ],
+          actions: buildInfoActions(item),
+          // Ряд правок под «Информация…» = три голые медали (RoundButton): дуговая
+          // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
+          // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
+          // поднимает клавиатуру (императивный startEdit её не поднимал); handleEdit-
+          // FocusCapture закрывает этот дровер. onClick только праймит (primeEdit ставит
+          // editingItem + draft, БЕЗ setStep — шаг ставит focus-событие; синхронный
+          // setStep/close размонтировал бы label до делегирования). Подпись = arcTop
+          // (строчными на дуге). Ряд только у расписания — у ингредиента блюда «Время» нет.
+          editActions: [
+            {
+              label: 'количество',
+              icon: <QuantityIcon />,
+              htmlFor: editIds.QUANTITY_INPUT,
+              onClick: () => primeEdit(item),
+            },
+            {
+              label: 'уточнения',
+              icon: <NoteIcon />,
+              htmlFor: editIds.DETAILS_INPUT,
+              onClick: () => primeEdit(item),
+            },
+            {
+              label: 'время',
+              icon: <ClockIcon />,
+              htmlFor: editIds.TIME_INPUT,
+              onClick: () => primeEdit(item),
+            },
+          ],
         },
         // trapFocus:false — иначе focus-trap дровера завернул бы делегацию медали
         // назад, и фокус не дошёл бы до edit-инпута (он вне портала дровера).
@@ -230,6 +226,7 @@ const FoodSchedule = ({
           inputId={writeFoodInputId}
           searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
           examplesActive={isEmpty}
+          focusTitle="Описание приема пищи"
         />
       }
     >

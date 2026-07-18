@@ -212,10 +212,12 @@ describe('ProductDrawer — chrome + edit menu', () => {
     expect(getByLabelText('Способ измерения количества')).not.toBeNull();
   });
 
-  it('supplement shows «Состав на одну единицу» and no quantity Select', () => {
+  it('supplement shows the «Состав на» basis (одну единицу) and no quantity Select', () => {
     h.product = { id: 'p1', name: 'витамин д', servingBasis: 'serving', description: '' };
     const { getByText, queryByLabelText } = render(<ProductDrawer productId="p1" onClose={() => {}} />);
-    expect(getByText('Состав на одну единицу:')).not.toBeNull();
+    // Основа БАД зафиксирована — секция «Состав на» несёт текст «одну единицу»
+    // (место селекта способа измерения, которого у БАД нет).
+    expect(getByText('одну единицу')).not.toBeNull();
     expect(queryByLabelText('Способ измерения количества')).toBeNull();
   });
 

@@ -137,10 +137,9 @@
   white-space: nowrap;
   // Длинный пример-плейсхолдер (nowrap) тает у правого края поля вместо
   // столкновения с send-монетой / медалью «Список» — тот же голос «тающего
-  // hairline», что и дивайдеры. Зона затухания = отступ поля ×2
-  // (--input-container-inset = --sys-inset-page ×2 у write-бара; фолбэк 24px
-  // для прочих потребителей AutoGrowSearch, где этот var не объявлен).
-  --ph-fade: calc(var(--input-container-inset, 24px) * 2);
+  // hairline», что и дивайдеры. Зона затухания = внутренний инсет поля write-бара
+  // ×2 (--sys-inset-writebar-field = --sys-inset-page ×2).
+  --ph-fade: calc(var(--sys-inset-writebar-field) * 2);
   mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--ph-fade)), transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - var(--ph-fade)), transparent 100%);
   pointer-events: none;

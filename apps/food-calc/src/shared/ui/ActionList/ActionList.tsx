@@ -37,6 +37,8 @@ type SectionProps = {
    * Дефолт `h2`.
    */
   as?: ElementType;
+  /** Курсив лейбла секции — opt-in консумера; дефолт прямой (см. `.sectionLabelItalic`). */
+  italicLabel?: boolean;
   className?: string;
 };
 
@@ -47,11 +49,15 @@ type SectionProps = {
  * детьми как есть; если это несколько блоков (напр. ряды + строка статуса), между
  * ними ложится тот же row-зазор.
  */
-function Section({ children, label, as = 'h2', className }: SectionProps) {
+function Section({ children, label, as = 'h2', italicLabel, className }: SectionProps) {
   return (
     <section className={clsx(styles.section, className)}>
       {label != null && (
-        <Heading as={as} role="title" className={styles.sectionLabel}>
+        <Heading
+          as={as}
+          role="title"
+          className={clsx(styles.sectionLabel, italicLabel && styles.sectionLabelItalic, className)}
+        >
           {label}
         </Heading>
       )}

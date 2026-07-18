@@ -7,7 +7,8 @@ import type { Atom } from '@/entities/schedule-event/model/atoms';
 import { getTimeOfDay } from '@/shared/lib/time-of-day';
 import { useItemTimesStore } from '@/shared/model/itemTimesStore';
 import { formatClock } from '@/shared/lib/time/formatClock';
-import { Text } from '@/shared/ui/atoms/Typography';
+import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { ChangeHighlight } from '@/shared/ui/ChangeHighlight';
 import { TapTarget } from '@/shared/ui/atoms/TapTarget';
 
 type Props = {
@@ -77,12 +78,23 @@ export function ScheduleEventCard({
           когда атомов НЕТ, тап по заголовку (он = flex:1, заполняет карточку) ведёт в
           редактор атомов вместо текста — добавить данные = первичное действие пустого
           события. С атомами тап по заголовку правит текст (атомы правятся тапом по чипам). */}
-      <Card.Title
-        htmlFor={hasAtoms ? textHtmlFor : atomsHtmlFor}
-        onTap={hasAtoms ? onEditText : onEditAtoms}
-        className={styles.text}
-      >
-        {title}
+      <Card.Title>
+        {/* Голос имени еды: Heading role="title" (17/600) + capitalize + sweep при
+            смене текста — унификация типографики с карточкой еды (FoodName). Card.Title
+            node-escape отдаёт узел сырьём, поэтому тап-зону (label htmlFor + onTap) он
+            несёт сам; клэмп в 2 строки живёт на .text (событие ≠ короткое имя). */}
+        <TapTarget
+          as="label"
+          className={styles.text}
+          htmlFor={hasAtoms ? textHtmlFor : atomsHtmlFor}
+          onClick={hasAtoms ? onEditText : onEditAtoms}
+        >
+          <Heading as="span" role="title">
+            <ChangeHighlight trigger={title} variant="sweep">
+              {title}
+            </ChangeHighlight>
+          </Heading>
+        </TapTarget>
       </Card.Title>
 
       {/* Meta = лента чипов: своя тап-зона оборачивает чипы → node-escape. Только при

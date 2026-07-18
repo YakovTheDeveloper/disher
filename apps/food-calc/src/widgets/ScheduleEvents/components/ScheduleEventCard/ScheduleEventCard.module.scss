@@ -7,10 +7,12 @@
   --sys-row-min-h-touch: 0;
 }
 
-// title-слот: текст события (клампим в 2 строки).
+// title-слот: текст события. Голос/кегль несёт <Heading role="title"> (унификация
+// с именем еды); здесь — capitalize + клэмп в 2 строки (событие ≠ короткое имя).
 .text {
   color: var(--sys-color-text-primary);
   cursor: pointer;
+  text-transform: capitalize;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;

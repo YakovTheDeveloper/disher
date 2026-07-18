@@ -1,0 +1,49 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Ряд статуса синхры под шапкой «Аккаунт»: БЕЗ подложки — штамп последней синхры
+// слева, icon-кнопка «обновить» справа. `.wrap` собирает ряд + опциональную строку
+// ошибки под ним в колонку; вертикальный воздух держит сам ряд (высоту — тап-зона
+// кнопки, 40px).
+.wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  // Строгие табличные/lining-цифры — штамп `dd.mm.yy, hh:mm` не пляшет по ширине.
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  color: var(--sys-color-text-secondary);
+}
+
+// Провал последней синхры — отдельной строкой под штампом, danger-тон.
+.error {
+  color: var(--sys-color-status-danger);
+}
+
+// Пока идёт синхра — крутим глиф (composite-only transform, вписан в бюджет анимаций).
+.spin {
+  animation: sync-spin 0.9s linear infinite;
+}
+
+@keyframes sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

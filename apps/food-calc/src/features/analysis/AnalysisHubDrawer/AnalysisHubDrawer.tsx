@@ -107,7 +107,7 @@ const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props
           outline). Причина недоступности «Разобрать день» (офлайн / пустой день)
           едет в `sub`. */}
       <ActionList>
-        <ActionList.Section as="h3" label="Анализ">
+        <ActionList.Section as="h3" label="Анализ" italicLabel>
           <div className={styles.rows}>
             <SettingRow
               icon={<CalendarDayIcon width={18} height={18} />}
@@ -128,7 +128,7 @@ const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props
         </ActionList.Section>
 
         {!hideDiscoveriesLink && (
-          <ActionList.Section as="h3" label="Перейти">
+          <ActionList.Section as="h3" label="Перейти" italicLabel>
             <div className={styles.rows}>
               <SettingRow
                 icon={<LightbulbIcon width={18} height={18} />}

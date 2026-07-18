@@ -1,4 +1,13 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, type ReactNode, type Ref } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from 'react';
 import { Swipeable, type SwipeableRef } from '@/shared/ui/Swipeable';
 import { ScreenIndicator, type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { TopBarScrollHideContext, useTopBarScrollHideController } from '@/shared/ui/Screen';
@@ -40,6 +49,11 @@ type Props = {
    *  (useCallback). Передан → на `.container` ставится `data-deck-hero` (включает
    *  белый watermark над стеклом). Не передан → обложки нет, watermark тёмный. */
   heroForSlide?: (i: number) => ReactNode;
+  /** Опц. пользовательская высота hero-полки этого слайда в px (per-screen из
+   *  wallpaper-store). Число → инлайн-переопределение `--deck-hero-h` на слайде
+   *  (наследуют и `.heroSlot`-резерв, и `.root` обложки → не разъезжаются).
+   *  null/undefined → без override, действует responsive-клэмп из CSS. */
+  heroHeightForSlide?: (i: number) => number | null | undefined;
   /** Accessible name для role="tablist" плиток. Дефолт — «Экран» (Home/Dish).
    *  Discoveries передаёт «Открытия: раздел» (контентный переключатель). */
   tablistLabel?: string;
@@ -60,6 +74,7 @@ export const SwipeDeck = ({
   renderTopBar,
   onIndexChange,
   heroForSlide,
+  heroHeightForSlide,
   tablistLabel,
   align = 'left',
   arrowHint = 'all',
@@ -167,11 +182,27 @@ export const SwipeDeck = ({
               hasDots={false}
               onIndexChange={handleIndexChange}
             >
-              {slides.map((slide, i) => (
-                <div key={i} className={s.slideFrame} data-slide-index={i}>
-                  {slide.render(topSlots[i])}
-                </div>
-              ))}
+              {slides.map((slide, i) => {
+                // Per-screen высота обложки: инлайн-var на слайде перекрывает
+                // общий `--deck-hero-h` дека; наследуют и резерв `.heroSlot`, и
+                // `.root` обложки. Смена высоты = обычный ре-рендер (не свайп),
+                // zero-render-инвариант свайпа не затрагивается.
+                const h = heroHeightForSlide?.(i);
+                const style =
+                  typeof h === 'number'
+                    ? ({ '--deck-hero-h': `${h}px` } as CSSProperties)
+                    : undefined;
+                return (
+                  <div
+                    key={i}
+                    className={s.slideFrame}
+                    data-slide-index={i}
+                    style={style}
+                  >
+                    {slide.render(topSlots[i])}
+                  </div>
+                );
+              })}
             </Swipeable>
           </div>
         </TopBarScrollHideContext.Provider>

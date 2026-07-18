@@ -77,6 +77,7 @@ const HypothesisWriteBar = ({ onCreated, showHint = true }: Props) => {
       inputId={TITLE_INPUT_ID}
       placeholder="Ваша гипотеза?"
       hintPopover={showHint ? HYPOTHESIS_HINT : undefined}
+      focusTitle="Мои предположения"
       // Local Dexie write — never gated on network.
       online
       // After send: drop focus so the scrim drops, bar collapses, keyboard hides.

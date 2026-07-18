@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import { formatWindowLabel } from '@/features/analysis/long';
 import { useWallpaperSrc } from '@/shared/lib/wallpaper';
-import { WallpaperHero } from '@/features/wallpaper';
+import { WallpaperHero, WallpaperImage } from '@/features/wallpaper';
 import { useAnalysesFeedContext } from '../model/AnalysesFeedContext';
 import s from './AnalysesHero.module.scss';
 
@@ -34,7 +34,7 @@ const AnalysesHero = () => {
 
   return (
     <div className={s.root} aria-hidden>
-      <img src={heroArt} className={s.heroImg} alt="" />
+      <WallpaperImage screen="analyses" src={heroArt} className={s.heroImg} />
       {/* Логотип Disher — белый masked-PNG, тот же ассет, что у Screen-watermark. */}
       <span className={s.logo} aria-hidden="true" />
       <WallpaperHero screen="analyses" />

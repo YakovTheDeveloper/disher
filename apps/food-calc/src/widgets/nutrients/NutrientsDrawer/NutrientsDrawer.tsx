@@ -22,8 +22,8 @@ export interface NutrientsDrawerProps extends BaseDrawerProps {
  * `drawerStore.show(NutrientsDrawer, props, { side: 'left' })`.
  *
  * Норма больше не редактируется внутри этого дровера — `FoodsNutrients` рисует
- * `DailyNormButton` вверху списка, который открывает отдельный `DailyNormDrawer`
- * (bottom-sheet). Этот компонент — только разбор нутриентов.
+ * `DailyNormButton` вверху списка, который открывает отдельную модалку нормы
+ * («Моя норма» / «Новая норма»). Этот компонент — только разбор нутриентов.
  */
 export function NutrientsDrawer({
   totals,

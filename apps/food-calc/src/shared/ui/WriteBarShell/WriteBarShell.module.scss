@@ -33,7 +33,6 @@
     --medal-size: 56px;
     --shell-radius: var(--sys-radius-sheet);
     --shell-inset: var(--sys-inset-page);
-    --input-container-inset: calc(var(--sys-inset-page) * 2);
 
     // Пилюля = СТАНДАРТНОЕ ПОЛЕ ФОРМЫ проекта (как `.shell` в AutoGrowSearch):
     // плоская тёплая «утопленная» заливка --sys-field-bg-* + мягкая ВНУТРЕННЯЯ
@@ -123,30 +122,56 @@
 // `WriteBarHint` (+ WriteBarHint.module.scss) 2026-07-05 — переиспользуется всеми
 // write-барами (Еда/События/Гипотезы) через `hint`/`hintLabel` пропы.
 
-// ─── Hint dock: колонка · центр · колонка (в правой — ⓘ-toggle) ─────────────
-// Трёхколоночный грид В ПОТОКЕ: пустая 1fr слева, контент (текст подсказки) в
-// центральной auto-колонке, кнопка ⓘ в правой 1fr-колонке. Боковые 1fr РАВНЫ →
-// центральный контент строго по центру независимо от ширины кнопки. Монтируется
-// ТОЛЬКО на фокусе (см. WriteBarShell.tsx: `expanded`-гейт) — в покое места не
-// занимает. На раскрытии текста (WriteBarHint) строка растёт ВВЕРХ над пилюлей,
-// bottomBar прижат к низу.
+// ─── Hint dock: заголовок · хинт · ⓘ ────────────────────────────────────────
+// Flex-ряд В ПОТОКЕ: тематический заголовок (`.dockTitle`) ИЛИ текст подсказки
+// (WriteBarHint) забирают всё свободное место (flex:1), кнопка ⓘ прижата к правой
+// кромке. Flex (а не grid 1fr·auto·1fr) — чтобы заголовок получал ПОЛНУЮ ширину до
+// ⓘ и обрезался ellipsis'ом РАНЬШЕ неё, а не заезжал под кнопку. Центрирование
+// инлайн-хинта (прежний grid) больше не нужно: все бары держат подсказку за ⓘ
+// (`hintPopover`), инлайн-путь живого потребителя не имеет. Монтируется ТОЛЬКО на
+// фокусе (см. WriteBarShell.tsx: `expanded`-гейт) — в покое места не занимает.
+// НА ВСЮ ШИРИНУ контент-бокса `.wrap` (width:100%): боковой page-инсет несёт сам
+// `.wrap`, а инсеты до текста возвращают слоты — заголовок слева (padding-left =
+// field), ⓘ справа (margin-right = отступ монеты). Пилюля и док стартуют с ОДНОЙ
+// кромки контент-бокса → инсеты слотов совпадают с инсетами поля.
 .hintDock {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
     align-items: center;
+    gap: var(--space-2);
 }
 
-// Центральная колонка — сам текст подсказки (первый потомок дока). Кладём в track 2;
-// равные боковые 1fr держат его по центру.
-.hintDock> :first-child {
-    grid-column: 2;
+// Тематический заголовок экрана — курсив (запрос 2026-07-18), тот же heading-голос.
+// padding-left = внутренний инсет поля пилюли (--sys-inset-writebar-field) → лейбл
+// стартует РОВНО с текста ввода (page-инсет несёт `.wrap`, пилюля и док с одной
+// кромки контент-бокса). padding-right — чтобы хвост italic-глифа не срезался
+// overflow:hidden'ом (ink рисуется в padding-box, клип по его кромке).
+.dockTitle {
+    flex: 1;
     min-width: 0;
+    padding-left: var(--sys-inset-writebar-field);
+    padding-right: var(--space-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-style: italic;
 }
 
-// Правая колонка — кнопка ⓘ, прижата к внешней кромке контент-бокса дока.
+// Текст подсказки (инлайн-режим) — забирает свободное место, по центру своего слота.
+.hintText {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+}
+
+// Кнопка ⓘ — своя ширина, прижата вправо (margin-left:auto). margin-right = отступ
+// send-монеты от кромки пилюли (--space-2) → правая кромка ⓘ совпадает с правой
+// кромкой монеты (вертикаль «ⓘ над send»).
 .hintBtn {
-    grid-column: 3;
-    justify-self: end;
+    flex: 0 0 auto;
+    margin-left: auto;
+    margin-right: var(--space-2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -311,7 +336,7 @@
     display: flex;
     align-items: center;
     // Вертикальные инсеты сняты — текст центрируется align-items в низкой пилюле.
-    padding: 0 var(--input-container-inset);
+    padding: 0 var(--sys-inset-writebar-field);
     min-height: var(--pill-h);
 }
 

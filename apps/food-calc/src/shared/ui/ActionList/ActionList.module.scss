@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: var(--sys-stack-row);
+  // gap: var(--sys-stack-row);
 
   // Не owl: первая секция тоже отбивается сверху — иначе её заголовок прилипает
   // к тому, что стоит над списком (title-ряд chrome'а дровера).
@@ -32,4 +32,10 @@
   margin: 0;
   color: var(--sys-color-text-primary);
   // color: var(--sys-color-text-accent);
+}
+
+// Опциональный курсив лейбла секции (проп italicLabel) — включается по требованию
+// консумера, дефолт прямой. font-style не покрыт токен-гейтом.
+.sectionLabelItalic {
+  font-style: italic;
 }

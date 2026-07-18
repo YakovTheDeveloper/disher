@@ -30,7 +30,7 @@ import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { useColorModeStore } from '@/shared/lib/color-mode';
-import { SyncStatusChip } from '@/features/sync-status/SyncStatusChip';
+import { SyncStatusBar } from '@/features/sync-status/SyncStatusBar';
 import { ReportProblemModal } from '@/features/feedback';
 
 const downloadJson = (name: string, obj: unknown) => {
@@ -138,6 +138,13 @@ export function ProfileDrawer() {
         // с корня за одну nav-строку. Подписи — h3 (заголовок drawer = h2, тело
         // держит h3+ для корректного outline; см. DrawerLayout.title).
         <ActionList className={styles.appearanceFlow}>
+          {/* Подсказка про быстрый вход: long-press по hero-обложке экрана открывает
+              этот раздел напрямую — не все находят жест сами. Отбивку сверху/снизу
+              держит сам ActionList (owl `--sys-stack-section`), ряд margin не ставит. */}
+          <Text role="caption">
+            На основной странице, если долго удерживать обои, то откроется панель кастомизации.
+          </Text>
+
           {/* Обои — своя гравюра-обложка для каждого экрана (Рацион / События /
               Разборы), выбор из общего каталога. Пишется в localStorage, сразу
               читается hero-обложками. */}
@@ -186,13 +193,6 @@ export function ProfileDrawer() {
             </div>
           </ActionList.Section>
 
-          {/* Данные — ряд-кнопка, не кнопка-плашка. «Загрузить из файла» снесён
-            2026-07-16 вместе с тумблером: сервер — единственное хранилище, и
-            восстановление = зайти в аккаунт, а не подсунуть файл.
-            Своей секции «Синхронизация» больше нет: чип в покое не рендерит
-            НИЧЕГО — отдельный заголовок стоял бы над пустотой. Чип приехал сюда:
-            показывает «Офлайн» / «Синхронизирую…» / «Не сохранено» + иконку-повтор.
-            Обёртка hug-left, чтобы danger-фон не растягивался на всю ширину. */}
           <ActionList.Section label="Данные">
             <div className={styles.rows}>
               <SettingRow
@@ -202,9 +202,9 @@ export function ProfileDrawer() {
                 onClick={handleExport}
               />
             </div>
-            <div className={styles.syncStatus}>
-              <SyncStatusChip />
-            </div>
+            {/* Штамп последней синхронизации + кнопка «обновить» — служебная
+                строка секции «Данные», под экспортом. */}
+            <SyncStatusBar />
           </ActionList.Section>
 
           {/* Админка — единственный вход в /admin (топап баланса). Виден ТОЛЬКО
@@ -250,9 +250,7 @@ export function ProfileDrawer() {
                 icon={<LogoutIcon width={18} height={18} />}
                 label="Выйти на других устройствах"
                 sub={
-                  revoking
-                    ? 'Завершаем сессии…'
-                    : 'Завершит сессии везде, кроме этого устройства'
+                  revoking ? 'Завершаем сессии…' : 'Завершит сессии везде, кроме этого устройства'
                 }
                 trailing={<ChevronGlyph />}
                 onClick={handleRevokeOtherSessions}

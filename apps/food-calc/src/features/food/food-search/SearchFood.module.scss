@@ -111,8 +111,8 @@
     @include scroll-sentinel(top);
 }
 
-// В create-флоу внизу-справа парит круглая монета «Новая еда» (.createFab, ~64px
-// + тень). Резервируем воздух снизу, чтобы последний ряд не ушёл под монету.
+// В create-флоу внизу-справа парит пилюля-кнопка «Новая еда» (.createFab, ~56px
+// + тень). Резервируем воздух снизу, чтобы последний ряд не ушёл под кнопку.
 .scrollerWithDock {
     padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
@@ -222,26 +222,34 @@
     }
 }
 
-// ─── Плавающая тёмная монета-акцент создания («Новая еда») ───────────────────
-// Круглая монета RoundButton (look="elevated" → тёмная, белый текст) — дуга «Новая
-// еда» + гравюра-клош. Портуется в document.body (SearchFood.tsx), поэтому fixed к
-// вьюпорту, а не absolute к `.content`. `--medal-size` наследуется в медаль (RoundButton
-// его только ЧИТАЕТ через var(), не переопределяет) → диаметр 64px. Кегль дуги не
-// трогаем: медаль жёстко объявляет `--wb-arc-size:17px` на себе. useKeyboardStick
-// (mode:'transform') поднимает узел translateY над клавиатурой, сохраняя якорь right.
+// ─── Плавающая тёмная круглая кнопка-акцент создания («Новая еда») ───────────
+// Круглая RoundButton (look="elevated") — тёмная floating-монета: плюс по центру,
+// дуга-подпись «Новая еда» снизу, тихий шеврон › на правом краю. Всё БЕЛОЕ
+// (on-floating). Портуется в document.body (SearchFood.tsx), поэтому fixed к
+// вьюпорту, а не absolute к `.content`. useKeyboardStick (mode:'transform')
+// поднимает узел translateY над клавиатурой, сохраняя якорь right.
 .createFab {
+    // Медаль вне write-бара → `--pill-h` не наследуется; задаём её диаметр здесь
+    // (standalone-потребители сами объявляют --medal-size, см. RoundButton).
+    --medal-size: 72px;
     // Портуется в document.body (см. SearchFood.tsx) → fixed к вьюпорту, z-index выше
     // полноэкранной ModalByLabel (z:1000), чтобы «пробить» её fade: родительская
-    // прозрачность через портал не наследуется, поэтому монета появляется акцентом.
+    // прозрачность через портал не наследуется, поэтому кнопка появляется акцентом.
     position: fixed;
     right: var(--sys-inset-page);
     bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 1001;
     display: flex;
-    --medal-size: 64px;
     // Быстрый собственный вход (ТОЛЬКО opacity — transform занят useKeyboardStick),
-    // чтобы монета вспыхивала акцентом, а не вплывала вместе с общим fade модалки.
+    // чтобы кнопка вспыхивала акцентом, а не вплывала вместе с общим fade модалки.
     animation: createFabIn 180ms var(--easing-default) both;
+}
+
+// Базовый `.roundButton` несёт margin-left:space-2 (зазор от пилюли внутри бара);
+// вне бара он лишний. Хэш-класс `.roundButton` живёт в чужом модуле (cross-module
+// hash-trap) → целимся в прямого ребёнка (корень RoundButton = единственный).
+.createFab > * {
+    margin-left: 0;
 }
 
 @keyframes createFabIn {

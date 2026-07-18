@@ -11,7 +11,11 @@
     box-shadow: var(--sys-elevation-overlay);
     padding: 8px;
     min-width: 160px;
-    z-index: 1000;
+    // Плавающая панель/подсказка обязана лежать ПОВЕРХ поверхности, что её вызвала,
+    // включая оверлеи: дровер (popup ~5001) и модалку (~6001). Прежние 1000 держались
+    // лишь на порядке в DOM (FloatingPortal в конце body) — над ModalByLabel (z:1000)
+    // работало, но ⓘ в шапке ДРОВЕРА уезжала ЗА лист. 7000 > всех оверлеев.
+    z-index: 7000;
 
     opacity: 1;
     transform: translateY(0) scale(1);

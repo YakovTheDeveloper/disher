@@ -1,7 +1,28 @@
-// Один «оценочный вариант»: поле имени над линейкой. Зазор — row-ярус; между
-// вариантами внутри секции ActionList.Section кладёт свой row-зазор.
+// Один «оценочный вариант»: строка-шапка (имя + число) над full-width линейкой.
+// Внутренний зазор тесный — 44px touch-бокс слайдера сам даёт воздух над треком;
+// между вариантами зазор кладёт ActionList.Section (row-ярус), и он шире внутреннего,
+// поэтому шапка со своим слайдером читается как одна группа.
 .aspect {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  margin-right: var(--space-3);
+}
+
+// Шапка варианта: имя тянется, число прижато вправо — освобождает трек на всю ширину.
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+}
+
+.value {
+  min-width: 2ch;
+  text-align: right;
+  color: var(--sys-color-text-primary);
 }

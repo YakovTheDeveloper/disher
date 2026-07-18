@@ -1,4 +1,4 @@
-// SignOutConfirmModal — the typed-«удалить» barrier gating sign-out. Semantics
+// SignOutConfirmModal — the typed-«выйти» barrier gating sign-out. Semantics
 // under test: the confirm button stays disabled until the exact word is typed
 // (case/space-normalized); an armed confirm runs the final sync and resolves
 // onClose(true) only if it lands — a failed sync flips to the "выйти всё равно?"
@@ -37,6 +37,12 @@ vi.mock('@/shared/lib/sync/runSync', () => ({
   runSyncTracked: (...a: unknown[]) => runSyncTracked(...a),
 }));
 
+// SyncStatusBar is chrome accompanying the backup button, not under test — stub
+// it so the barrier logic stays isolated (and no svg/store wiring bleeds in).
+vi.mock('@/features/sync-status/SyncStatusBar', () => ({
+  SyncStatusBar: () => null,
+}));
+
 const finalSyncBeforeSignOut = vi.fn().mockResolvedValue(true);
 vi.mock('./auth-store', () => ({
   finalSyncBeforeSignOut: () => finalSyncBeforeSignOut(),
@@ -57,22 +63,22 @@ beforeEach(() => {
   finalSyncBeforeSignOut.mockResolvedValue(true);
 });
 
-describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
+describe('SignOutConfirmModal (typed «выйти» barrier)', () => {
   it('confirm is disabled until the exact word is typed', () => {
     render(<SignOutConfirmModal onClose={vi.fn()} />);
 
     expect(confirmBtn()).toBeDisabled();
 
-    fireEvent.change(barrierField(), { target: { value: 'удали' } });
+    fireEvent.change(barrierField(), { target: { value: 'выйт' } });
     expect(confirmBtn()).toBeDisabled();
 
-    fireEvent.change(barrierField(), { target: { value: 'удалить' } });
+    fireEvent.change(barrierField(), { target: { value: 'выйти' } });
     expect(confirmBtn()).toBeEnabled();
   });
 
   it('normalizes case and surrounding spaces', () => {
     render(<SignOutConfirmModal onClose={vi.fn()} />);
-    fireEvent.change(barrierField(), { target: { value: '  УДАЛИТЬ ' } });
+    fireEvent.change(barrierField(), { target: { value: '  ВЫЙТИ ' } });
     expect(confirmBtn()).toBeEnabled();
   });
 
@@ -84,7 +90,7 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
     fireEvent.click(confirmBtn());
     expect(onClose).not.toHaveBeenCalled();
 
-    fireEvent.change(barrierField(), { target: { value: 'удалить' } });
+    fireEvent.change(barrierField(), { target: { value: 'выйти' } });
     fireEvent.click(confirmBtn());
 
     await waitFor(() => expect(onClose).toHaveBeenCalledWith(true));
@@ -105,7 +111,7 @@ describe('SignOutConfirmModal (typed «удалить» barrier)', () => {
 describe('SignOutConfirmModal (failed final sync)', () => {
   const arm = (onClose: (v?: boolean) => void) => {
     render(<SignOutConfirmModal onClose={onClose} />);
-    fireEvent.change(barrierField(), { target: { value: 'удалить' } });
+    fireEvent.change(barrierField(), { target: { value: 'выйти' } });
     fireEvent.click(confirmBtn());
   };
 

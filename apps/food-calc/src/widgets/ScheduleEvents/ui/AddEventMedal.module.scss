@@ -1,0 +1,7 @@
+// Обёртка медали «Новое событие» в trailingSlot бара — в потоке справа за фейдинг-
+// дивайдером (floating={false}). Ужимается по контенту, центрируется по вертикали.
+.wrap {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}

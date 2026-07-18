@@ -119,7 +119,7 @@ const AnalysesSlide = ({ topSlot }: Props) => {
   };
 
   return (
-    <Screen stickyTop={topSlot} headerOverlap topBarHide="settings" bottomBar={bottomBar}>
+    <Screen stickyTop={topSlot} headerOverlap bottomBar={bottomBar}>
       <div className={styles.container}>
         {/* Фильтр Все / Дневные / Длительные — селект единственного выбора (общий
             атом Select на Base UI, тот же, что «способ измерения» в ProductDrawer).

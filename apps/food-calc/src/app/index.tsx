@@ -15,8 +15,17 @@ import { diagLog } from '@/shared/lib/observability/diagLog';
 import { installGlobalErrorHandlers } from '@/shared/lib/errors/installGlobalErrorHandlers';
 import { installStoragePressureWatcher } from '@/shared/lib/storage/useStoragePressure';
 import { installPwaAutoUpdate } from '@/app/pwa-update';
-import { DesignVariantsBar, shouldShowDvBar } from '@/app/ui/DesignVariantsBar';
+import { hideBootSplash } from '@/shared/lib/boot-splash';
+import { lazy, Suspense } from 'react';
+// Gate imported from its own light module; the bar component itself is lazy so
+// its dev-only subtree (seedTestDays → catalog, variant fixtures) never rides the
+// production initial bundle — shouldShowDvBar() is false in prod, so it never loads.
+import { shouldShowDvBar } from '@/app/ui/DesignVariantsBar/shouldShowDvBar';
 import { setNavigator } from '@/shared/lib/routing/navigator';
+
+const DesignVariantsBar = lazy(() =>
+  import('@/app/ui/DesignVariantsBar').then((m) => ({ default: m.DesignVariantsBar })),
+);
 
 // Build-штамп в консоль — всегда, включая прод: при отладке PWA-обновления с
 // телефона (chrome://inspect) это первая строка, отличающая «не обновилось»
@@ -126,14 +135,16 @@ ReactDOM.createRoot(root).render(
     }
     showDialog={false}
   >
-    {shouldShowDvBar() && <DesignVariantsBar />}
+    {shouldShowDvBar() && (
+      <Suspense fallback={null}>
+        <DesignVariantsBar />
+      </Suspense>
+    )}
     <RouterProvider router={router} />
   </Sentry.ErrorBoundary>
 );
 
-// Reveal UI after first paint to prevent FOUC
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    root.classList.add('ready');
-  });
-});
+// Предохранитель от зависшего сплэша: обычно его снимает первый реальный экран
+// (AuthScreen / BackupGate-ready). Но публичный путь /auth/verify-email минует
+// оба гейта — этот таймер гарантирует снятие в любом непокрытом сценарии.
+window.setTimeout(hideBootSplash, 6000);

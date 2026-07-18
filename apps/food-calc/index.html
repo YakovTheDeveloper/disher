@@ -27,15 +27,145 @@
 
   <!-- Fonts are self-hosted via @fontsource (see src/app/fonts.ts) → bundled, PWA-precached,
        render offline. No runtime Google Fonts request (design-consistency-plan canon). -->
-  <style>
-    /* Prevent FOUC: hide root until CSS modules are loaded */
-    #root {
-      opacity: 0;
-    }
 
-    #root.ready {
+  <!-- Boot-splash: рисуется МГНОВЕННО (инлайн, до парсинга JS-бандла) и держит
+       тёплую бумагу вместо белой вспышки, пока грузится бандл + решаются AuthGate/
+       BackupGate. Значения — литералы (токенов ещё нет): фон = --sys-color-surface-2
+       (#ffffff, лист-над-листом — как модал/дровер), гравюра = --color-ink (#221f19).
+       Живёт СОСЕДОМ #root — внутри его вычистил бы первый же createRoot().render().
+       Снимает JS: shared/lib/boot-splash → hideBootSplash() на первом реальном экране.
+
+       Визуал = CSS-реплика FabricLoader (scan): бледная гравюра-библиотека под
+       бегущей проявляющей полосой + дышащая подпись — тот же лоадер, что в моменте 4
+       (Suspense в App.tsx) и на «Разборах». Пре-JS нет React/SCSS/токенов, потому
+       эффект `scan` переписан здесь руками (значения из FabricLoader.module.scss).
+       PNG `/art/loader-analysis.png` — в precache (includeAssets), поэтому на холодном
+       старте после установки SW гравюра на месте и офлайн; на самом первом заходе
+       тянется из сети (до неё видно бумагу, гравюра проявляется по загрузке). -->
+  <style>
+    #boot-splash {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #ffffff;
       opacity: 1;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.32s ease;
+    }
+    #boot-splash.boot-splash--hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* Плита-обёртка: держит гравюру (маскируется виньеткой) и лого (НЕ маскируется —
+       иначе виньетка съела бы и его), лого центрируется поверх картинки. */
+    #boot-splash .boot-splash__plate {
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+    /* Лого Disher поверх гравюры — masked-PNG (силуэт-маска, цвет даёт background),
+       тот же приём, что Screen-watermark/AnalysesHero: белый (surface-2 #ffffff) —
+       читается как тонкий knockout/водяной знак над бледной гравюрой. */
+    #boot-splash .boot-splash__logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 150px;
+      height: 40px;
+      background-color: #ffffff;
+      -webkit-mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+      mask: url('/logo/logo-white-no-fill.png') center / contain no-repeat;
+      pointer-events: none;
+      user-select: none;
+    }
+    /* Гравюра + слои проявления. Виньетка-маска на .stage съедает прямоугольные края
+       (как --fl-vignette в FabricLoader), размер задаёт базовый <img>. */
+    #boot-splash .boot-splash__stage {
+      position: relative;
+      width: min(340px, 86vw);
+      -webkit-mask-image: radial-gradient(ellipse 74% 74% at 50% 47%, #000 34%, rgba(0, 0, 0, 0.4) 60%, transparent 82%);
+      mask-image: radial-gradient(ellipse 74% 74% at 50% 47%, #000 34%, rgba(0, 0, 0, 0.4) 60%, transparent 82%);
+    }
+    /* базовый слой — постоянная бледная гравюра (opacity .16, как --fl-base-opacity) */
+    #boot-splash .boot-splash__art {
+      display: block;
+      width: 100%;
+      height: auto;
+      opacity: 0.16;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    /* проявляющий слой — та же гравюра ярче, видна сквозь бегущую световую полосу */
+    #boot-splash .boot-splash__reveal {
+      position: absolute;
+      inset: 0;
+      background-image: url("/art/loader-analysis.png");
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      opacity: 0.5;
+      -webkit-mask: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%) no-repeat;
+      mask: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%) no-repeat;
+      -webkit-mask-size: 48% 100%;
+      mask-size: 48% 100%;
+      animation: boot-scan 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    /* подпись — под гравюрой, дышит. Голос <Heading> (Onest bold-sans, --heading-font):
+       вес 700 + letter-spacing -0.022em. Onest приходит с бандлом → пре-JS фолбэк на
+       системный sans, по загрузке шрифта подхватывается Onest. */
+    #boot-splash .boot-splash__caption {
+      margin: 0;
+      font-family: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      color: #221f19;
+      text-align: center;
+      animation: boot-breathe 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes boot-scan {
+      0% {
+        -webkit-mask-position: -55% 0;
+        mask-position: -55% 0;
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.5;
+      }
+      82% {
+        opacity: 0.5;
+      }
+      100% {
+        -webkit-mask-position: 155% 0;
+        mask-position: 155% 0;
+        opacity: 0;
+      }
+    }
+    @keyframes boot-breathe {
+      0%,
+      100% {
+        opacity: 0.55;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #boot-splash .boot-splash__reveal {
+        animation: none;
+        opacity: 0;
+      }
+      #boot-splash .boot-splash__caption {
+        animation: none;
+        opacity: 1;
+      }
     }
   </style>
 </head>
@@ -43,6 +173,16 @@
 <body>
   <div id="modal-by-label-root"></div>
   <div id="root"></div>
+  <div id="boot-splash" aria-hidden="true">
+    <div class="boot-splash__plate">
+      <div class="boot-splash__stage">
+        <img class="boot-splash__art" src="/art/loader-analysis.png" alt="" decoding="async" />
+        <span class="boot-splash__reveal"></span>
+      </div>
+      <span class="boot-splash__logo"></span>
+    </div>
+    <p class="boot-splash__caption">Загрузка</p>
+  </div>
   <script type="module" src="/src/app/index.tsx"></script>
   <div id="modal-root"></div>
   <div id="drawer-root"></div>

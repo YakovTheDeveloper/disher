@@ -77,45 +77,13 @@
     white-space: pre-line;
 }
 
-// ─── Ряд выбора количества — продукт-еда ──
-.measureRow {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    margin-bottom: var(--sys-stack-row);
-}
 
-// Стиль самого Select-триггера/попапа канонизирован в атоме (Select.module.scss):
-// триггер = surface-aware лунка (field-depth из surface-2 дровера), попап =
-// surface-2 + overlay-тень. Здесь только раскладка.
-.quantityControl {
-    flex: 1 1 0;
-    min-width: 0;
-}
-
-.quantitySelect {
-    width: 100%;
-}
-
-// Текст селекта количества поднят до стандартного field-размера (16) — чтобы
-// совпасть с кнопкой нормы над ним (<Text role="label"> = 16). Скоуплено сюда:
-// прочие Select'ы (анализы/лаборатория) остаются компактными (12.8 default).
-// Специфичность `.quantityControl .quantitySelect` (0,2,0) кроет базовый `.trigger`
-// (0,1,0) из Select.module.scss.
-.quantityControl .quantitySelect {
+// Текст селекта поднят до стандартного field-размера (16). Специфичность
+// `.quantitySelect.quantitySelect` (0,2,0) кроет базовый `.trigger` (0,1,0) из
+// Select.module.scss без ancestor-обёртки. Скоуплено сюда: прочие Select'ы
+// (анализы/лаборатория) остаются компактными (12.8 default).
+.quantitySelect.quantitySelect {
     font-size: var(--sys-field-font-size);
-}
-
-// Кнопка нормы — отдельным рядом на всю ширину. Текст переносится и прижат влево:
-// `.normRowFull .normButtonFull` (0,2,0) перебивает QuietActionButton `.button`
-// justify-content:center.
-.normRowFull {
-    display: flex;
-    margin-bottom: var(--sys-stack-row);
-}
-
-.normRowFull .normButtonFull {
-    width: 100%;
 }
 
 .quantityInputRow {

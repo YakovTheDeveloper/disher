@@ -253,6 +253,24 @@
     letter-spacing: var(--sys-text-#{$role}-tracking);
 }
 
+// Тон холодного числового ридаута карточки: qty + время звучат В ОДИН ГОЛОС на
+// цветной (on-hue) подложке — не тёплый ink имени, а холодный числовой тон.
+// Инвариант был только в прозе (Card.module.scss) — миксин его заенфорсил.
+@mixin card-numeric-tone {
+    color: var(--sys-color-text-on-hue-card);
+    font-weight: var(--sys-color-font-weight-on-hue-card);
+}
+
+// Полный голос ВРЕМЕНИ карточки: общий числовой тон + body-кегль + tabular. Один
+// дом для обоих путей рендера времени в `Card.Time` — инлайн-редактор еды
+// (CardTime) и сырой текст-диапазон события (Card `.time`) — чтобы цвет/вес/кегль
+// не расходились по коду (была регрессия: событие красилось text-secondary).
+@mixin card-time-readout {
+    @include card-numeric-tone;
+    font-size: var(--sys-numeral-base);
+    font-variant-numeric: tabular-nums;
+}
+
 
 @mixin glassBackgroundPseudoElement($blur: 5px) {
     &::after {

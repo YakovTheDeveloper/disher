@@ -53,7 +53,6 @@ const InsightsSlide = ({ topSlot }: Props) => {
     <Screen
       stickyTop={topSlot}
       headerOverlap
-      topBarHide="settings"
       topContent={
         insights.length > 0 ? (
           <Text role="caption" className={styles.count}>

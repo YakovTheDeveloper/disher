@@ -45,7 +45,7 @@ vi.mock('../TelegramLinkRow', () => ({ TelegramLinkRow: () => null }));
 vi.mock('../SignOutConfirmModal', () => ({ default: () => null }));
 vi.mock('@/features/wallpaper', () => ({ WallpaperPicker: () => <div /> }));
 vi.mock('@/features/card-palette', () => ({ CardPalettePicker: () => <div /> }));
-vi.mock('@/features/sync-status/SyncStatusChip', () => ({ SyncStatusChip: () => <div /> }));
+vi.mock('@/features/sync-status/SyncStatusBar', () => ({ SyncStatusBar: () => <div /> }));
 
 const mockRevokeOtherSessions = vi.fn();
 vi.mock('@/shared/lib/auth/authProvider', () => ({

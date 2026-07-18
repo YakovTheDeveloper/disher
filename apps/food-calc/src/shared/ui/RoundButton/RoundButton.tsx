@@ -1,6 +1,7 @@
-import { useId, type ReactNode } from 'react';
+import { useId, type CSSProperties, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import s from './RoundButton.module.scss';
 
 export interface RoundButtonProps {
@@ -22,12 +23,24 @@ export interface RoundButtonProps {
   onClick?: () => void;
   /** Center engraving as a raster png (Food bar). */
   img?: string;
+  /** Override the center `img` width (CSS length, e.g. `'100%'`). Default 60%. */
+  imgWidth?: string;
+  /** Horizontal nudge for the center `img` (CSS length; negative = left). Default 0. */
+  imgNudgeX?: string;
+  /** Vertical nudge for the center `img` (CSS length; negative = up). Default 0. */
+  imgNudgeY?: string;
   /** Center glyph as a node (e.g. an icon) — alternative to `img` (Analysis bar). */
   centerNode?: ReactNode;
   /** Upper arc caption. */
   arcTop?: string;
   /** Lower arc caption. */
   arcBottom?: string;
+  /**
+   * Тихий шеврон › на ПРАВОМ краю медали, по вертикали в центре — affordance
+   * «откроет / следующий шаг» (FAB «Новая еда» в поиске). Наследует цвет глифа
+   * медали (on-floating на elevated → белый).
+   */
+  sideChevron?: boolean;
   /** Quiet/dimmed state (Food ready-state): no lift shadow + faded. */
   dimmed?: boolean;
   /** Nudge the coin up a touch above the pill centre (Food bar — «приподнятая» кнопка). */
@@ -47,13 +60,31 @@ export interface RoundButtonProps {
    *   • `elevated` — «висит в воздухе»: sys-elevation важного объекта
    *     (`--sys-elevation-action-raised`) БЕЗ бордер-обводки + яркий холодный текст
    *     дуг (`--sys-color-text-cold-strong`). Парящий FAB «Новая еда» в поиске.
-   *   • `bare` — «голая»: без диска и плашки, только дуговой текст + глиф на
-   *     прозрачном + тихий круговой контур (`--sys-color-border-subtle`) и лёгкий
-   *     подъём (`--sys-elevation-action-raised`). Ряд правок ItemActionsDrawer +
-   *     быстрые нав-стрелки — медаль как воздушная опция-кнопка внутри дровера.
-   * Раньше называлось `coin`/`paper`; развели на два семантических режима 2026-07-10.
+   *   • `raised` — приподнятая СВЕТЛАЯ плитка: сплошной surface-2 диск + мягкая lift-
+   *     тень (`--sys-elevation-action-rest`), БЕЗ канта; press компрессует тень. Round-
+   *     инстанс паттерна «вдавленный лоток Well + приподнятые surface-2 плитки» (ряд
+   *     правок ItemActionsDrawer). В отличие от `elevated` (ТЁМНАЯ монета-акцент) —
+   *     светлый диск, всплывающий из холодной канавки Well.
+   * Раньше называлось `coin`/`paper`; развели на семантические режимы 2026-07-10.
    */
-  look?: 'elevated' | 'flat' | 'bare';
+  look?: 'elevated' | 'flat' | 'raised';
+  /**
+   * Снимает плашку-подложку медали (фон + кольца-тени + внутренний диск `::before`),
+   * оставляя ТОЛЬКО картинку/глиф + дугу на голой поверхности. Press-ink `::after`
+   * остаётся — даёт кружок-отклик даже без покоящегося диска. Медаль «Новое событие».
+   */
+  plateless?: boolean;
+  /**
+   * Тень-подъём под медалью (`--sys-elevation-action-rest`) — читается «приподнятой»
+   * даже без плашки. Совместимо с `plateless`: бьёт его `box-shadow:none`. Медаль «Новое событие».
+   */
+  shadow?: boolean;
+  /**
+   * Тонкая круговая обводка по краю медали (`--sys-color-border-default` — та же
+   * линия, что окантовывает flat-медаль «Список еды»). Даёт краю плейтлесс-монеты
+   * форму. Медаль «Новое событие».
+   */
+  outlined?: boolean;
 }
 
 /**
@@ -73,13 +104,20 @@ export const RoundButton = ({
   ariaLabel,
   onClick,
   img,
+  imgWidth,
+  imgNudgeX,
+  imgNudgeY,
   centerNode,
   arcTop,
   arcBottom,
+  sideChevron,
   dimmed,
   lifted,
   floating = true,
   look = 'flat',
+  plateless,
+  shadow,
+  outlined,
 }: RoundButtonProps) => {
   const { pressed, pressProps } = usePressFeedback();
   // Unique ids for the SVG arc paths (textPath references them by #id).
@@ -87,10 +125,19 @@ export const RoundButton = ({
   const arcTopId = `${arcBase}-t`;
   const arcBotId = `${arcBase}-b`;
 
+  const imgStyle: CSSProperties | undefined =
+    img && (imgWidth || imgNudgeX || imgNudgeY)
+      ? {
+          ...(imgWidth ? { width: imgWidth } : null),
+          ...(imgNudgeX ? { ['--rb-img-nudge-x']: imgNudgeX } : null),
+          ...(imgNudgeY ? { ['--rb-img-nudge-y']: imgNudgeY } : null),
+        }
+      : undefined;
+
   const inner = (
     <>
       {img ? (
-        <img src={img} className={s.roundButtonImg} alt="" aria-hidden />
+        <img src={img} className={s.roundButtonImg} style={imgStyle} alt="" aria-hidden />
       ) : centerNode ? (
         <span className={s.roundButtonCenter} aria-hidden>
           {centerNode}
@@ -118,11 +165,22 @@ export const RoundButton = ({
           )}
         </svg>
       )}
+      {sideChevron && (
+        <span className={s.roundButtonChevron} aria-hidden>
+          <ChevronGlyph />
+        </span>
+      )}
     </>
   );
 
   const shared = {
-    className: clsx(s.roundButton, lifted && s.lifted),
+    className: clsx(
+      s.roundButton,
+      lifted && s.lifted,
+      plateless && s.plateless,
+      shadow && s.shadow,
+      outlined && s.outlined
+    ),
     'aria-label': ariaLabel,
     onClick,
     'data-pressed': pressed || undefined,

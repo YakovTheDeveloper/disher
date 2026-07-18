@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
 import { useDrawers } from '@/shared/ui/drawer-store';
 import { DrawerSideProvider } from '@/shared/ui/DrawerLayout';
@@ -37,7 +38,17 @@ const DrawerManager = () => {
           }}
         >
           <Drawer.Portal container={container}>
-            <Drawer.Backdrop className={overlayStyles.overlay} />
+            {/* `interactiveBehind` → click-through backdrop (pointer-events:none):
+                страница под дровером принимает жесты (hero-обложка под
+                WallpaperDrawer — pan/zoom). Скрим при этом не убран, а ослаблен втрое
+                (.clickThrough) — снятие pointer-events, не прозрачность, и есть
+                несущая половина click-through. */}
+            <Drawer.Backdrop
+              className={clsx(
+                overlayStyles.overlay,
+                options.interactiveBehind && overlayStyles.clickThrough,
+              )}
+            />
             <Drawer.Viewport>
               <DrawerSideProvider value={options}>
                 <Component {...props} onClose={(result: unknown) => close(id, result)} />

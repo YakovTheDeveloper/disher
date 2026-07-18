@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import './fonts';
 import s from '@/shared/assets/style/App.module.scss';
@@ -18,6 +19,7 @@ import { StoragePressureBanner } from '@/features/storage-warning/StoragePressur
 import { PwaInstallGate } from '@/features/pwa-install';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 import { useApplyColorMode } from '@/shared/lib/color-mode';
+import { FabricLoader } from '@/features/analysis/FabricLoader';
 
 // Single app-wide tone. Every interactive surface (--sys-field-* inputs/chips,
 // --sys-card-*/--list-* rows) derives its colour from ONE palette: the fixed `mono`
@@ -67,7 +69,27 @@ export default function App() {
 
         <AuthGate>
           <BackupGate>
-            <Outlet />
+            {/* Boundary for the route-level lazy pages (see router.tsx). While a
+                page chunk loads, the app chrome stays mounted and this shows a
+                centred spinner instead of a blank frame. */}
+            <Suspense
+              fallback={
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '60vh',
+                  }}
+                >
+                  {/* Тот же лоадер, что на «Разборах» при идущем анализе
+                      (AnalysesHero) — гравюра loader-analysis.png + scan. */}
+                  <FabricLoader art="/art/loader-analysis.png" caption="Загрузка" effect="scan" />
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </BackupGate>
         </AuthGate>
       </div>

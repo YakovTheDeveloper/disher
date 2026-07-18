@@ -59,7 +59,7 @@
 .heading {
   color: var(--sys-color-text-primary);
   margin: 0;
-  text-align: right;
+  text-align: center;
 }
 
 // Типографику несёт <Text role="caption"> (миграция в примитив). Класс держит
@@ -219,9 +219,9 @@
 }
 
 // ─── Alt auth (Telegram OIDC) ─────────────────────────────────
-// Passwordless "Log in with Telegram" (redirect-based OIDC). Styled as a secondary/outline CTA
-// so it doesn't compete with the dark primary submit; no raw brand colour (тон
-// через sys-токены, канон button-tone-names).
+// Passwordless "Log in with Telegram" — главная CTA экрана, чёрная filled
+// (variant="system" целиком, без локального оверрайда). Outline-облик ниже
+// остался только у dev-кнопки — тихий ярус, чтобы не спорить с основной.
 
 .altAuth {
   margin-top: var(--space-5);
@@ -235,7 +235,7 @@
   color: var(--sys-color-text-tertiary);
 }
 
-.telegramBtn {
+.devBtn {
   width: 100%;
   height: 56px;
   border: 1.5px solid var(--sys-field-hairline, rgba(124, 65, 15, 0.32));

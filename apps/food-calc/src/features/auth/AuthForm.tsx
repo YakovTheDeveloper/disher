@@ -1,20 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui/atoms/Button';
 import { useAuthStore } from './auth-store';
 import { consumeOAuthReturnError } from '@/shared/lib/auth/oauthReturn';
 import { DEV_LOGIN_EMAIL, DEV_LOGIN_PASSWORD } from '@/shared/config/devLogin';
 import styles from './AuthForm.module.scss';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
+import TelegramIcon from '@/shared/assets/icons/telegram.svg?react';
 
-// 2026-07-13: на AuthScreen оставлен ТОЛЬКО вход/регистрация через Telegram.
-// Email+пароль (двухшаговая форма, переключатель signIn/signUp, verify-email
-// ветка) закомментированы целиком — код сохранён ниже, чтобы вернуть флоу одним
-// раскомментированием. Сервер (better-auth emailAndPassword) не трогали.
+// 2026-07-13: на AuthScreen основной путь — вход/регистрация через Telegram.
+// Email+пароль оставлен только как ВХОД (без регистрации) за тихой кнопкой
+// «Войти по email» — нужен, чтобы зайти под сид-админом на проде. Полная
+// двухшаговая форма с регистрацией + verify-email закомментирована ниже.
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // type Mode = 'signIn' | 'signUp';
 // type Step = 'email' | 'password';
 //
-// const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // // Synced with backend auth/server.ts emailAndPassword.minPasswordLength —
 // // менять ТОЛЬКО парой, иначе форма и сервер разойдутся в валидации.
 // const MIN_PASSWORD = 11;
@@ -44,6 +46,12 @@ export function AuthForm({ layout }: Props) {
   const clearError = useAuthStore((s) => s.clearError);
   const reportOAuthReturnError = useAuthStore((s) => s.reportOAuthReturnError);
 
+  // Вход по email — только ВХОД (без регистрации), за тихой кнопкой. Нужен для
+  // захода под сид-админом на проде, где Telegram-аккаунт админом не является.
+  const [emailMode, setEmailMode] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   // Провал Telegram-входа приезжает 302-редиректом с `?authError=` / `?error=`
   // в URL (см. oauthReturn.ts) — без этого чтения юзер молча оказывается на
   // логине без объяснения. Маркер съедается из адресной строки один раз.
@@ -56,6 +64,15 @@ export function AuthForm({ layout }: Props) {
     return () => clearError();
   }, [clearError]);
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const canSubmit = EMAIL_RE.test(normalizedEmail) && password.length > 0 && !isLoading;
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    await signIn(normalizedEmail, password);
+  };
+
   return (
     <div className={styles.container} data-auth-layout={layout}>
       <header className={styles.header}>
@@ -65,39 +82,119 @@ export function AuthForm({ layout }: Props) {
       </header>
 
       <div className={styles.formWrap}>
-        <div className={styles.altAuth}>
-          <Button
-            variant="system"
-            type="button"
-            className={styles.telegramBtn}
-            onClick={() => signInWithTelegram()}
-            disabled={isLoading}
-          >
-            Войти через Telegram
-          </Button>
+        {emailMode ? (
+          <form onSubmit={handleEmailSignIn} className={styles.form} noValidate>
+            <div className={styles.field}>
+              <input
+                type="email"
+                inputMode="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) clearError();
+                }}
+                className={styles.input}
+                autoComplete="email"
+                spellCheck={false}
+                autoCapitalize="off"
+                disabled={isLoading}
+              />
+            </div>
 
-          {/* Dev-only shortcut into the account seeded by the backend
-              (seed-dev.ts). Stripped from prod builds via import.meta.env.DEV. */}
-          {import.meta.env.DEV && (
+            <div className={styles.field}>
+              <input
+                type="password"
+                placeholder="Пароль"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) clearError();
+                }}
+                className={styles.input}
+                autoComplete="current-password"
+                aria-invalid={!!error}
+                aria-describedby={error ? 'auth-form-error' : undefined}
+                disabled={isLoading}
+              />
+            </div>
+
+            {error && (
+              <p id="auth-form-error" className={styles.fieldError} role="alert">
+                <Text as="span" role="caption">
+                  {error}
+                </Text>
+              </p>
+            )}
+
+            <Button variant="system" type="submit" className={styles.submitBtn} disabled={!canSubmit}>
+              {isLoading ? '…' : 'Войти'}
+            </Button>
+
+            <footer className={styles.footer}>
+              <Button
+                variant="link"
+                className={styles.switchBtn}
+                onClick={() => {
+                  setEmailMode(false);
+                  clearError();
+                }}
+                disabled={isLoading}
+              >
+                Назад
+              </Button>
+            </footer>
+          </form>
+        ) : (
+          <div className={styles.altAuth}>
             <Button
               variant="system"
+              fullWidth
               type="button"
-              className={styles.telegramBtn}
-              onClick={() => signIn(DEV_LOGIN_EMAIL, DEV_LOGIN_PASSWORD)}
+              icon={<TelegramIcon />}
+              onClick={() => signInWithTelegram()}
               disabled={isLoading}
             >
-              Войти (Dev)
+              Войти через Telegram
             </Button>
-          )}
 
-          {error && (
-            <p id="auth-form-error" className={styles.fieldError} role="alert">
-              <Text as="span" role="caption">
-                {error}
-              </Text>
-            </p>
-          )}
-        </div>
+            {/* Dev-only shortcut into the account seeded by the backend
+                (seed-dev.ts). Stripped from prod builds via import.meta.env.DEV. */}
+            {import.meta.env.DEV && (
+              <Button
+                variant="system"
+                type="button"
+                className={styles.devBtn}
+                onClick={() => signIn(DEV_LOGIN_EMAIL, DEV_LOGIN_PASSWORD)}
+                disabled={isLoading}
+              >
+                Войти (Dev)
+              </Button>
+            )}
+
+            {error && (
+              <p id="auth-form-error" className={styles.fieldError} role="alert">
+                <Text as="span" role="caption">
+                  {error}
+                </Text>
+              </p>
+            )}
+
+            <footer className={styles.footer}>
+              <Button
+                variant="link"
+                className={styles.switchBtn}
+                onClick={() => {
+                  setEmailMode(true);
+                  clearError();
+                }}
+                disabled={isLoading}
+              >
+                Войти по email
+              </Button>
+            </footer>
+          </div>
+        )}
       </div>
     </div>
   );

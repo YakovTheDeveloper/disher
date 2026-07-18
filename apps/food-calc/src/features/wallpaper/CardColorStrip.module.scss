@@ -1,0 +1,117 @@
+@import '@/shared/assets/style/design-variant-palettes.scss';
+
+// CardColorStrip — ГОРИЗОНТАЛЬНАЯ лента цвета карточек секции (нативный скролл по X).
+// Стоит в WallpaperDrawer под слайдером высоты. Плитка — короткая (высота вдвое
+// меньше квадрата), 4+ видно в ряду, остальные прокручиваются вбок.
+.frame {
+  width: 100%;
+}
+
+.viewport {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  // Скролл ленты не «прицепляется» к дроверу/странице на краях.
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.swatch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 26px;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform var(--press-out) var(--easing-default);
+}
+
+.swatch:active {
+  transform: scale(0.94);
+  transition-duration: var(--sys-duration-press-in);
+}
+
+.swatch:focus-visible {
+  outline: none;
+}
+
+// Каждый свотч публикует свои --tod-* форком палитры; превью читает их со своего
+// скоупа. Строки data-dv-v обязаны совпадать с CARD_PALETTES.
+.swatch[data-dv-v='amber']   { @include dv-palette-amber; }
+.swatch[data-dv-v='honey']   { @include dv-palette-honey; }
+.swatch[data-dv-v='lemon']   { @include dv-palette-lemon; }
+.swatch[data-dv-v='sand']    { @include dv-palette-sand; }
+.swatch[data-dv-v='clay']    { @include dv-palette-clay; }
+.swatch[data-dv-v='rust']    { @include dv-palette-rust; }
+.swatch[data-dv-v='rose']    { @include dv-palette-rose; }
+.swatch[data-dv-v='mauve']   { @include dv-palette-mauve; }
+.swatch[data-dv-v='sage']    { @include dv-palette-sage; }
+.swatch[data-dv-v='neutral'] { @include dv-palette-neutral; }
+
+.preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--sys-radius-container);
+  background: linear-gradient(135deg,
+    var(--tod-morning-bg-from) 0%,
+    var(--tod-night-bg-from) 100%);
+  border: 2px solid var(--tod-morning-outline-from);
+  transition: border-color var(--press-out) var(--easing-default);
+}
+
+.swatch.active .preview {
+  border-color: var(--sys-color-border-action-system);
+}
+
+.swatch:focus-visible .preview {
+  outline: 2px solid var(--sys-color-border-focus);
+  outline-offset: 2px;
+}
+
+// Маркер «выбрано» = галочка в светлом бейдже, правый-верхний угол свотча.
+.tick {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-2);
+  box-shadow: var(--sys-elevation-action-rest);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--press-out) var(--easing-default),
+    transform var(--press-out) var(--easing-default);
+  pointer-events: none;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    color: var(--sys-color-tick-selected);
+  }
+}
+
+.swatch.active .tick {
+  opacity: 1;
+  transform: scale(1);
+}

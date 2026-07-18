@@ -16,9 +16,11 @@
   color: var(--sys-card-text-rest);
 }
 
-// ─── Быстрый переход: три круглые медали-стрелки ───────────────────────────
-// RoundButton look="bare" в button-режиме. `--medal-size` задаём здесь: standalone
-// (вне WriteBarShell) медаль не наследует `--pill-h`, диаметр несёт этот токен.
+// ─── Быстрый переход: три круглые медали-даты ──────────────────────────────
+// Беспоке-монета (НЕ RoundButton — расхождение слишком велико: центр = дата, низ =
+// SVG-стрелка, фон surface-2 + чёрный кант). `--medal-size` задаём здесь и наследуем
+// вниз каскадом кастом-проперти: standalone-монета диаметр несёт этим токеном.
+
 .quickRow {
   --medal-size: 84px;
   display: flex;
@@ -26,20 +28,102 @@
   gap: var(--space-5);
 }
 
-.quickGlyph {
-  width: 22px;
-  height: 22px;
+// Монета быстрого перехода: surface-2 диск, ПРИПОДНЯТЫЙ тенью (lift) из холодной
+// канавки Well — без канта (тень отделяет монету от лотка, не линия). Дата по центру
+// (z-1), дуга-слово в SVG-слое поверх (z-2). На press тень компрессуется (canon:
+// action-pressed ≤ rest) + диск слегка вжимается.
+.medal {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--medal-size);
+  height: var(--medal-size);
+  padding: 0;
+  border-radius: var(--sys-radius-indicator);
+  background: var(--sys-color-surface-2);
+  box-shadow: var(--sys-elevation-action-rest);
+  color: var(--sys-color-text-system);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--press-out) var(--easing-default),
+    box-shadow var(--press-out) var(--easing-default);
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &[data-pressed] {
+    transform: scale(0.94);
+    box-shadow: var(--sys-elevation-action-pressed);
+    transition-duration: var(--sys-duration-press-in);
+  }
 }
 
-// ─── Дни с активностью: столбик мини-календарей по месяцам ──────────────────
-// Каркас: ОДНА закреплённая шапка дней недели + под ней поток месяцев. Канон
-// «scrolling month list» (Apple/Google Calendar, подтверждён практикой 2026):
-// решётка колонок пн→вс одинакова во ВСЕХ месяцах, поэтому подпись колонок —
-// свойство потока, а не месяца; повторять её в каждом календаре = шум.
-.months {
+// Центр — «информация о дне»: крупное число доминирует, день недели — тихая подпись
+// ПОСЛЕ него в ряд («17 пн»). Baseline-выравнивание сажает мелкий день недели на
+// базовую линию числа; line-height:1 сжимает пару в плотный блок в центре монеты.
+.medalDate {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 2px;
+  line-height: 1;
+  pointer-events: none;
 }
+
+.medalWeekday {
+  color: var(--sys-color-text-secondary);
+  text-transform: lowercase;
+}
+
+.medalDay {
+  color: var(--sys-color-text-system);
+}
+
+// Шеврon-affordance справа от даты («откроет день»). Тихий (secondary), мелкий,
+// центрируется вертикально (медаль-дата на baseline, шеврон иначе сел бы низко).
+.medalChevron {
+  position: absolute;
+  flex-shrink: 0;
+  align-self: center;
+  right: -15px;
+  width: 12px;
+  height: 12px;
+  margin-top: 7px;
+  color: var(--sys-color-text-system);
+  opacity: 0.5;
+}
+
+// SVG-слой поверх даты: верхняя дуга-слово (<textPath>, идиома RoundButton).
+// font-size в юнитах viewBox(100) масштабируется к монете (--sys-text-size-base=16 —
+// гейт требует sys-токен размера, не локальный var).
+.medalArc {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  transform: translateY(2px);
+
+  text {
+    font-family: var(--heading-font);
+    font-weight: 600;
+    font-size: var(--sys-text-size-base);
+    fill: currentColor;
+  }
+}
+
+// ─── Все дни: ОДИН месяц-календарь + помесячная навигация ───────────────────
+// Вариант B (2026-07-18): классический одномесячный календарь со стрелками ‹ › в
+// шапке (AllDaysHeader), стартует с текущего месяца. Шапка дней недели пн→вс
+// одинакова во всех месяцах, поэтому её дом — chrome-ряд, а не тело.
 
 // Структура решётки (month-заголовок, шапка дней недели, grid, база ячейки) —
 // общий миксин calendar-grid() (mixin.scss), ЕДИНЫЙ источник с RangeCalendar
@@ -57,8 +141,43 @@
   width: 100%;
 }
 
-.daysHeaderTitle {
-  text-align: center;
+// Помесячная навигация: имя месяца слева, пейджинг ‹ › собран в один блок справа
+// (просьба 2026-07-18). Имя занимает всю середину (flex:1) и выталкивает кластер к
+// правой кромке; лейбл не прыгает по ширине между месяцами.
+//
+// Ряд ВЫРЫВАЕТСЯ из правого chrome-жёлоба (тем же приёмом, что `.weekdayRowHeader`):
+// центральный слот резервирует симметричный жёлоб под ведущий/замыкающий контрол
+// (--drawer-chrome-gutter), но справа контрола нет — поэтому кластер ‹ › упирался в
+// пустой зарезервированный отступ, не доезжая до кромки. Отрицательным полем гасим
+// правый жёлоб и переклеиваемся на боковой инсет тела (--drawer-inset) — теперь ‹ ›
+// встают ровно над правой колонкой решётки («вс»), а не коротят (просьба 2026-07-18).
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  margin-inline-end: calc(-1 * var(--drawer-chrome-gutter, 0px));
+  padding-inline-end: var(--drawer-inset, 0px);
+}
+
+.monthNavLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-transform: capitalize;
+  color: var(--sys-color-text-cold-strong);
+}
+
+// Два шеврона-плитки (IconButton soft, дом back/фильтра в шапках) — тесный кластер
+// у правой кромки. flex-shrink:0 держит их квадратными при длинном имени месяца.
+.navArrows {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-1);
+}
+
+// Стрелка «предыдущий» — тот же тихий шеврон ›, зеркаленный в ‹.
+.navChevronPrev {
+  transform: scaleX(-1);
 }
 
 // Подписи колонок в шапке. Центральный слот жмёт контент жёлобом под крест/topRight
@@ -105,16 +224,6 @@
       display: none;
     }
   }
-}
-
-// Название месяца несёт голос примитива <Heading role="title">. Здесь — раскладка
-// (заглавная буква + отступ до сетки), выключка ВПРАВО и холодный чёрный: месяц —
-// тихая метка потока, она отбивается от левого края цифр и не спорит с ними тоном.
-.monthHeading {
-  margin-bottom: var(--space-4);
-  text-align: right;
-  text-transform: capitalize;
-  color: var(--sys-color-text-cold-strong);
 }
 
 // Пустой день (нет записей) — тихий бледный контекст, но ТАПАЕМ. Заливки нет —
@@ -180,13 +289,6 @@
 // Выбранный (открытый) день — сильная заливка, перебивает .cellActive.
 .cellSelected {
   background: var(--sys-card-active);
-}
-
-// ─── Empty state (нет записей вообще) ──────────────────────────────────────
-.empty {
-  padding: var(--space-8) var(--space-4);
-  text-align: center;
-  color: var(--sys-color-text-tertiary);
 }
 
 @media (prefers-reduced-motion: reduce) {

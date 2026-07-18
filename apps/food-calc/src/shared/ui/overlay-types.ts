@@ -54,6 +54,20 @@ export interface DrawerOptions {
    * @default true
    */
   trapFocus?: boolean;
+  /**
+   * Let the page BEHIND the drawer stay interactive: drop the backdrop scrim AND
+   * its pointer-blocking, so taps/drags reach the content under the sheet (e.g.
+   * the hero cover behind WallpaperDrawer — for live pan/zoom). Sets the backdrop
+   * `pointer-events: none` + transparent. Under `modal:'trap-focus'` (our default)
+   * Base UI adds no internal pointer wall, so this alone frees the page. Trade-off:
+   * with a click-through backdrop, tap-on-scrim-to-close no longer fires (the
+   * backdrop can't be the outside-press target) — closing stays via the Close
+   * cross / swipe-down / Escape, and a hero tap no longer closes the sheet (wanted
+   * for pan/zoom). Opacity ALONE never sufficed — a transparent fixed backdrop
+   * still catches every click; the `pointer-events` drop is the load-bearing half.
+   * @default false
+   */
+  interactiveBehind?: boolean;
 }
 
 /** Drawer options after defaults are applied — what the manager/context carry. */
@@ -62,4 +76,6 @@ export interface ResolvedDrawerOptions {
   width?: string;
   /** Undefined ⇒ trap focus (default). Only an explicit `false` releases it. */
   trapFocus?: boolean;
+  /** Undefined ⇒ dimmed + pointer-blocking backdrop (default). `true` ⇒ page behind stays live. */
+  interactiveBehind?: boolean;
 }
