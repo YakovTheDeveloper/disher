@@ -11,6 +11,28 @@
 }
 
 
+// ─── Viewport (хост snap-фаз) ───────────────────────────────────────────────
+// Base UI меряет высоту фаз как `viewportElement.offsetHeight` (useDrawerSnapPoints):
+// доли snapPoints (0.62/0.92) считаются ОТ неё, и при offsetHeight 0 фазы вовсе не
+// резолвятся → лист открывается на всю высоту. Дефолтный DialogViewport —
+// статический блок без своей высоты, а его единственный ребёнок-попап
+// (`.content`, position:fixed) вне потока → блок схлопывается в 0. Даём вьюпорту
+// полноэкранную геометрию, чтобы offsetHeight = высота экрана и доли считались от неё.
+//
+// 🛑 position: ABSOLUTE, НЕ fixed. `fixed` ВСЕГДА создаёт stacking context — тогда
+// z-index попапа (5001) скоупится ВНУТРИ плёнки вьюпорта (её уровень auto=0), и вся
+// плёнка уезжает ПОД бэкдроп (z 5000): дим кроет невидимый лист (симптом «дровер не
+// открывается, затемнение поверх»). `absolute` без z-index stacking context НЕ
+// создаёт → плоская модель (бэкдроп 5000 / попап 5001) цела, попап над димом.
+// #drawer-root статичен, поэтому inset:0 всё равно тянет плёнку на весь экран.
+// `pointer-events: none` — плёнка не крадёт тап мимо листа (outside-press-to-close на
+// бэкдропе); сам попап возвращает события себе (`.content { pointer-events: auto }`).
+.viewport {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
 // Canonical Vaul/Base-UI backdrop pattern, см.
 // https://base-ui.com/react/components/drawer (hero demo CSS).
 .overlay {

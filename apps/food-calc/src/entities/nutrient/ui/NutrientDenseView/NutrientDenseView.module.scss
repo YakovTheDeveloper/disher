@@ -1,0 +1,318 @@
+// Плотная витрина нутриентов (2026-07-24 — последовательный стек grid-areas;
+// стат-блоки без рамок «чистого бордера»: они читались кнопкой).
+// Ось = ПЛОТНОСТЬ + вертикальная последовательность нутриентов; всё, что развилка не
+// трогает, взято из боевого NutrientMeterRow: бары → --sys-color-surface-track/fill,
+// тип → примитивы в TSX (scss НЕ задаёт кегль), цвет/радиус/инсет → sys-токены. Host —
+// тело дровера (DrawerLayout владеет фоном/боковым инсетом), поэтому подложек тут нет
+// вовсе: энергия и вода лишились тонировки по запросу — витрина плоская, категорию
+// несёт только заливка метра нормы.
+
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+// Группа: воздух сверху/снизу + сплошная граница между группами (просьба юзера
+// «разделения бордерами»). Первая группа без верхнего паддинга (тело дровера уже
+// дало зазор «заголовок → контент»).
+.group {
+  padding-block: var(--space-4);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &+.group {
+    border-top: 1px solid var(--sys-color-divider);
+  }
+}
+
+// Заголовок группы — тихий, лево-выровнен (голос несёт NutrientGroupTitle).
+// ВАЖНО: у примитива в модуле стоит `.title { display: none }` (массовый коммит
+// 2026-07-12 — там заголовки глушат в GroupedList/PickerDrawer), поэтому тут display
+// объявлен под `.group` (специфичность 0-2-0 > 0-1-0): видимость в дровере НЕ зависит
+// от порядка следования стилей в бандле. `text-transform: none` снимает примитивный
+// uppercase: 13px uppercase-подписи — запрещённый каноном приём («лабораторная
+// ловушка», CLAUDE.md); тихость даёт tertiary-цвет, не регистр.
+.group .groupTitle {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--sys-color-text-tertiary);
+  text-transform: none;
+}
+
+// Плейсхолдер «—» в слоте процента: нутриент без офиц. нормы. Тише реального «%»
+// (tertiary), но КОЛОНКУ держит — выравнивание чисел по группе не рвётся.
+.pctDash {
+  color: var(--sys-color-text-tertiary);
+}
+
+// Гашение «0 %» (2026-07-23, запрос): нулевое значение всегда даёт 0 % нормы —
+// число не несёт информации и шумит колонку. visibility:hidden (НЕ display:none):
+// слот продолжает держать геометрию ряда (ширина/базовая линия), ничего не прыгает.
+.pctHidden {
+  visibility: hidden;
+}
+
+// Локальная легибельность маркеров (юнит/знак %) — перекрывает глобальный голос
+// NumeralMarker (opacity 0.4): на бумаге surface-1 юнит в 0.4 тонул ниже WCAG 1.4.3,
+// а «г»/«мг»/«мкг» — ДАННЫЕ (меняют смысл числа), не декор. 0.65 держит маркер
+// вторичным к числу, но читаемым. Только этот вью — глобальный голос не трогаем.
+.markerData {
+  opacity: 0.65;
+}
+
+// ── Бар нормы — единый язык с NutrientMeterRow ────────────────────────────────
+.bar {
+  width: 100%;
+  height: 4px;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-track);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-fill);
+}
+
+// ── Последовательный стек нутриентов (2026-07-24) ─────────────────────────────────
+// ОДНА сетка 2 колонки с именованными областями: энергия строкой сверху, затем Б/Ж/У
+// по строке каждый, ряд клетчатка|сахар делится надвое (единственный двухколоночный),
+// вода строкой снизу. Gap --space-4: безрамочные плитки разделяет воздух, не линии
+// (Gestalt). Область ячейки ставится по data-nutrient — DOM-порядок остаётся
+// логическим (энергия→Б→Ж→У→клетчатка→сахар→вода) для скринридера и клавиатуры.
+//
+// Отступ-иерархия (2026-07-24, запрос) — левый indent кодирует «из чего складывается»:
+//   • Энергия — 0 (вершина: её дают Б/Ж/У);
+//   • Б/Ж/У — один шаг (--dense-indent): слагаемые энергии, держатся на indent-гайде;
+//   • Клетчатка/Сахар — тоже один ЛЁГКИЙ шаг: вложенность (внутри Углеводов) несёт
+//     «только демоут типографики» (мельче + вторичный цвет, .macroTileQuiet), а не
+//     более глубокий отступ/гайд — для одного уровня вложенности этого достаточно;
+//   • Вода — 0 (неэнергетическая, вне иерархии).
+.macroGrid {
+  --dense-indent: var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    'energy energy'
+    'protein protein'
+    'fats fats'
+    'carbohydrates carbohydrates'
+    'fiber sugar'
+    'water water';
+  gap: var(--space-4);
+
+  >[data-nutrient='protein'] {
+    grid-area: protein;
+    padding-inline-start: var(--dense-indent);
+  }
+
+  >[data-nutrient='fats'] {
+    grid-area: fats;
+    padding-inline-start: var(--dense-indent);
+  }
+
+  >[data-nutrient='carbohydrates'] {
+    grid-area: carbohydrates;
+    padding-inline-start: var(--dense-indent);
+  }
+
+  >[data-nutrient='fiber'] {
+    grid-area: fiber;
+    padding-inline-start: var(--dense-indent);
+  }
+
+  >[data-nutrient='sugar'] {
+    grid-area: sugar;
+    padding-inline-start: var(--dense-indent);
+  }
+
+  >[data-nutrient='water'] {
+    grid-area: water;
+  }
+}
+
+// Indent-гайд (2026-07-24, запрос «усилить отступ, чтобы не читался случайным») —
+// ТОЛЬКО для Б/Ж/У (depth-1, слагаемые энергии): тонкий вертикальный hairline в жёлобе
+// отступа, как indent-guide в дереве файлов. Делает вложенность НАМЕРЕННОЙ. Тянется на
+// пол-гэпа вверх/вниз (--space-2 при gap --space-4), чтобы сегменты соседних рядов
+// смыкались в непрерывную линию, а не читались отдельными штрихами.
+// Клетчатка/Сахар (depth-2) гайда НЕ несут — их вложенность несёт «демоут типографики»
+// (.macroTileQuiet), а не второй хром-уровень: линия внутри листа читалась бы шумом.
+.macroGrid>[data-nutrient='protein']::before,
+.macroGrid>[data-nutrient='fats']::before,
+.macroGrid>[data-nutrient='carbohydrates']::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--dense-indent) / 2);
+  top: calc(-1 * var(--space-2));
+  bottom: calc(-1 * var(--space-2));
+  width: 1px;
+  background: var(--sys-color-border-default);
+}
+
+// Стат-блок: имя → цифры → метр. Никаких рамок/заливок/радиусов — «глубина =
+// интерактивность», а плитка не интерактивна. Hue категории живёт ТОЛЬКО в заливке
+// метра (--sys-color-macro-*): цвет категориален, величину несёт длина.
+.macroTile {
+  position: relative; // якорь для indent-гайда (::before, см. .macroGrid ниже)
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+
+  &[data-nutrient='protein'] .tileBarFill {
+    background: var(--sys-color-macro-protein);
+  }
+
+  &[data-nutrient='fats'] .tileBarFill {
+    background: var(--sys-color-macro-fat);
+  }
+
+  &[data-nutrient='carbohydrates'] .tileBarFill {
+    background: var(--sys-color-macro-carb);
+  }
+
+  // energy / fiber / water наследуют холодный slate из базы .tileBarFill ниже.
+}
+
+// Энергия (2026-07-24, запрос): БЕЗ подложки и имени — первая строка витрины в общем
+// ритме стат-блоков. Отличие лишь в кегле числа (display, задан пропом в TSX):
+// значение + «%» на одной строке (`.macroFigures`), ниже — метр нормы во всю ширину.
+.energyCard {
+  grid-area: energy;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+// Имя нутриента — тёмный ink (не tertiary): подпись несёт ИНФОРМАЦИЮ (какой нутриент),
+// а на светлых тинтах tertiary давал ~3.3:1 (провал WCAG 1.4.3). Вес semibold задан
+// пропом примитива (см. TSX) — имя первичный сканируемый якорь стат-блока.
+.macroName {
+  color: var(--sys-color-text-primary);
+}
+
+// Значение + «%» плитки — на ОДНОЙ базовой линии (значение слева, % справа): убирает
+// Z-зигзаг, «%» держится числа. В полноширинных строках (энергия, вода) пара
+// растягивается на всю ширину — значение на левой кромке, «%» на правой.
+.macroFigures {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.macroPct {
+  color: var(--sys-color-text-cold-strong);
+}
+
+// «Только демоут типографики» (2026-07-24, запрос) — вложенные нутриенты
+// (клетчатка/сахар): весь блок вторичным цветом, значение мельче (sm, проп в TSX),
+// лёгкий одиночный отступ (см. .macroGrid). Ноль хрома — вложенность несёт голос, не
+// бокс/гайд/тинт. Имя и «%» подтягиваем в тот же вторичный цвет (наследуют), чтобы
+// плитка звучала ровно тише — «тише всего». Специфичность 0-2-0 бьёт .macroName/.macroPct.
+.macroTileQuiet {
+  color: var(--sys-color-text-secondary);
+}
+
+.macroTileQuiet .macroName,
+.macroTileQuiet .macroPct {
+  color: inherit;
+}
+
+// Метр нормы стат-блока — единый язык с баром списка (тот же трек surface-track,
+// квадратная кромка radius-tmp), но заливка несёт hue категории вместо нейтрального
+// surface-fill. Длина = min(pct, 100) — величину читают ДЛИНОЙ, hue только группирует.
+.tileBar {
+  height: 5px;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-track);
+  overflow: hidden;
+}
+
+.tileBarFill {
+  height: 100%;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-macro-cool);
+}
+
+// ── Единый тихий список (минералы/витамины/амино) ───────────────────────────────
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+// Ряд = грид с ФИКСИРОВАННЫМИ треками значение/юнит/% ⇒ одинаковыми у всех рядов, и
+// числа встают в вертикальные табличные колонки (правое выравнивание + tnum Numeral).
+// Между рядами — hairline-разделитель (2026-07-23, запрос): в длинном списке (7+
+// минералов) линия ведёт глаз от имени к числу через бар-зону (табличный язык iOS
+// Settings / Apple Health — НЕ рамка плитки, которая читалась кнопкой). Только
+// divider-токен, без зебры. Воздух поднят 30→34, чтобы линия не съедала ритм.
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 56px 2.75rem 2.5rem 2.75rem;
+  align-items: center;
+  column-gap: var(--space-2);
+  min-height: 34px;
+  padding-block: var(--space-1);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--sys-color-divider);
+  }
+}
+
+// Заголовочный нутриент: тот же язык ряда, число крупнее (проп size='md') и чуть больше
+// воздуха — лёгкая эмфаза без отдельного бокса.
+.rowLead {
+  min-height: 38px;
+
+  .value {
+    color: var(--sys-color-text-primary);
+  }
+}
+
+// Без нормы: нет метра и «%» — схлопываем до «имя … значение юнит».
+.rowBare {
+  grid-template-columns: minmax(0, 1fr) 2.75rem 2.5rem;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--sys-color-text-primary);
+}
+
+// Пустой слот на месте метра (нутриент без бара, но норма задана) — держит 56px
+// колонку, чтобы значение/юнит/«%» справа стояли на одной вертикали по всему списку.
+.meterEmpty {
+  width: 56px;
+}
+
+// Табличные колонки: значение право-выровнено (цифры в столбик), юнит лево-выровнен
+// (единицы стартуют с одной вертикали), «%» право-выровнен.
+.value {
+  justify-self: end;
+  text-align: right;
+  color: var(--sys-color-text-secondary);
+}
+
+.unit {
+  justify-self: start;
+  color: var(--sys-color-text-secondary);
+}
+
+.pct {
+  justify-self: end;
+  text-align: right;
+  color: var(--sys-color-text-cold-strong);
+}

@@ -48,10 +48,66 @@
     }
 }
 
+// Вариант «ghost»: прозрачный фон + тонкая subtle-обводка вместо field-лунки
+// (тень + градиент базы). Идёт ПОСЛЕ .trigger, потому равная специфичность (0,1,0)
+// и hover (0,2,0) кроются порядком в бандле. Для селекта-заголовка секции —
+// лёгкий чип-контрол, не вдавленное поле.
+.ghost {
+    background: transparent;
+    border: 1px solid var(--sys-color-border-subtle);
+    box-shadow: none;
+
+    &:hover,
+    &[data-popup-open] {
+        border-color: var(--sys-color-border-default);
+        box-shadow: none;
+    }
+}
+
+// Вариант «inline»: без подложки/рамки/лунки — триггер продолжает соседний текст
+// (имя еды). Шрифт/цвет наследуются от родителя (`.namePortion` — title-кегль,
+// secondary) через `font: inherit` ⇒ «Авокадо, На 100 г ▾» звучит одной фразой.
+// Идёт ПОСЛЕ .trigger/.ghost → равная специфичность кроется порядком в бандле.
+// Хит-арея 44px держится невидимо (negative margin гасит инфляцию строки — базовая
+// линия остаётся общей с именем).
+.inline {
+    min-height: 44px;
+    margin-block: -11px;
+    padding: 0;
+    gap: 2px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    font: inherit;
+    color: inherit;
+
+    &:hover,
+    &[data-popup-open] {
+        box-shadow: none;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--sys-field-hairline-focus);
+        outline-offset: 2px;
+        border-radius: var(--sys-radius-tmp);
+    }
+
+    .icon {
+        color: inherit;
+    }
+}
+
 .value {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+// Нижний регистр (проп `lowercase`) — и на триггере (.value), и на пунктах попапа
+// (.itemText). Попап в портале не наследует text-transform родителя, поэтому класс
+// вешаем на оба узла из Select.tsx.
+.lowercase {
+    text-transform: lowercase;
 }
 
 .icon {

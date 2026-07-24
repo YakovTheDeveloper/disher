@@ -68,6 +68,21 @@ export interface DrawerOptions {
    * @default false
    */
   interactiveBehind?: boolean;
+  /**
+   * Two-phase (snap-point) heights for a BOTTOM drawer — makes the sheet rest at
+   * discrete heights the user drags between (e.g. a short quick-view phase + a
+   * near-full phase). Base UI resolves each entry against the viewport: a number
+   * `0..1` = fraction of viewport height, a number `>1` = px, a string `'148px'`
+   * / `'30rem'` = that CSS length. Bottom drawers only — side drawers have no
+   * vertical snap axis and ignore it. The consumer picks the values; DrawerLayout
+   * only provides the mechanism.
+   */
+  snapPoints?: (number | string)[];
+  /**
+   * Which snap point the sheet opens at (uncontrolled). Same value grammar as
+   * `snapPoints`. Defaults to the FIRST entry of `snapPoints`.
+   */
+  defaultSnapPoint?: number | string;
 }
 
 /** Drawer options after defaults are applied — what the manager/context carry. */
@@ -78,4 +93,8 @@ export interface ResolvedDrawerOptions {
   trapFocus?: boolean;
   /** Undefined ⇒ dimmed + pointer-blocking backdrop (default). `true` ⇒ page behind stays live. */
   interactiveBehind?: boolean;
+  /** Bottom-drawer snap heights (see DrawerOptions). Undefined ⇒ single-phase sheet. */
+  snapPoints?: (number | string)[];
+  /** Opening snap point; undefined ⇒ first entry of `snapPoints`. */
+  defaultSnapPoint?: number | string;
 }

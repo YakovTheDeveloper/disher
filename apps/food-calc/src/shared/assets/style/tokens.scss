@@ -164,6 +164,10 @@
   // off --sys-text-size-glyph-* (решение юзера 2026-06-25, typo-gate не флагает
   // не-`--sys-text-` имена). Дом размера иконочного глифа.
   --sys-icon-size-xs: 12px; // chip-remove ✕ (AtomList)
+  --sys-icon-size-chrome: 16px; // ТИХИЙ глиф верхней обвязки дровера (крест/стрелка/›↗) —
+  //   НАМЕРЕННО меньше Material-дефолта (~20 на 44-контроле): голос chrome-обвязки тихий
+  //   («тишина формой»). ОДИН токен = ОДИН knob на все chrome-глифы (крест DrawerLayout,
+  //   page-link ↗): раньше каждый хардкодил свой px (14/16) и они разъезжались.
   --sys-icon-size-sm: 20px; // BackButton ‹
   --sys-icon-size-md: 24px; // CloseButton ×, DrawerLayout close-glyph
 
@@ -272,6 +276,14 @@
   --sys-elevation-drawer-glint-bottom: 0px -2px 4px rgba(45, 38, 28, 0.03);
   --sys-elevation-drawer-glint-left: 4px 0 16px rgba(45, 38, 28, 0.08);
   --sys-elevation-drawer-glint-right: -4px 0 16px rgba(45, 38, 28, 0.08);
+
+  // Парная тень нижнего дровера НА surface-1 (быстрый дровер еды). В ОТЛИЧИЕ от
+  // glint'а выше (декоративный кант) — это НАСТОЯЩАЯ elevation: на peek-фазе (0.62)
+  // scrim прозрачен, поэтому лист держится над страницей только этой тенью. Направлена
+  // ВВЕРХ (видимая кромка нижнего листа — верхняя) и заметнее glint'а: тонкая кромочная
+  // линия + мягкая восходящая ambient. Пара к surface-1 у нижнего дровера — как
+  // surface-elevation(N) вяжет тир с тенью, но направленно под нижний лист.
+  --sys-elevation-drawer-float-bottom: 0 -1px 3px rgba(45, 38, 28, 0.06), 0 -8px 24px rgba(45, 38, 28, 0.1);
 
   // ─── Framed-plate (canon 2026-06-18) — #framed-plate ─────────
   // White frame = box-shadow spread ring (not border). Apply via framed-plate() mixin.
@@ -466,6 +478,33 @@
   // холодный wash без градиента; indigo-текст (--sys-color-text-accent) читается на нём.
   --sys-color-surface-cool-soft: var(--ref-color-cool-50); // #edeff2
 
+  // На пол-ступени тише cool-soft — подложка SUMMARY-зон плотной витрины
+  // (NutrientDenseView: hero-карта энергии + широкая плитка воды). Тон отделяет
+  // агрегаты (энергия = сводка БЖУ; вода — отдельная неэнергетическая категория)
+  // от составляющих на бумаге, но не спорит с числами: тот же cool-hue,
+  // промешанный в фон листа (neutral-0). Пара на тёмной теме — в theme-dark.scss.
+  --sys-color-surface-cool-softer: color-mix(in oklch, var(--ref-color-cool-50) 45%, var(--ref-color-neutral-0));
+
+  // ─── Тёплые per-макро подложки БЖУ (data-carrying идентичность) ──────────────
+  // Плитки Б/Ж/У в плотной витрине (NutrientDenseView) несут ТИХУЮ тёплую окраску,
+  // чтобы три макроса различались периферийным зрением — но в палитре disher, а не
+  // радужными донатами (канон «дневник натуралиста» + no-per-surface-theming): это
+  // семантика сущности (какой макрос), а не декор поверхности. Оттенки — washed-
+  // рунги утверждённой тёплой палитры (plum/butter/amber), подмешанные в белый до
+  // мягкой пастели равной светлоты. protein→пыльно-розовый, fat→сливочно-золотой,
+  // carb→тёплый песок (пшеница). Пара к ним на тёмной теме — в theme-dark.scss.
+  // protein — ТЁПЛЫЙ dusty-rose: чистый plum (лилово-РОЗОВЫЙ) промешан в белый
+  // читался холодным и сливался с cool-soft нижних плиток; подмешиваем тёплый amber,
+  // чтобы hue ушёл в розовый и ЯВНО отличался от холодного slate соседей.
+  // Роль (2026-07-23): hue несёт КАТЕГОРИЮ макроса в ЗАЛИВКЕ метра нормы стат-блока
+  // (длина метра = доля нормы) — цвет категориален, величину несёт длина, не оттенок.
+  // До этого hue жил в 2px бордере outlined-плитки («чистый бордер»): рамка читалась
+  // кнопкой (ложный аффорданс), а пастельные контуры слабо различались между собой.
+  --sys-color-macro-protein: color-mix(in oklch, var(--ref-color-plum) 58%, var(--ref-color-amber-900) 42%);
+  --sys-color-macro-fat: color-mix(in oklch, var(--ref-color-butter) 60%, var(--ref-color-amber-900) 40%);
+  --sys-color-macro-carb: color-mix(in oklch, var(--ref-color-amber-100) 46%, var(--ref-color-amber-900) 54%);
+  --sys-color-macro-cool: var(--ref-color-cool-500);
+
   // Frosted-glass overlay (translucent surface over content — NutrientTable edit
   // overlay). Near-white veil in light; flips to a translucent dark veil so the
   // frost doesn't glow white on dark.
@@ -501,8 +540,17 @@
   --sys-color-text-primary: var(--text-primary); // бренд-primary (станет амброй в будущем) — НЕ для нейтрального чёрного текста
   --sys-color-text-system: var(--ref-color-neutral-900); // нейтральный чёрный/ink текст (текстовый парный к surface-action-system); #221f19
   --sys-color-text-accent: var(--ref-color-indigo-700); // акцентный (холодный) текст — indigo
+  --sys-color-text-food-name: var(--ref-color-indigo-900); // имя еды в дровере — очень тёмный индиго, почти чёрный (запрос 2026-07-19); НЕ общий accent
   --sys-color-text-secondary: var(--text-secondary);
   --sys-color-text-tertiary: var(--text-tertiary);
+  // Тихий ИНТЕРАКТИВНЫЙ ярус важности — общий голос для «вспомогательных контролов и
+  // их меток»: триггер inline-селекта (порция), чип-легенда нормы («% — доля…»),
+  // декоративная дуга вида. Все они ОДНОЙ важности → ОДИН цвет, и он ЗАМЕТНО ТИШЕ
+  // tertiary (запрос 2026-07-24: «одинаковые И менее заметные»). Значение = tertiary,
+  // приглушённый до ~60% (color-mix с transparent — на surface-дровера это светло-серый
+  // ярус НИЖЕ body/tertiary). Референс на tertiary держит авто-флип в dark; имя роли —
+  // один knob на весь тихий-интерактивный ярус.
+  --sys-color-text-quiet-action: color-mix(in oklch, var(--sys-color-text-tertiary) 60%, transparent);
   --sys-color-text-muted: var(--text-muted); // warm mute (rgba 34,31,25,.15) — alias 1:1
   --sys-color-text-on-accent: var(--text-on-accent);
   --sys-color-text-sepia: #6b4a23; // FabricLoader gravure ink — sepia art-слой (бледная гравюра)
@@ -682,7 +730,7 @@
   --sys-color-text-action-accent-soft: var(--sys-color-text-accent); // indigo-600
 
 
-  --sys-color-surface-track: var(--ref-color-neutral-200); // #ebe9e5 · светлый фон-трек прогресса (NutrientMeterRow.meterTrack, FoodActionCard.richTrack, NutrientCard.progressBar)
+  --sys-color-surface-track: var(--ref-color-cool-50); // #ebe9e5 · светлый фон-трек прогресса (NutrientMeterRow.meterTrack, FoodActionCard.richTrack, NutrientCard.progressBar)
   --sys-color-surface-fill: var(--ref-color-cool-500); // #6f7689 · сплошная заливка поверх -track (= --sys-color-icon, холодный серый); парный к -track, бывший nt-accent градиент
 
   // border · action (secondary press border (system) = ink-заливка)
@@ -737,6 +785,7 @@
   --nutrient-accent: var(--ref-color-indigo-600); // cold indigo accent (trio main/minerals/vitamins collapsed 2026-06-27)
   --nutrient-progress-height: 3px;
   --nutrient-card-padding: var(--space-2) var(--space-3);
+  --nutrient-card-name-weight: 500; // имя нутриента в карточке-мере — regular (запрос 2026-07-19)
 
   // ─── Event / Atom family (sage trio) — #event ────────────────
   // -accent = caret/underline/border/icon color; flips via DesignVariantsBar "AtomAccent".

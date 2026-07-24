@@ -1,0 +1,21 @@
+// Тип еды под хедером дровера (общий скелет продукта и блюда). Тихий secondary —
+// это контекст сущности, а не звезда (звезда = имя в заголовке хедера, запрос
+// 2026-07-19). Типографику несёт <Heading role="title">, класс — цвет + воздух.
+.type {
+    margin: 0;
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+}
+
+// Тип + контрол в один ряд (проп trailing): тип слева, контрол справа. Тип теряет
+// центрирование — прижимается к левому краю напротив контрола.
+.row {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.row .type {
+    text-align: left;
+}

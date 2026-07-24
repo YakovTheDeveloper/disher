@@ -121,19 +121,27 @@ $dish-lemon-hairline: rgba(206, 174, 78, 0.24); // тёплый шов межд�
     }
 }
 
-// Подпись-описание под именем (topContent). Тап открывает ChangeDescriptionModal.
-// Одна строка с многоточием; типографику несёт <Text role="caption">, здесь —
-// только раскладка/тап (gate-чисто: без цвета/размера/радиуса).
-.descriptionEdit {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+// Триггер dropdown-меню «Изменить название / описание» в правом слоте листа
+// (topContentRight). Прозрачный тайл, ink-глиф — 1:1 с `.editIconBtn` ProductDrawer.
+.editIconBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--sys-radius-indicator);
+    background: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
 
+    svg {
+        width: 20px;
+        height: 20px;
+        color: var(--sys-color-text-system);
+    }
+
     &:active {
-        opacity: 0.6;
+        background: var(--sys-color-bg-press);
     }
 }

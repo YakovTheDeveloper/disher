@@ -24,6 +24,11 @@ export default defineConfig([
         'test-results/**',
         '**/__fixtures__/**',
         'vite.config.d.ts',
+        // Storybook config (design-playground host for story.to.design). Framework
+        // glue outside the tsconfig `include: ["src"]` set, so typed-linting can't
+        // parse it — the actual `*.stories.tsx` live under src/ and ARE linted.
+        '.storybook/**',
+        'storybook-static/**',
     ]),
     js.configs.recommended,
     ...tseslint.configs.recommended,

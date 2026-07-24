@@ -1,10 +1,10 @@
-// Accent-pill CTA «Добавить порцию» в НИЖНЕМ ДОКЕ «Порции»-слайда.
+// Белый tile-CTA «Добавить порцию» в НИЖНЕМ ДОКЕ «Порции»-слайда (паритет с
+// «Новый разбор» на слайде Разборов: нейтральная surface-2 плитка, ink-текст).
 //
-// Раньше `.bar` был прозрачным центрирующим флексом — кнопка «висела» одиноким
-// лозенгом над страницей. Теперь `.bar` = та же raised-плашка, что у WriteBarShell
-// на экране Открытий (Гипотезы): surface-2 + парная тень elevation-2 + скруглённая
-// верхняя кромка дока + боковой инсет страницы. Кнопка тянется на всю ширину и
-// заполняет высоту дока (как поле-пилюля write-бара) → слайд читается единым баром.
+// `.bar` НЕ красит плашку: прозрачный chrome-only флекс (канон Screen `.bottomBar` —
+// прозрачный scrim). Опаковая плашка перекрывала бы затухание боди, которое Screen
+// уже даёт маской (`bottomBarOverlay` по умолчанию, `.screenScroll` mask-image) —
+// список растворяется под плавающей плиткой. Safe-area остаётся у Screen `.bottomBar`.
 
 @import '@/shared/assets/style/mixin.scss';
 
@@ -15,9 +15,6 @@
     width: 100%;
     box-sizing: border-box;
     padding: var(--space-2) var(--sys-inset-page);
-    background: var(--sys-color-surface-2);
-    @include surface-elevation(2);
-    border-radius: var(--sys-radius-sheet) var(--sys-radius-sheet) 0 0;
 }
 
 .button {
@@ -29,16 +26,20 @@
     min-height: 56px;
     padding: var(--space-3) var(--space-4);
     border-radius: var(--sys-radius-indicator);
-    border: none;
-    background: var(--sys-color-surface-accent-soft);
-    color: var(--sys-color-text-accent);
+    // Нейтральная приподнятая плитка: surface-2 + ink-текст + hairline-кромка +
+    // action-raised тень (1:1 с Button `.surface`, standalone-режим) — плитка парит
+    // над затухающим списком.
+    border: 1px solid var(--sys-color-border-subtle);
+    background: var(--sys-color-surface-2);
+    color: var(--sys-color-text-system);
+    box-shadow: var(--sys-elevation-action-raised);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.12s ease, filter var(--press-out) var(--easing-default);
 
-    // Цветной отклик: солидная кнопка — затемнение при нажатии.
+    // Press на белом: лёгкое затемнение (canon Button `.surface:active`).
     &:active {
-        filter: brightness(0.9);
+        filter: brightness(0.96);
         transform: scale(0.97);
         transition-duration: var(--sys-duration-press-in);
     }

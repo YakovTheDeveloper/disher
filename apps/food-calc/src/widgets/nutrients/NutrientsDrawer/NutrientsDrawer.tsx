@@ -1,5 +1,6 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
+import { NormLegendButton } from '@/features/dailyNorms/NormLegendButton';
 import { FeatureErrorBoundary } from '@/shared/ui/error/FeatureErrorBoundary';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { BaseDrawerProps } from '@/shared/ui';
@@ -21,9 +22,9 @@ export interface NutrientsDrawerProps extends BaseDrawerProps {
  * Store-driven side drawer for the nutrient breakdown. Opened via
  * `drawerStore.show(NutrientsDrawer, props, { side: 'left' })`.
  *
- * Норма больше не редактируется внутри этого дровера — `FoodsNutrients` рисует
- * `DailyNormButton` вверху списка, который открывает отдельную модалку нормы
- * («Моя норма» / «Новая норма»). Этот компонент — только разбор нутриентов.
+ * Норма живёт чипом-легендой `NormLegendButton` в теле (2026-07-23 — кнопка-мишень
+ * из хедера убрана во всех дроверах), который открывает модалку «Дневная норма».
+ * Ниже — разбор нутриентов.
  */
 export function NutrientsDrawer({
   totals,
@@ -36,6 +37,7 @@ export function NutrientsDrawer({
   return (
     <DrawerLayout title={title} contentInset="panel">
       <div className={styles.body}>
+        <NormLegendButton className={styles.normLegend} />
         <FeatureErrorBoundary label={title}>
           <FoodsNutrients
             totals={totals}

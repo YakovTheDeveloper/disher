@@ -1,0 +1,138 @@
+// Общий каркас нижнего дровера быстрого просмотра. Палитра — нейтральная
+// drawer-обвязка (шапку/бок/фон владеет DrawerLayout). Тут только тело: боковой
+// инсет и верхний зазор «шапка→тело» отданы layout'у (`contentInset="panel"`),
+// файл держит лишь вертикальный ритм и нижний padding. Все размеры/цвета —
+// через токены (token-gate, новый файл обязан проходить).
+
+.body {
+    display: flex;
+    flex-direction: column;
+    // Свой padding-top задвоил бы каноничный зазор из layout'а — только низ.
+    padding-block-end: var(--space-6);
+}
+
+// Ряд базиса (2026-07-24, запрос): селект порции/бейдж СЛЕВА, чип нормы — СПРАВА.
+// Держит инлайн-селект порции (еда) либо тихий бейдж базиса (супплемент) слева и
+// NormLegendButton, притолкнутый к правой кромке.
+.basisRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+// Чип нормы — на правую кромку ряда (бывшее место селекта). margin-left:auto толкает
+// его вправо даже когда слева пусто (супплемент без бейджа). Гасим негативные
+// margin-block чипа (они рассчитаны под плитки) — в ряду базиса он центрируется.
+.normLegend {
+    margin-left: auto;
+    margin-block: 0;
+}
+
+// ── Шапка: кнопка «на страницу» + дуга вида над ней ──────────────────────────────
+// Обёртка topRight-слота: 44-коробка кнопки + якорь (position:relative) для дуги,
+// которая огибает иконку сверху у кромки. Ширина = коробка кнопки, поэтому в chrome-
+// ряду слот встаёт ровно как одиночная иконка (симметрия с крестом цела).
+.pageLink {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: var(--sys-size-control);
+    height: var(--sys-size-control);
+}
+
+// Глиф ↗ право-джастифицирован в своей 44-коробке — оптическая кромка на --drawer-inset,
+// зеркаля ведущий крест. Компаунд `.pageLink .pageLinkBtn` (0,2,0) бьёт
+// `.iconButton{justify-content:center}` (0,1,0) вне зависимости от порядка бандла.
+.pageLink .pageLinkBtn {
+    justify-content: flex-end;
+}
+
+// Декоративная дуга вида («продукт»/«блюдо») — огибает иконку сверху, по центру над
+// коробкой, чуть выступая над chrome-рядом у самой кромки. Голос — тихий интерактивный
+// ярус (--sys-color-text-quiet-action, общий с селектом и чипом нормы: «одна важность —
+// один цвет»). Форму/направление несёт ArcLabel (арка↑ продукт / долина↓ блюдо), крутизну
+// — проп radius. pointer-events снят самим ArcLabel — тап уходит на кнопку под ней.
+.kindArc {
+    position: absolute;
+    left: 50%;
+    top: -7px;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    color: var(--sys-color-text-quiet-action);
+}
+
+// Селект порции — тихий ИНТЕРАКТИВНЫЙ ярус: тот же голос, что чип нормы и дуга вида
+// (--sys-color-text-quiet-action, запрос 2026-07-24 «одна важность — один цвет»).
+// Прежняя opacity:0.8 СНЯТА — она делала селект светлее остальных двух (разъезд) и
+// роняла контраст; solid-токен уравнивает. Специфичность `.basisRow …` (0,2,0) бьёт
+// inline-вариант селекта (`color/font: inherit`, 0,1,0).
+.basisRow .portionSelect {
+    font-size: var(--sys-field-font-size-compact);
+    color: var(--sys-color-text-quiet-action);
+}
+
+// Тихий статичный бейдж базиса (супплемент — вместо селекта порции). Голос
+// «на что приведены числа», не контрол: приглушённый, без вдавленной field-лунки.
+.basisBadge {
+    color: var(--sys-color-text-tertiary);
+}
+
+// Скелетон на loading-тик — плейсхолдеры зеркалят последовательный стек витрины
+// NutrientDenseView (энергия строкой сверху, Б/Ж/У построчно, ряд клетчатка|сахар
+// пополам, вода строкой снизу), чтобы лист не прыгал, когда приедут меры. Порядок
+// span'ов = порядку grid-areas.
+.skeleton {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        'energy energy'
+        'protein protein'
+        'fats fats'
+        'carbohydrates carbohydrates'
+        'fiber sugar'
+        'water water';
+    gap: var(--space-4);
+
+    span {
+        min-height: 60px;
+        border-radius: var(--sys-radius-control);
+        background: var(--sys-color-surface-cool-soft);
+    }
+
+    span:nth-child(1) {
+        grid-area: energy;
+    }
+
+    span:nth-child(2) {
+        grid-area: protein;
+    }
+
+    span:nth-child(3) {
+        grid-area: fats;
+    }
+
+    span:nth-child(4) {
+        grid-area: carbohydrates;
+    }
+
+    span:nth-child(5) {
+        grid-area: fiber;
+    }
+
+    span:nth-child(6) {
+        grid-area: sugar;
+    }
+
+    span:nth-child(7) {
+        grid-area: water;
+    }
+}
+
+// Подсказка на месте меры, когда нутриентов нет — держит воздух фазы-1, а не
+// схлопывает дровер к одной шапке.
+.emptyHint {
+    padding-block: var(--space-6);
+}

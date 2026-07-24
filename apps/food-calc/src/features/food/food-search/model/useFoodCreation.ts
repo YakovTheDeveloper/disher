@@ -2,8 +2,6 @@ import { useCallback } from 'react';
 import { createProduct } from '@/entities/product';
 import { createDish } from '@/entities/dish';
 import { RouterUrls } from '@/shared/config/routes';
-import { ProductDrawer } from '@/features/food/product-drawer';
-import { drawerStore } from '@/shared/ui/drawer-store';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 
@@ -19,15 +17,7 @@ export function useFoodCreation(
     setSearchQuery('');
     const productId = result.value;
     toaster.success(`Продукт «${name}» создан`, {
-      action: {
-        label: 'Открыть',
-        onClick: () =>
-          drawerStore.show(
-            ProductDrawer,
-            { productId, productName: name },
-            { side: 'left', width: 'min(85vw, 360px)' },
-          ),
-      },
+      action: { label: 'Открыть', href: RouterUrls.getProduct(productId) },
     });
   }, [searchQuery, setSearchQuery]);
 

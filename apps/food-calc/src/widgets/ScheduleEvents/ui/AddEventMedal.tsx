@@ -17,9 +17,9 @@ export const AddEventMedal = () => (
       htmlFor={EVENT_CREATE_MAIN_INPUT_ID}
       ariaLabel="Новое событие"
       img={addEventIcon}
-      imgWidth="120%"
-      imgNudgeX="-15px"
-      imgNudgeY="-20px"
+      imgWidth="100%"
+      imgNudgeX="0px"
+      imgNudgeY="-6px"
       arcBottom="Новое событие"
       floating={false}
       look="flat"

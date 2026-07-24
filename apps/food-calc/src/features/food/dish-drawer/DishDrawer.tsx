@@ -1,15 +1,15 @@
-import { useTranslation } from 'react-i18next';
-import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { useDishWithStatus, useDishItemsWithProducts, useDishNutrientTotals } from '@/entities/dish';
-import { FoodsNutrients } from '@/widgets/nutrients/FoodsNutrients';
-import { Button, IconButton } from '@/shared/ui/atoms/Button';
-import { Heading, Text, Numeral } from '@/shared/ui/atoms/Typography';
-import { EmptyState } from '@/shared/ui/EmptyState';
-import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
-import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
+import { useMemo, useState } from 'react';
+import {
+  useDishWithStatus,
+  useDishItemsWithProducts,
+  useDishNutrientTotals,
+  useDishPortions,
+} from '@/entities/dish';
+import { QuickViewDrawer } from '@/features/food/quick-view-drawer';
 import { RouterUrls } from '@/shared/config/routes';
+import type { SelectOption } from '@/shared/ui/atoms/Select';
+import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { BaseDrawerProps } from '@/shared/ui';
-import s from './DishDrawer.module.scss';
 
 interface Props extends BaseDrawerProps {
   dishId: string;
@@ -17,153 +17,80 @@ interface Props extends BaseDrawerProps {
   dishName?: string;
 }
 
-// Стрелка «на страницу блюда» — inline glyph, currentColor (наследует холодный
-// `--sys-color-icon` слота topRight). Право-указывающая (переход вперёд).
-const ArrowRightGlyph = () => (
-  <svg viewBox="0 0 18 18" width="18" height="18" fill="none" aria-hidden="true">
-    <path
-      d="M3.5 9h10M9.5 5l4 4-4 4"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+// Производная строка «всё блюдо» (сумма ингредиентов) — value селекта. Зеркалит
+// implicitPortion страницы блюда (DishBuilderPage), где тем же label резервируется
+// имя, чтобы юзер не создал порцию-двойник; здесь тот же label = якорь дефолта.
+const WHOLE_DISH = 'Всё блюдо';
 
 /**
- * Боковой дровер блюда — read-only превью, зеркало ProductDrawer. Открывается из
- * SearchFood / расписания вместо перехода на страницу `/dish/:id`. Оверлей не
- * размонтирует HomePage, поэтому скролл SearchFood и открытая модалка поиска
- * сохраняются сами собой (симметрия с продуктом). Показывает состав (ингредиенты)
- * + суммарные нутриенты блюда. Стрелка в правом углу обвязки ведёт на полную
- * страницу блюда (осознанный «нырок» в редактирование) — перед навигацией дровер
- * закрывается явно, иначе он остался бы в стеке drawerStore над новым роутом.
+ * Тонкий адаптер блюда над общим `QuickViewDrawer`: быстрый нижний просмотр
+ * нутриентов с выбором порции. Редактирование (состав/имя/порции) живёт на
+ * странице `/dish/:id` — туда ведёт кнопка «Открыть страницу» в шапке самого
+ * QuickViewDrawer.
  *
- * Открытие: `drawerStore.show(DishDrawer, { dishId, dishName }, { side: 'left', width: 'min(85vw, 360px)' })`.
+ * Селект порции — «Всё блюдо» (вся сумма ингредиентов) + каждая dish_portion;
+ * суммарные `totals` (весь вес блюда) скейлятся `grams / totalWeight` под выбор.
+ *
+ * Открытие: `drawerStore.show(DishDrawer, { dishId, dishName }, QUICK_VIEW_DRAWER_OPTIONS)`.
  */
 export function DishDrawer({ dishId, dishName, onClose }: Props) {
-  const { t } = useTranslation();
   const { dish, loading } = useDishWithStatus(dishId);
   const items = useDishItemsWithProducts(dishId);
-  const { totals, missingNutrientNames } = useDishNutrientTotals(dishId);
+  const { totals } = useDishNutrientTotals(dishId);
+  const portions = useDishPortions(dishId);
+  const [selectedPortion, setSelectedPortion] = useState(WHOLE_DISH);
 
   const heroName = dish?.name ?? dishName;
-  // Та же раскадровка 'push', что и dish-инфо из FoodActionCard: новая страница
-  // въезжает справа. state.heroName даёт DishPage показать имя сразу.
-  const goToPage = useViewTransitionNavigate(RouterUrls.getDish(dishId), 'push', {
-    state: { heroName },
-  });
-  const handleOpenPage = () => {
-    onClose();
-    goToPage();
-  };
-
-  const displayName = heroName ? capitalizeFirst(heroName) : undefined;
-
-  const pageArrow = (
-    <IconButton
-      aria-label="Открыть страницу блюда"
-      icon={<ArrowRightGlyph />}
-      onClick={handleOpenPage}
-    />
+  // Вес всего блюда = сумма количеств ингредиентов — тот же расчёт, что задаёт
+  // implicitPortion.grams на странице блюда (DishBuilderPage), не свой.
+  const totalWeight = useMemo(
+    () => items.reduce((sum, it) => sum + it.quantity, 0),
+    [items],
   );
 
-  if (loading) {
-    // Блюдо грузится из Dexie (useLiveQuery → undefined первый тик). Имя-«призрак»
-    // из dishName в родной обвязке DrawerLayout, пока не подъедет реальная строка.
-    return (
-      <DrawerLayout
-        title={displayName}
-        subtitle="блюдо"
-        a11yLabel={dishName ?? 'Блюдо'}
-        contentInset="panel"
-        topRight={pageArrow}
-      >
-        <div className={s.body} />
-      </DrawerLayout>
-    );
-  }
+  // Пустое блюдо → ни порций, ни меры: у него totals = {}, а «Всё блюдо» из нулей
+  // читалось бы как заполненный профиль. QuickViewDrawer покажет подсказку.
+  const hasNutrients = items.length > 0;
 
-  if (!dish) {
-    // Блюдо не найдено: удалено (на этом или другом устройстве до мёржа тумбстоуна)
-    // либо осиротевший schedule-ряд. Раньше это был вечно-пустой ghost со стрелкой
-    // на /dish/:id несуществующего блюда — тупик. Показываем тихое сообщение и
-    // убираем стрелку topRight (вести некуда).
-    return (
-      <DrawerLayout
-        title={displayName}
-        subtitle="блюдо"
-        a11yLabel={dishName ?? 'Блюдо'}
-        contentInset="panel"
-      >
-        <div className={s.body}>
-          <EmptyState title={t('food.dish.notFound')} />
-        </div>
-      </DrawerLayout>
-    );
-  }
+  const portionOptions: SelectOption[] = useMemo(
+    () =>
+      hasNutrients
+        ? [
+            { value: WHOLE_DISH, label: WHOLE_DISH },
+            ...portions.map((p) => ({ value: p.label, label: p.label })),
+          ]
+        : [],
+    [hasNutrients, portions],
+  );
 
-  // Стрелка-переход живёт сверху только когда есть состав. Пустое блюдо вместо
-  // неё несёт крупную кнопку-переход под подсказкой (запрос 2026-07-12): один
-  // вход, а не дубль стрелка+кнопка.
+  const nutrients = useMemo<NutrientTotals>(() => {
+    const grams =
+      selectedPortion === WHOLE_DISH
+        ? totalWeight
+        : (portions.find((p) => p.label === selectedPortion)?.grams ?? totalWeight);
+    const scale = totalWeight > 0 ? grams / totalWeight : 0;
+    if (scale === 1) return totals;
+    const scaled: NutrientTotals = {};
+    for (const [id, value] of Object.entries(totals)) scaled[id] = value * scale;
+    return scaled;
+  }, [selectedPortion, totalWeight, portions, totals]);
+
   return (
-    <DrawerLayout
-      title={displayName}
-      subtitle="блюдо"
-      a11yLabel={dish.name}
-      contentInset="panel"
-      topRight={items.length > 0 ? pageArrow : undefined}
-    >
-      <div className={s.body}>
-        {items.length > 0 ? (
-          <>
-            <section className={s.section}>
-              <Heading as="span" role="title">Состав</Heading>
-              <ul className={s.ingredients}>
-                {items.map((it) => (
-                  <li key={it.id} className={s.ingredientRow}>
-                    <Text as="span" role="body" className={s.ingredientName}>
-                      {it.product?.name ? capitalizeFirst(it.product.name) : 'Продукт'}
-                    </Text>
-                    <Numeral as="span" size="sm" className={s.ingredientQty}>
-                      {Math.round(it.quantity)}
-                      <Text as="span" role="caption" className={s.ingredientUnit}> г</Text>
-                    </Numeral>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            {/* Суммарные нутриенты блюда (сумма ингредиентов) — read-only, тот же
-                NutrientTable-разбор, что и в ProductDrawer, через общий FoodsNutrients
-                (норма-кнопка сверху + таблица). Гейтим по наличию ингредиентов: у
-                пустого блюда totals = {} → таблица нулей + «Моя норма» читались бы как
-                «есть профиль из нулей». */}
-            <FoodsNutrients totals={totals} missingNutrientNames={missingNutrientNames} />
-          </>
-        ) : (
-          // Пусто: «Состав» не пишем вовсе. Подсказка уводит на страницу блюда
-          // (там правки состава и остальные действия), кнопка-переход — прямо
-          // под ней.
-          <EmptyState
-            title="Здесь пока пусто"
-            description="Основные действия — на странице блюда."
-            action={
-              <Button
-                variant="surface"
-                onSurface={1}
-                fullWidth
-                trailingChevron
-                onClick={handleOpenPage}
-              >
-                Перейти к блюду
-              </Button>
-            }
-          />
-        )}
-      </div>
-    </DrawerLayout>
+    <QuickViewDrawer
+      title={heroName ?? 'Блюдо'}
+      kind="dish"
+      pageRoute={RouterUrls.getDish(dishId)}
+      heroName={heroName}
+      portionOptions={portionOptions}
+      selectedPortion={selectedPortion}
+      onSelectPortion={setSelectedPortion}
+      nutrients={nutrients}
+      hasNutrients={hasNutrients}
+      // Ghost-гейт: пока строка блюда грузится из Dexie, не мигаем подсказкой
+      // «нет нутриентов» на непустом блюде (симметрия с ProductDrawer `!!food`).
+      loading={loading}
+      onClose={onClose}
+    />
   );
 }
 

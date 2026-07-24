@@ -12,12 +12,16 @@ import {
   useHeaderCollapse,
 } from '@/shared/ui/hooks/scrollEdgesContext';
 
-// Слот-сиблинг для фикс-бара actions ВНЕ скролл-тела. Нужен, потому что `.body`
+// Слот-сиблинг для бара actions ВНЕ скролл-тела. Нужен, потому что `.body`
 // несёт fade-маску (scroll-edge-fade), а `mask` клипает ВЕСЬ свой субдерево —
 // включая `position: fixed` CTA, если тот лежит внутри `.body`: его низ таял бы в
-// нижней полосе фейда. Бар портируется в этот слот на уровне `.wrapper` — вне
-// маски. Позиция не меняется: containing-block фикс-бара = `.wrapper` (заведён его
-// `backdrop-filter`), а не `.body`, поэтому bottom:0 остаётся у низа модалки.
+// нижней полосе фейда. Плюс над `.body` у низа wrapper'а лежит скрим
+// (`::after` bottom-fade): читаться ПОВЕРХ него может только этот слот
+// (z-index: 2). Сюда портируются ОБА архетипа ActionButtons: keyboard-stick
+// (fixed; позиция не меняется — containing-block фикс-бара = `.wrapper`, заведён
+// его `backdrop-filter`, поэтому bottom:0 остаётся у низа модалки) и flow
+// (статичный сиблинг-футер под скролл-областью, занимает низ модалки в потоке
+// flex-колонки wrapper'а).
 const FooterSlotContext = createContext<HTMLElement | null>(null);
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { ModalStepHeader } from '@/shared/ui/ModalStepHeader';
@@ -162,9 +166,11 @@ type ActionButtonsProps = {
    *   'keyboard-stick' (деф.) — полноэкранная модалка: бар `position: fixed`
    *      у низа вьюпорта, поднимается НАД экранной клавиатурой (useKeyboardStick).
    *      Требует `ModalShell.Spacer` в конце body (резерв прокрутки под фикс-бар).
-   *   'flow' — модалка/панель, живущая ВНУТРИ дровера со своим скроллом: бар
-   *      просто в КОНЦЕ потока (терминальный), без fixed и без keyboard-stick.
-   *      Владеет своим терминальным зазором + hairline-разделителем + safe-area.
+   *   'flow' — терминальный сиблинг-футер ПОД скролл-областью: без fixed и без
+   *      keyboard-stick. Внутри ModalShell портируется в footerSlot — вне fade-
+   *      маски тела и ПОВЕРХ нижнего скрима wrapper'а (в потоке тела таял бы в
+   *      них); вне шелла рендерится на месте, в конце потока. Владеет своим
+   *      терминальным зазором + hairline-разделителем + safe-area.
    */
   placement?: 'keyboard-stick' | 'flow';
 };
@@ -176,7 +182,7 @@ const ModalShellActionButtons = ({
   placement = 'keyboard-stick',
 }: ActionButtonsProps) => {
   const stick = placement === 'keyboard-stick';
-  // 'flow' не цепляет visualViewport — бар статичен в потоке дровера.
+  // 'flow' не цепляет visualViewport — бар статичен сиблингом-футером под скроллом.
   const ref = useKeyboardStick<HTMLDivElement>({ debugId, enabled: stick });
   const footerSlot = useContext(FooterSlotContext);
 
@@ -187,11 +193,15 @@ const ModalShellActionButtons = ({
     </div>
   );
 
-  // Keyboard-stick бар = position:fixed внутри .body → его клипала бы fade-маска
-  // тела. Портируем в слот-сиблинг вне маски (позиция та же — containing-block =
-  // .wrapper). 'flow'-бар в потоке дровера, маски не касается → рендерим на месте.
-  // Fallback на месте, если слот ещё не смонтирован (первый тик) или его нет.
-  return stick && footerSlot ? createPortal(bar, footerSlot) : bar;
+  // Оба архетипа портируются в слот-сиблинг ВНЕ .body, когда шелл его даёт:
+  // keyboard-stick — потому что fixed внутри .body клипала бы fade-маска тела
+  // (позиция та же — containing-block = .wrapper); flow — потому что в конце
+  // скролл-потока он ложился ПОД нижний скрим `.wrapper::after` (и под маску
+  // тела) и таял в них, а канон — кнопка плывёт НАД градиентом (bottom-fade).
+  // В слоте flow-бар остаётся статичным сиблингом-футером под скролл-областью
+  // (без fixed и keyboard-stick). Fallback на месте — первый тик, пока слот не
+  // смонтирован, или рендер вне ModalShell (свой скроллер без маски/скрима).
+  return footerSlot ? createPortal(bar, footerSlot) : bar;
 };
 ModalShellActionButtons.displayName = 'ModalShell.ActionButtons';
 

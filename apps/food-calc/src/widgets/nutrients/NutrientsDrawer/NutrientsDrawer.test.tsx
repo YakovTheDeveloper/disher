@@ -1,8 +1,8 @@
-// NutrientsDrawer — store-driven nutrient breakdown drawer. После консолидации
-// нормы (2026-06) дровер больше не редактирует норму внутри себя: он просто
-// рендерит заголовок + FoodsNutrients. Норма живёт в DailyNormButton вверху
-// FoodsNutrients и открывает отдельный DailyNormDrawer. DrawerLayout и
-// FoodsNutrients застаблены; проверяем заголовок + viewTitle-override.
+// NutrientsDrawer — store-driven nutrient breakdown drawer. Дровер не редактирует
+// норму внутри себя: он рендерит заголовок + чип-легенду нормы + FoodsNutrients, а
+// норма открывается модалкой (2026-07-23 — кнопка-мишень из хедера убрана, её роль
+// забрал NormLegendButton в теле). DrawerLayout / FoodsNutrients / NormLegendButton
+// застаблены; проверяем заголовок + viewTitle-override.
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
@@ -22,6 +22,10 @@ vi.mock('@/shared/ui/DrawerLayout', () => ({
 
 vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
   FoodsNutrients: () => <div data-testid="foods-nutrients" />,
+}));
+
+vi.mock('@/features/dailyNorms/NormLegendButton', () => ({
+  NormLegendButton: () => <div data-testid="norm-legend" />,
 }));
 
 const { NutrientsDrawer } = await import('./NutrientsDrawer');

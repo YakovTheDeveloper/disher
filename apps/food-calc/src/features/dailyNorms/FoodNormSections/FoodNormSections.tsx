@@ -1,34 +1,36 @@
 import type { ReactNode } from 'react';
 import { ActionList } from '@/shared/ui/ActionList';
-import { DailyNormButton } from '@/features/dailyNorms/DailyNormButton';
+import s from './FoodNormSections.module.scss';
 
 type Props = {
   /**
-   * Контрол «Состав на» (Select основы количества). Опционален: у блюда основы
-   * нет — только read-only сумма нутриентов, поэтому секция состава не рендерится.
+   * Тело нутриентов — мера (NutrientGroupedList) + доборы (поле граммов, нота
+   * «нет данных»). Живёт ВНУТРИ секции «Нутриенты» под контролом основы (запрос
+   * 2026-07-19): список нутриентов принадлежит секции, а не висит соседом снизу.
    */
-  composition?: ReactNode;
-  /** Заголовок секции состава. Дефолт «Состав на». */
-  compositionLabel?: string;
+  nutrients?: ReactNode;
+  /**
+   * Вдвинуть контент секций на `--sys-inset-page` слева (лейбл остаётся
+   * заподлицо). Opt-in дроверов еды (запрос 2026-07-19): содержимое садится под
+   * своим заголовком, а не встык к краю. Прочие консумеры — заподлицо.
+   */
+  insetContent?: boolean;
 };
 
 /**
- * Общий заголовочный блок Nutrients-разбора продукта и блюда: секция «Дневная
- * норма» (кнопка нормы) + опциональная секция «Состав на» (селект основы). Обе —
- * `ActionList.Section`, тот же примитив-секции, что держит корень «Аккаунта», так
- * что продукт, блюдо и разбор дня говорят одним языком секций.
+ * Общий заголовочный блок Nutrients-разбора продукта и блюда: секция меры
+ * нутриентов (`ActionList.Section` — тот же примитив-секции, что держит корень
+ * «Аккаунта»). Кнопка нормы переехала в хедер дроверов (NormFlagButton, 2026-07-22),
+ * монеты-`DailyNormButton` здесь больше нет. Контрол основы количества живёт в
+ * шапке панели (FoodNutritionPanel → ряд типа еды).
  */
-export function FoodNormSections({ composition, compositionLabel = 'Состав на' }: Props) {
+export function FoodNormSections({ nutrients, insetContent = false }: Props) {
+  const inset = (node: ReactNode) =>
+    insetContent ? <div className={s.insetContent}>{node}</div> : node;
+
   return (
     <ActionList>
-      <ActionList.Section label="Дневная норма" italicLabel>
-        <DailyNormButton />
-      </ActionList.Section>
-      {composition != null && (
-        <ActionList.Section label={compositionLabel} italicLabel>
-          {composition}
-        </ActionList.Section>
-      )}
+      {nutrients != null && <ActionList.Section>{inset(nutrients)}</ActionList.Section>}
     </ActionList>
   );
 }

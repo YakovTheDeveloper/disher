@@ -39,6 +39,26 @@ type SectionProps = {
   as?: ElementType;
   /** Курсив лейбла секции — opt-in консумера; дефолт прямой (см. `.sectionLabelItalic`). */
   italicLabel?: boolean;
+  /**
+   * Инлайн-ряд: заголовок и контент в ОДНУ строку (лейбл слева, контент прижат
+   * вправо), а не столбцом. Для коротких секций-контролов вроде «Состав на» +
+   * селект основы. Дефолт — столбец (заголовок над контентом).
+   */
+  inline?: boolean;
+  /**
+   * Убрать верхний зазор секции (`--sys-stack-section`, который `.layout` кладёт
+   * перед каждым ребёнком). Для секции, что должна прижаться к предыдущему блоку —
+   * напр. состав встык к дневной норме.
+   */
+  flushTop?: boolean;
+  /**
+   * Контрол, прижатый вправо на РЯДУ заголовка (лейбл слева — контрол справа, одна
+   * строка), тогда как контент секции остаётся НИЖЕ. Для секции с коротким
+   * контролом-переключателем в шапке (напр. селект «Состав на» рядом с лейблом
+   * «Нутриенты») + таблицей под ним. Отличие от `inline`: тот кладёт в ряд сам
+   * контент, а `aside` — отдельный слот, дети под ним. Требует `label`.
+   */
+  aside?: ReactNode;
   className?: string;
 };
 
@@ -49,17 +69,43 @@ type SectionProps = {
  * детьми как есть; если это несколько блоков (напр. ряды + строка статуса), между
  * ними ложится тот же row-зазор.
  */
-function Section({ children, label, as = 'h2', italicLabel, className }: SectionProps) {
+function Section({
+  children,
+  label,
+  as = 'h2',
+  italicLabel,
+  inline,
+  flushTop,
+  aside,
+  className,
+}: SectionProps) {
+  const heading = label != null && (
+    <Heading
+      as={as}
+      role="title"
+      className={clsx(styles.sectionLabel, italicLabel && styles.sectionLabelItalic, className)}
+    >
+      {label}
+    </Heading>
+  );
+
   return (
-    <section className={clsx(styles.section, className)}>
-      {label != null && (
-        <Heading
-          as={as}
-          role="title"
-          className={clsx(styles.sectionLabel, italicLabel && styles.sectionLabelItalic, className)}
-        >
-          {label}
-        </Heading>
+    <section
+      className={clsx(
+        styles.section,
+        inline && styles.sectionInline,
+        flushTop && styles.sectionFlushTop,
+        className,
+      )}
+    >
+      {aside != null ? (
+        // Заголовок + контрол справа на одной строке (проп aside); контент — ниже.
+        <div className={styles.sectionHeader}>
+          {heading}
+          <div className={styles.sectionAside}>{aside}</div>
+        </div>
+      ) : (
+        heading
       )}
       {children}
     </section>

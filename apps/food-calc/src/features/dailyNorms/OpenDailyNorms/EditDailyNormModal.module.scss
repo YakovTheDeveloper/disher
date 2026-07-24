@@ -17,10 +17,6 @@
   padding: var(--space-1) var(--space-2);
 }
 
-.recalcGlyph {
-  line-height: 1;
-}
-
 // ── chrome="panel" overrides — render inside a drawer body ─────
 //
 // The drawer body already provides its own scroll container, header, and

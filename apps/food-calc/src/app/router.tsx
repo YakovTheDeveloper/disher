@@ -15,6 +15,7 @@ import { RouterLinks } from '@/shared/config/routes';
 // only adds a second network round-trip + spinner before the first paint people
 // actually wait on.
 const DishBuilderPage = lazy(() => import('@/pages/dish/DishBuilderPage.tsx'));
+const ProductPage = lazy(() => import('@/pages/product/ProductPage.tsx'));
 const AnalysesPage = lazy(() => import('@/pages/analyses/AnalysesPage.tsx'));
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage.tsx'));
 const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage.tsx'));
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
           {
             path: `${RouterLinks.Dish}`,
             element: <DishBuilderPage />,
+          },
+          {
+            path: `${RouterLinks.Product}`,
+            element: <ProductPage />,
           },
           {
             path: RouterLinks.ScheduleBuilder + '/' + ':id',

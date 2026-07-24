@@ -10,6 +10,7 @@ export enum RouterLinks {
     DishBuilder = '/dish',
 
     Dish = '/dish/:id',
+    Product = '/product/:id',
     ScheduleBuilder = '/schedule',
     Analyses = '/analyses',
     Admin = '/admin',
@@ -20,4 +21,5 @@ export const RouterUrls = {
     Schedule: (id: string) => `/schedule/${id}`,
     getDish: (id: string) => `/dish/${id}`,
     getDishDraft: () => `/dish/draft`,
+    getProduct: (id: string) => `/product/${id}`,
 };

@@ -1,7 +1,16 @@
+@import '@/shared/assets/style/mixin.scss';
+
 // Chrome (layout / header / body scroller) теперь несёт общий ModalShell —
-// заголовок разбора и дата-подзаголовок живут в ModalShell.Header, скролл-зона
-// и вертикальные зазоры (--sys-stack-section между статусом / CTA / секцией) —
-// в ModalShell.Body. Ниже остаётся только контент состояний и снапшота гипотез.
+// заголовок разбора живёт в ModalShell.Header, дата переехала в тело первой
+// строкой (--sys-stack-section держит зазор), скролл-зона и вертикальные зазоры
+// (между статусом / CTA / секцией) — в ModalShell.Body. Ниже остаётся только
+// контент состояний и снапшота гипотез.
+
+.dateCaption {
+    margin: 0;
+    text-align: center;
+    color: var(--sys-color-text-secondary);
+}
 
 // ─── States ───────────────────────────────────────────────────────────
 .pending {
@@ -63,29 +72,29 @@
     color: var(--sys-color-text-tertiary);
 }
 
-.snapshotList {
+// Снимок гипотез = ОДНО вдавленное поле (well) со surface-0 столом — тот же
+// field-depth-паттерн, что несёт `.compositionBlock` в add-food-модалке. Ряды
+// = bare-LabeledCheckbox (свою пилюлю снимают, наследуют chrome well'а).
+.hypothesesWell {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--sys-field-radius, var(--radius-sm));
+    --panel-well: color-mix(in oklch, var(--sys-color-surface-0), var(--sys-field-well-shade) var(--sys-field-well-depth));
+    background: linear-gradient(90deg, var(--panel-well) 0%, var(--panel-well) 100%);
+    @include field-depth(--panel-well);
+    box-shadow: var(--sys-field-shadow);
+}
+
+.hypothesisRow {
+    display: flex;
+    flex-direction: column;
+}
+
+// Тело гипотезы под галочкой; левый инсет = рельс поля + место чекбокса (20px) и
+// его gap (12px), чтобы капшн сел под текст метки, а не под квадратик.
+.hypothesisBody {
     margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.snapshotItem {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 10px 12px;
-    border-radius: var(--sys-radius-container);
-    background: var(--sys-color-surface-1);
-}
-
-.snapshotItemTitle {
-    color: var(--sys-color-text-system);
-}
-
-.snapshotItemBody {
+    padding: 0 var(--sys-field-inset-x) 12px calc(var(--sys-field-inset-x) + 32px);
     line-height: 1.45;
     color: var(--sys-color-text-secondary);
 }

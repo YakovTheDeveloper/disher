@@ -8,12 +8,18 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  // gap: var(--sys-stack-row);
+  gap: var(--sys-stack-row);
 
   // Не owl: первая секция тоже отбивается сверху — иначе её заголовок прилипает
   // к тому, что стоит над списком (title-ряд chrome'а дровера).
   >* {
     margin-block-start: var(--sys-stack-section);
+  }
+
+  // Секция-встык (проп flushTop): гасит верхний зазор адресно. `.layout > .класс`
+  // (0,2,0) кроет `.layout > *` (0,1,0) независимо от порядка в бандле.
+  >.sectionFlushTop {
+    margin-block-start: 0;
   }
 }
 
@@ -24,6 +30,30 @@
   flex-direction: column;
   gap: var(--sys-stack-row);
   min-width: 0;
+}
+
+// Инлайн-ряд: лейбл слева, контент прижат вправо (напр. «Состав на» + селект).
+// space-between разводит их по краям; лейбл не растёт, контроль сохраняет ширину.
+.sectionInline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Ряд-заголовок (проп aside): лейбл слева, контрол справа на ОДНОЙ строке, а
+// контент секции — ниже. В отличие от .sectionInline тут в ряд идёт не сам контент,
+// а отдельный слот-контрол; дети остаются столбцом под шапкой.
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sys-stack-row);
+  min-width: 0;
+}
+
+// Контрол-слот не растягивается и не сжимается — держит свою ширину у правого края.
+.sectionAside {
+  flex-shrink: 0;
 }
 
 // Типографику несёт <Text role="label"> (sans label-ярус). Класс — layout-слот +

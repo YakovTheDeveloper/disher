@@ -115,7 +115,12 @@ const SearchFoodControls = ({
               fullWidth
               icon={<NutrientIcon />}
               trailingChevron
-              onClick={onOpenNutrientPicker}
+              // Пикер нутриента — боковой drawer поверх popover: закрываем панель,
+              // иначе она висит под дровером и остаётся открытой после выбора.
+              onClick={() => {
+                close();
+                onOpenNutrientPicker?.();
+              }}
             >
               По нутриентам
             </Button>
@@ -124,7 +129,10 @@ const SearchFoodControls = ({
               <button
                 type="button"
                 className={styles.nutrientPillMain}
-                onClick={onOpenNutrientPicker}
+                onClick={() => {
+                  close();
+                  onOpenNutrientPicker?.();
+                }}
                 aria-label={`Нутриент: ${selectedNutrientLabel}. Изменить`}
               >
                 <NutrientIcon />

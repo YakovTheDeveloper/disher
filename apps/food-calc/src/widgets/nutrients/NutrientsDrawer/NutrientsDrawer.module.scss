@@ -21,3 +21,10 @@
     padding-block-end: 24px;
     overflow-x: hidden;
 }
+
+// Чип-легенда нормы над разбором: не растягиваем на всю ширину flex-колонки — держим
+// по левому краю тихой сноской-контролом (align-self), с зазором до меры.
+.normLegend {
+    align-self: flex-start;
+    margin-bottom: var(--space-2);
+}

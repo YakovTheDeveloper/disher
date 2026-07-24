@@ -34,7 +34,7 @@ type Props = {
 // со своим numeral-размером → рассинхрон, чип смотрелся некрасиво). Формат `N/10`.
 function formatAspectChip(atom: Atom, index: number) {
   return (
-    <Text as="span" role="caption" className={clsx(styles.chip, styles.chipScale)} key={`aspect-${index}`}>
+    <Text as="span" role="card-caption" className={clsx(styles.chip, styles.chipScale)} key={`aspect-${index}`}>
       {atom.label && <span>{atom.label}</span>}
       <span className={styles.aspectValue}>{atom.value}/10</span>
     </Text>

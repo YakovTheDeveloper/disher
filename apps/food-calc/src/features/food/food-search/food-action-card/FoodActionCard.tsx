@@ -12,10 +12,10 @@ import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { ProductDrawer } from '@/features/food/product-drawer';
 import { DishDrawer } from '@/features/food/dish-drawer';
+import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
 // Конкретные файлы, не barrel — barrel тянет buildInfoActions → ProductDrawer
 // (см. defensive-импорт в ProductDrawer/buildInfoActions).
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
-import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
 import { Text, QuietLabel, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
 import { ArcLabel } from '@/shared/ui/ArcLabel/ArcLabel';
 import { formatAmount, formatPercent } from '@/shared/lib/formatNumber';
@@ -71,8 +71,8 @@ const FoodActionCard = ({
   const { pressed, pressProps } = usePressFeedback();
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
 
-  // Тап по ⓘ — самостоятельное действие (боковой ProductDrawer/DishDrawer), НЕ
-  // выбор ряда. Гасим bubbling pointer-событий до `<li>`: без этого press-визуал
+  // Тап по ⓘ — самостоятельное действие (нижний quick-view ProductDrawer/
+  // DishDrawer), НЕ выбор ряда. Гасим bubbling pointer-событий до `<li>`: без этого press-визуал
   // (usePressFeedback) и long-press (useLongPress), висящие на обёртке, ловят
   // pointerdown кнопки и весь ряд чернеет под пальцем при нажатии на ⓘ (фикс
   // 2026-07-10). Оборачивающий span = display:contents — не ломает flex-раскладку
@@ -120,17 +120,26 @@ const FoodActionCard = ({
   };
 
   // Долгий клик (~450мс, общий useLongPress: move-cancel 10px + click-suppression,
-  // безопасен в скроллируемом role="option") → ItemActionsDrawer. «Инфо» через
-  // buildInfoActions (продукт → ProductDrawer, блюдо → DishDrawer) — дубль с ⓘ
-  // осознан. Удаление = удаление ПРОДУКТА/блюда, только для своих (каталог →
-  // onDelete не передаём, дровер показывает только «инфо»).
+  // безопасен в скроллируемом role="option") → ItemActionsDrawer. «Информация» в
+  // карточке SearchFood открывает тот же быстрый нижний дровер, что и ⓘ (единый
+  // SearchFood-контекст — оба «подглядывают», не уходят на страницу; переход на
+  // страницу — уже из самого дровера). Удаление = удаление ПРОДУКТА/блюда, только
+  // для своих (каталог → onDelete не передаём, дровер показывает только «инфо»).
+  const openInfo = () => {
+    if (variant === 'dish') {
+      void drawerStore.show(DishDrawer, { dishId: item.id, dishName: item.name }, QUICK_VIEW_DRAWER_OPTIONS);
+    } else {
+      void drawerStore.show(ProductDrawer, { productId: item.id, productName: item.name }, QUICK_VIEW_DRAWER_OPTIONS);
+    }
+  };
   const openActions = () => {
-    const actions = buildInfoActions(
-      variant === 'dish' ? { type: 'dish', dishId: item.id } : { type: 'food', productId: item.id },
-    );
+    const infoAction = {
+      label: variant === 'dish' ? 'Информация о блюде' : 'Информация о продукте',
+      onClick: openInfo,
+    };
     void drawerStore.show(ItemActionsDrawer, {
       title: item.name,
-      actions,
+      actions: [infoAction],
       ...(userCreated ? { onDelete: handleDelete } : {}),
     });
   };
@@ -307,8 +316,9 @@ const FoodActionCard = ({
           onPointerCancel={stopRowPress}
         >
           {variant === 'product' ? (
-            // Продукт (свой ИЛИ каталожный) → боковой ProductDrawer. Страница
-            // /product/:id инактивирована; ProductDrawer сам ветвит каталог/свой
+            // Продукт (свой ИЛИ каталожный) → нижний quick-view ProductDrawer
+            // (две фазы snap). Редактирование живёт на странице /product/:id
+            // (стрелка в шапке дровера); ProductDrawer сам ветвит каталог/свой
             // по isCreatedByUser, точке входа ветвиться не нужно.
             <InfoButton
               className={styles.infoBtn}
@@ -319,14 +329,14 @@ const FoodActionCard = ({
                 drawerStore.show(
                   ProductDrawer,
                   { productId: item.id, productName: item.name },
-                  { side: 'left', width: 'min(85vw, 360px)' }
+                  QUICK_VIEW_DRAWER_OPTIONS,
                 );
               }}
             />
           ) : (
-            // Блюдо → боковой DishDrawer (read-only превью: состав + суммарные
-            // нутриенты, стрелка в шапке → страница /dish/:id). Оверлей вместо
-            // навигации сохраняет скролл SearchFood + открытую модалку Home
+            // Блюдо → нижний quick-view DishDrawer (read-only превью: состав +
+            // суммарные нутриенты, стрелка в шапке → страница /dish/:id). Оверлей
+            // вместо навигации сохраняет скролл SearchFood + открытую модалку Home
             // (симметрия с продуктом).
             <InfoButton
               className={styles.infoBtn}
@@ -337,7 +347,7 @@ const FoodActionCard = ({
                 drawerStore.show(
                   DishDrawer,
                   { dishId: item.id, dishName: item.name },
-                  { side: 'left', width: 'min(85vw, 360px)' }
+                  QUICK_VIEW_DRAWER_OPTIONS,
                 );
               }}
             />

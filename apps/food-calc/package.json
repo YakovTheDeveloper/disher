@@ -26,7 +26,9 @@
     "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo",
-    "create-component": "node create-boilerplate-component.js"
+    "create-component": "node create-boilerplate-component.js",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -64,6 +66,7 @@
     "@eslint/js": "^9.34.0",
     "@feature-sliced/steiger-plugin": "0.7.0",
     "@playwright/test": "^1.59.1",
+    "@storybook/react-vite": "^9",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -90,6 +93,7 @@
     "sass": "^1.81.0",
     "sharp": "^0.34.5",
     "steiger": "0.6.0",
+    "storybook": "^9",
     "stylelint": "^16",
     "stylelint-declaration-strict-value": "^1.11.1",
     "supabase": "^2.95.2",

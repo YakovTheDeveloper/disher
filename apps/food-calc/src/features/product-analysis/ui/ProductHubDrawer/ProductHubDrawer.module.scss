@@ -1,0 +1,7 @@
+// ProductHubDrawer body — плоская группа рядов SettingRow (1:1 с DishHubDrawer).
+// Стоят вплотную: разделяет тающая бровка внутри ряда (`.row::after`), не зазор.
+// Боковой инсет + межсекционный ярус ведёт ActionList/DrawerLayout.
+.rows {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,40 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sys-stack-section);
+}
+
+// Вертикальная колонка способов: каждый вариант во всю ширину. Презентация
+// (кромка/радиус/угловой tick) живёт в примитиве Choice — здесь только раскладка.
+.methodGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.methodItem {
+    width: 100%;
+}
+
+.methodTitle {
+    color: inherit;
+}
+
+.methodHint {
+    color: var(--sys-color-text-secondary);
+    line-height: 1.25;
+}
+
+// Тело выбранного способа (survey/manual panel) — отделено от группы выбора
+// section-зазором наравне с прочими ярусами layout.
+.bodySlot {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+// Пустое состояние: способ ещё не выбран.
+.emptyHint {
+    margin: 0;
+    color: var(--sys-color-text-secondary);
+}

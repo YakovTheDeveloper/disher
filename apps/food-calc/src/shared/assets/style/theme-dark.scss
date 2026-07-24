@@ -55,6 +55,18 @@
   --sys-color-surface-proposal: color-mix(in oklch, var(--ref-color-cool-500) 14%, #201c15);
   --sys-color-surface-proposal-pressed: color-mix(in oklch, var(--ref-color-cool-500) 22%, #201c15);
   --sys-color-surface-cool-soft: #232a38;
+  // Тёмная пара cool-softer (см. tokens.scss): та же пол-ступень к фону листа —
+  // тёмный cool-soft, промешанный в тёмный surface-1.
+  --sys-color-surface-cool-softer: color-mix(in oklch, #232a38 45%, #201c15);
+
+  // Тёмные пары тёплых макро-оттенков (см. tokens.scss): глубокие приглушённые
+  // тёплые тона над базой, той же троицей hue (мова/сливка/янтарь), чтобы Б/Ж/У
+  // различались и на тёмной теме, не светясь пастелью.
+  // Роль (2026-07-23): заливка метра нормы в стат-блоках (раньше — бордер плитки).
+  --sys-color-macro-protein: #86616f; // light mauve
+  --sys-color-macro-fat: #8a7a45; // light gold
+  --sys-color-macro-carb: #8a7049; // light amber
+  --sys-color-macro-cool: #6f7689; // slate (cool-500)
 
   --sys-color-surface-track: #33302a; // progress track (raised from base)
   --sys-color-surface-fill: #8a8ea0; // fill over track — lighter cool for contrast
@@ -63,6 +75,7 @@
   --sys-color-text-quiet: #aca69b;
   --sys-color-text-system: #f3efe7; // neutral ink text → light
   --sys-color-text-accent: var(--ref-color-indigo-300); // #bcb6ef — indigo lifted for dark
+  --sys-color-text-food-name: var(--ref-color-indigo-300); // имя еды — тёмный индиго ушёл бы в фон, поднимаем как accent
   --sys-color-text-sepia: #c9a670; // FabricLoader caption — lighter sepia
   --sys-color-text-on-hue-card: #e6e9f2; // TOD cards go dark → their text lightens
   --sys-color-text-cold-strong: var(--ref-color-cool-100); // #eaecf3 — cold near-white на тёмной медали (light near-black был бы невидим)
@@ -212,6 +225,10 @@
   --sys-elevation-drawer-glint-bottom: 0 -1px 0 rgba(255, 255, 255, 0.06), 0 -3px 8px rgba(0, 0, 0, 0.45);
   --sys-elevation-drawer-glint-left: 1px 0 0 rgba(255, 255, 255, 0.05), 8px 0 24px rgba(0, 0, 0, 0.5);
   --sys-elevation-drawer-glint-right: -1px 0 0 rgba(255, 255, 255, 0.05), -8px 0 24px rgba(0, 0, 0, 0.5);
+
+  // Тень нижнего surface-1-дровера (dark): светлый rim + более глубокая восходящая
+  // ambient, чтобы лист держался над near-black страницей на прозрачной peek-фазе.
+  --sys-elevation-drawer-float-bottom: 0 -1px 0 rgba(255, 255, 255, 0.06), 0 -8px 24px rgba(0, 0, 0, 0.55);
 
   // ─── event trio (sage — lifted a touch for dark) ───────────────
   --event-scale-accent: #6f9a66;

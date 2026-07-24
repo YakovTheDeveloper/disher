@@ -95,10 +95,10 @@ describe('FoodActionCard — richness visuals', () => {
 });
 
 describe('FoodActionCard — dish ⓘ opens DishDrawer with a name', () => {
-  // The dish info button opens the side DishDrawer directly (not via navigate).
-  // Unlike the long-press path (buildInfoActions → { dishId } only), the ⓘ path
-  // forwards item.name as dishName so the drawer header shows the name instantly
-  // while the dish loads from Dexie. Assert that props payload.
+  // The dish info button opens the bottom quick-view DishDrawer directly (not via
+  // navigate). Unlike the long-press path (buildInfoActions → { dishId } only), the
+  // ⓘ path forwards item.name as dishName so the drawer header shows the name
+  // instantly while the dish loads from Dexie. Assert that props payload.
   it('forwards { dishId, dishName } to drawerStore.show', () => {
     const show = vi
       .spyOn(drawerStore, 'show')
@@ -122,7 +122,7 @@ describe('FoodActionCard — dish ⓘ opens DishDrawer with a name', () => {
     expect(show).toHaveBeenCalledWith(
       expect.anything(),
       { dishId: 'd1', dishName: 'борщ' },
-      expect.objectContaining({ side: 'left' }),
+      expect.objectContaining({ side: 'bottom' }),
     );
     show.mockRestore();
   });

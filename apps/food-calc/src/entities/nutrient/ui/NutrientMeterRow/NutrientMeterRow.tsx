@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Heading, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
-import { formatAmount } from '@/shared/lib/formatNumber';
-import { isIntegerUnit } from '@/entities/nutrient/model';
+import { formatNutrientMass, formatPctDisplay } from '@/shared/lib/formatNumber';
 import s from './NutrientMeterRow.module.scss';
 
 type Props = {
@@ -11,11 +10,17 @@ type Props = {
   value: number;
   /** Суточная норма (цель под баром). */
   norm: number;
-  /** % нормы (целое). */
+  /** % нормы (целое) — легаси-канал, фолбэк при отсутствии `pctRaw`. */
   pct: number;
+  /**
+   * % нормы БЕЗ округления — приходит спредом из `useNutrientReadout`. Задан →
+   * число и заливка бара идут от него (след <0.5 % → «<1» и честный срез,
+   * а не «0»/0px); нет → округлённый `pct` (прежнее поведение).
+   */
+  pctRaw?: number;
   /** Показывать %/бар/цель. false → в шапке «значение + юнит», бара нет. */
   hasNorm: boolean;
-  /** Юнит (г / мг / ккал). */
+  /** Юнит (г / мг / мкг / ккал). */
   unit: string;
   /** Технический `name` нутриента (english) — для `data-nutrient` (листик клетчатки, тест-хуки). */
   dataName?: string;
@@ -31,27 +36,40 @@ type Props = {
  * left:100%) — держат вертикаль, живут «на поле» дровера. Все бары одинаковой
  * длины (не пляшут от ширины чисел).
  */
-function NutrientMeterRowInner({ name, value, norm, pct, hasNorm, unit, dataName }: Props) {
-  const curDisplay = isIntegerUnit(unit) ? Math.round(value) : formatAmount(value);
-  const fill = { width: `${Math.min(pct, 100)}%` };
+function NutrientMeterRowInner({ name, value, norm, pct, pctRaw, hasNorm, unit, dataName }: Props) {
+  // Масса — общий хелпер витрин («не обмануть нулём, не шуметь десятыми»):
+  // след не обнуляется («<0.1» / десятые <1), дальше — целые.
+  const curDisplay = formatNutrientMass(value, unit);
+  const pctDisplay = formatPctDisplay(pctRaw ?? pct);
+  const fill = { width: `${Math.min(pctRaw ?? pct, 100)}%` };
 
   // «80 г» / «2300 ккал» — инлайн-группа, прижата к правому краю; юнит свисает в
   // правое поле (absolute), число держит общий правый столбик.
   const valueUnit = (display: React.ReactNode) => (
     <span className={s.footTgt}>
-      <Numeral as="span" size="sm">{display}</Numeral>
-      <NumeralMarker kind="unit" className={s.footUnit}>{unit}</NumeralMarker>
+      <Numeral as="span" size="sm">
+        {display}
+      </Numeral>
+      <NumeralMarker kind="unit" className={s.footUnit}>
+        {unit}
+      </NumeralMarker>
     </span>
   );
 
   return (
     <div className={s.row} data-nutrient={dataName}>
       <div className={s.rowTop}>
-        <Heading as="span" role="title" className={s.name}>{name}</Heading>
+        <Heading as="span" role="title" className={s.name}>
+          {name}
+        </Heading>
         {hasNorm ? (
           <span className={s.pctFlush}>
-            <Numeral as="span" size="base" weight="regular">{pct}</Numeral>
-            <NumeralMarker kind="sign" className={s.pctFlushSign}>%</NumeralMarker>
+            <Numeral as="span" size="base" weight="regular">
+              {pctDisplay}
+            </Numeral>
+            <NumeralMarker kind="sign" className={s.pctFlushSign}>
+              %
+            </NumeralMarker>
           </span>
         ) : (
           valueUnit(curDisplay)
@@ -63,7 +81,9 @@ function NutrientMeterRowInner({ name, value, norm, pct, hasNorm, unit, dataName
             <div className={s.meterBar} style={fill} />
           </div>
           <div className={s.meterFoot}>
-            <Numeral as="span" size="sm" className={s.footCur}>{curDisplay}</Numeral>
+            <Numeral as="span" size="sm" className={s.footCur}>
+              {curDisplay}
+            </Numeral>
             {valueUnit(norm)}
           </div>
         </div>

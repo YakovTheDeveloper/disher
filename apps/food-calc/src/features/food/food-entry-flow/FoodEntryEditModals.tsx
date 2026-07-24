@@ -9,8 +9,6 @@ import { DetailsStep } from '@/features/food/details-chips';
 import { RouterUrls } from '@/shared/config/routes';
 import { pushNavigate } from '@/shared/lib/viewTransition';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
-import { drawerStore } from '@/shared/ui/drawer-store';
-import { ProductDrawer } from '@/features/food/product-drawer';
 import { InfoButton } from '@/shared/ui/atoms/Button';
 import { STEP_LABELS, type FoodEntryFlow, type DishEditItem } from './useFoodEntryFlow';
 
@@ -35,8 +33,8 @@ const FoodEntryEditModals = ({ flow }: Props) => {
     inputIds: { QUANTITY_INPUT, DETAILS_INPUT, TIME_INPUT },
   } = flow;
 
-  // info-таргет (ⓘ в шапке деталей) — только у расписания: продукт → боковой
-  // ProductDrawer, блюдо → страница блюда. У ингредиента блюда такого нет.
+  // info-таргет (ⓘ в шапке деталей) — только у расписания: и продукт, и блюдо
+  // ведут на страницу сущности. У ингредиента блюда такого нет.
   const infoTarget =
     kind === 'schedule'
       ? (() => {
@@ -52,16 +50,11 @@ const FoodEntryEditModals = ({ flow }: Props) => {
           }
           if (draft.variant === 'product' && draft.productId) {
             const productId = draft.productId;
-            const productName = draft.foodName ?? undefined;
             return {
               label: 'Информация о продукте',
               onClick: () => {
                 handleClose();
-                drawerStore.show(
-                  ProductDrawer,
-                  { productId, productName },
-                  { side: 'left', width: 'min(85vw, 360px)' },
-                );
+                pushNavigate(navigate, RouterUrls.getProduct(productId), 'push');
               },
             };
           }

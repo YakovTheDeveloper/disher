@@ -15,6 +15,7 @@ import { windowSpanDays } from './range';
 import styles from './AnalysisDetailModal.module.scss';
 import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
+import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
 
 // The modal resolves with a freshly-started analysis when the user restarts a
 // stale/failed run, so AnalysesPage can show the new pending row. Plain close
@@ -28,8 +29,14 @@ function formatRange(startIso: string, endIso: string): string {
   const s = parseISO(startIso);
   const e = parseISO(endIso);
   if (!isValid(s) || !isValid(e)) return '—';
+  // Разбор дня (окно=1) — одна дата, не вырожденный диапазон «10 июня — 10 июня».
+  if (windowSpanDays({ start: startIso, end: endIso }) === 1) {
+    return format(s, 'd MMMM yyyy', { locale: ru });
+  }
   return `${format(s, 'd MMMM', { locale: ru })} — ${format(e, 'd MMMM yyyy', { locale: ru })}`;
 }
+
+const noop = () => {};
 
 // Detail view of one long analysis. Seeded with the list row, then kept fresh
 // by useAnalysis(id) polling. A stale (hung) or failed run gets a «Запустить
@@ -82,13 +89,13 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
   return (
     <ModalLayout a11yLabel="Детали разбора">
       <ModalShell>
-        <ModalShell.Header
-          title={title}
-          subtitle={formatRange(analysis.windowStart, analysis.windowEnd)}
-          onBack={() => onClose()}
-        />
+        <ModalShell.Header title={title} onBack={() => onClose()} />
 
         <ModalShell.Body>
+          <Text as="p" role="caption" className={styles.dateCaption}>
+            {formatRange(analysis.windowStart, analysis.windowEnd)}
+          </Text>
+
           {status === 'running' && (
             <div className={styles.pending}>
               <Spinner />
@@ -149,20 +156,20 @@ const AnalysisDetailModal = ({ analysis: seed, onClose }: Props) => {
                 Разбор запускался без выбранных гипотез.
               </Text>
             ) : (
-              <ul className={styles.snapshotList}>
+              // Снимок гипотез = вдавленный well с чекбокс-рядами (визуал add-food-
+              // модалки). Галочки декоративны — состояние не хранится, тоггла нет.
+              <div className={styles.hypothesesWell}>
                 {appliedHypotheses.map((h, idx) => (
-                  <li key={h.id || idx} className={styles.snapshotItem}>
-                    <Text as="span" role="label" className={styles.snapshotItemTitle}>
-                      {h.title}
-                    </Text>
+                  <div key={h.id || idx} className={styles.hypothesisRow}>
+                    <LabeledCheckbox bare checked={false} onChange={noop} label={h.title} />
                     {h.body && (
-                      <Text as="span" role="caption" className={styles.snapshotItemBody}>
+                      <Text as="p" role="caption" className={styles.hypothesisBody}>
                         {h.body}
                       </Text>
                     )}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </section>
         </ModalShell.Body>

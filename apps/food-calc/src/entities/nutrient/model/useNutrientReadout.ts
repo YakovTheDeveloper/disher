@@ -18,8 +18,14 @@ export type NutrientReadout = {
   value: number;
   /** Суточная норма (юзерская, иначе дефолт/плейсхолдер). */
   norm: number;
-  /** % нормы (целое, ≤ 999). */
+  /** % нормы (целое, ≤ 999) — легаси-канал (бары/совместимость). */
   pct: number;
+  /**
+   * % нормы БЕЗ округления (≤ 999) — витрины форматируют сами
+   * (`formatPctDisplay`: след (0, 0.5) → «<1»). Округление на входе теряло бы
+   * след «0 < pct < 0.5» безвозвратно (инцидент «курага», 2026-07-23).
+   */
+  pctRaw: number;
   /**
    * Показывать ли %/бар/цель. true ⇔ у юзера есть норма И у нутриента ЕСТЬ
    * официальная норма И она > 0 (иначе цель — выдуманное число).
@@ -56,12 +62,14 @@ export function useNutrientReadout(
       const hasRealNorm = nutrientsHaveDailyNorm[numId] === true;
       const isPlaceholder = !hasRealNorm && userItems?.[id] == null;
       const value = getValue(id);
-      const pct = norm ? Math.round(Math.min((value / norm) * 100, 999)) : 0;
+      const pctRaw = norm ? Math.min((value / norm) * 100, 999) : 0;
+      const pct = Math.round(pctRaw);
 
       return {
         value,
         norm,
         pct,
+        pctRaw,
         hasNorm: hasNormRow && hasRealNorm && norm > 0,
         isPlaceholder,
         unit: nutrient?.unitRu ?? '',

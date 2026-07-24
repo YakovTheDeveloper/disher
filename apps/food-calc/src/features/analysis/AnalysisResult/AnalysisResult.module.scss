@@ -83,14 +83,16 @@
     padding: 0 var(--space-3) var(--space-3);
 }
 
-// bare (дом / длинная модалка): секция получает ХОЛОДНУЮ wash-подложку предложки
-// («голос системы») + скругление — одна плитка на секцию, ряды прозрачные, делит
-// hairline. overflow:hidden клипает углы. Гор. инсет несут сами ряды (--sys-inset-
-// card у `.card`), поэтому у плитки padding 0. В sheet-режиме (блюдо) wash НЕ нужен
-// — там подложку держит pearl SheetCard, ряды просто делит hairline.
+// bare (дом / длинная модалка): секция получает ТЁПЛУЮ butter-подложку разборов
+// + скругление — одна плитка на секцию, ряды прозрачные, делит hairline. Тон = тот
+// же `--sys-color-surface-analysis`, что несёт карточка-открывашка списка /analyses,
+// поэтому внутренние карточки читаются заодно с ней, а не холодно-белым. overflow:
+// hidden клипает углы. Гор. инсет несут сами ряды (--sys-inset-card у `.card`),
+// поэтому у плитки padding 0. В sheet-режиме (блюдо) wash НЕ нужен — там подложку
+// держит pearl SheetCard, ряды просто делит hairline.
 .bareBlock .list {
     padding: 0;
-    background: var(--sys-color-surface-proposal);
+    background: var(--sys-color-surface-analysis);
     border-radius: var(--sys-radius-container);
     overflow: hidden;
 }

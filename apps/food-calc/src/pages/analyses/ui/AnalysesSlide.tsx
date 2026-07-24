@@ -9,6 +9,7 @@ import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
 import { AnalysisHubDrawer } from '@/features/analysis/AnalysisHubDrawer';
 import Button from '@/shared/ui/atoms/Button/Button';
 import { AiSparkleIcon } from '@/shared/ui/atoms/icons/AiSparkleIcon';
+import RefreshIcon from '@/shared/assets/icons/refresh.svg?react';
 import { Select, type SelectOption } from '@/shared/ui/atoms/Select';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
 import { type Analysis } from '@/features/analysis/api';
@@ -152,7 +153,11 @@ const AnalysesSlide = ({ topSlot }: Props) => {
             title={t('analyses.empty.loadFailed.title')}
             description={t('analyses.empty.loadFailed.description')}
             action={
-              <Button variant="system-secondary" onClick={() => refetch()}>
+              <Button
+                variant="system"
+                icon={<RefreshIcon width={18} height={18} />}
+                onClick={() => refetch()}
+              >
                 {t('analyses.retry')}
               </Button>
             }

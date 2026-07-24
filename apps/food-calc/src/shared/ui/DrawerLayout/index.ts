@@ -1,2 +1,2 @@
 export { default as DrawerLayout } from "./DrawerLayout.tsx";
-export { DrawerSideProvider, useDrawerSide } from "./drawerSide.ts";
+export { DrawerSideProvider, useDrawerSide, DrawerSnapProvider, useDrawerSnap } from "./drawerSide.ts";

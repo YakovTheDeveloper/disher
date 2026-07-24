@@ -33,3 +33,7 @@ CLAUDE.md
 test-results
 playwright-report
 playwright/.cache
+.tmp-shots/
+
+# Storybook build artifact (design-playground for story.to.design)
+storybook-static

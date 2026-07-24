@@ -1,4 +1,4 @@
-import { type CSSProperties } from 'react';
+import { useId, type CSSProperties } from 'react';
 import styles from './DrawerLayout.module.scss';
 import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
@@ -9,7 +9,7 @@ import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import ArrowLeftIcon from '@/shared/assets/icons/arrowLeftLong.svg?react';
 import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { IconButton } from '@/shared/ui/atoms/Button';
-import { useDrawerSide } from './drawerSide';
+import { useDrawerSide, useDrawerSnap } from './drawerSide';
 
 type Props = {
   children: React.ReactNode;
@@ -23,6 +23,17 @@ type Props = {
    * inside the drawer should be `<h3>`+ to keep the document outline correct.
    */
   title?: React.ReactNode;
+  /**
+   * Size of the visible title. Defaults to `'default'` (canonical drawer title,
+   * 28px headline). Pass `'title'` for the mid rung (`Heading role="title"`,
+   * ~17px) — entity-name headers that pair with a `subtitle` context line
+   * (QuickViewDrawer: имя еды + «Информация о продукте»), where the headline
+   * rung eats room the body wants and long names don't fit. Pass `'compact'`
+   * for a small quiet chrome title (13px) — e.g. product/dish drawers where
+   * the header carries the entity TYPE («Мой продукт» / «Блюдо») as context
+   * and the big name lives in the body.
+   */
+  titleSize?: 'default' | 'title' | 'compact';
   /**
    * Optional caption rendered directly beneath the centered `title`, inside the
    * same chrome row (e.g. the account email under «Аккаунт»). Only shown when a
@@ -129,11 +140,29 @@ type Props = {
    * Ignored under `hideTopChrome` / `floatingClose` (no chrome row to drive).
    */
   headerScroll?: 'pin' | 'collapse' | 'scroll';
+  /**
+   * Тир поверхности дровера. По умолчанию (не задан) — `surface-2` (белый лист над
+   * листом, каноничный дом modal/drawer), с glint-тенью края. Передай `1`, чтобы
+   * дровер сел на `--sys-color-surface-1` (парящий лист) — тогда фон, вдавленный
+   * «колодец» полей (`field-depth`) И парная тень (`surface-elevation(1)`) берутся
+   * из ОДНОГО тира (промахнуться номером нельзя). Дом surface-1 — быстрый дровер еды
+   * из SearchFood (QuickViewDrawer).
+   */
+  surface?: 1 | 2;
+  /**
+   * Декоративный микро-штамп в СКРУГЛЁННОМ верхнем-правом углу нижнего листа: короткая
+   * метка (тип сущности «Продукт»/«Блюдо»), чья базовая линия идёт ПО ДУГЕ угла — SVG
+   * text-on-path вдоль четверти окружности радиуса `--sys-radius-drawer`, буквально
+   * «повторяет скругление дровера». Голос декоративного штампа (visual-voice
+   * «натуралист»), не читаемый лейбл: на ~24px-дуге текст мелкий. Только нижний дровер.
+   */
+  cornerLabel?: string;
 };
 
 const DrawerLayout = ({
   children,
   title,
+  titleSize = 'default',
   subtitle,
   topRight,
   onBack,
@@ -147,13 +176,32 @@ const DrawerLayout = ({
   scrollHints = true,
   contentInset,
   headerScroll = 'collapse',
+  surface,
+  cornerLabel,
 }: Props) => {
   const { t } = useTranslation();
+  // Уникальный id дуги угла (textPath ссылается на него) — на случай нескольких
+  // дроверов в стеке, чтобы href не коллизился.
+  const cornerArcId = useId();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
   // delivered through DrawerManager → DrawerSideContext, so the drawer content
   // component itself never has to know or forward them.
-  const { side, width } = useDrawerSide();
+  const { side, width, snapPoints } = useDrawerSide();
   const isSide = side === 'left' || side === 'right';
+  // Snap sheets compose their transform from Base UI's snap-offset + swipe vars
+  // (see `.content_bottom.contentSnap` in the scss) instead of the single-phase
+  // upward-clamped swipe transform — Base UI already damps snap overdrag itself.
+  const isSnap = side === 'bottom' && !!snapPoints?.length;
+  // На НЕверхней snap-фазе гасим внутренний скролл тела: тогда драг по контенту
+  // Base UI трактует как свайп листа (свайп пускается только по нескроллящейся
+  // цели) → лист разворачивается в верхнюю фазу «сразу как человек начал листать»,
+  // а не листает контент под сгибом. На верхней фазе скролл включается.
+  const { atTopSnap, canExpand, toggleSnap } = useDrawerSnap();
+  const lockBodyScroll = isSnap && !atTopSnap;
+  // Grab-handle рисуем автоматически у ЛЮБОГО нижнего дровера с ≥2 snap-фазами —
+  // видимый аффорданс «лист тянется» + клавиатурный/скринридерный путь ко второй
+  // фазе (drag доступен не всем; NN/g/M3: не полагаться только на жест).
+  const showGrabHandle = side === 'bottom' && canExpand;
 
   // ─── Единый детектор краёв прокрутки (верхний шов + нижний fade) ───────────
   // ОДИН механизм (useScrollEdges, IntersectionObserver на двух сентинелах)
@@ -175,8 +223,7 @@ const DrawerLayout = ({
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
   // accessible name + visible heading) when the chrome row is on screen.
   // `header` (custom center node) takes precedence over the built-in title path.
-  const showVisibleTitle =
-    title != null && !hideTopChrome && !floatingClose && header == null;
+  const showVisibleTitle = title != null && !hideTopChrome && !floatingClose && header == null;
 
   // Chrome row exists (title/subtitle/custom header + leading control) unless the
   // consumer opted into a chromeless variant. `'scroll'` moves the row INTO the
@@ -185,6 +232,13 @@ const DrawerLayout = ({
   const hasChromeRow = !hideTopChrome && !floatingClose;
   const scrollAwayHeader = hasChromeRow && headerScroll === 'scroll';
   const collapseHeader = hasChromeRow && headerScroll === 'collapse';
+
+  // Двухэтажный chrome (title + subtitle) на ПРИЛЕПЛЕННОМ ряду: layout сам поднимает
+  // зазор «шапка → тело» до section-рунга (класс .stackedTitle на попапе, см. scss) —
+  // 4px под тихим subtitle читались слипанием: граница «chrome → контент» оказывалась
+  // МЕНЬШЕ внутрителовых section-швов (перевёрнутый ритм). Scroll-away исключён: там
+  // ряд живёт ВНУТРИ скроллера, pad-top лёг бы НАД ним, а не под ним.
+  const stackedTitle = showVisibleTitle && subtitle != null && !scrollAwayHeader;
 
   // Collapse progress (--header-collapse 0..1) is written on `.panel` from the
   // scroller's onScroll; the pinned chrome row reads it via CSS. Inert unless
@@ -204,7 +258,9 @@ const DrawerLayout = ({
           onBack();
         }}
         aria-label={backLabel ?? t('overlay.drawer.back', 'Назад')}
-        icon={<ArrowLeftIcon width={16} height={16} />}
+        // Размер глифа НЕ хардкодим — его несёт CSS через --sys-icon-size-chrome
+        // (см. .chromeCell .leadingGlyph svg): один токен на ВСЕ chrome-глифы.
+        icon={<ArrowLeftIcon />}
       />
     ) : (
       <Drawer.Close
@@ -213,50 +269,69 @@ const DrawerLayout = ({
           <IconButton
             className={className}
             aria-label={t('overlay.drawer.close', 'Закрыть')}
-            icon={<CrossIcon width={16} height={16} />}
+            icon={<CrossIcon />}
           />
         }
       />
     );
 
-  // Center band of the chrome row (custom `header` / title / subtitle + `topRight`).
-  // Shared by both placements — only the leading control differs (in-row slot when
-  // pinned, floating when scroll-away), so the center content never forks.
+  // Заголовок хедера как один Drawer.Title (h2). `'compact'` рендерит его тихим
+  // caption-ярусом (13px) вместо каноничного headline (28px) — тип-контекст в
+  // шапке (продукт/блюдо), крупное имя живёт в теле. `'title'` — средний рунг
+  // (Heading role="title"): имя сущности + subtitle-строка контекста под ним.
+  // Типо-ярус несёт примитив (Heading/Text), НЕ сырой font-size в scss (гейт
+  // typo-encapsulation).
+  const titleRender =
+    titleSize === 'compact' ? (
+      <Text as="h2" role="caption">
+        {title}
+      </Text>
+    ) : titleSize === 'title' ? (
+      <Heading as="h2" role="title">
+        {title}
+      </Heading>
+    ) : (
+      <Heading as="h2" role="headline">
+        {title}
+      </Heading>
+    );
+
+  // Center + trailing cells of the chrome grid (custom `header` / title / subtitle
+  // in the CENTER column; `topRight` in the TRAILING column). Shared by both
+  // placements — only the leading control differs (in-row cell when pinned,
+  // floating when scroll-away), so the center content never forks. The leading
+  // cell is prepended separately by the pinned path; in the scroll-away row it's
+  // absent (the control floats) and the grid's symmetric side tracks keep the
+  // center visually centered regardless.
   const headerCenter = (
     <>
-      {header != null && <div className={styles.headerSlot}>{header}</div>}
-      {showVisibleTitle &&
-        (subtitle != null ? (
-          <div className={styles.titleStack}>
-            <Drawer.Title
-              className={styles.titleCenter}
-              render={<Heading role="headline" as="h2">{title}</Heading>}
-            >
+      <div className={styles.centerCell}>
+        {header != null && <div className={styles.headerSlot}>{header}</div>}
+        {showVisibleTitle &&
+          (subtitle != null ? (
+            <div className={styles.titleStack}>
+              <Drawer.Title className={styles.titleCenter} render={titleRender}>
+                {title}
+              </Drawer.Title>
+              <Text as="p" role="caption" className={styles.titleSubtitle}>
+                {subtitle}
+              </Text>
+            </div>
+          ) : (
+            <Drawer.Title className={styles.titleCenter} render={titleRender}>
               {title}
             </Drawer.Title>
-            <Text as="p" role="caption" className={styles.titleSubtitle}>
-              {subtitle}
-            </Text>
-          </div>
-        ) : (
-          <Drawer.Title
-            className={styles.titleCenter}
-            render={<Heading role="headline" as="h2">{title}</Heading>}
-          >
-            {title}
-          </Drawer.Title>
-        ))}
-      <div className={clsx(styles.chromeSlot, styles.chromeSlotWrap, styles.topRight)}>{topRight}</div>
+          ))}
+      </div>
+      <div className={clsx(styles.chromeCell, styles.chromeCellTrail)}>{topRight}</div>
     </>
   );
 
-  const style = width
-    ? ({ '--side-drawer-width': width } as CSSProperties)
-    : undefined;
+  const style = width ? ({ '--side-drawer-width': width } as CSSProperties) : undefined;
 
   return (
     <Drawer.Popup
-      className={clsx(styles.content, styles[`content_${side}`], className)}
+      className={clsx(styles.content, styles[`content_${side}`], isSnap && styles.contentSnap, surface === 1 && styles.surface1, stackedTitle && styles.stackedTitle, className)}
       style={style}
       id="drawer-content"
     >
@@ -285,12 +360,51 @@ const DrawerLayout = ({
         Decorative: closing is also available via the labelled Close button.
       */}
       {isSide && (
-        <div
-          className={clsx(styles.edgeHandle, styles[`edgeHandle_${side}`])}
-          aria-hidden="true"
-        />
+        <div className={clsx(styles.edgeHandle, styles[`edgeHandle_${side}`])} aria-hidden="true" />
       )}
       <div className={styles.panel} ref={collapseRef}>
+        {/*
+          Grab-handle — видимая хват-пилюля по центру верхней кромки нижнего snap-
+          дровера. `<button>` (не декор): тап разворачивает/сворачивает лист,
+          Enter/Space работают из коробки, aria-expanded отражает фазу. Абсолютом
+          поверх chrome-ряда (0 layout-высоты), крест/цель по краям не задевает.
+        */}
+        {showGrabHandle && (
+          <button
+            type="button"
+            className={styles.grabHandle}
+            onClick={toggleSnap}
+            aria-label={
+              atTopSnap
+                ? t('overlay.drawer.collapse', 'Свернуть панель')
+                : t('overlay.drawer.expand', 'Развернуть панель')
+            }
+            aria-expanded={atTopSnap}
+          />
+        )}
+        {/*
+          cornerLabel — декоративный штамп по ДУГЕ скруглённого верхнего-правого угла:
+          текст идёт вдоль четверти окружности радиуса --sys-radius-drawer (path r=17
+          внутри 24px-скругления), «повторяет скругление дровера». Absolute к .content
+          (у нижнего дровера .panel = display:contents). aria-hidden — тип уже звучит в
+          subtitle/контенте; штамп чисто декоративен, тап проходит насквозь.
+        */}
+        {cornerLabel && side === 'bottom' && (
+          <svg
+            className={styles.cornerLabel}
+            viewBox="0 0 48 48"
+            width="48"
+            height="48"
+            aria-hidden="true"
+          >
+            <path id={cornerArcId} d="M 24 7 A 17 17 0 0 1 41 24" fill="none" />
+            <text fill="currentColor" fontSize="7" letterSpacing="0.4">
+              <textPath href={`#${cornerArcId}`} startOffset="50%" textAnchor="middle">
+                {cornerLabel}
+              </textPath>
+            </text>
+          </svg>
+        )}
         {/*
           floatingClose — chromeless layout: no drag-handle row, but the Close
           cross floats absolutely in the top-left corner over the body. Resolves
@@ -318,14 +432,14 @@ const DrawerLayout = ({
           rendered inside Drawer.Content below). Closing therefore never scrolls
           out of reach. Rendered before Drawer.Content so it sits above via z-index.
         */}
-        {scrollAwayHeader && renderLeading(styles.floatingClose)}
+        {scrollAwayHeader && renderLeading(clsx(styles.floatingClose, styles.floatingCloseChrome))}
         {hasChromeRow && !scrollAwayHeader && (
           <div
             className={clsx(
               styles.dragHandle,
               collapseHeader && styles.dragHandleCollapse,
               showVisibleTitle && subtitle != null && styles.dragHandleStacked,
-              header != null && styles.dragHandleHeader,
+              header != null && styles.dragHandleHeader
               // Заголовок ВСЕХ дроверов (нижних И боковых) центрируется по chrome-ряду
               // (просьба 2026-07-10). В боковом дровере ряд живёт внутри `.panel`
               // (edge-handle — отдельный flex-сосед), поэтому центр приходится на
@@ -336,18 +450,21 @@ const DrawerLayout = ({
             data-scrolled={scrolled ? '' : undefined}
           >
             {/*
-              Крест/стрелка/урна — ОДИН примитив IconButton (neutral/danger),
-              одна сетка (.chromeSlot, --sys-size-control=44 тап-арея). Видимый
-              глиф намеренно мельче тап-ареи (16) — «тихость» несёт размер+тонкий
-              штрих (form), а не заниженный контраст; хит-арея остаётся 44 (touch
-              floor). Оптическая кромка глифа держится на линии тела за счёт
-              лево-джастификации в коробке (.chromeSlot.topLeft), независимо от 16.
+              Крест/стрелка/урна — ОДИН примитив IconButton в ведущей ячейке грида.
+              Видимый глиф намеренно мельче тап-ареи (16) — «тихость» несёт размер +
+              тонкий штрих (form), а не заниженный контраст; хит-арея держится 44
+              (touch floor) через .leadingGlyph. Оптическая кромка глифа ложится на
+              линию тела лево-джастификацией в коробке (.chromeCell .leadingGlyph).
+              Ячейка — обычный grid-item (НЕ absolute), поэтому центр-колонка не
+              зависит от неё и крест не может уехать к центру в безымянном ряду.
             */}
-            {renderLeading(clsx(styles.chromeSlot, styles.topLeft))}
+            <div className={clsx(styles.chromeCell, styles.chromeCellLead)}>
+              {renderLeading(styles.leadingGlyph)}
+            </div>
             {/*
-              Custom header center slot. Symmetric gutters (.headerSlot padding)
-              keep the node truly centered on the row despite the absolute
-              cross (left) / topRight (right). Exactly one Drawer.Title still
+              Center + trailing cells. Симметричные крайние треки грида
+              (minmax(gutter,1fr)) держат центр-контент на геометрическом центре
+              ряда независимо от ведущего креста. Exactly one Drawer.Title still
               exists — the sr-only one above (showVisibleTitle is false here).
             */}
             {headerCenter}
@@ -357,9 +474,10 @@ const DrawerLayout = ({
           id="drawer-content-scrollable"
           className={clsx(
             styles.scrollableContent,
+            lockBodyScroll && styles.scrollLockedBase,
             contentInset === 'none' && styles.contentInsetNone,
             contentInset === 'panel' && styles.contentInsetPanel,
-            contentInset === 'sheet' && styles.contentInsetSheet,
+            contentInset === 'sheet' && styles.contentInsetSheet
           )}
           // Collapse-режим: прогресс сворочивания заголовка пишется из scrollTop
           // (enterAlways, useCollapsingHeader). Инертно в 'pin'/'scroll' — хук
@@ -381,11 +499,7 @@ const DrawerLayout = ({
             сам скроллер, который useScrollEdges берёт как observer-root. 1px +
             отрицательный margin ⇒ нулевой вклад в поток, не двигает первый ряд.
           */}
-          <div
-            ref={topSentinelRef}
-            className={styles.scrollSentinel}
-            aria-hidden="true"
-          />
+          <div ref={topSentinelRef} className={styles.scrollSentinel} aria-hidden="true" />
           {/*
             Non-sticky header lives HERE — inside the scroller, right after the
             top sentinel — so it scrolls away with the body. No leading control
@@ -400,7 +514,7 @@ const DrawerLayout = ({
                 styles.dragHandle,
                 styles.dragHandleScroll,
                 showVisibleTitle && subtitle != null && styles.dragHandleStacked,
-                header != null && styles.dragHandleHeader,
+                header != null && styles.dragHandleHeader
               )}
             >
               {headerCenter}
@@ -411,11 +525,7 @@ const DrawerLayout = ({
             Нижний сентинел (fade) — ПОСЛЕДНИЙ ребёнок: ушёл из вида ⇒ ниже есть
             контент ⇒ moreBelow. 1px + отрицательный margin ⇒ не добавляет хвост.
           */}
-          <div
-            ref={bottomSentinelRef}
-            className={styles.scrollSentinelBottom}
-            aria-hidden="true"
-          />
+          <div ref={bottomSentinelRef} className={styles.scrollSentinelBottom} aria-hidden="true" />
         </Drawer.Content>
         {footer != null && <div className={styles.footer}>{footer}</div>}
       </div>

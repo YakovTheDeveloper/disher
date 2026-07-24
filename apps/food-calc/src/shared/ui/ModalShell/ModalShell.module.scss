@@ -188,12 +188,14 @@
   padding: var(--sys-inset-page) var(--sys-inset-modal-fullscreen);
 }
 
-// 'flow' архетип — терминальный бар В ПОТОКЕ (для панелей/дроверов со своим
-// скроллом): без fixed, без keyboard-stick. Идёт ПОСЛЕ `.actionButtons` →
-// равная специфичность, перекрывает fixed-правила порядком. Владеет своим
-// терминальным зазором сверху (section) + тающим hairline-разделителем +
-// safe-area снизу. Портирован из бывшего hand-roll `.footerPanel`
-// (CreateDailyNormModal) — теперь один shell-API на оба архетипа.
+// 'flow' архетип — терминальный сиблинг-футер ПОД скролл-областью: без fixed,
+// без keyboard-stick. Внутри ModalShell рендерится в `.footerSlot` (портал) —
+// ВНЕ fade-маски тела и ПОВЕРХ нижнего скрима `.wrapper::after` (в потоке
+// `.body` таял бы в обоих). Идёт ПОСЛЕ `.actionButtons` → равная специфичность,
+// перекрывает fixed-правила порядком. Владеет своим терминальным зазором сверху
+// (section) + тающим hairline-разделителем + safe-area снизу. Портирован из
+// бывшего hand-roll `.footerPanel` (CreateDailyNormModal) — теперь один
+// shell-API на оба архетипа.
 .actionButtonsFlow {
   position: relative;
   bottom: auto;

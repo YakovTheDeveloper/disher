@@ -6,6 +6,8 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    // Якорь для угловой accent-точки (.dot) — точка absolute относительно каркаса.
+    position: relative;
     padding: 0;
     border: none;
     background: transparent;
@@ -91,6 +93,20 @@
     // другой токен, не тронут → на нажатии отклик остаётся полным.
     --sys-color-surface-icon-tile: var(--sys-color-surface-icon-tile-quiet);
     color: var(--sys-color-icon-muted);
+}
+
+// Угловая accent-точка (opt-in `dot`): сигнальный маркер «требует внимания».
+// Absolute → не влияет на центрированный глиф. Круг через radius-indicator
+// (radius-full). Цвет — accent-заливка действия.
+.dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--sys-radius-indicator);
+    background: var(--sys-color-surface-action-accent);
+    pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

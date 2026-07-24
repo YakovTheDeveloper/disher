@@ -1,119 +1,124 @@
-import type { ReactNode } from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
-// Хойстед-спаи для замоканных хуков/навигации.
-const {
-  useDishWithStatus,
-  useDishItemsWithProducts,
-  useDishNutrientTotals,
-  goToPage,
-} = vi.hoisted(() => ({
-  useDishWithStatus: vi.fn(),
-  useDishItemsWithProducts: vi.fn(),
-  useDishNutrientTotals: vi.fn(),
-  goToPage: vi.fn(),
-}));
+type SelectOpt = { value: string; label: string };
+type CapturedProps = {
+  title: string;
+  kind: string;
+  pageRoute: string;
+  heroName?: string;
+  portionOptions: SelectOpt[];
+  selectedPortion: string;
+  onSelectPortion: (value: string) => void;
+  nutrients: Record<string, number>;
+  hasNutrients: boolean;
+  loading?: boolean;
+};
+
+// Хойстед-спаи хуков блюда + холдер последних props, отданных QuickViewDrawer.
+const { useDishWithStatus, useDishItemsWithProducts, useDishNutrientTotals, useDishPortions, h } =
+  vi.hoisted(() => ({
+    useDishWithStatus: vi.fn(),
+    useDishItemsWithProducts: vi.fn(),
+    useDishNutrientTotals: vi.fn(),
+    useDishPortions: vi.fn(),
+    h: { props: null as unknown as CapturedProps },
+  }));
 
 vi.mock('@/entities/dish', () => ({
   useDishWithStatus,
   useDishItemsWithProducts,
   useDishNutrientTotals,
+  useDishPortions,
 }));
 
-// Хук навигации возвращает наш спай — так проверяем порядок onClose→navigate.
-vi.mock('@/shared/lib/viewTransition', () => ({
-  useViewTransitionNavigate: () => goToPage,
-}));
-
-// FoodsNutrients — маркер-заглушка (проверяем факт присутствия таблицы нутриентов,
-// не её содержимое; тяжёлый DailyNormButton/NutrientTable тут не нужен).
-vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
-  FoodsNutrients: () => <div data-testid="foods-nutrients" />,
-}));
-
-// DrawerLayout-заглушка: passthrough без Base UI Drawer-контекста. Экспонирует
-// title / topRight / body слоты, чтобы ассертить шапку и наличие стрелки.
-vi.mock('@/shared/ui/DrawerLayout', () => ({
-  DrawerLayout: ({ title, topRight, children }: { title?: ReactNode; topRight?: ReactNode; children?: ReactNode }) => (
-    <div>
-      <div data-testid="title">{title}</div>
-      <div data-testid="top-right">{topRight}</div>
-      <div data-testid="body">{children}</div>
-    </div>
-  ),
+// QuickViewDrawer — заглушка: перехватывает props (адаптер лишь поставляет данные)
+// и рендерит кнопку на каждый пункт порции, чтобы дёрнуть onSelectPortion в тесте.
+vi.mock('@/features/food/quick-view-drawer', () => ({
+  QuickViewDrawer: (props: CapturedProps) => {
+    h.props = props;
+    return (
+      <div>
+        {props.portionOptions.map((o) => (
+          <button key={o.value} onClick={() => props.onSelectPortion(o.value)}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    );
+  },
 }));
 
 import { DishDrawer } from './DishDrawer';
 
-describe('DishDrawer', () => {
+describe('DishDrawer (адаптер QuickViewDrawer)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    h.props = null as unknown as CapturedProps;
+    useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
     useDishItemsWithProducts.mockReturnValue([]);
     useDishNutrientTotals.mockReturnValue({ totals: {}, missingNutrientNames: [] });
+    useDishPortions.mockReturnValue([]);
   });
 
-  it('loading → ghost (ни «нет ингредиентов», ни «не найдено»)', () => {
+  it('передаёт имя / kind «dish» / маршрут страницы', () => {
+    render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
+    expect(h.props.title).toBe('борщ');
+    expect(h.props.kind).toBe('dish');
+    expect(h.props.pageRoute).toBe('/dish/d1');
+    expect(h.props.heroName).toBe('борщ');
+  });
+
+  it('загрузка → имя-«призрак» из dishName, без нутриентов, loading прокинут (ghost, без ложной подсказки)', () => {
     useDishWithStatus.mockReturnValue({ dish: null, loading: true });
-    const { queryByText } = render(<DishDrawer dishId="d1" dishName="борщ" onClose={vi.fn()} />);
-    expect(queryByText(/нет ингредиентов/i)).toBeNull();
-    expect(queryByText(/не найдено/i)).toBeNull();
+    render(<DishDrawer dishId="d1" dishName="борщ" onClose={vi.fn()} />);
+    expect(h.props.title).toBe('борщ');
+    expect(h.props.hasNutrients).toBe(false);
+    // Регресс: пока блюдо грузится, shell должен держать ghost (loading=true),
+    // а не мигать «Добавить нутриенты можно на странице» на непустом блюде.
+    expect(h.props.loading).toBe(true);
   });
 
-  it('missing (loaded, no dish) → сообщение «не найдено» + НЕТ стрелки на страницу', () => {
-    useDishWithStatus.mockReturnValue({ dish: null, loading: false });
-    const { getByText, queryByLabelText } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    expect(getByText(/не найдено/i)).toBeInTheDocument();
-    expect(queryByLabelText('Открыть страницу блюда')).toBeNull();
-  });
-
-  it('капитализирует имя блюда в шапке', () => {
+  it('блюдо загружено → loading=false (подсказка «нет нутриентов» допустима на реально пустом)', () => {
     useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
-    const { getByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    expect(getByTestId('title').textContent).toBe('Борщ');
+    render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
+    expect(h.props.loading).toBe(false);
   });
 
-  it('пустое блюдо → empty-state состава, БЕЗ таблицы нутриентов', () => {
-    useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
-    useDishItemsWithProducts.mockReturnValue([]);
-    const { getByText, queryByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    expect(getByText(/здесь пока пусто/i)).toBeInTheDocument();
-    expect(queryByTestId('foods-nutrients')).toBeNull();
+  it('пустое блюдо → hasNutrients=false, без пунктов порции', () => {
+    render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
+    expect(h.props.hasNutrients).toBe(false);
+    expect(h.props.portionOptions).toEqual([]);
   });
 
-  it('блюдо с ингредиентами → ряды состава (капитализ. + округл. граммы) + таблица нутриентов', () => {
-    useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
+  it('блюдо с ингредиентами → «Всё блюдо» первым + каждая dish_portion; дефолт «Всё блюдо»', () => {
     useDishItemsWithProducts.mockReturnValue([
-      { id: 'i1', quantity: 123.4, product: { name: 'свёкла' } },
+      { id: 'i1', productId: 'p1', quantity: 200, product: { name: 'свёкла' } },
     ]);
     useDishNutrientTotals.mockReturnValue({ totals: { '1': 10 }, missingNutrientNames: [] });
-    const { getByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    const body = getByTestId('body').textContent ?? '';
-    expect(body).toContain('Свёкла');
-    expect(body).toContain('123'); // Math.round(123.4)
-    expect(getByTestId('foods-nutrients')).toBeInTheDocument();
-  });
-
-  it('осиротевший ингредиент (product=null) → фолбэк «Продукт»', () => {
-    useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
-    useDishItemsWithProducts.mockReturnValue([{ id: 'i1', quantity: 50, product: null }]);
-    const { getByTestId } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
-    expect(getByTestId('body').textContent).toContain('Продукт');
-  });
-
-  // Блюдо С ингредиентами: стрелка в шапке условна (`items.length > 0`) — у пустого
-  // её намеренно нет, туда уводит кнопка «Перейти к блюду» внутри empty-state.
-  it('стрелка «на страницу» закрывает дровер ДО навигации (обязательный pop оверлея)', () => {
-    useDishWithStatus.mockReturnValue({ dish: { id: 'd1', name: 'борщ' }, loading: false });
-    useDishItemsWithProducts.mockReturnValue([
-      { id: 'i1', quantity: 50, product: { name: 'свёкла' } },
+    useDishPortions.mockReturnValue([{ id: 'x', dish_id: 'd1', label: 'Половина', grams: 100 }]);
+    render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
+    expect(h.props.hasNutrients).toBe(true);
+    expect(h.props.portionOptions.map((o: { value: string }) => o.value)).toEqual([
+      'Всё блюдо',
+      'Половина',
     ]);
-    const order: string[] = [];
-    const onClose = vi.fn(() => order.push('close'));
-    goToPage.mockImplementation(() => order.push('navigate'));
-    const { getByLabelText } = render(<DishDrawer dishId="d1" onClose={onClose} />);
-    fireEvent.click(getByLabelText('Открыть страницу блюда'));
-    expect(order).toEqual(['close', 'navigate']);
+    expect(h.props.selectedPortion).toBe('Всё блюдо');
+    // «Всё блюдо» = весь вес → нутриенты равны суммарным totals (scale 1).
+    expect(h.props.nutrients).toEqual({ '1': 10 });
+  });
+
+  it('выбор порции скейлит нутриенты по grams / totalWeight', () => {
+    useDishItemsWithProducts.mockReturnValue([
+      { id: 'i1', productId: 'p1', quantity: 200, product: { name: 'свёкла' } },
+    ]);
+    useDishNutrientTotals.mockReturnValue({ totals: { '1': 10 }, missingNutrientNames: [] });
+    useDishPortions.mockReturnValue([{ id: 'x', dish_id: 'd1', label: 'Половина', grams: 100 }]);
+    const { getByText } = render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
+    // 100 г из 200 г всего → scale 0.5.
+    fireEvent.click(getByText('Половина'));
+    expect(h.props.selectedPortion).toBe('Половина');
+    expect(h.props.nutrients).toEqual({ '1': 5 });
   });
 });

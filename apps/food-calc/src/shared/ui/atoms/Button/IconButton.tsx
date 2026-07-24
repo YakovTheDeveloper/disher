@@ -33,6 +33,12 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Сторона квадратного тап-таргета (px). Без фикс-пресетов — прокидывается. */
   size?: number;
   /**
+   * Угловая accent-точка (top-right). Опционально; сигнальный маркер «требует
+   * внимания» (напр. норма не задана у NormFlagButton). Чисто аддитивна — не
+   * трогает layout глифа (absolute), существующие консумеры не затронуты.
+   */
+  dot?: boolean;
+  /**
    * Если задан — кнопка рендерится как `<label htmlFor>` вместо `<button>`, чтобы
    * клик делегировал фокус на целевой input (iOS-safe тригер модалок/дроверов
    * через focus, где программный `.focus()` ненадёжен — см. ModalByLabel-канон).
@@ -47,7 +53,7 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // он прокидывает ref на каркас для focus-менеджмента. В label-режиме (`htmlFor`)
 // ref не форвардится (Base UI этот путь не использует).
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, tone, emphasis, size, className, style, type = 'button', htmlFor, disabled, ...props },
+  { icon, tone, emphasis, size, dot, className, style, type = 'button', htmlFor, disabled, ...props },
   ref
 ) {
   const { pressed, pressProps } = usePressFeedback();
@@ -77,6 +83,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
         data-pressed={pressed || undefined}
       >
         {icon}
+        {dot && <span className={s.dot} aria-hidden="true" />}
       </label>
     );
   }
@@ -93,6 +100,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       data-pressed={pressed || undefined}
     >
       {icon}
+      {dot && <span className={s.dot} aria-hidden="true" />}
     </button>
   );
 });

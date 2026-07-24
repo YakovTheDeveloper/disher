@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { TimeGroup } from '@/features/time-group';
 import styles from './FoodSchedule.module.scss';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
@@ -142,9 +143,12 @@ const FoodSchedule = ({
     );
   }, [totals, missingNutrientNames, nutrientsLoading]);
 
+  const navigate = useNavigate();
+
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
   // продукте/блюде» when the row points at a real entity (guarded — orphan
-  // rows with no productId/dishId show delete only).
+  // rows with no productId/dishId show delete only). «Информация» ведёт на
+  // страницу сущности (быстрый дровер — только у ⓘ в карточке SearchFood).
   const openActionsDrawer = useCallback(
     (item: ScheduleFoodWithRelations) => {
       void drawerStore.show(
@@ -155,7 +159,7 @@ const FoodSchedule = ({
             const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
             if (res.ok) toaster.success('Удалено');
           },
-          actions: buildInfoActions(item),
+          actions: buildInfoActions(item, navigate),
           // Ряд правок под «Информация…» = три голые медали (RoundButton): дуговая
           // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
           // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
@@ -190,7 +194,7 @@ const FoodSchedule = ({
         { trapFocus: false }
       );
     },
-    [primeEdit, editIds]
+    [primeEdit, editIds, navigate]
   );
 
   return (

@@ -1,0 +1,95 @@
+// Тело первого слайда ProductPage — вертикальный ритм между блоками (тип-строка,
+// suggest, редактор/таблица, описание). Боковой gutter несёт сам лист
+// `Screen.headerOverlap` (`--sys-inset-page`), поэтому здесь только вертикаль.
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-stack-row);
+}
+
+// Имя продукта в верхнем слоте Screen (`topContent`) — 1:1 с DishBuilderPage:
+// блочный h2, sentence-case первой буквы средствами CSS, кликабельный rename-label.
+.nameHeading {
+  &::first-letter {
+    text-transform: uppercase;
+  }
+
+  label {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      opacity: 0.6;
+    }
+  }
+}
+
+// Триггер dropdown-меню правки в правом слоте листа (topContentRight) —
+// прозрачный тайл, ink-глиф (1:1 с DishBuilderPage / ProductDrawer).
+.editIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--sys-radius-indicator);
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    color: var(--sys-color-text-system);
+  }
+
+  &:active {
+    background: var(--sys-color-bg-press);
+  }
+}
+
+// Описание продукта — тихий secondary-текст, сохраняет переносы строк.
+.description {
+  margin: 0;
+  color: var(--sys-color-text-secondary);
+  white-space: pre-line;
+}
+
+// AI-подбор над таблицей-редактором — отделён снизу.
+.suggestRow {
+  display: flex;
+  margin-bottom: var(--sys-stack-row);
+}
+
+// Семантический warning (совокупная масса грамм-нутриентов > 100 г).
+.massWarning {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--sys-radius-control);
+  background: var(--sys-color-status-warning-surface);
+  border: 1px solid var(--sys-color-status-warning-border);
+  color: var(--sys-color-status-warning);
+  line-height: 1.4;
+}
+
+// Пустой состав — воздух вокруг empty-state, чтобы лист дышал.
+.emptyNutrients {
+  padding: var(--space-6) var(--space-3);
+}
+
+// Тихий вторичный путь — ручной ввод (открывает редактор нутриентов). Текст-линк.
+.manualLink {
+  border: none;
+  background: none;
+  padding: var(--space-1) var(--space-2);
+  color: var(--sys-color-text-tertiary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    color: var(--sys-color-text-secondary);
+  }
+}

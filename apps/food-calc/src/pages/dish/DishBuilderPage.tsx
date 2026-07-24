@@ -21,13 +21,11 @@ import {
   CHANGE_DESCRIPTION_INPUT_ID,
 } from '@/features/shared/change-name';
 import { ItemsList } from '@/shared/ui/atoms/ItemsList';
-import { Screen } from '@/shared/ui/Screen';
 import {
   useWriteFoodFlow,
   getWriteFoodInputId,
   FoodWriteBar,
 } from '@/features/food/food-free-text-parse';
-import { SwipeDeck, type DeckSlide } from '@/shared/ui/SwipeDeck';
 import { useWallpaperStore } from '@/shared/lib/wallpaper';
 import { useCardPalette } from '@/shared/lib/cardPalette';
 import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
@@ -43,26 +41,18 @@ import {
   FoodEntryEditModals,
   useFoodEntryFlow,
 } from '@/features/food/food-entry-flow';
-import {
-  FoodPortionsManager,
-  PortionCreateModals,
-  AddPortionButton,
-} from '@/features/food/food-portions-manager';
 import { DishHubDrawer } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
-import { HomeTopBar } from '@/widgets/HomeTopBar';
-import { BackButton } from '@/shared/ui/atoms/Button/BackButton';
-import { IconButton } from '@/shared/ui/atoms/Button';
-import CalendarIcon from '@/shared/assets/icons/calendar.svg?react';
+import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
-import { type ScreenEntry } from '@/shared/ui/ScreenIndicator';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { SuggestIngredientsClarifyDrawer } from '@/features/food/food-free-text-parse/ui/SuggestIngredientsClarifyDrawer';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
+import { EntityPageShell } from '@/widgets/EntityPageShell';
 
 type DishItemWithProduct = {
   id: string;
@@ -71,15 +61,6 @@ type DishItemWithProduct = {
   details: string;
   product: { name: string | null } | null;
 };
-
-// Разделы блюда. Плитки текстовые — tile-art снят (выпилен из проекта). Слайд
-// «Анализ» схлопнут 2026-07-04 — разбор уехал в модалку за кнопкой «О!».
-const DISH_SCREENS: ScreenEntry[] = [
-  { label: 'Блюдо', titleStyle: 'display-sans' },
-  { label: 'Порции', titleStyle: 'display-sans' },
-];
-
-const DEFAULT_SLIDE = 0;
 
 // Гравюра-обложка над табами блюда — одна на обе плитки (Блюдо / Порции): экран
 // «Блюдо» несёт один ключ обоев. Стабильна (module-scope) → topSlot'ы SwipeDeck
@@ -162,19 +143,19 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     [primeEdit, editIds]
   );
 
-  // HomeTopBar is date-aware (click on date-segment → ScheduleNavigatorDrawer
-  // → navigate to /schedule/<date>). Dish has no date — show "К расписанию"
-  // override text, but keep the underlying drawer+navigation so the button
-  // remains a useful escape hatch back to the schedule.
-  const dateForTopBar = useMemo(() => {
-    if (typeof window === 'undefined') return format(new Date(), 'dd-MM-yyyy');
+  // Back ведёт на реальный origin (state.from), фолбэк каркаса — последняя
+  // посещённая дата расписания. PUSH на явный URL (popstate-back RR не анимирует).
+  // heroName — мгновенное имя из быстрого дровера (state), для ghost-шапки загрузки.
+  const navState = location.state as { from?: string; heroName?: string } | null;
+  const backFrom = navState?.from;
+  const heroName = navState?.heroName;
+  // Фолбэк для навигации после удаления (когда origin неизвестен) — последняя
+  // посещённая дата расписания, 1:1 с каркасным backTo.
+  const scheduleFallback = useMemo(() => {
+    if (typeof window === 'undefined') return `/schedule/${format(new Date(), 'dd-MM-yyyy')}`;
     const stored = window.localStorage.getItem('lastVisitedScheduleDate');
-    return stored ?? format(new Date(), 'dd-MM-yyyy');
+    return `/schedule/${stored ?? format(new Date(), 'dd-MM-yyyy')}`;
   }, []);
-
-  // Back ведёт на реальный origin (state.from), фолбэк — последняя посещённая
-  // дата расписания. PUSH на явный URL (popstate-back RR намеренно не анимирует).
-  const backTo = (location.state as { from?: string } | null)?.from ?? `/schedule/${dateForTopBar}`;
 
   // Semantic suggest: grab the dish name → head A → matched ingredients land in
   // the FoodWriteBar dock (панель предложки над баром, паттерн Событий) — доскролл
@@ -206,25 +187,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const dishHeight = useWallpaperStore((s) => s.heights.dish) ?? undefined;
   const heroHeightForSlide = useCallback(() => dishHeight, [dishHeight]);
 
-  // Бар отдаётся в SwipeDeck через render-prop — каркас прокидывает `shellRef`
-  // (scroll-hide). На блюде нет даты: пилюля-дата = иконка-календарь, переход к
-  // расписанию остаётся; `noInterruptGuard` глушит date-switch confirm. Кнопка
-  // «О!» (onHubClick) открывает DishHubDrawer.
-  const renderTopBar = useCallback(
-    (shellRef: React.Ref<HTMLDivElement>) => (
-      <HomeTopBar
-        date={dateForTopBar}
-        backSlot={<BackButton to={backTo} />}
-        dateButtonLabel={<CalendarIcon width={22} height={22} />}
-        noInterruptGuard
-        onHubClick={openDishHub}
-        hubAriaLabel="Действия с блюдом — анализ и подбор продуктов"
-        shellRef={shellRef}
-      />
-    ),
-    [dateForTopBar, backTo, openDishHub]
-  );
-
   // ── Порции блюда: создание 2-шаговой модалкой + удаление long-press → drawer ──
   // Адаптер прячет хранение: блюдо = таблица dish_portions по id (label→id-мап).
   // PortionCreateModals (с внутренним usePortionFlow) — общий с ProductPage.
@@ -253,57 +215,64 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     });
   };
 
-  if (!dish) return null;
+  // Пока блюдо грузится из Dexie — каркас с мгновенным именем из nav-state
+  // (heroName, прокинут быстрым дровером) вместо чёрного экрана. Тот же
+  // <EntityPageShell> в той же позиции → реконсиляция без ремоунта дека; полный
+  // экран дорисуется по загрузке. Без heroName (переход не из дровера) — null, как было.
+  if (!dish) {
+    return heroName ? (
+      <EntityPageShell
+        entityLabel="Блюдо"
+        backFrom={backFrom}
+        nameHeading={
+          <Heading role="title" as="h2" className={styles.nameHeading}>
+            <span>{heroName}</span>
+          </Heading>
+        }
+        firstSlideBody={null}
+      />
+    ) : null;
+  }
 
   const items = dishItems;
 
   // Имя блюда в `topContent` каждого Screen. `<label>` лежит ВНУТРИ heading-а
   // и оборачивает span — валидный HTML (label принимает phrasing content),
   // и при этом heading рендерится как `<h2>` чтобы у страницы остался один
-  // `<h1>`. Дублирование topContent в 3 Screen-ах не плодит h1 в DOM.
-  // Клик по label → focus на input ChangeNameModal.
+  // `<h1>`. Клик по label → focus на input ChangeNameModal.
   const nameHeading = (
-    <Heading role="headline" as="h2" className={styles.nameHeading}>
+    <Heading role="title" as="h2" className={styles.nameHeading}>
       <label htmlFor={CHANGE_NAME_INPUT_ID} aria-label="Изменить название">
         <span>{dish.name}</span>
       </label>
     </Heading>
   );
 
-  // Подпись-описание под именем: тап открывает ChangeDescriptionModal тем же
-  // приёмом, что имя (лейбл → фокус инпута модалки → handleChromeFocusCapture).
-  // Пустое описание показывает «+ Описание» как призыв добавить.
-  const descriptionLine = (
-    <label
-      htmlFor={CHANGE_DESCRIPTION_INPUT_ID}
-      className={styles.descriptionEdit}
-      aria-label={dish.description ? 'Изменить описание' : 'Добавить описание'}
+  // Карандаш-edit в правом верхнем слоте листа (topContentRight) → dropdown-меню
+  // «Изменить название / описание» (паритет с ProductDrawer). Пункты —
+  // `<label htmlFor>` с `closeOnClick={false}`: focus-делегация на input нужной
+  // chrome-модалки (ради iOS-клавиатуры, feedback_ios_focus) → handleChromeFocusCapture
+  // раскрывает её; меню закроется focus-out'ом после делегации.
+  const editMenu = (
+    <DropdownMenu
+      triggerClassName={styles.editIconBtn}
+      triggerAriaLabel="Редактировать блюдо"
+      trigger={<EditIcon width={20} height={20} />}
     >
-      <Text as="span" role="caption">
-        {dish.description || '+ Описание'}
-      </Text>
-    </label>
-  );
-
-  const overviewTopContent = (
-    <>
-      {nameHeading}
-      {descriptionLine}
-    </>
-  );
-
-  // Карандаш-edit в правом верхнем слоте листа (topContentRight). Тот же тригер,
-  // что клик по имени: `<label htmlFor={CHANGE_NAME_INPUT_ID}>` (ghost-режим
-  // IconButton) → фокус на input ChangeNameModal → onFocusCapture раскрывает rename.
-  // Явный affordance «изменить название» рядом с самим названием.
-  const editNameButton = (
-    <IconButton
-      tone="ghost"
-      size={40}
-      htmlFor={CHANGE_NAME_INPUT_ID}
-      aria-label="Изменить название"
-      icon={<EditIcon width={20} height={20} />}
-    />
+      <DropdownMenuItem closeOnClick={false} render={<label htmlFor={CHANGE_NAME_INPUT_ID} />}>
+        <Text as="span" role="body">
+          Изменить название
+        </Text>
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        closeOnClick={false}
+        render={<label htmlFor={CHANGE_DESCRIPTION_INPUT_ID} />}
+      >
+        <Text as="span" role="body">
+          Изменить описание
+        </Text>
+      </DropdownMenuItem>
+    </DropdownMenu>
   );
 
   // Long-press → per-item action drawer: delete (top-right) + «Информация о
@@ -316,7 +285,7 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         if (res.ok) toaster.success('Удалено');
       },
       // Dish ingredients are always products → reuse the shared guard.
-      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }),
+      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }, navigate),
     });
   };
 
@@ -335,172 +304,141 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     const res = await safeMutate(() => deleteDish(id), 'Не удалось удалить блюдо');
     if (res.ok) {
       setRenameOpen(false);
-      navigate(backTo);
+      navigate(backFrom ?? scheduleFallback);
     }
   };
 
-  // Каждый слайд = свой `<Screen>`, получающий topSlot (плитки) в `stickyTop`.
-  // Каркас (SwipeDeck) владеет container/стеклом/scroll-hide/свайпом/плитками.
-  // Колода схлопнута до [Блюдо, Порции] 2026-07-04 — слайд «Анализ» уехал в
-  // модалку за кнопкой «О!» (DishHubDrawer → DishAnalysisModal).
-  const slides: DeckSlide[] = [
-    {
-      render: (topSlot) => (
-        <Screen
-          key={1}
-          headerOverlap
-          topContent={overviewTopContent}
-          topContentRight={editNameButton}
-          stickyTop={topSlot}
-          overlay={
-            <>
-              <FoodEntryCreateModals flow={createFlow} />
-              <div onFocusCapture={handleEditFocusCapture}>
-                <FoodEntryEditModals flow={editFlow} />
-              </div>
-              {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch
-                  теперь живёт прямо в FoodWriteBar. Дубликат
-                  `<input id={writeFoodInputId}>` в DOM дал бы конфликт. */}
-            </>
-          }
-          bottomBar={
-            /* Предложка (InlineWriteFoodReview) живёт ВНУТРИ FoodWriteBar
-               (док над баром, паттерн Событий, 2026-07-02) — отдельный
-               afterContent-слот больше не нужен (паритет с FoodSchedule). */
-            <FoodWriteBar
-              flow={writeFoodFlow}
-              inputId={writeFoodInputId}
-              searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
-              examplesActive={items.length === 0}
-              focusTitle="Еда и ее количество"
-            />
-          }
-        >
-          <div data-dv-v={palette} className={styles.dishItemsGroup}>
-            <ItemsList>
-              {items.map((item, index) => {
-                // onPointerDown стэшит activeItemId на DETAILS_INPUT ДО фокуса —
-                // его читает handleEditFocusCapture (primeEdit). Тап по имени ИЛИ
-                // по деталям открывает редактор деталей (паритет с HomePage).
-                const stashDetails = () => {
-                  const trigger = document.getElementById(editIds.DETAILS_INPUT);
-                  if (trigger) trigger.dataset.activeItemId = item.id;
-                };
-                return (
-                  // Тонкий контейнер: строка dish_item → FoodEntryCard. Времени нет
-                  // (dish-ингредиент), qty коммитится в dish_items на blur. dataEntityEdit
-                  // НЕ ставим: бар тут не Screen-бар количества.
-                  <FoodEntryCard
-                    key={item.id}
-                    id={item.id}
-                    index={index}
-                    innerClassName={styles.dishFoodListItem}
-                    onLongPress={() => openActionsDrawer(item)}
-                    quantity={item.quantity}
-                    onCommitQuantity={(quantity) =>
-                      safeMutate(
-                        () => updateDishItem(item.id, { quantity }),
-                        'Не удалось обновить количество'
-                      )
-                    }
-                    name={{ name: item.product?.name ?? item.productId }}
-                    nameHtmlFor={editIds.DETAILS_INPUT}
-                    onNamePointerDown={stashDetails}
-                    details={item.details || undefined}
-                  />
-                );
-              })}
-            </ItemsList>
-          </div>
-          {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с
-              FoodSchedule). На пустом блюде не показываем. */}
-          {items.length > 0 && <NutrientsBar totals={dishTotals} onOpen={openNutrients} />}
-        </Screen>
-      ),
-    },
-    {
-      render: (topSlot) => (
-        <Screen
-          key={3}
-          headerOverlap
-          topContent={nameHeading}
-          stickyTop={topSlot}
-          bottomBar={<AddPortionButton />}
-          overlay={
-            <PortionCreateModals
-              // «Всё блюдо» — производная строка implicitPortion; добавляем в
-              // reserved-список, чтобы юзер не создал порцию-двойник.
-              existingLabels={items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels}
-              unit="г"
-              onCreate={createPortion}
-            />
-          }
-        >
-          <FoodPortionsManager
-            portions={portionsRaw.map((p) => ({
-              label: p.label,
-              grams: p.grams,
-            }))}
-            implicitPortion={
-              items.length > 0
-                ? {
-                    label: 'Всё блюдо',
-                    grams: items.reduce((sum, it) => sum + it.quantity, 0),
-                  }
-                : undefined
-            }
-            showHint={false}
-            onUpdate={updatePortion}
-            onLongPressRow={openPortionDeleteDrawer}
-          />
-        </Screen>
-      ),
-    },
-  ];
-
-  return (
+  // Состав блюда + сводка нутриентов — тело первого слайда.
+  const firstSlideBody = (
     <>
-      {/* Rename-модалка: focus-delegation работает через расположение ИНПУТА
-          (внутри ChangeNameModal), не лейбла — поэтому модалка живёт соседом
-          SwipeDeck. Лейбл в nameHeading (в каждом Screen) редиректит фокус на её
-          input по id → onFocusCapture здесь ловит и раскрывает rename. */}
-      <div onFocusCapture={handleChromeFocusCapture}>
-        <ChangeNameModal
-          currentName={dish.name}
-          isExpanded={renameOpen}
-          onClose={() => setRenameOpen(false)}
-          onChangeName={(name) => {
-            void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
-            setRenameOpen(false);
-          }}
-          onDelete={handleDeleteDish}
-          deleteLabel="Удалить блюдо"
-        />
-        {/* Блюдо не может быть БАД → showHint={false} (кнопка-подсказка про
-            состав БАД в шапке не нужна). */}
-        <ChangeDescriptionModal
-          currentDescription={dish.description}
-          isExpanded={descriptionOpen}
-          onClose={() => setDescriptionOpen(false)}
-          onChangeDescription={(description) => {
-            void safeMutate(
-              () => updateDishDescription(dish.id, description),
-              'Не удалось изменить описание',
+      <div data-dv-v={palette} className={styles.dishItemsGroup}>
+        <ItemsList>
+          {items.map((item, index) => {
+            // onPointerDown стэшит activeItemId на DETAILS_INPUT ДО фокуса —
+            // его читает handleEditFocusCapture (primeEdit). Тап по имени ИЛИ
+            // по деталям открывает редактор деталей (паритет с HomePage).
+            const stashDetails = () => {
+              const trigger = document.getElementById(editIds.DETAILS_INPUT);
+              if (trigger) trigger.dataset.activeItemId = item.id;
+            };
+            return (
+              // Тонкий контейнер: строка dish_item → FoodEntryCard. Времени нет
+              // (dish-ингредиент), qty коммитится в dish_items на blur.
+              <FoodEntryCard
+                key={item.id}
+                id={item.id}
+                index={index}
+                innerClassName={styles.dishFoodListItem}
+                onLongPress={() => openActionsDrawer(item)}
+                quantity={item.quantity}
+                onCommitQuantity={(quantity) =>
+                  safeMutate(
+                    () => updateDishItem(item.id, { quantity }),
+                    'Не удалось обновить количество'
+                  )
+                }
+                name={{ name: item.product?.name ?? item.productId }}
+                nameHtmlFor={editIds.DETAILS_INPUT}
+                onNamePointerDown={stashDetails}
+                details={item.details || undefined}
+              />
             );
-            setDescriptionOpen(false);
-          }}
-          showHint={false}
-        />
+          })}
+        </ItemsList>
       </div>
-      <SwipeDeck
-        screens={DISH_SCREENS}
-        slides={slides}
-        defaultSlide={DEFAULT_SLIDE}
-        renderTopBar={renderTopBar}
-        heroForSlide={heroForSlide}
-        heroHeightForSlide={heroHeightForSlide}
+      {/* Полоса-сводка нутриентов блюда — в конце списка (паритет с
+          FoodSchedule). На пустом блюде не показываем. */}
+      {items.length > 0 && <NutrientsBar totals={dishTotals} onOpen={openNutrients} />}
+    </>
+  );
+
+  const firstSlideOverlay = (
+    <>
+      <FoodEntryCreateModals flow={createFlow} />
+      <div onFocusCapture={handleEditFocusCapture}>
+        <FoodEntryEditModals flow={editFlow} />
+      </div>
+      {/* WriteFoodModals overlay убран 2026-05-23: AutoGrowSearch теперь живёт
+          прямо в FoodWriteBar. Дубликат `<input id={writeFoodInputId}>` дал бы
+          конфликт. */}
+    </>
+  );
+
+  // Предложка (InlineWriteFoodReview) живёт ВНУТРИ FoodWriteBar (док над баром,
+  // паттерн Событий, 2026-07-02) — отдельный afterContent-слот не нужен.
+  const firstSlideBottomBar = (
+    <FoodWriteBar
+      flow={writeFoodFlow}
+      inputId={writeFoodInputId}
+      searchHtmlFor={createFlow.inputIds.SEARCH_INPUT}
+      examplesActive={items.length === 0}
+      focusTitle="Еда и ее количество"
+    />
+  );
+
+  const chrome = (
+    <>
+      <ChangeNameModal
+        currentName={dish.name}
+        isExpanded={renameOpen}
+        onClose={() => setRenameOpen(false)}
+        onChangeName={(name) => {
+          void safeMutate(() => updateDishName(dish.id, name), 'Не удалось переименовать');
+          setRenameOpen(false);
+        }}
+        onDelete={handleDeleteDish}
+        deleteLabel="Удалить блюдо"
+      />
+      {/* Блюдо не может быть БАД → showHint={false} (кнопка-подсказка про
+          состав БАД в шапке не нужна). */}
+      <ChangeDescriptionModal
+        currentDescription={dish.description}
+        isExpanded={descriptionOpen}
+        onClose={() => setDescriptionOpen(false)}
+        onChangeDescription={(description) => {
+          void safeMutate(
+            () => updateDishDescription(dish.id, description),
+            'Не удалось изменить описание'
+          );
+          setDescriptionOpen(false);
+        }}
+        showHint={false}
       />
     </>
+  );
+
+  return (
+    <EntityPageShell
+      entityLabel="Блюдо"
+      backFrom={backFrom}
+      hub={{
+        onClick: openDishHub,
+        ariaLabel: 'Действия с блюдом — анализ и подбор продуктов',
+      }}
+      heroForSlide={heroForSlide}
+      heroHeightForSlide={heroHeightForSlide}
+      nameHeading={nameHeading}
+      editMenu={editMenu}
+      firstSlideBody={firstSlideBody}
+      firstSlideOverlay={firstSlideOverlay}
+      firstSlideBottomBar={firstSlideBottomBar}
+      portions={{
+        rows: portionsRaw.map((p) => ({ label: p.label, grams: p.grams })),
+        implicitPortion:
+          items.length > 0
+            ? { label: 'Всё блюдо', grams: items.reduce((sum, it) => sum + it.quantity, 0) }
+            : undefined,
+        // «Всё блюдо» — производная строка implicitPortion; добавляем в
+        // reserved-список, чтобы юзер не создал порцию-двойник.
+        existingLabels: items.length > 0 ? [...portionLabels, 'Всё блюдо'] : portionLabels,
+        unit: 'г',
+        onCreate: createPortion,
+        onUpdate: updatePortion,
+        onLongPressRow: openPortionDeleteDrawer,
+      }}
+      chrome={chrome}
+      onChromeFocusCapture={handleChromeFocusCapture}
+    />
   );
 };
 

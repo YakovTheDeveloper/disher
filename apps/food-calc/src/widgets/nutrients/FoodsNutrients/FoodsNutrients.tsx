@@ -1,36 +1,40 @@
 import { memo } from 'react';
-import { NutrientMeterView } from '@/entities/nutrient/ui/NutrientMeterView';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
-import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { FoodNormSections } from '@/features/dailyNorms/FoodNormSections';
-import { Text } from '@/shared/ui/atoms/Typography/Text';
-import styles from './FoodsNutrients.module.scss';
+import { FoodNutritionPanel } from '@/features/dailyNorms/FoodNutritionPanel';
 
 type Props = {
   totals: NutrientTotals;
   missingNutrientNames?: string[];
   isLoading?: boolean;
+  /** Инсет контента секций на --sys-inset-page слева — форвард в FoodNutritionPanel. */
+  insetContent?: boolean;
+  /** Тип еды («Блюдо») — ряд-шапка панели; форвард в FoodNutritionPanel. */
+  type?: string;
 };
 
-const FoodsNutrients = ({ totals, missingNutrientNames = [], isLoading }: Props) => {
+/**
+ * Read-only Nutrients-разбор по `totals` (сумма блюда / день) — тонкая обёртка над
+ * общим `FoodNutritionPanel`: превращает `totals` в `getValue` (+ спиннер загрузки)
+ * и отдаёт ядру. Продукт зовёт `FoodNutritionPanel` напрямую (свой getScaledValue).
+ */
+const FoodsNutrients = ({
+  totals,
+  missingNutrientNames,
+  isLoading,
+  insetContent,
+  type,
+}: Props) => {
   const { getValue } = useNutrientTotals(totals);
 
   return (
-    <div className={styles.root}>
-      {isLoading && (
-        <div className={styles.spinnerOverlay}>
-          <Spinner size={16} />
-        </div>
-      )}
-      <FoodNormSections />
-      <NutrientMeterView getValue={getValue} />
-      {missingNutrientNames.length > 0 && (
-        <Text role="caption" className={styles.missing}>
-          Нет данных о нутриентах: {missingNutrientNames.join(', ')}
-        </Text>
-      )}
-    </div>
+    <FoodNutritionPanel
+      getValue={getValue}
+      missingNutrientNames={missingNutrientNames}
+      isLoading={isLoading}
+      insetContent={insetContent}
+      type={type}
+    />
   );
 };
 

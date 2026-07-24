@@ -169,35 +169,13 @@ $ink-muted: rgba(58, 46, 20, 0.55);
     flex-shrink: 0;
 }
 
-// ─── Итог (секция-ровня) ─────────────────────────────────────────
-// Итог теперь обычная `FormLayout.Group` (заголовок «Итог» + сводка
-// `NutrientTotalsColumn` align="start" + оговорка). Раскладкой/зазорами владеет
-// FormLayout — секция встаёт в общий section-ритм, отдельного контейнера/бровки
-// у неё больше нет.
-
-// Две колонки: слева — сводка нутриентов (content-width), справа — оговорка.
-// align-items:flex-start → подсказка встаёт вровень с верхней строкой сводки.
-.summaryRow {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-6);
-}
-
-// Правая колонка: оговорка про точность + провенанс — тихий 2-строчный блок,
-// забирает остаток ширины. Строки прижаты плотно (свой малый gap), не через
-// field-зазор; оба <Text> margin не ставят.
-.previewMeta {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.previewMetaLine {
-    margin: 0;
-    color: var(--sys-field-adornment, #{$ink-soft});
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
+// ─── Результат (на месте кнопки) ─────────────────────────────────
+// Когда норма задана и анкету не меняли, кнопка подтверждения уступает место
+// сводке `NutrientTotalsColumn` (align="start"). Живёт в терминальном слоте
+// (наравне с flow-футером): боковой инсет — тот же page-gutter, чтобы левый край
+// сводки встал в линию с контентом формы.
+.resultFooter {
+    padding: var(--space-6) var(--sys-inset-page) 0;
 }
 
 // ─── Footer ──────────────────────────────────────────────────────

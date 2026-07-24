@@ -45,6 +45,7 @@ vi.mock('react-i18next', () => ({
 }));
 vi.mock('./drawerSide', () => ({
   useDrawerSide: () => ({ side: sideMock.side, width: undefined }),
+  useDrawerSnap: () => ({ atTopSnap: true, canExpand: false }),
 }));
 
 describe('DrawerLayout — hideTopChrome', () => {
@@ -145,5 +146,23 @@ describe('DrawerLayout — hideTopChrome', () => {
     );
     expect(container.querySelector('.dl-titleCenter')).toBeNull();
     expect(container.querySelector('.dl-headerSlot')).not.toBeNull();
+  });
+
+  // titleSize="title" + subtitle — средний рунг заголовка с тихой контекст-строкой
+  // под ним (QuickViewDrawer: имя еды + «Информация о продукте»). Оба текста живут
+  // в центре chrome-ряда: заголовок — Drawer.Title, subtitle — caption-строка в
+  // `.titleSubtitle` внутри `.titleStack`. Попап получает класс-маркер
+  // `.stackedTitle` — layout сам поднимает зазор «шапка → тело» до section-рунга.
+  it('titleSize="title" renders the title with a quiet subtitle beneath', () => {
+    const { getByText, getByTestId, container } = render(
+      <DrawerLayout title="Алыча" titleSize="title" subtitle="Информация о продукте">
+        body
+      </DrawerLayout>,
+    );
+    expect(getByText('Алыча')).not.toBeNull();
+    expect(container.querySelector('.dl-titleStack')).not.toBeNull();
+    const subtitleEl = getByText('Информация о продукте');
+    expect(container.querySelector('.dl-titleSubtitle')).toBe(subtitleEl);
+    expect(getByTestId('popup').className).toContain('dl-stackedTitle');
   });
 });

@@ -13,10 +13,15 @@ export interface WellProps extends HTMLAttributes<HTMLDivElement> {
    * `round` — лоток ПОД ряд КРУГЛЫХ кнопок (нав-монеты, ряд правок ItemActionsDrawer):
    * капсульная обводка перекликается с кругами внутри (контейнерный радиус читался бы
    * «квадратом»), а канавка холоднее и бледнее (grey-shade вместо warm-brown, мельче
-   * depth) — почти-белый слот не спорит с приподнятыми surface-2 плитками. Дефолт
+   * depth) — почти-белый слот не спорит с приподнятыми surface-2 плитками.
+   *
+   * `deep` — тот же тёплый агент, но канавка МЕЛЬЧЕ: 2% вместо дефолтных 4%. На белом
+   * дровере (surface-2) 4% вырождались в серое пятно; 2% — едва тронутая тёплая
+   * заливка, почти-белый слот, углы держит контейнерный радиус базы. Для титульных
+   * вдавленных панелей на белом дровере (секция «Дневная норма»). Дефолт
    * `default` — исходное поведение без изменений.
    */
-  variant?: 'default' | 'round';
+  variant?: 'default' | 'round' | 'deep';
   children?: ReactNode;
 }
 
@@ -37,7 +42,13 @@ export const Well = forwardRef<HTMLDivElement, WellProps>(function Well(
   return (
     <div
       ref={ref}
-      className={clsx(s.well, SURFACE_CLASS[onSurface], variant === 'round' && s.round, className)}
+      className={clsx(
+        s.well,
+        SURFACE_CLASS[onSurface],
+        variant === 'round' && s.round,
+        variant === 'deep' && s.deep,
+        className,
+      )}
       {...rest}
     >
       {children}

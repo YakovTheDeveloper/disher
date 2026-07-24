@@ -7,7 +7,7 @@ import {
   upsertUserNorm,
   generateNormFromSurvey,
   calcMacros,
-  calcTdee,
+  useHasUserNorm,
   type NormSurvey,
   type Activity,
   type Goal,
@@ -19,8 +19,9 @@ import { useFieldError } from '@/shared/ui/form/useFieldError';
 import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FormLayout } from '@/shared/ui/form/FormLayout';
 import { NutrientTotalsColumn } from '@/shared/ui/NutrientTotalsColumn';
+import { useNormMethodStore, sameSurvey, showSurveyCommitButton } from '@/features/dailyNorms/model';
 import styles from './CreateDailyNormModal.module.scss';
-import { Text, Heading } from '@/shared/ui/atoms/Typography';
+import { Text } from '@/shared/ui/atoms/Typography';
 import { Button } from '@/shared/ui/atoms/Button';
 
 // Explanatory copy under the «Моя норма» title — shared verbatim by both chrome
@@ -36,15 +37,6 @@ const EXPLAINER =
 //             with back-button. Skips ModalLayout, hero header, Cancel button.
 type Props = BaseModalProps & {
   chrome?: 'modal' | 'panel';
-};
-
-const DEFAULT_SURVEY: NormSurvey = {
-  sex: 'male',
-  age: 30,
-  weightKg: 70,
-  heightCm: 175,
-  activity: 'moderate',
-  goal: 'health',
 };
 
 const ACTIVITY_OPTIONS: Array<{ value: Activity; label: string; hint: string }> = [
@@ -87,8 +79,6 @@ function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
 }
 
-const fmt = (v: number) => v.toLocaleString('ru-RU');
-
 // Значения сводки — как в NutrientsBar: голое округлённое целое (без разрядного
 // разделителя), чтобы облик итога совпадал с дневной сводкой на «Рационе».
 const fmtInt = (v: number) => String(Math.round(v));
@@ -97,7 +87,20 @@ const isInRange = (v: number, range: { min: number; max: number }) =>
   Number.isFinite(v) && v >= range.min && v <= range.max;
 
 const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
-  const [survey, setSurvey] = useState<NormSurvey>(DEFAULT_SURVEY);
+  const hasNorm = useHasUserNorm();
+  const commitSurvey = useNormMethodStore((s) => s.commitSurvey);
+  const setMethod = useNormMethodStore((s) => s.setMethod);
+  // Способ, которым норма реально ЗАКОММИЧЕНА (persist пишется только на коммите
+  // тела, не на клике вкладки) — отличает «норму задали анкетой» от «открыли
+  // вкладку анкеты при норме, заданной вручную».
+  const committedMethod = useNormMethodStore((s) => s.method);
+  // Рабочее состояние засеиваем ПОСЛЕДНЕЙ закоммиченной анкетой (persist), чтобы
+  // на входе `surveyChanged=false` и при заданной норме показался результат, а не
+  // кнопка. Свежий стор = DEFAULT_SURVEY.
+  const committedSurvey = useNormMethodStore((s) => s.survey);
+  const [survey, setSurvey] = useState<NormSurvey>(
+    () => useNormMethodStore.getState().survey
+  );
 
   // Preview is computed from clamped snapshot — state stays as user typed so
   // they can freely backspace a digit without the value jumping to min.
@@ -111,21 +114,16 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
     [survey]
   );
 
-  const { bmr, tdee, macros } = useMemo(
-    () => ({
-      bmr:
-        Math.round(
-          (10 * safeSurvey.weightKg +
-            6.25 * safeSurvey.heightCm -
-            5 * safeSurvey.age +
-            (safeSurvey.sex === 'male' ? 5 : -161)) /
-            5
-        ) * 5,
-      tdee: Math.round(calcTdee(safeSurvey) / 10) * 10,
-      macros: calcMacros(safeSurvey),
-    }),
-    [safeSurvey]
-  );
+  const macros = useMemo(() => calcMacros(safeSurvey), [safeSurvey]);
+
+  // Правило кнопка-vs-результат: анкету поменяли (относительно закоммиченного
+  // снимка) ИЛИ нормы ещё нет → кнопка подтверждения; норма есть и не менялась →
+  // на месте кнопки тот же NutrientTotalsColumn (состояние «результат»).
+  const surveyChanged = !sameSurvey(survey, committedSurvey);
+  // Правило «кнопка-vs-результат» вынесено в чистую `showSurveyCommitButton`
+  // (тестируется в norm-method-store.test): держим кнопку, если анкету меняли ИЛИ
+  // нормы нет ИЛИ норму задали НЕ анкетой (иначе колонка показала бы фиктивные числа).
+  const showButton = showSurveyCommitButton({ surveyChanged, hasNorm, committedMethod });
 
   // Итоговая сводка переиспользует облик дневной сводки нутриентов (экран
   // «Рацион», NutrientsBar) через общий `NutrientTotalsColumn` — тот же набор
@@ -156,17 +154,25 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
     const items = generateNormFromSurvey(safeSurvey);
     const result = await safeMutate(() => upsertUserNorm(items), 'Не удалось сохранить норму');
     if (!result.ok) return;
+    // Фиксируем закоммиченную анкету (persist) — чтобы «результат/кнопка»
+    // считались от неё — и помним способ для DailyNormModal.
+    commitSurvey(safeSurvey);
+    setMethod('survey');
     toaster.success('Норма подобрана');
     onClose();
-  }, [safeSurvey, onClose, isValid]);
+  }, [safeSurvey, onClose, isValid, commitSurvey, setMethod]);
 
   const isPanel = chrome === 'panel';
 
   const commitButton = (
     <Button variant="system" fullWidth disabled={!isValid} onClick={handleCommit}>
-      Готово
+      Установить норму
     </Button>
   );
+
+  // Состояние «результат» — та же сводка, что была всегда-видимым «Итогом»,
+  // теперь встаёт НА МЕСТО кнопки, когда норма задана и анкету не меняли.
+  const resultColumn = <NutrientTotalsColumn cells={summaryCells} align="start" />;
 
   const formBody = (
     <>
@@ -175,7 +181,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
 
         <FormLayout.Group label="Пол">
           <ChoiceGroup
-            onSurface={2}
+            onSurface={0}
             className={styles.pillRow}
             aria-label="Пол"
             value={survey.sex}
@@ -218,7 +224,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           <ChoiceGroup
             className={styles.pillCol}
             orientation="vertical"
-            onSurface={2}
+            onSurface={0}
             elevation="flat"
             aria-label="Активность"
             value={survey.activity}
@@ -242,7 +248,7 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
             className={styles.pillCol}
             orientation="vertical"
             aria-label="Цель"
-            onSurface={2}
+            onSurface={0}
             elevation="flat"
             value={survey.goal}
             onChange={(v) => patch({ goal: v as Goal })}
@@ -260,40 +266,22 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
           </ChoiceGroup>
         </FormLayout.Group>
 
-        {/* Итог — секция-ровня прочим группам формы (тот же section-gap, левый
-            край). Заголовок несёт <Heading role="title"> (канон заголовка секции
-            нутриентов), сводка — общий NutrientTotalsColumn (облик «Рациона»). */}
-        <FormLayout.Group>
-          <Heading role="headline" as="h3">
-            Итог
-          </Heading>
-          {/* Две колонки: слева — выровненная сводка нутриентов, справа — тихая
-              оговорка про точность + провенанс без жаргона (BMR → «без активности
-              тратится», поддержание → «вес держится»). */}
-          <div className={styles.summaryRow}>
-            <NutrientTotalsColumn cells={summaryCells} align="start" />
-            <div className={styles.previewMeta}>
-              <Text as="p" role="caption" className={styles.previewMetaLine}>
-                Примерная норма — точные числа можно поправить.
-              </Text>
-              <Text as="p" role="caption" className={styles.previewMetaLine}>
-                Без активности тратится ~{fmt(bmr)} ккал, вес держится на ~{fmt(tdee)}
-              </Text>
-            </div>
-          </div>
-        </FormLayout.Group>
       </FormLayout>
     </>
   );
 
-  // Panel mode — inline body inside a drawer that already owns header + scroll.
-  // Интро теперь принадлежит форме (FormLayout.Caption), а actions — терминальный
-  // «flow»-архетип общего shell-API (не hand-roll footer).
+  // Panel mode — инлайн-тело внутри DailyNormModal, которая владеет header'ом и
+  // скроллом. Интро принадлежит форме (FormLayout.Caption), а actions —
+  // терминальный «flow»-архетип общего shell-API (не hand-roll footer).
   if (isPanel) {
     return (
       <div className={clsx(styles.root, styles.rootPanel)}>
         <div className={clsx(styles.body, styles.bodyPanel)}>{formBody}</div>
-        <ModalShell.ActionButtons placement="flow" right={commitButton} />
+        {showButton ? (
+          <ModalShell.ActionButtons placement="flow" right={commitButton} />
+        ) : (
+          <div className={styles.resultFooter}>{resultColumn}</div>
+        )}
       </div>
     );
   }
@@ -307,8 +295,14 @@ const CreateDailyNormModal = ({ onClose, chrome = 'modal' }: Props) => {
         <ModalShell.Header title="Моя норма" onBack={onClose} />
         <ModalShell.Body>
           {formBody}
-          <ModalShell.Spacer />
-          <ModalShell.ActionButtons debugId="daily-norm-create" right={commitButton} />
+          {showButton ? (
+            <>
+              <ModalShell.Spacer />
+              <ModalShell.ActionButtons debugId="daily-norm-create" right={commitButton} />
+            </>
+          ) : (
+            <div className={styles.resultFooter}>{resultColumn}</div>
+          )}
         </ModalShell.Body>
       </ModalShell>
     </ModalLayout>
