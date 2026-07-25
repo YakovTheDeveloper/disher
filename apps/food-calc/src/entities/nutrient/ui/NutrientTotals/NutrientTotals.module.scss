@@ -1,0 +1,661 @@
+// Витрина «Тоталы» — перенос пресета E1 предложки «нутриенты v2» (boxes +
+// cellBorder + hue). Цвет/радиус — только sys-токены; кегль чисел несут
+// примитивы Numeral/NumeralMarker в TSX, scss их не трогает.
+
+// ── Числовые атомы ──────────────────────────────────────────────────────────
+.figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+// Маркеры (юнит/знак %) — данные, не декор: подняты над глобальным 0.4.
+.mark {
+  opacity: 0.75;
+}
+
+.pctDash {
+  color: var(--sys-color-text-tertiary);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Hero E1 «ведомость»: 6 ячеек сеткой 3×2 (ряд «Энергия · Вода · Клетчатка»,
+// ряд «Белки · Жиры · Углеводы»). Группу собирает hairline-сетка на голом
+// листе (2026-07-25, смена подхода: тональная плита отвергнута — графитовая
+// кромка divider по периметру + белые тающие швы divider-card, без подложки). Швы — тот
+// же механизм, что у швов списка еды (features/time-group/TimeGroup.module.scss):
+// псевдоэлемент + 4-stop градиент transparent → divider-card → transparent, концы
+// линии растворяются. Рисуются на самом листе (::before — вертикали, ::after —
+// горизонталь) поверх ячеек и свечений (z-index: 1). Горизонталь ровно на
+// 50% — padding-block листа симметричен.
+// ══════════════════════════════════════════════════════════════════════════
+.eSheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  // Кромка секции — белая рамка (2026-07-25, запрос: 255,255,255 — токен
+  // divider-card; в тёмной теме флипается в тихий white-alpha шов).
+  border: 1px solid var(--sys-color-divider-card);
+  border-radius: var(--sys-radius-container);
+  // Свечения ячеек (inset: -25%) обрезаются кромкой — иначе aurora переливалась
+  // бы через border и размывала край контейнера.
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: var(--space-2);
+    bottom: var(--space-2);
+    left: 0;
+    right: 0;
+    background-image:
+      // Вертикальные швы приглушены и укорочены (fade 30↔70 против 18↔82 у
+      // горизонтали): резка на 6 боксов сменилась ритмом одного поля.
+      linear-gradient(180deg,
+        transparent 0%,
+        var(--sys-color-divider-card) 30%,
+        var(--sys-color-divider-card) 70%,
+        transparent 100%),
+      linear-gradient(180deg,
+        transparent 0%,
+        var(--sys-color-divider-card) 30%,
+        var(--sys-color-divider-card) 70%,
+        transparent 100%);
+    background-repeat: no-repeat;
+    background-position: 33.3333% 0, 66.6667% 0;
+    background-size: 1px 100%;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: var(--space-2);
+    right: var(--space-2);
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--sys-color-divider-card) 18%,
+        var(--sys-color-divider-card) 82%,
+        transparent 100%);
+    pointer-events: none;
+  }
+}
+
+.eCol {
+  position: relative;
+  // Свой stacking context: aurora-свечение (::after, z-index: -1) остаётся под
+  // контентом ячейки, но над фоном листа.
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-1) var(--space-2);
+}
+
+.eName {
+  color: var(--sys-color-text-primary);
+  text-align: center;
+}
+
+// Масса — герой ячейки (переворот иерархии 2026-07-25): primary, крупный кегль
+// несёт Numeral в TSX. % нормы — тихая вторичная строка под ним.
+.ePct {
+  color: var(--sys-color-text-tertiary);
+}
+
+.eMass {
+  color: var(--sys-color-text-primary);
+}
+
+// Прогресс hero-макро: трек в основании колонки, hue = категория, длина = доля
+// нормы. Тот же язык бара, что у ячеек норм хвоста — консистентно.
+.eBar {
+  width: 90%;
+  height: 4px;
+  margin-top: var(--space-1);
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-track);
+  overflow: hidden;
+}
+
+.eBarFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-fill);
+}
+
+.eBarEmpty {
+  height: 4px;
+}
+
+.eBar[data-hue='protein'] .eBarFill {
+  background: var(--sys-color-macro-protein);
+}
+
+.eBar[data-hue='fat'] .eBarFill {
+  background: var(--sys-color-macro-fat);
+}
+
+.eBar[data-hue='carb'] .eBarFill {
+  background: var(--sys-color-macro-carb);
+}
+
+.eBar[data-hue='cool'] .eBarFill {
+  background: var(--sys-color-macro-cool);
+}
+
+// Треки светящихся ячеек — близкий к свечению оттенок средней глубины
+// (--sys-color-track-*): UX-правило «доля нормы читается», пастель свечения
+// для заполнения слишком светлая. Белки держат свой macro-тон (роза близка).
+.eBar[data-hue='energy'] .eBarFill {
+  background: var(--sys-color-track-energy);
+}
+
+.eBar[data-hue='water'] .eBarFill {
+  background: var(--sys-color-track-water);
+}
+
+.eBar[data-hue='fiber'] .eBarFill {
+  background: var(--sys-color-track-fiber);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Акварельная айдентика hero-сетки — ЕДИНСТВЕННЫЙ вариант (2026-07-25, запрос:
+// вилка DesignBar 'NutrientTotalsHero' снесена вместе с форками glow-duet /
+// full-glow / two-realms и aurora-огоньками воды/клетчатки — wash их всё равно
+// гасил). Каждая ячейка мывна своим glow-тоном (~12% над бумагой, мягкий
+// вертикальный сход книзу). Швы листа (::before/::after, z-index: 1) рисуются
+// ПОВЕРХ фона ячеек — wash их не глушит. Все тона — color-mix от glow-токенов,
+// тёмная тема перекрашивается парами токенов. Тон задан градиентом: token-gate
+// не пускает color-mix в solid background.
+// ══════════════════════════════════════════════════════════════════════════
+.eSheet {
+  .eCol[data-hue='energy'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-energy) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-energy) 9%, transparent));
+  }
+
+  .eCol[data-hue='water'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-water) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-water) 9%, transparent));
+  }
+
+  .eCol[data-hue='fiber'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-fiber) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-fiber) 9%, transparent));
+  }
+
+  .eCol[data-hue='protein'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-protein) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-protein) 9%, transparent));
+  }
+
+  .eCol[data-hue='fat'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-fat) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-fat) 9%, transparent));
+  }
+
+  .eCol[data-hue='carb'] {
+    background: linear-gradient(180deg,
+        color-mix(in oklch, var(--sys-color-glow-carb) 14%, transparent),
+        color-mix(in oklch, var(--sys-color-glow-carb) 9%, transparent));
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Hero D1 «Кольца» (heroVariant='circles') — доля нормы дугой, % числом в
+// центре. Перенос из предложки «нутриенты v2»; цвета — только токены.
+// ══════════════════════════════════════════════════════════════════════════
+// Ряд лидеров (2026-07-25, запрос): энергия и вода ОДИНАКОВЫМИ кольцами по
+// краям ряда — два ресурса дня одного ранга; между ними тающий вертикальный шов.
+// Отрицательный инсет на половину паддинга дровера (--drawer-content-inset/2
+// с каждой стороны): верхний ряд чуть шире контентной колонки — кольцам
+// нужен воздух, текстовым рядам хватает инсета листа.
+.dLeadRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-inline: calc(var(--drawer-content-inset, 0px) / -2);
+  padding-block: var(--space-2);
+
+  >.dLead+.dLead {
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-3);
+    border-inline-start: 1px solid var(--sys-color-divider-card);
+  }
+}
+
+.dLead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dLeadMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dLeadMass {
+  color: var(--sys-color-text-secondary);
+}
+
+.dGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+}
+
+.dCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.dMass {
+  color: var(--sys-color-text-tertiary);
+}
+
+.dName {
+  color: var(--sys-color-text-primary);
+}
+
+// Кольцо: размер — геометрия превью, цвета — только токены. --arc красит дугу
+// в hue категории. Кольцо без фона и рамки — не читается кнопкой.
+// Кольцо: размер — геометрия превью, цвета — только токены. data-hue красит
+// дугу в hue категории (token-gate не пускает кастомное свойство в stroke ⇒
+// тон задан прямо на .dArc селекторами ниже). Без фона и рамки — не кнопка.
+.dRingWrap {
+  position: relative;
+  flex: none;
+  width: 64px;
+}
+
+// Кольцо лидера: 76px — два таких кольца (энергия + вода) с метой должны
+// влезать в дровер без обрезки; 88px резало мету воды у правой кромки.
+.dRingLead {
+  width: 76px;
+}
+
+.dSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dTrack {
+  fill: none;
+  stroke: var(--sys-color-surface-track);
+  stroke-width: 4;
+}
+
+.dArc {
+  fill: none;
+  stroke: var(--sys-color-macro-cool);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+// Второй виток поверх полного (переполнение): чуть тоньше и без скругления
+// старта — читается как «ещё один круг», не как продолжение первой дуги.
+.dArcOverflow {
+  fill: none;
+  stroke: var(--sys-color-macro-cool);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.dRingWrap[data-hue='protein'] .dArc {
+  stroke: var(--sys-color-macro-protein);
+}
+
+.dRingWrap[data-hue='fat'] .dArc {
+  stroke: var(--sys-color-macro-fat);
+}
+
+.dRingWrap[data-hue='carb'] .dArc {
+  stroke: var(--sys-color-macro-carb);
+}
+
+.dRingWrap[data-hue='cool'] .dArc {
+  stroke: var(--sys-color-macro-cool);
+}
+
+// Вода/энергия/клетчатка в кольцах: дуга в том же track-тоне, что и трек
+// boxes-варианта — единая айдентика нутриента в обоих hero.
+.dRingWrap[data-hue='water'] .dArc {
+  stroke: var(--sys-color-track-water);
+}
+
+.dRingWrap[data-hue='energy'] .dArc {
+  stroke: var(--sys-color-track-energy);
+}
+
+.dRingWrap[data-hue='fiber'] .dArc {
+  stroke: var(--sys-color-track-fiber);
+}
+
+// Второй виток (переполнение >100 %): тот же hue-тон, что у основной дуги
+// (наследование цвета через те же data-hue селекторы — дуга лежит под .dArc
+// в DOM, поэтому правила .dArc к ней не применяются; задаём явно).
+.dRingWrap[data-hue='protein'] .dArcOverflow {
+  stroke: var(--sys-color-macro-protein);
+}
+
+.dRingWrap[data-hue='fat'] .dArcOverflow {
+  stroke: var(--sys-color-macro-fat);
+}
+
+.dRingWrap[data-hue='carb'] .dArcOverflow {
+  stroke: var(--sys-color-macro-carb);
+}
+
+.dRingWrap[data-hue='cool'] .dArcOverflow {
+  stroke: var(--sys-color-macro-cool);
+}
+
+.dRingWrap[data-hue='water'] .dArcOverflow {
+  stroke: var(--sys-color-track-water);
+}
+
+.dRingWrap[data-hue='energy'] .dArcOverflow {
+  stroke: var(--sys-color-track-energy);
+}
+
+.dRingWrap[data-hue='fiber'] .dArcOverflow {
+  stroke: var(--sys-color-track-fiber);
+}
+
+.dRingCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dPct {
+  color: var(--sys-color-text-cold-strong);
+}
+
+// Нулевая ячейка (value 0) приглушена целиком — и честно показывает «0 %».
+// Та же доктрина, что .rowEmpty у хвоста.
+.dCellEmpty {
+  .dName,
+  .dMass,
+  .dLeadMass,
+  .dPct {
+    color: var(--sys-color-text-tertiary);
+  }
+}
+
+// ── «В т.ч.»-футер (сахар) — тихий, без отступа, без формы ───────────────────
+.subRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+// Правый слот subRow — контрол базиса (селект порции / тихий бейдж супплемента,
+// 2026-07-25): уезжает к правой кромке, на общей базовой линии с «в т.ч.».
+.subControl {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.sub {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.subName {
+  color: var(--sys-color-text-secondary);
+}
+
+.subMass {
+  color: var(--sys-color-text-tertiary);
+}
+
+.subPct {
+  color: var(--sys-color-text-cold-strong);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Хвост: микро-группы плотными таблицами (шапка + ряды, cellBorder).
+// ══════════════════════════════════════════════════════════════════════════
+.tailGroup {
+  margin-top: var(--space-2);
+  padding-top: var(--space-4);
+  // border-top: 1px solid var(--sys-color-divider); // сплошной разделитель групп
+}
+
+// Шапка колонок — грид рядов, но правая колонка auto: ячейка нормы — живая, вместо
+// немой подписи «норма» стоит чип-легенда (слот normControl, 2026-07-25), он шире
+// 3.5rem-колонки рядов и право-выравнивается по её кромке. Вертикального правила
+// у шапки НЕТ (запрос) — бордер колонки норм остаётся только у рядов.
+.rowHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: var(--space-3);
+  align-items: stretch;
+  min-height: 32px;
+  border-bottom: 1px solid var(--sys-color-divider);
+}
+
+.rowHeadLeft {
+  grid-column: 1 / 3;
+  align-self: center;
+  color: var(--sys-color-text-tertiary);
+}
+
+.rowHeadNorm {
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap; // чип «% — дневная норма ›» — одной строкой
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+// Ряд: имя (1fr, доминирует) | значение+юнит | ячейка нормы (3.5rem). Три
+// колонки, право-кластер компактный ⇒ имя никогда не схлопывается.
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 3.5rem;
+  align-items: center;
+  column-gap: var(--space-3);
+  min-height: 36px;
+  padding-block: var(--space-1);
+
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--sys-color-divider);
+  }
+}
+
+// Flat-ряд: колонка норм растянута на всю высоту ряда (align-self: stretch) ⇒
+// её правило непрерывно от ряда к ряду само (padding-block:0 — ячейки норм
+// соседних рядов смыкаются вплотную). Числа выровнены центром ряда.
+.rowFlat {
+  padding-block: 0;
+  min-height: 44px;
+}
+
+// Ряд с подписью (витамины B) выше — двум строкам имени нужен воздух.
+.rowRoomy {
+  min-height: 54px;
+}
+
+// Пустой ряд (value 0) приглушён целиком — и честно показывает «0 %».
+.rowEmpty {
+
+  .name,
+  .value,
+  .pctFlat {
+    color: var(--sys-color-text-tertiary);
+  }
+}
+
+// Имя — колонка-стек: основное имя + (у витаминов B) тихая подпись полного
+// названия. Стек центрируется по вертикали ряда, ellipsis работает на обеих
+// строках (min-width:0 по цепочке). Левый инсет (2026-07-25, запрос): название
+// не липнет к кромке карточки — воздух space-3, правая колонка на месте.
+.nameCell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline-start: var(--space-1);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-inline-end: var(--space-2);
+  color: var(--sys-color-text-primary);
+}
+
+// Подпись полного названия — меньше и тише имени, чтобы не шуметь в ряду.
+.nameSub {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-inline-end: var(--space-2);
+  color: var(--sys-color-text-tertiary);
+  opacity: 0.72;
+}
+
+// Значение+юнит — средняя колонка, право-выровнена. Грамм — реальное содержание,
+// поэтому не слабее процента (иерархия: имя ≥ грамм ≥ %).
+.value {
+  justify-self: end;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--sys-color-text-primary);
+}
+
+// Ячейка нормы — настоящая 3-я колонка грида, stretch на высоту ряда. Число %
+// центрируется как значение ⇒ на одной линии; трек садится на низ ячейки
+// (padding-block у ряда нет) через bottom:0.
+.norm {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  // Симметрия: паддинг и слева, и справа ⇒ % не липнет к правой кромке столбца.
+  padding-inline: var(--space-2);
+  color: var(--sys-color-text-primary);
+}
+
+// Вертикальное правило колонки норм — цвет = divider ряда ⇒ единая hairline-сетка.
+.normRule {
+  border-inline-start: 1px solid var(--sys-color-divider);
+}
+
+.pctFlat {
+  white-space: nowrap;
+}
+
+// Прогресс — трек-рельс у самого низа ячейки. Fill left-anchored = доля нормы.
+.bar {
+  position: absolute;
+  inset-inline: var(--space-2) var(--space-2); // трек внутри паддингов ячейки
+  bottom: 0;
+  height: 3px;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-surface-track);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// Дефолтный тон трека — тёплое золото (у хвоста хью нет, доктрина «хвост
+// нейтрален»); data-hue селекторы оставлены на случай окраски по категории.
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--sys-radius-tmp);
+  background: var(--sys-color-macro-fat);
+}
+
+.barFill[data-hue='protein'] {
+  background: var(--sys-color-macro-protein);
+}
+
+.barFill[data-hue='fat'] {
+  background: var(--sys-color-macro-fat);
+}
+
+.barFill[data-hue='carb'] {
+  background: var(--sys-color-macro-carb);
+}
+
+.barFill[data-hue='cool'] {
+  background: var(--sys-color-macro-cool);
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Варианты прогресс-трека карточек (data-track на ряду, пользовательская ось
+// «Настройки → Внешний вид → Нутриенты», 2026-07-25). База 'inCell' — рельс у
+// низа ячейки нормы (правила .bar выше). Ниже — только форки.
+// ══════════════════════════════════════════════════════════════════════════
+
+// 'fullWidth' — рельс на всю ширину под рядом: в TSX бар рендерится прямым
+// ребёнком .row (внутри 3.5rem-ячейки нормы inset-inline:0 давал бы прежний
+// узкий трек), здесь снимаются ячеечные инсеты.
+.row[data-track='fullWidth'] .bar {
+  inset-inline: 0;
+}
+
+// 'fill' — рельса нет: доля нормы рисуется фон-заливкой карточки слева
+// (::before, ширина = --pct, ставится инлайном в TSX). isolation держит
+// z-index:-1 заливки внутри stacking-контекста ряда — над листом, под числами.
+.row[data-track='fill'] {
+  isolation: isolate;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: -1;
+    width: var(--pct, 0%);
+    background: var(--sys-color-surface-track);
+    pointer-events: none;
+  }
+}
+
+// ── Аккордеон «Оформление» — замыкающая строка витрины ───────────────────────
+// Шапка прижата к правой кромке (запрос: «снизу справа»), голос — тихий
+// интерактивный, в рифму чипу нормы и селекту порции (одна важность — один тон).
+.appearance {
+  margin-top: var(--space-3);
+}
+
+.appearanceHeader {
+  justify-content: flex-end;
+  color: var(--sys-color-text-quiet-action);
+}

@@ -483,7 +483,9 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                     inputId={QUANTITY_INPUT}
                     isActive={step === 'quantity'}
                   />
-                  {hasHints ? (
+                  {/* Предложка правит только количество: шаг «Особенности»
+                      для неё не нужен, всегда finish-CTA. */}
+                  {hasHints && kind !== 'proposal' ? (
                     <ModalShell.ActionButtons
                       debugId="create-qty"
                       right={<ModalNextButton as="label" htmlFor={DETAILS_INPUT} />}

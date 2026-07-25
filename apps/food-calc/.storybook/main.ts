@@ -15,7 +15,12 @@ import { mergeConfig } from 'vite';
 const root = process.cwd();
 
 const config: StorybookConfig = {
-  stories: ['../src/features/food/quick-view-drawer/**/*.stories.@(ts|tsx)'],
+  stories: [
+    '../src/features/food/quick-view-drawer/**/*.stories.@(ts|tsx)',
+    // Dev-предложки (неапрувнутые дизайн-варианты) — интерактивный переключатель
+    // вариантов вместо статичной страницы предложки. Держим ОТДЕЛЬНО от прод-слайса.
+    '../src/app/development-features/**/*.stories.@(ts|tsx)',
+  ],
   addons: [],
   framework: { name: '@storybook/react-vite', options: {} },
   core: { disableTelemetry: true },

@@ -11,8 +11,8 @@ type Props = {
 /**
  * Витрина нутриентов «мера»: сгруппированный список рядов-мер (имя · % · бар ·
  * цель). Тонкая композиция обхода (`NutrientGroupedList`) + ряда (`NutrientMeterRow`)
- * + norm-glue (`useNutrientReadout`). Дом для ProductDrawer (просмотр) и виджета
- * FoodsNutrients — режим представления = выбор ряда в слоте.
+ * + norm-glue (`useNutrientReadout`). Дом — `FoodNutritionPanel` (страница
+ * продукта) — режим представления = выбор ряда в слоте.
  */
 export function NutrientMeterView({ getValue }: Props) {
   const readout = useNutrientReadout(getValue);

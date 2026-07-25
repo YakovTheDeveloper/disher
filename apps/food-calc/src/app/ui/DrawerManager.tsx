@@ -85,6 +85,10 @@ const DrawerInstance = ({
           className={clsx(
             overlayStyles.overlay,
             options.interactiveBehind && overlayStyles.clickThrough,
+            options.softBackdrop && overlayStyles.softBackdrop,
+            // Snap-дровер на нижней фазе: фиксированный ослабленный скрим
+            // (--drawer-swipe-progress там = 1 и обнулил бы базовую формулу).
+            options.softBackdrop && snapPoints && !atTopSnap && overlayStyles.softBackdropLowSnap,
           )}
         />
         <Drawer.Viewport className={overlayStyles.viewport}>

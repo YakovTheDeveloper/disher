@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <!-- бейдж-плюс: дырка под кольцо -->
+      <circle cx="300" cy="720" r="181" fill="#000"/>
+      <!-- кромка верхнего яруса -->
+      <path d="M 280 440 A 170 64 0 0 0 620 440" fill="none" stroke="#000" stroke-width="16"/>
+      <!-- линия слоя -->
+      <path d="M 280 520 A 170 64 0 0 0 620 520" fill="none" stroke="#000" stroke-width="14"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <!-- изометрический торт на ножке: вишня сверху, два яруса, подставка -->
+    <circle cx="450" cy="340" r="32"/>
+    <path d="M 450 310 C 458 282 482 268 504 266" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+    <g mask="url(#m)">
+      <ellipse cx="450" cy="440" rx="170" ry="64"/>
+      <path d="M 280 440 A 170 64 0 0 0 620 440 L 620 570 A 170 64 0 0 1 280 570 Z"/>
+    </g>
+    <!-- подставка -->
+    <g mask="url(#m)">
+      <rect x="432" y="590" width="36" height="110" rx="14"/>
+      <ellipse cx="450" cy="710" rx="130" ry="26"/>
+    </g>
+    <!-- бейдж-плюс: нижний левый угол объекта, наползает ~30% -->
+    <circle cx="300" cy="720" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="278" y="645" width="44" height="150" rx="14"/>
+    <rect x="225" y="698" width="150" height="44" rx="14"/>
+  </g>
+</svg>

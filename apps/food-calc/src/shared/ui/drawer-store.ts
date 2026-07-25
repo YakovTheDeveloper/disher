@@ -76,6 +76,7 @@ function show<P extends BaseDrawerProps<any>>(
       width: options?.width,
       trapFocus: options?.trapFocus ?? true,
       interactiveBehind: options?.interactiveBehind ?? false,
+      softBackdrop: options?.softBackdrop ?? false,
       snapPoints: options?.snapPoints,
       defaultSnapPoint: options?.defaultSnapPoint,
     };

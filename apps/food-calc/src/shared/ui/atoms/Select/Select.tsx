@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import TickIcon from '@/shared/assets/icons/tick.svg?react';
 import { Numeral } from '@/shared/ui/atoms/Typography';
+import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
 import s from './Select.module.scss';
 
 export interface SelectOption {
@@ -48,16 +49,36 @@ interface SelectProps {
 // split с capture-группой чередует сегменты текст/число, поэтому НЕЧЁТНЫЕ индексы —
 // это числа: их оборачиваем в Numeral, остальное отдаём как есть.
 const NUMERIC_SEGMENTS = /(\d+(?:[.,]\d+)?)/;
-const renderNumericLabel = (label: string) =>
-  label.split(NUMERIC_SEGMENTS).map((seg, i) =>
-    i % 2 === 1 ? (
+// Юнит-хвост сразу за числом (« г», « мкг», « %») — в anchor-режиме входит в
+// подчёркнутую опору («100 г»), обрамление фразы («на …») остаётся без черты.
+const UNIT_TAIL = /^\s*[a-zа-яё%]+/i;
+const renderNumericLabel = (label: string, anchor = false) => {
+  const segs = label.split(NUMERIC_SEGMENTS);
+  return segs.map((seg, i) => {
+    if (i % 2 !== 1) return seg;
+    let tail = '';
+    if (anchor && i + 1 < segs.length) {
+      const m = segs[i + 1].match(UNIT_TAIL);
+      if (m) {
+        tail = m[0];
+        segs[i + 1] = segs[i + 1].slice(tail.length);
+      }
+    }
+    const numeral = (
       <Numeral key={i} as="span" size="sm" weight="regular">
         {seg}
       </Numeral>
+    );
+    return anchor ? (
+      <span key={i} className={s.anchor}>
+        {numeral}
+        {tail}
+      </span>
     ) : (
-      seg
-    ),
-  );
+      numeral
+    );
+  });
+};
 
 // Chevron — inline (в icons/ нет down-варианта; svgr-импорт ради одной стрелки
 // избыточен). currentColor → красится `--sys-field-adornment`.
@@ -109,14 +130,28 @@ export const Select = ({
       {numeric ? (
         // Числовой лейбл выбранного пункта считаем сами (value → label) и рендерим
         // с Numeral — вместо BaseSelect.Value, чья строка-значение не расщепляется.
+        // Anchor-режим (inline-триггер): число+юнит обёрнуты в .anchor — scss кладёт
+        // под них черту снизу (кликабельная опора, в рифму чипу нормы).
         <span className={clsx(s.value, lowercase && s.lowercase)}>
-          {renderNumericLabel(options.find((o) => o.value === value)?.label ?? '')}
+          {renderNumericLabel(
+            options.find((o) => o.value === value)?.label ?? '',
+            variant === 'inline',
+          )}
         </span>
       ) : (
         <BaseSelect.Value className={clsx(s.value, lowercase && s.lowercase)} />
       )}
       <BaseSelect.Icon className={s.icon}>
-        <ChevronDownIcon />
+        {variant === 'inline' ? (
+          // Inline-шеврон — тот же ChevronGlyph, что у чипа нормы (13px, общий
+          // глиф/штрих — 2026-07-25, запрос на унификацию триггеров); вниз его
+          // поворачивает .iconDown, open-flip остаётся на обёртке .icon.
+          <span className={s.iconDown}>
+            <ChevronGlyph width={13} height={13} />
+          </span>
+        ) : (
+          <ChevronDownIcon />
+        )}
       </BaseSelect.Icon>
     </BaseSelect.Trigger>
     <BaseSelect.Portal>

@@ -27,20 +27,26 @@ export const ScheduleNavigatorDrawer = ({ onClose, selectedDate }: Props) => {
 
   return (
     <DrawerLayout
-      title={screen === 'root' ? 'Перейти' : undefined}
-      // Под-экран «Все дни» несёт СВОЙ узел шапки: помесячная навигация ‹ Май'26 › +
-      // подписи колонок (пн…вс). Колонки одинаковы во всех месяцах, поэтому сидят в
-      // chrome-ряду, а не липнут к верху скроллера — иначе две полосы дерутся за верх.
+      // Root — крупный headline (prominent, «Перейти» = вход в навигацию). Под-экран
+      // «Все дни» несёт СВОЙ центр-узел (custom): помесячная навигация ‹ Май'26 › +
+      // подписи колонок (пн…вс) — они одинаковы во всех месяцах, поэтому сидят в
+      // chrome-ряду, а не липнут к верху скроллера (иначе две полосы дерутся за верх).
+      // Обе формы — один header-проп, экраны не могут разъехаться по разным пропам.
       header={
-        screen === 'days' ? (
-          <AllDaysHeader
-            monthDate={viewMonth}
-            onPrev={() => setViewMonth((m) => subMonths(m, 1))}
-            onNext={() => setViewMonth((m) => addMonths(m, 1))}
-          />
-        ) : undefined
+        screen === 'root'
+          ? { kind: 'prominent', title: 'Перейти' }
+          : {
+              kind: 'custom',
+              a11yLabel: 'Все дни',
+              node: (
+                <AllDaysHeader
+                  monthDate={viewMonth}
+                  onPrev={() => setViewMonth((m) => subMonths(m, 1))}
+                  onNext={() => setViewMonth((m) => addMonths(m, 1))}
+                />
+              ),
+            }
       }
-      a11yLabel={screen === 'days' ? 'Все дни' : undefined}
       onBack={screen === 'root' ? undefined : () => setScreen('root')}
       // .sheetDays центрирует ряд помесячной навигации (40px-плитки) в chrome-полосе,
       // чтобы back-стрелка DrawerLayout (пришпилена к chrome/2) с ним совпала по высоте.

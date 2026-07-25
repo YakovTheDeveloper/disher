@@ -31,6 +31,9 @@ export type ItemAction = {
 interface Props extends BaseDrawerProps<void> {
   /** Entity display name shown above the action stack (product / dish / event text). */
   title?: string;
+  /** Тихая строка под title. По умолчанию «Действия»; `null` — без subtitle
+   *  (событие: заголовок уже несёт весь контекст, вторая строка шумит). */
+  subtitle?: string | null;
   /** Destructive — rendered in DrawerLayout's top-right chrome slot, opposite the
    *  top-left close cross and away from the action stack, so a casual tap toward
    *  the actions can't hit it. One tap deletes (no extra confirm — placement is
@@ -47,7 +50,7 @@ interface Props extends BaseDrawerProps<void> {
 // Each handler closes the drawer FIRST, then runs the callback. Order matters:
 // an info-action that navigates must not leave the drawer mounted over the new
 // page (see spec Edge cases).
-export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActions }: Props) => {
+export const ItemActionsDrawer = ({ onClose, title, subtitle, onDelete, actions, editActions }: Props) => {
   const handleDelete = () => {
     onClose();
     onDelete?.();
@@ -60,16 +63,24 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
 
   return (
     <DrawerLayout
-      title={title}
-      a11yLabel={title ?? 'Действия'}
+      // Имя сущности + тихий subtitle (compact) — по умолчанию «Действия», консумер
+      // может переопределить/скрыть (null). Title опционален (у события
+      // detail-страницы нет) — без него шапка без видимого заголовка, а sr-only имя
+      // держит a11yLabel.
+      header={
+        title
+          ? { kind: 'compact', title, subtitle: subtitle === undefined ? 'Действия' : (subtitle ?? undefined) }
+          : undefined
+      }
+      a11yLabel="Действия"
       topRight={
         onDelete ? (
           // tone="soft" даёт постоянную ink-подложку (плитка) под глифом урны —
           // раньше danger был без idle-фона. Разрушительность держит placement
-          // (угол, вне стека действий), не цвет — доп. confirm нет.
+          // (угол, вне стека действий), не цвет — доп. confirm нет. Размер квадрата
+          // несёт chrome-слот DrawerLayout (--sys-size-control) — тут его не задаём.
           <IconButton
             tone="soft"
-            className={s.deleteBtn}
             onClick={handleDelete}
             aria-label="Удалить"
             icon={<TrashIcon />}
@@ -82,7 +93,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
           держит следующий ярус, корректный outline). */}
       <ActionList>
         {editActions && editActions.length > 0 && (
-          <ActionList.Section as="h3" label="Редактировать" italicLabel>
+          <ActionList.Section as="h3" label="Редактировать" italicLabel labelAlign="center">
             {/* Ряд медалей (RoundButton look="raised"): приподнятые surface-2 плитки
                 в утопленном лотке Well (variant="round") — паттерн «вдавленность +
                 приподнятые круглые плитки», един с монетами навигации. НЕ конвертируем
@@ -128,7 +139,7 @@ export const ItemActionsDrawer = ({ onClose, title, onDelete, actions, editActio
         )}
 
         {actions.length > 0 && (
-          <ActionList.Section as="h3" label="Перейти" italicLabel>
+          <ActionList.Section as="h3" label="Перейти" italicLabel labelAlign="center">
             <div className={s.rows}>
               {actions.map((action, i) => (
                 <SettingRow

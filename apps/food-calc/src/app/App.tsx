@@ -20,6 +20,7 @@ import { PwaInstallGate } from '@/features/pwa-install';
 import { useApplyUserTheme } from '@/shared/lib/user-theme';
 import { useApplyColorMode } from '@/shared/lib/color-mode';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
+import loaderAnalysisArt from '@/shared/assets/art/loader-analysis.webp';
 
 // Single app-wide tone. Every interactive surface (--sys-field-* inputs/chips,
 // --sys-card-*/--list-* rows) derives its colour from ONE palette: the fixed `mono`
@@ -83,8 +84,8 @@ export default function App() {
                   }}
                 >
                   {/* Тот же лоадер, что на «Разборах» при идущем анализе
-                      (AnalysesHero) — гравюра loader-analysis.png + scan. */}
-                  <FabricLoader art="/art/loader-analysis.png" caption="Загрузка" effect="scan" />
+                      (AnalysesHero) — гравюра loader-analysis + scan. */}
+                  <FabricLoader art={loaderAnalysisArt} caption="Загрузка" effect="scan" />
                 </div>
               }
             >

@@ -1,15 +1,5 @@
 @import '@/shared/assets/style/mixin.scss';
 
-// Destructive delete lives in DrawerLayout's top-right chrome slot (the
-// --sys-size-control hit-area) via the IconButton primitive (tone="danger").
-// Fill the slot so the whole square is tappable; danger colour is the
-// IconButton's own tone now (the old `.actionHeaderButton * {color}` override
-// it had to beat is gone).
-.deleteBtn {
-  width: 100%;
-  height: 100%;
-}
-
 // Нав-ряды секции «Перейти» (SettingRow) — стоят вплотную, их делит тающая бровка
 // внутри самого ряда (`.row::after`), а не зазор. Боковой инсет + межсекционный
 // ярус ведёт ActionList/DrawerLayout; тут только колонка (1:1 с AnalysisHubDrawer).

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-// ProductDrawer — тонкий адаптер над QuickViewDrawer. Всё редактирование уехало
-// на /product/:id; здесь проверяем ТОЛЬКО контракт адаптера: какие имя/kind,
+// ProductDrawer — тонкий адаптер над NutrientShowcaseDrawer. Всё редактирование
+// уехало на /product/:id; здесь проверяем ТОЛЬКО контракт адаптера: какие имя,
 // маршрут страницы, пункты порции и ОТСКЕЙЛЕННЫЕ нутриенты он кладёт в каркас.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act } from '@testing-library/react';
@@ -12,16 +12,15 @@ const h = vi.hoisted(() => ({
     servingBasis: '100g' as '100g' | 'serving',
     description: '',
   } as { id: string; name: string; servingBasis: '100g' | 'serving'; description: string } | undefined,
-  isUser: true,
   portions: [] as { label: string; grams: number }[],
   nutrients: [{ nutrientId: '1', quantity: 10 }] as { nutrientId: string; quantity: number }[],
 }));
 
-// QuickViewDrawer — каркас; ловим его пропы (что ИМЕННО кладёт адаптер), а не
-// рендерим сам shell. Держим ссылку на последние пропы для драйва селекта.
+// NutrientShowcaseDrawer — каркас; ловим его пропы (что ИМЕННО кладёт адаптер),
+// а не рендерим сам shell. Держим ссылку на последние пропы для драйва селекта.
 const qv = vi.hoisted(() => ({ props: null as Record<string, unknown> | null }));
 vi.mock('@/features/food/quick-view-drawer', () => ({
-  QuickViewDrawer: (props: Record<string, unknown>) => {
+  NutrientShowcaseDrawer: (props: Record<string, unknown>) => {
     qv.props = props;
     return <div data-testid="qv" />;
   },
@@ -31,14 +30,12 @@ vi.mock('@/entities/product', () => ({
   useProductPortions: () => h.portions,
   useProductNutrients: () => ({ results: h.nutrients }),
 }));
-vi.mock('@/shared/lib', () => ({ isCreatedByUser: () => h.isUser }));
 
 import { ProductDrawer } from './ProductDrawer';
 
-describe('ProductDrawer — QuickViewDrawer adapter', () => {
+describe('ProductDrawer — NutrientShowcaseDrawer adapter', () => {
   beforeEach(() => {
     h.product = { id: 'p1', name: 'магний', servingBasis: '100g', description: '' };
-    h.isUser = true;
     h.portions = [];
     h.nutrients = [{ nutrientId: '1', quantity: 10 }];
   });
@@ -46,20 +43,14 @@ describe('ProductDrawer — QuickViewDrawer adapter', () => {
     qv.props = null;
   });
 
-  it('user product: name, kind «my-product», product route, base-100g nutrients', () => {
+  it('name, subtitle, product route, base-100g nutrients', () => {
     render(<ProductDrawer productId="p1" onClose={() => {}} />);
     expect(qv.props!.title).toBe('магний');
-    expect(qv.props!.kind).toBe('my-product');
+    expect(qv.props!.subtitle).toBe('Пищевая ценность');
     expect(qv.props!.pageRoute).toBe('/product/p1');
     expect(qv.props!.hasNutrients).toBe(true);
     // basis '100g', дефолт «На 100 г» → scale 1 → значение как есть.
     expect(qv.props!.nutrients).toEqual({ '1': 10 });
-  });
-
-  it('catalog product: kind is «product»', () => {
-    h.isUser = false;
-    render(<ProductDrawer productId="p1" onClose={() => {}} />);
-    expect(qv.props!.kind).toBe('product');
   });
 
   it('supplement: no portion options, nutrients per one unit', () => {
@@ -77,11 +68,10 @@ describe('ProductDrawer — QuickViewDrawer adapter', () => {
     expect(qv.props!.nutrients).toEqual({});
   });
 
-  it('ghost while loading: productName feeds the header, kind from id', () => {
+  it('ghost while loading: productName feeds the header', () => {
     h.product = undefined;
     render(<ProductDrawer productId="p1" productName="яблоко" onClose={() => {}} />);
     expect(qv.props!.title).toBe('яблоко');
-    expect(qv.props!.kind).toBe('my-product');
     expect(qv.props!.hasNutrients).toBe(false);
   });
 

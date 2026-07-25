@@ -7,15 +7,15 @@ import '@testing-library/jest-dom/vitest';
 vi.mock('@/shared/ui/DrawerLayout', () => ({
   DrawerLayout: ({
     children,
-    title,
+    header,
     topRight,
   }: {
     children: React.ReactNode;
-    title?: React.ReactNode;
+    header?: { kind: string; title?: React.ReactNode };
     topRight?: React.ReactNode;
   }) => (
     <div data-testid="drawer-layout">
-      {title}
+      {header && header.kind !== 'custom' ? header.title : null}
       {topRight}
       {children}
     </div>

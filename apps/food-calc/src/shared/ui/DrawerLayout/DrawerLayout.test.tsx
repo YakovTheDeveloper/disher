@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // DrawerLayout — hideTopChrome prop.
 // По умолчанию рендерит 40px drag-handle с Drawer.Close (крестик) + topRight
-// слотом. Когда hideTopChrome=true (NutrientsDrawer case), эта строка
+// слотом. Когда hideTopChrome=true, эта строка
 // удаляется целиком — ряд занимал место, который заголовок drawer'а должен
 // был занимать сам. Swipe-to-close через edgeHandle и backdrop остаются.
 import { describe, it, expect, vi, afterEach } from 'vitest';
@@ -122,11 +122,14 @@ describe('DrawerLayout — hideTopChrome', () => {
     expect(container.querySelector('.dl-floatingClose')).not.toBeNull();
   });
 
-  // header — compound center-slot: keeps the chrome row + Close cross, but the
-  // built-in title is replaced by the custom node in the symmetric center band.
-  it('header renders a custom center slot alongside the Close cross', () => {
+  // header={{ kind: 'custom' }} — compound center-slot: keeps the chrome row +
+  // Close cross, but a free node sits in the symmetric center band (no visible
+  // Drawer.Title — the custom arm carries its own sr-only a11yLabel).
+  it('custom header renders a free center node alongside the Close cross', () => {
     const { queryByTestId, getByTestId, container } = render(
-      <DrawerLayout header={<div data-testid="custom-header">tabs</div>} a11yLabel="Активность">
+      <DrawerLayout
+        header={{ kind: 'custom', node: <div data-testid="custom-header">tabs</div>, a11yLabel: 'Активность' }}
+      >
         body
       </DrawerLayout>,
     );
@@ -134,28 +137,18 @@ describe('DrawerLayout — hideTopChrome', () => {
     expect(container.querySelector('.dl-dragHandle')).not.toBeNull();
     expect(container.querySelector('.dl-headerSlot')).not.toBeNull();
     expect(getByTestId('custom-header')).not.toBeNull();
-  });
-
-  // header takes precedence over the built-in `title` (title path suppressed;
-  // the sr-only Drawer.Title carries a11yLabel so exactly one Title exists).
-  it('header suppresses the built-in visible title', () => {
-    const { container } = render(
-      <DrawerLayout header={<span>hdr</span>} title="Should not render" a11yLabel="A11y">
-        body
-      </DrawerLayout>,
-    );
+    // Custom carries no string title → no visible Drawer.Title.
     expect(container.querySelector('.dl-titleCenter')).toBeNull();
-    expect(container.querySelector('.dl-headerSlot')).not.toBeNull();
   });
 
-  // titleSize="title" + subtitle — средний рунг заголовка с тихой контекст-строкой
-  // под ним (QuickViewDrawer: имя еды + «Информация о продукте»). Оба текста живут
-  // в центре chrome-ряда: заголовок — Drawer.Title, subtitle — caption-строка в
+  // compact + subtitle — средний рунг заголовка с тихой контекст-строкой под ним
+  // (NutrientShowcaseDrawer: имя еды + «Пищевая ценность»). Оба текста живут в центре
+  // chrome-ряда: заголовок — Drawer.Title, subtitle — caption-строка в
   // `.titleSubtitle` внутри `.titleStack`. Попап получает класс-маркер
   // `.stackedTitle` — layout сам поднимает зазор «шапка → тело» до section-рунга.
-  it('titleSize="title" renders the title with a quiet subtitle beneath', () => {
+  it('compact header renders the title with a quiet subtitle beneath', () => {
     const { getByText, getByTestId, container } = render(
-      <DrawerLayout title="Алыча" titleSize="title" subtitle="Информация о продукте">
+      <DrawerLayout header={{ kind: 'compact', title: 'Алыча', subtitle: 'Информация о продукте' }}>
         body
       </DrawerLayout>,
     );

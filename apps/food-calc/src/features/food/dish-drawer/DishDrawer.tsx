@@ -5,7 +5,7 @@ import {
   useDishNutrientTotals,
   useDishPortions,
 } from '@/entities/dish';
-import { QuickViewDrawer } from '@/features/food/quick-view-drawer';
+import { NutrientShowcaseDrawer } from '@/features/food/quick-view-drawer';
 import { RouterUrls } from '@/shared/config/routes';
 import type { SelectOption } from '@/shared/ui/atoms/Select';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
@@ -23,10 +23,10 @@ interface Props extends BaseDrawerProps {
 const WHOLE_DISH = 'Всё блюдо';
 
 /**
- * Тонкий адаптер блюда над общим `QuickViewDrawer`: быстрый нижний просмотр
- * нутриентов с выбором порции. Редактирование (состав/имя/порции) живёт на
- * странице `/dish/:id` — туда ведёт кнопка «Открыть страницу» в шапке самого
- * QuickViewDrawer.
+ * Тонкий адаптер блюда над общим `NutrientShowcaseDrawer`: быстрый нижний
+ * просмотр нутриентов с выбором порции. Редактирование (состав/имя/порции)
+ * живёт на странице `/dish/:id` — туда ведёт кнопка «Открыть страницу» в шапке
+ * самого каркаса.
  *
  * Селект порции — «Всё блюдо» (вся сумма ингредиентов) + каждая dish_portion;
  * суммарные `totals` (весь вес блюда) скейлятся `grams / totalWeight` под выбор.
@@ -49,7 +49,7 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
   );
 
   // Пустое блюдо → ни порций, ни меры: у него totals = {}, а «Всё блюдо» из нулей
-  // читалось бы как заполненный профиль. QuickViewDrawer покажет подсказку.
+  // читалось бы как заполненный профиль. Каркас покажет подсказку.
   const hasNutrients = items.length > 0;
 
   const portionOptions: SelectOption[] = useMemo(
@@ -76,9 +76,9 @@ export function DishDrawer({ dishId, dishName, onClose }: Props) {
   }, [selectedPortion, totalWeight, portions, totals]);
 
   return (
-    <QuickViewDrawer
+    <NutrientShowcaseDrawer
       title={heroName ?? 'Блюдо'}
-      kind="dish"
+      subtitle="Пищевая ценность"
       pageRoute={RouterUrls.getDish(dishId)}
       heroName={heroName}
       portionOptions={portionOptions}

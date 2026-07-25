@@ -1,0 +1,108 @@
+// Общий каркас нижнего дровера быстрого просмотра. Палитра — нейтральная
+// drawer-обвязка (шапку/бок/фон владеет DrawerLayout). Тут только тело: боковой
+// инсет и верхний зазор «шапка→тело» отданы layout'у (`contentInset="panel"`),
+// файл держит лишь вертикальный ритм и нижний padding. Все размеры/цвета —
+// через токены (token-gate, новый файл обязан проходить).
+
+.body {
+    display: flex;
+    flex-direction: column;
+    // Свой padding-top задвоил бы каноничный зазор из layout'а — только низ.
+    padding-block-end: var(--space-6);
+}
+
+// Ряд базиса — только для пустого/loading состояния (витрины нет): соло-контрол
+// по ЦЕНТРУ. Когда витрина смонтирована, контрол базиса живёт ВНУТРИ неё —
+// ребёнком в правом слоте «в т.ч.»-футера (subRow NutrientTotals, 2026-07-25).
+.basisRow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 0;
+}
+
+// Чип нормы в витрине: гасим негативные margin-block чипа (они рассчитаны под
+// плитки) — в своём ряду он центрируется по строке.
+.normLegend {
+    margin-block: 0;
+}
+
+// ── Шапка: кнопка «на страницу» ─────────────────────────────────────────────
+// Обёртка topRight-слота: 44-коробка кнопки. Ширина = коробка кнопки, поэтому в
+// chrome-ряду слот встаёт ровно как одиночная иконка (симметрия с крестом цела).
+.pageLink {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: var(--sys-size-control);
+    height: var(--sys-size-control);
+}
+
+// Глиф центрируется в плитке: справа выравнивание идёт по КРОМКЕ КНОПКИ (её правый
+// край сидит на --drawer-inset через trail-ячейку chrome-грида), слева — по глифу
+// креста (у ghost-кнопки вес = глиф). Прежняя право-джастификация глифа (эпоха
+// голого ghost без подложки) снята — с плиткой она давала децентровку.
+
+// Селект порции — тихий ИНТЕРАКТИВНЫЙ ярус: тот же голос, что чип нормы
+// (--sys-color-text-quiet-action, запрос 2026-07-24 «одна важность — один цвет»).
+// Прежняя opacity:0.8 СНЯТА — она делала селект светлее остальных двух (разъезд) и
+// роняла контраст; solid-токен уравнивает. Селектор от `.body` (0,2,0) бьёт
+// inline-вариант селекта (`color/font: inherit`, 0,1,0) и работает в ОБОИХ домах
+// контрола — subRow витрины (другой css-модуль) и fallback-ряде .basisRow.
+.body .portionSelect {
+    font-size: var(--sys-field-font-size-compact);
+    color: var(--sys-color-text-quiet-action);
+}
+
+// Тихий статичный бейдж базиса (супплемент — вместо селекта порции). Голос
+// «на что приведены числа», не контрол: приглушённый, без вдавленной field-лунки.
+.basisBadge {
+    color: var(--sys-color-text-tertiary);
+}
+
+// Скелетон на loading-тик — плейсхолдеры зеркалят витрину NutrientTotals по
+// построению: hero-сетка боксов 3×2 (имя + крупный % + масса + трек ≈ 84px на
+// бокс) + пара рядов хвоста (44px, как min-height flat-ряда). Сумма ≈ высоте
+// реального верха витрины — лист не прыгает, когда приедут меры.
+.skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-2);
+    border: 1px solid var(--sys-color-divider);
+    border-radius: var(--sys-radius-control);
+}
+
+.skeletonHero {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+
+    span {
+        min-height: 84px;
+        border-radius: var(--sys-radius-tmp);
+        background: var(--sys-color-surface-cool-soft);
+    }
+}
+
+.skeletonRow {
+    display: block;
+    min-height: 44px;
+    border-radius: var(--sys-radius-tmp);
+    background: var(--sys-color-surface-cool-soft);
+}
+
+// Подсказка на месте меры, когда нутриентов нет — держит воздух фазы-1, а не
+// схлопывает дровер к одной шапке.
+.emptyHint {
+    padding-block: var(--space-6);
+}
+
+// Сноска о позициях без нутриентных данных (сумма дня/блюда без них) — тихая,
+// под витриной. font-size/line-height несёт <Text role="caption">.
+.missing {
+    padding: var(--space-3) var(--space-1) 0;
+    opacity: 0.5;
+}

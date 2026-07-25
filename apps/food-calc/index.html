@@ -39,9 +39,12 @@
        бегущей проявляющей полосой + дышащая подпись — тот же лоадер, что в моменте 4
        (Suspense в App.tsx) и на «Разборах». Пре-JS нет React/SCSS/токенов, потому
        эффект `scan` переписан здесь руками (значения из FabricLoader.module.scss).
-       PNG `/art/loader-analysis.png` — в precache (includeAssets), поэтому на холодном
-       старте после установки SW гравюра на месте и офлайн; на самом первом заходе
-       тянется из сети (до неё видно бумагу, гравюра проявляется по загрузке). -->
+       Гравюра импортируется из исходников (`/src/shared/assets/art/loader-analysis.webp`)
+       — Vite на сборке переписывает обе ссылки (img + inline-style url) на хешированный
+       dist/assets-файл, а workbox кладёт его в precache точечным glob-паттерном (см.
+       vite.config.ts), поэтому на холодном старте после установки SW гравюра на месте
+       и офлайн; на самом первом заходе тянется из сети (до неё видно бумагу, гравюра
+       проявляется по загрузке). -->
   <style>
     #boot-splash {
       position: fixed;
@@ -106,7 +109,7 @@
     #boot-splash .boot-splash__reveal {
       position: absolute;
       inset: 0;
-      background-image: url("/art/loader-analysis.png");
+      background-image: url("/src/shared/assets/art/loader-analysis.webp");
       background-position: center;
       background-size: contain;
       background-repeat: no-repeat;
@@ -176,7 +179,7 @@
   <div id="boot-splash" aria-hidden="true">
     <div class="boot-splash__plate">
       <div class="boot-splash__stage">
-        <img class="boot-splash__art" src="/art/loader-analysis.png" alt="" decoding="async" />
+        <img class="boot-splash__art" src="/src/shared/assets/art/loader-analysis.webp" alt="" decoding="async" />
         <span class="boot-splash__reveal"></span>
       </div>
       <span class="boot-splash__logo"></span>

@@ -8,6 +8,7 @@ import { Text } from '@/shared/ui/atoms/Typography';
 import { AnalysisResult } from '@/features/analysis/AnalysisResult';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
+import loaderAnalysisArt from '@/shared/assets/art/loader-analysis.webp';
 import { useDishAnalysis } from '../../api/queries';
 import { deleteDishAnalysis } from '../../api/storage';
 import { useDishRun, useDishRunStore } from '../../model/runStore';
@@ -83,7 +84,7 @@ const DishAnalysisModal = ({ dishId, hasIngredients, onClose }: Props) => {
             // Реальный запуск → «Разбираем блюдо»; первичная гидрация idb (чтение
             // кэша) → нейтральная подпись, чтобы не врать «считаем».
             <FabricLoader
-              art="/art/loader-analysis.png"
+              art={loaderAnalysisArt}
               caption={run?.status === 'loading' ? 'Разбираем блюдо' : 'Загрузка'}
             />
           ) : hasContent && content ? (

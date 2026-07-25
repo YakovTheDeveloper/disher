@@ -63,7 +63,7 @@ export function TopupDrawer({ userId, email, onClose, onSuccess }: Props) {
   // was a dedup (double-tap / retry). Closing hands the balance back to the list.
   if (result) {
     return (
-      <DrawerLayout title="Начисление">
+      <DrawerLayout header={{ kind: 'compact', title: 'Начисление' }}>
         <div className={s.body}>
           <Heading role="headline" as="h3" className={s.centered}>
             Готово
@@ -88,7 +88,7 @@ export function TopupDrawer({ userId, email, onClose, onSuccess }: Props) {
   }
 
   return (
-    <DrawerLayout title="Начислить" subtitle={email ?? undefined}>
+    <DrawerLayout header={{ kind: 'compact', title: 'Начислить', subtitle: email ?? undefined }}>
       <div className={s.body}>
         <label className={s.field}>
           <Text role="label" as="span" className={s.fieldLabel}>

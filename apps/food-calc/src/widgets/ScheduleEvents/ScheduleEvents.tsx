@@ -75,7 +75,10 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
     void drawerStore.show(
       ItemActionsDrawer,
       {
-        title: item.text || 'Событие',
+        // Fallback повторяет заголовок карточки (ScheduleEventCard), не generic «Событие».
+        title: item.text || 'Новое событие',
+        // Без subtitle «Действия»: заголовок уже несёт имя события, вторая строка шумит.
+        subtitle: null,
         onDelete: async () => {
           const res = await safeMutate(() => removeScheduleEvents([item.id]), 'Не удалось удалить');
           if (res.ok) toaster.success('Удалено');

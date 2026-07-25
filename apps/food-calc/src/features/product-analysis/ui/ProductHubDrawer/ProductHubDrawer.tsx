@@ -25,7 +25,7 @@ const ProductHubDrawer = ({ onSuggest, suggestDisabled, onClose }: Props) => {
   }
 
   return (
-    <DrawerLayout title="Продукт">
+    <DrawerLayout header={{ kind: 'compact', title: 'Продукт', subtitle: 'Действия' }}>
       {/* Ряд-действие SettingRow в одной секции ActionList (1:1 с DishHubDrawer).
           Секция без заголовка — он дублировал бы «Продукт» из шапки. */}
       <ActionList>

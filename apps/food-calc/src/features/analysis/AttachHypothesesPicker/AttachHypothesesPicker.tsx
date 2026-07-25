@@ -51,8 +51,7 @@ const AttachHypothesesPicker = ({ hypotheses, initialSelectedIds, onChange, onCl
 
   return (
     <DrawerLayout
-      title="Гипотезы для разбора"
-      a11yLabel="Выбор гипотез для разбора"
+      header={{ kind: 'compact', title: 'Гипотезы для разбора' }}
       // Пинованная «Подтвердить» появляется, как только выбрана ≥1 гипотеза:
       // выбор и так коммитится живьём через onChange, кнопка лишь закрывает
       // дровер (явное завершение вместо свайпа). Нет выбора → нет кнопки.

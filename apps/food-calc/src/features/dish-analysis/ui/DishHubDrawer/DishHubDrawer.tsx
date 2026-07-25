@@ -55,7 +55,7 @@ const DishHubDrawer = ({ dishId, hasIngredients, suggestDisabled, onSuggest, onC
   }
 
   return (
-    <DrawerLayout title="Блюдо">
+    <DrawerLayout header={{ kind: 'compact', title: 'Блюдо', subtitle: 'Действия' }}>
       {/* Ряды-действия SettingRow в одной секции ActionList (1:1 с AnalysisHubDrawer).
           Причина недоступности «Анализировать» (офлайн / нет ингредиентов) едет в
           `sub`. Секция без заголовка — он дублировал бы «Блюдо» из шапки. */}

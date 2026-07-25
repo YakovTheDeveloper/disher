@@ -3,6 +3,25 @@ import { WriteBarShell } from '@/shared/ui/WriteBarShell';
 import type { SendState } from '@/shared/ui/WriteBarShell';
 import { RoundButton } from '@/shared/ui/RoundButton';
 import { HintButton } from '@/shared/ui/HintButton';
+import { useDesignVariant } from '@/shared/lib/useDesignVariant';
+import fvBazaar from '@/shared/assets/icons/food-variants/fv-bazaar.svg';
+import fvBasket from '@/shared/assets/icons/food-variants/fv-basket.svg';
+import fvCrate from '@/shared/assets/icons/food-variants/fv-crate.svg';
+import fvCart from '@/shared/assets/icons/food-variants/fv-cart.svg';
+import fvFeast from '@/shared/assets/icons/food-variants/fv-feast.svg';
+import fvFeastIso from '@/shared/assets/icons/food-variants/fv-feast-iso.svg';
+import fvFeastRoast from '@/shared/assets/icons/food-variants/fv-feast-roast.svg';
+import fvFeastToast from '@/shared/assets/icons/food-variants/fv-feast-toast.svg';
+import fvFeastCake from '@/shared/assets/icons/food-variants/fv-feast-cake.svg';
+import fvReceipt from '@/shared/assets/icons/food-variants/fv-receipt.svg';
+import fvClipboard from '@/shared/assets/icons/food-variants/fv-clipboard.svg';
+import fvPlateList from '@/shared/assets/icons/food-variants/fv-plate-list.svg';
+import fvCornucopia from '@/shared/assets/icons/food-variants/fv-cornucopia.svg';
+import fvCornucopiaB from '@/shared/assets/icons/food-variants/fv-cornucopia-b.svg';
+import fvCornucopiaC from '@/shared/assets/icons/food-variants/fv-cornucopia-c.svg';
+import fvCornucopiaD from '@/shared/assets/icons/food-variants/fv-cornucopia-d.svg';
+import fvScale from '@/shared/assets/icons/food-variants/fv-scale.svg';
+import fvShelf from '@/shared/assets/icons/food-variants/fv-shelf.svg';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { useOnline } from '@/shared/lib/hooks/useOnline';
 import toaster from '@/shared/lib/toaster/toaster';
@@ -19,6 +38,59 @@ const ARC_TOP = 'Список еды';
 const ARC_BOTTOM = '';
 // Фоновая гравюра плитки — клош (cloche / room-service dome).
 const FOOD_TILE_IMG = '/art/plate.png';
+
+// Варианты гравюры медали «Список еды» — переключаются из dev-DesignBar (ключ
+// `FoodListMedalIcon`, выбор персистится в localStorage). Первый — дефолт
+// (растровый клош на flat-печати). Остальные — белые силуэт-гравюры в каноне
+// event-variants (жирный силуэт, минимум прорезей), и медаль при их выборе
+// инвертируется в тёмную elevated-монету — как «Новое событие». Мотивы —
+// скопление еды: рынок (тент, корзина, ящик, весы), супермаркет (тележка,
+// стеллаж), изобилие (рог), пир (стол, изо-стол, жаркое, тост, торт),
+// «список» буквально (чек, планшет, тарелка-меню).
+const FOOD_ICON_VARIANTS = [
+  'plate',
+  'bazaar',
+  'basket',
+  'crate',
+  'cart',
+  'feast',
+  'feast-iso',
+  'feast-roast',
+  'feast-toast',
+  'feast-cake',
+  'cornucopia',
+  'cornucopia-b',
+  'cornucopia-c',
+  'cornucopia-d',
+  'scale',
+  'shelf',
+  'receipt',
+  'clipboard',
+  'plate-list',
+] as const;
+
+type FoodIconVariant = (typeof FOOD_ICON_VARIANTS)[number];
+
+const FOOD_ICONS: Record<Exclude<FoodIconVariant, 'plate'>, string> = {
+  bazaar: fvBazaar,
+  basket: fvBasket,
+  crate: fvCrate,
+  cart: fvCart,
+  feast: fvFeast,
+  'feast-iso': fvFeastIso,
+  'feast-roast': fvFeastRoast,
+  'feast-toast': fvFeastToast,
+  'feast-cake': fvFeastCake,
+  cornucopia: fvCornucopia,
+  'cornucopia-b': fvCornucopiaB,
+  'cornucopia-c': fvCornucopiaC,
+  'cornucopia-d': fvCornucopiaD,
+  scale: fvScale,
+  shelf: fvShelf,
+  receipt: fvReceipt,
+  clipboard: fvClipboard,
+  'plate-list': fvPlateList,
+};
 // aria-label медали (видимый текст дуг одинаков; сведён к одному 2026-06-25).
 const SEARCH_LABEL = 'Найти еду';
 // Двухстрочный плейсхолдер — занимает обе строки высокого бара (textarea-
@@ -125,6 +197,10 @@ export const FoodWriteBar = ({
   focusTitle,
 }: FoodWriteBarProps) => {
   const online = useOnline();
+  const { variant: medalIcon, anchor: medalAnchor } = useDesignVariant(
+    'FoodListMedalIcon',
+    FOOD_ICON_VARIANTS
+  );
   const isReady = flow.state === 'ready';
   const isLoading = flow.state === 'loading';
   // Панель открыта ТОЛЬКО когда разбор готов (`ready`). Во время `loading`
@@ -241,24 +317,28 @@ export const FoodWriteBar = ({
         trailingSlot={
           // «еда» справа от пилюли, в потоке, за фейдинг-дивайдером (не плавает,
           // не перекрывает список). Монета-печать в потоке (floating={false} → не
-          // уезжает в плавающий режим, не сворачивается на фокусе). Режим flat —
-          // «часть панели»: внешний бордер, плоская (без тени) — задаётся в RoundButton.
+          // уезжает в плавающий режим, не сворачивается на фокусе). Облик — по
+          // DesignBar-варианту `FoodListMedalIcon`: дефолт — растровый клош на
+          // flat-печати («часть панели»), гравюры — белый силуэт на тёмной
+          // elevated-монете (инверсия, как у медали «Новое событие»).
           //
           // На открытой предложке медали НЕТ: каталог сейчас не путь (юзер правит
           // разбор), а её отсутствие отдаёт полосу целиком заголовку — он встаёт
           // по центру бара, а не жмётся влево от монеты.
           panelOpen ? undefined : (
-            <div className={s.listCtaTrail}>
+            <div className={s.listCtaTrail} {...medalAnchor}>
               <RoundButton
                 htmlFor={searchHtmlFor}
                 ariaLabel={SEARCH_LABEL}
-                img={FOOD_TILE_IMG}
-                imgWidth="75%"
-                imgNudgeY="2px"
+                img={medalIcon === 'plate' ? FOOD_TILE_IMG : FOOD_ICONS[medalIcon]}
+                // Гравюры рисуются полноформатными (1024², белый силуэт) под тёмный
+                // elevated-диск, клош-png — 75% на flat-печати (см. FOOD_ICON_VARIANTS).
+                {...(medalIcon === 'plate'
+                  ? { imgWidth: '75%', imgNudgeY: '2px', look: 'flat' as const }
+                  : { look: 'elevated' as const })}
                 arcTop={ARC_TOP}
                 arcBottom={ARC_BOTTOM}
                 floating={false}
-                look="flat"
               />
             </div>
           )

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <!-- бейдж-плюс: дырка под кольцо -->
+      <circle cx="250" cy="780" r="181" fill="#000"/>
+      <!-- кромка столешницы: отделяет скатерть от топа -->
+      <path d="M 182 620 A 330 120 0 0 0 842 620" fill="none" stroke="#000" stroke-width="18"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <!-- изометрический пиршественный стол: клош и бокалы на фоне тьмы, стол спереди -->
+    <circle cx="512" cy="420" r="14"/>
+    <rect x="505" y="432" width="14" height="24" rx="7"/>
+    <path d="M 392 556 A 120 120 0 0 1 632 556 Z"/>
+    <ellipse cx="512" cy="560" rx="140" ry="32"/>
+    <!-- бокалы -->
+    <path d="M 258 470 A 44 52 0 0 0 346 470 Z"/>
+    <rect x="296" y="522" width="12" height="56" rx="6"/>
+    <ellipse cx="302" cy="582" rx="36" ry="10"/>
+    <path d="M 620 510 A 44 52 0 0 0 708 510 Z"/>
+    <rect x="658" y="562" width="12" height="52" rx="6"/>
+    <ellipse cx="664" cy="618" rx="36" ry="10"/>
+    <!-- стол -->
+    <g mask="url(#m)">
+      <ellipse cx="512" cy="620" rx="330" ry="120"/>
+      <path d="M 182 620 A 330 120 0 0 0 842 620 L 842 700 A 330 120 0 0 1 182 700 Z"/>
+    </g>
+    <!-- бейдж-плюс: нижний левый угол объекта, наползает ~30% -->
+    <circle cx="250" cy="780" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="228" y="705" width="44" height="150" rx="14"/>
+    <rect x="175" y="758" width="150" height="44" rx="14"/>
+  </g>
+</svg>

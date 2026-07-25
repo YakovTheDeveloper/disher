@@ -13,7 +13,7 @@ import s from './AboutDiscoveriesDrawer.module.scss';
 // нужен: закрытие несёт крест/свайп DrawerLayout, хаб под стеком не трогаем.
 export const AboutDiscoveriesDrawer: FC<BaseDrawerProps<void>> = () => {
   return (
-    <DrawerLayout title="Об открытиях">
+    <DrawerLayout header={{ kind: 'compact', title: 'Об открытиях' }}>
       <div className={s.body}>
         <section className={s.section}>
           <Heading role="title" as="h3">Разборы</Heading>

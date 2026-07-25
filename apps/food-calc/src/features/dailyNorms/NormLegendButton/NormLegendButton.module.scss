@@ -2,13 +2,12 @@
 // держится невидимо (negative margin гасит инфляцию), чтобы чип оставался тонкой
 // сноской, а не жирным рядом.
 .chip {
+  position: relative; // containing block для выведенного из потока шеврона
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
   min-height: 40px;
   margin-top: calc(var(--space-2) - 9px); // зазор от плиток минус съеденная хит-ареей высота
   margin-bottom: -9px;
-  padding-inline: 0;
   border: 0;
   background: none;
   // Норма задана → тихий ИНТЕРАКТИВНЫЙ ярус: общий голос с триггером селекта и дугой
@@ -29,6 +28,10 @@
   padding-bottom: 1px;
 }
 
+// Шеврон выведен из потока: висит у ПРАВОЙ кромки кнопки на прежнем gap (space-1),
+// не участвуя в раскладке текста — текст чипа центрируется без него.
 .chevron {
+  position: absolute;
+  left: calc(100% + var(--space-1));
   flex-shrink: 0;
 }

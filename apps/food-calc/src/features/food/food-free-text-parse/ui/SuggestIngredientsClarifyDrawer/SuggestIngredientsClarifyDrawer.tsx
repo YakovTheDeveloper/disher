@@ -21,7 +21,7 @@ export function SuggestIngredientsClarifyDrawer({ onClose }: Props) {
   const [comment, setComment] = useState('');
 
   return (
-    <DrawerLayout title="Уточнения">
+    <DrawerLayout header={{ kind: 'compact', title: 'Уточнения' }}>
       <div className={s.body}>
         {/* Вводная подсказка: что делает функция и что она ДОБАВЛЯет к текущему
             составу, ничего не удаляя (append-флоу). */}

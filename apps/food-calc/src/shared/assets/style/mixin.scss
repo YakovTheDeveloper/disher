@@ -261,13 +261,20 @@
     font-weight: var(--sys-color-font-weight-on-hue-card);
 }
 
-// Полный голос ВРЕМЕНИ карточки: общий числовой тон + body-кегль + tabular. Один
-// дом для обоих путей рендера времени в `Card.Time` — инлайн-редактор еды
-// (CardTime) и сырой текст-диапазон события (Card `.time`) — чтобы цвет/вес/кегль
-// не расходились по коду (была регрессия: событие красилось text-secondary).
-@mixin card-time-readout {
+// Полный голос ЧИСЛОВОГО ЗНАЧЕНИЯ карточки: общий тон + кегль + tabular. Один дом
+// для всех числовых ридаутов на тонированной подложке — qty (QtyStack), время еды
+// (CardTime), время-диапазон события (Card `.time`), значение аспекта события —
+// чтобы цвет/вес/кегль не расходились по коду (была регрессия: событие красилось
+// text-secondary).
+// `$field: true` — для <input>/mirror правки: семантический field-кегль вместо
+// numeral (численно совпадают, 16px, но токены разные — поле правки ≠ ридаут).
+@mixin card-numeric-values($field: false) {
     @include card-numeric-tone;
-    font-size: var(--sys-numeral-base);
+    @if $field {
+        font-size: var(--sys-field-font-size);
+    } @else {
+        font-size: var(--sys-numeral-base);
+    }
     font-variant-numeric: tabular-nums;
 }
 

@@ -81,6 +81,26 @@
     pointer-events: none;
 }
 
+// Мягкий скрим (softBackdrop-опция, NutrientShowcaseDrawer «Пищевая ценность»): та же
+// треть базы, что у clickThrough, но БЕЗ снятия pointer-events — тап по фону
+// по-прежнему закрывает лист. Лёгкое затемнение отделяет лист от страницы,
+// не пряча её.
+.softBackdrop {
+    --overlay-opacity: calc(var(--overlay-opacity-base) / 3);
+}
+
+// Нижняя snap-фаза (DrawerManager вешает класс, когда activeSnap ≠ верхней
+// точке). Base UI на нижней фазе держит --drawer-swipe-progress = 1 (прогресс
+// между фазами живёт в той же переменной, DrawerViewport applySwipeProgress),
+// поэтому базовая формула `(1 - progress)` гасила бы скрим в ноль — здесь
+// формула от переменной НЕ зависит, фаза-1 получает фиксированные 3/4 мягкого
+// скрима: заметно темнее «воздушного» варианта, но светлее полного на фазе-2.
+// Fade при свайп-закрытии с нижней фазы не теряется: progress там всё равно
+// клампится в 1, так что линковка с переменной ничего не давала.
+.softBackdropLowSnap {
+    opacity: calc(var(--overlay-opacity-base) / 3 * 0.75);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .overlay {
         transition: none;

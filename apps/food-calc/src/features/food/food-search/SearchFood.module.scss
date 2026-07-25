@@ -173,15 +173,17 @@
 }
 
 // FAB «наверх» — кружок внизу-слева, появляется когда шапка поиска уехала за верх.
-// Тон = floating-обвязка экрана (как BackButton поиска): серая подложка в цвет
-// страницы (`--sys-color-surface-floating` = --cards-page-bg, переопределён в .content)
-// + ХОЛОДНЫЙ indigo «инструмент»-шеврон (`--sys-color-text-on-floating`). Тень
-// отделяет от нижнего дока. z-index выше дока (10). Стрелка = arrowLeft, повёрнут вверх.
+// Тон: нейтральная подложка surface-2 + нейтральный чёрный (text-system) шеврон.
+// Тень отделяет от нижнего дока. Стрелка = arrowLeft, повёрнут вверх (отдельной
+// иконки chevron-up/arrow-up в shared/assets/icons нет).
+// Портуется в document.body (см. SearchFood.tsx, паритет с .createFab): fixed к
+// вьюпорту, z-index выше полноэкранной ModalByLabel (z:1000) — внутри `.content`
+// (z-index:1) кнопку перекрывал нижний фейд ModalShell (wrapper::after).
 .scrollTopFab {
-    position: absolute;
-    left: 0;
+    position: fixed;
+    left: var(--sys-inset-page);
     bottom: calc(12px + env(safe-area-inset-bottom));
-    z-index: 20;
+    z-index: 1001;
     width: 44px;
     height: 44px;
     display: flex;
@@ -189,10 +191,11 @@
     justify-content: center;
     border: none;
     border-radius: 50%;
-    background: var(--sys-color-surface-floating);
-    color: var(--sys-color-text-on-floating);
+    background: var(--sys-color-surface-2);
+    color: var(--sys-color-text-system);
     box-shadow: var(--sys-elevation-overlay);
     cursor: pointer;
+    // Только opacity: transform занят useKeyboardStick (подъём над клавиатурой).
     animation: fabIn 180ms cubic-bezier(0.2, 0, 0, 1) forwards;
 
     svg {
@@ -207,12 +210,10 @@
 @keyframes fabIn {
     0% {
         opacity: 0;
-        transform: scale(0.8);
     }
 
     100% {
         opacity: 1;
-        transform: scale(1);
     }
 }
 

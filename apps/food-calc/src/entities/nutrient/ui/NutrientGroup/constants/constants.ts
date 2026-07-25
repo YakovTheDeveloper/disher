@@ -139,6 +139,9 @@ export const nutrientDisplayGroups: NutrientGroup[] = [
     ...nutrientGroups.slice(1),
 ]
 
+// Нутриент по имени — для витрин, которым нужен доменный доступ по `name`.
+export const getNutrientByName = (name: string): Nutrient | undefined => nutrientByName[name]
+
 export const nutrientsHaveDailyNorm: Record<number, boolean> = {
     1: true,   // protein
     2: true,   // fats

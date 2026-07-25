@@ -62,11 +62,27 @@
   // Тёмные пары тёплых макро-оттенков (см. tokens.scss): глубокие приглушённые
   // тёплые тона над базой, той же троицей hue (мова/сливка/янтарь), чтобы Б/Ж/У
   // различались и на тёмной теме, не светясь пастелью.
-  // Роль (2026-07-23): заливка метра нормы в стат-блоках (раньше — бордер плитки).
+  // Роль: заливка мини-бара нормы в строках Б/Ж/У плотной витрины.
   --sys-color-macro-protein: #86616f; // light mauve
   --sys-color-macro-fat: #8a7a45; // light gold
   --sys-color-macro-carb: #8a7049; // light amber
-  --sys-color-macro-cool: #6f7689; // slate (cool-500)
+  --sys-color-macro-cool: #6f7689; // slate (cool-500) — консьюмеры: dev-витрины
+
+  // Тёмные пары aurora-glow тонов hero-ячеек (см. tokens.scss): те же hue,
+  // поднятые в яркости над тёмной базой — приглушённый тон на тёмном уходит в
+  // грязь так же, как на светлом.
+  --sys-color-glow-energy: #a67c3a; // amber flame
+  --sys-color-glow-water: #4f7ea6; // night sky
+  --sys-color-glow-fiber: #648f18; // moss light (пара к #8ec523)
+  --sys-color-glow-protein: #96606f; // rose ember
+  --sys-color-glow-fat: #96803f; // old gold light
+  --sys-color-glow-carb: #96663a; // peach ember
+
+  // Тёмные пары track-тонов hero-ячеек (см. tokens.scss): подняты в яркости,
+  // чтобы заполнение нормы читалось на тёмном треке.
+  --sys-color-track-fiber: #93c273; // moss light
+  --sys-color-track-water: #7cb3d9; // sky light
+  --sys-color-track-energy: #e8ad5e; // amber light
 
   --sys-color-surface-track: #33302a; // progress track (raised from base)
   --sys-color-surface-fill: #8a8ea0; // fill over track — lighter cool for contrast

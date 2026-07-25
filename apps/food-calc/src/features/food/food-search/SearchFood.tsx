@@ -213,6 +213,12 @@ const SearchFood = ({
     mode: 'transform',
     enabled: showCreateDock,
   });
+  // FAB «наверх» тоже липнет над клавиатурой (тот же transform-режим; CSS-вход
+  // потому только opacity — transform занят хуком).
+  const scrollTopFabRef = useKeyboardStick<HTMLButtonElement>({
+    mode: 'transform',
+    enabled: showHeavy && showScrollTop,
+  });
 
   return (
     <div className={styles.content}>
@@ -278,16 +284,24 @@ const SearchFood = ({
       {/* Индикатор «есть ещё ниже» + FAB «наверх» якорятся к viewport-размерному
           `.content`, поверх скролл-рута и нижнего дока. */}
       {showHeavy && <ScrollIndicator visible={hasMoreBelow} variant="light" bleed />}
-      {showHeavy && showScrollTop && (
-        <button
-          type="button"
-          className={styles.scrollTopFab}
-          onClick={handleScrollTop}
-          aria-label="Наверх, к началу списка"
-        >
-          <ArrowUpIcon />
-        </button>
-      )}
+      {isActive &&
+        showHeavy &&
+        showScrollTop &&
+        typeof document !== 'undefined' &&
+        // Портуется в document.body (как .createFab): внутри `.content` (z-index:1)
+        // кнопку перекрывал нижний фейд ModalShell (wrapper::after красится позже).
+        createPortal(
+          <button
+            ref={scrollTopFabRef}
+            type="button"
+            className={styles.scrollTopFab}
+            onClick={handleScrollTop}
+            aria-label="Наверх, к началу списка"
+          >
+            <ArrowUpIcon />
+          </button>,
+          document.body,
+        )}
 
       {/* Плавающая тёмная КРУГЛАЯ кнопка-акцент «Новая еда» — RoundButton
           (look="elevated": тёмная floating-монета + белые глиф/текст). Плюс по центру,

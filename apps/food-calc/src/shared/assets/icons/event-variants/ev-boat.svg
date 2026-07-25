@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- дуговая отсечка низа (сектор ±65° за r=340): кольцо под подпись медали -->
+      <path d="M 2325 1357 A 2000 2000 0 0 1 -1301 1357 L 204 656 A 340 340 0 0 0 820 656 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#b)">
+      <!-- парусник в духе палатки: большой треугольный парус-герой,
+           заметный флажок на мачте, спокойная вода -->
+      <path d="M 449 380 Q 580 540 640 750 L 449 750 Z"/>
+      <path d="M 425 450 Q 330 600 290 750 L 425 750 Z"/>
+      <rect x="431" y="352" width="14" height="408" rx="7"/>
+      <path d="M 445 356 L 545 384 L 445 416 Z"/>
+      <!-- корпус лодки -->
+      <path d="M 320 778 L 610 778 C 580 862 350 862 320 778 Z"/>
+      <!-- вода -->
+      <rect x="180" y="886" width="640" height="16" rx="8"/>
+    </g>
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

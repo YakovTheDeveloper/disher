@@ -478,32 +478,55 @@
   // холодный wash без градиента; indigo-текст (--sys-color-text-accent) читается на нём.
   --sys-color-surface-cool-soft: var(--ref-color-cool-50); // #edeff2
 
-  // На пол-ступени тише cool-soft — подложка SUMMARY-зон плотной витрины
-  // (NutrientDenseView: hero-карта энергии + широкая плитка воды). Тон отделяет
-  // агрегаты (энергия = сводка БЖУ; вода — отдельная неэнергетическая категория)
-  // от составляющих на бумаге, но не спорит с числами: тот же cool-hue,
-  // промешанный в фон листа (neutral-0). Пара на тёмной теме — в theme-dark.scss.
+  // На пол-ступени тише cool-soft. Живые консьюмеры — dev-витрины
+  // (app/development-features); в боевой плотной витрине подложек больше нет
+  // (табличный язык 2026-07-24 — только рамка + сетка). Пара на тёмной теме —
+  // в theme-dark.scss.
   --sys-color-surface-cool-softer: color-mix(in oklch, var(--ref-color-cool-50) 45%, var(--ref-color-neutral-0));
 
-  // ─── Тёплые per-макро подложки БЖУ (data-carrying идентичность) ──────────────
-  // Плитки Б/Ж/У в плотной витрине (NutrientDenseView) несут ТИХУЮ тёплую окраску,
-  // чтобы три макроса различались периферийным зрением — но в палитре disher, а не
+  // ─── Тёплые per-макро hue БЖУ (data-carrying идентичность) ─────────────────
+  // Заливка hue-трека нормы в hero-боксах макро витрины (NutrientTotals):
+  // три макроса различались периферийным зрением — но в палитре disher, а не
   // радужными донатами (канон «дневник натуралиста» + no-per-surface-theming): это
   // семантика сущности (какой макрос), а не декор поверхности. Оттенки — washed-
   // рунги утверждённой тёплой палитры (plum/butter/amber), подмешанные в белый до
   // мягкой пастели равной светлоты. protein→пыльно-розовый, fat→сливочно-золотой,
   // carb→тёплый песок (пшеница). Пара к ним на тёмной теме — в theme-dark.scss.
   // protein — ТЁПЛЫЙ dusty-rose: чистый plum (лилово-РОЗОВЫЙ) промешан в белый
-  // читался холодным и сливался с cool-soft нижних плиток; подмешиваем тёплый amber,
-  // чтобы hue ушёл в розовый и ЯВНО отличался от холодного slate соседей.
-  // Роль (2026-07-23): hue несёт КАТЕГОРИЮ макроса в ЗАЛИВКЕ метра нормы стат-блока
-  // (длина метра = доля нормы) — цвет категориален, величину несёт длина, не оттенок.
-  // До этого hue жил в 2px бордере outlined-плитки («чистый бордер»): рамка читалась
-  // кнопкой (ложный аффорданс), а пастельные контуры слабо различались между собой.
+  // читался холодным и сливался с cool-soft соседей; подмешиваем тёплый amber,
+  // чтобы hue ушёл в розовый и ЯВНО отличался от холодного slate.
+  // Роль: hue несёт КАТЕГОРИЮ макроса в заливке бара (длина бара = доля нормы) —
+  // цвет категориален, величину несёт длина, не оттенок.
   --sys-color-macro-protein: color-mix(in oklch, var(--ref-color-plum) 58%, var(--ref-color-amber-900) 42%);
   --sys-color-macro-fat: color-mix(in oklch, var(--ref-color-butter) 60%, var(--ref-color-amber-900) 40%);
   --sys-color-macro-carb: color-mix(in oklch, var(--ref-color-amber-100) 46%, var(--ref-color-amber-900) 54%);
+  // Холодный slate для «прочих» категорий (не-Б/Ж/У) — зеркало тёплой троицы.
+  // Консьюмеры — dev-витрины (app/development-features); боевая плотная
+  // витрина для остальных нутриентов берёт нейтральный --sys-color-surface-fill.
   --sys-color-macro-cool: var(--ref-color-cool-500);
+
+  // Aurora-glow тона hero-ячеек нутриентов (NutrientTotals, DesignBar
+  // 'NutrientTotalsHero'). СВЕТЯЩИЕСЯ high-key пастели — fairy-эффект держится
+  // на светлоте и лёгкой насыщенности: приглушённый тон на низкой альфе над
+  // тёплой бумагой читается грязным пятном, светлый — светом. Сырой hex
+  // намеренно: нужных светлых рунгов в ref-рампах нет (канон тот же, что у
+  // тёмных пар в theme-dark.scss). Клетчатка → весенняя зелень, вода → небесная
+  // голубизна, энергия → абрикос, белки → роза, жиры → бледное золото,
+  // углеводы → персиковый песок. Пары на тёмной теме — в theme-dark.scss.
+  --sys-color-glow-energy: #ffcf99; // apricot light
+  --sys-color-glow-water: #9fd4f2; // sky light
+  --sys-color-glow-fiber: #8ec523; // spring green (калибровка 2026-07-25, devtools)
+  --sys-color-glow-protein: #f4bfd0; // tender rose
+  --sys-color-glow-fat: #f5df9a; // pale gold
+  --sys-color-glow-carb: #f2c997; // peach sand
+
+  // Треки нормы hero-ячеек с aurora-айдентикой (NutrientTotals): близкий к
+  // свечению оттенок, но СРЕДНЕЙ глубины — UX-требование: заполнение нормы
+  // обязано читаться на треке, пастель свечения для этого слишком светлая.
+  // «Чуть светлее» классических macro-тонов. Пары на тёмной — в theme-dark.scss.
+  --sys-color-track-fiber: #82b264; // light moss
+  --sys-color-track-water: #6fa4c8; // light sky
+  --sys-color-track-energy: #dda051; // light amber
 
   // Frosted-glass overlay (translucent surface over content — NutrientTable edit
   // overlay). Near-white veil in light; flips to a translucent dark veil so the
@@ -544,7 +567,7 @@
   --sys-color-text-secondary: var(--text-secondary);
   --sys-color-text-tertiary: var(--text-tertiary);
   // Тихий ИНТЕРАКТИВНЫЙ ярус важности — общий голос для «вспомогательных контролов и
-  // их меток»: триггер inline-селекта (порция), чип-легенда нормы («% — доля…»),
+  // их меток»: триггер inline-селекта (порция), чип-легенда нормы («% — дневная норма»),
   // декоративная дуга вида. Все они ОДНОЙ важности → ОДИН цвет, и он ЗАМЕТНО ТИШЕ
   // tertiary (запрос 2026-07-24: «одинаковые И менее заметные»). Значение = tertiary,
   // приглушённый до ~60% (color-mix с transparent — на surface-дровера это светло-серый

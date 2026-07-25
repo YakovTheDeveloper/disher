@@ -80,6 +80,9 @@
     box-shadow: none;
     font: inherit;
     color: inherit;
+    // Курсив триггера (2026-07-25, запрос) — inline-контрол читается «живым» словом
+    // в строке текста; на пункты попапа не распространяется (портал в <body>).
+    font-style: italic;
 
     &:hover,
     &[data-popup-open] {
@@ -95,6 +98,26 @@
     .icon {
         color: inherit;
     }
+}
+
+// Подчёркнутая опора inline-триггера — число+юнит выбранного значения («100 г»
+// из «на 100 г»): кликабельность читается чертой снизу, тот же приём, что у
+// чипа нормы («% — дневная норма ›»). Только триггер: пункты попапа рендерятся
+// без .anchor и черты не получают. Черта — text-decoration, НЕ border-bottom:
+// вертикальные padding/border инлайн-элемента не расширяют его line-box и
+// обрезались `overflow: hidden` родителя (.value) — черта была невидима.
+.inline .anchor {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+// Поворот общего ChevronGlyph вниз для inline-триггера (сам глиф смотрит
+// вправо ›). Open-flip (rotate 180deg) живёт на обёртке .icon и складывается
+// с этим поворотом ⇒ в открытом состоянии стрелка смотрит вверх.
+.iconDown {
+    display: inline-flex;
+    transform: rotate(90deg);
 }
 
 .value {

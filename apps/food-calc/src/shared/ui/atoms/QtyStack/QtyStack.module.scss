@@ -2,6 +2,7 @@
 // (mirror-span, проект без field-sizing) → число у левого края. Тап = правка.
 // Единицу карточки не показывают (снято 98d3f1b3) — она осталась только в шаге
 // количества, у которого свой рендер.
+@import '@/shared/assets/style/mixin.scss';
 
 .qty {
   display: inline-flex;
@@ -41,7 +42,7 @@
   position: relative;
   display: inline-block;
   width: 40px; // не схлопывается в ноль на пустом инпуте (бэкспейс)
-  font-size: var(--sys-numeral-base);
+  @include card-numeric-values;
   line-height: 1.15; // совпасть с первой строкой имени в кластере
 
 }
@@ -52,9 +53,9 @@
   display: inline-block;
   visibility: hidden;
   white-space: pre;
-  color: transparent;
   pointer-events: none;
-  font-size: var(--sys-field-font-size); // ровно как у input — иначе бокс разъедется
+  @include card-numeric-values($field: true); // ровно как у input — иначе бокс разъедется
+  color: transparent; // ПОСЛЕ миксина: его tone не должен «проявить» зеркало
   letter-spacing: 0;
   line-height: 1.15;
 }
@@ -67,13 +68,15 @@
   width: 100%;
   padding: 0 !important;
   margin: 0;
-  font-size: var(--sys-field-font-size) !important;
+  // Тон/вес — inherit !important (перебивают миксин ниже): поле звучит голосом
+  // `.value`, а `--sys-field-*` NumberInput'а гасится.
   font-weight: inherit !important;
   color: inherit !important;
   background: transparent !important;
   border: 0 !important;
   border-radius: 0 !important;
   text-align: left;
+  @include card-numeric-values($field: true);
   letter-spacing: 0;
   line-height: 1.15;
 

@@ -77,7 +77,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
         // Блюдо в расписании без резолвнутых ингредиентов: удалено (каскад чистит
         // dish_items, но НЕ schedule_foods) или пустое. Раньше такой ряд молча
         // выпадал из тотала И не попадал в missing → съеденные ккал/БЖУ исчезали
-        // без сигнала. Флагуем, чтобы FoodsNutrients показал «Нет данных…».
+        // без сигнала. Флагуем, чтобы NutrientsDrawer показал «Нет данных…».
         const dishName = di.dish?.name ?? di.dishId!;
         if (!missingNames.includes(dishName)) missingNames.push(dishName);
       }

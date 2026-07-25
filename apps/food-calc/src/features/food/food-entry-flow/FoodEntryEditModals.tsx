@@ -136,11 +136,11 @@ const FoodEntryEditModals = ({ flow }: Props) => {
         onBack={handleClose}
         trailing={
           infoTarget ? (
-            // Канон ⓘ в шапке: soft-плитка 44 (тот же вид, что во всех дроверах/
+            // Канон ⓘ в шапке: soft-плитка (тот же вид, что во всех дроверах/
             // модалках) — ink-подложка сама читается ярче/тише по surface.
+            // Размер не задаём: геометрию слота фиксирует ModalHeader (40×40).
             <InfoButton
               tone="soft"
-              size={44}
               aria-label={infoTarget.label}
               onClick={infoTarget.onClick}
             />

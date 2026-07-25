@@ -182,7 +182,7 @@
 // surface-2 (лист над листом). Фон + вдавленный «колодец» полей (field-depth) —
 // из ОДНОГО тира (тот же контракт, что у field-depth: передал номер — промахнуться
 // нельзя). Компаунд `.content.surface1` (0,2,0) бьёт базовый `.content` (0,1,0).
-// Дом: быстрый дровер еды из SearchFood (QuickViewDrawer передаёт surface={1}).
+// Дом: быстрый дровер еды из SearchFood (NutrientShowcaseDrawer передаёт surface={1}).
 .content.surface1 {
     background-color: var(--sys-color-surface-1);
     @include field-depth(--sys-color-surface-1);
@@ -619,18 +619,27 @@
     padding-inline-end: var(--drawer-inset);
 }
 
-// Замыкающий контрол (topRight) ЗЕРКАЛИТ ведущий крест: его глиф право-джастифицирован
-// к --drawer-inset = той же линии тела, что и крест слева. Без этого IconButton
-// центрировал глиф в 44-коробке → он висел ~14px от кромки, пока крест жался к своей, и
-// ряд читался несимметричным (запрос 2026-07-24).
-// ВАЖНО: целимся в ПРЯМОГО ребёнка ячейки (`> *`), а НЕ в `.iconButton` — тот класс
-// живёт в css-module scope IconButton и отсюда недосягаем (прежнее `.chromeCellTrail
-// .iconButton` молча не матчилось, глиф так и висел от кромки). justify-content на
-// не-flex-узле — no-op, поэтому текстовым/лейбловым слотам безвредно; иконочная кнопка
-// (inline-flex) прижимает глиф вправо. Компаунд `.chromeCell.chromeCellTrail` (0,2,0)
-// бьёт `.iconButton{justify-content:center}` (0,1,0).
-.chromeCell.chromeCellTrail > * {
-    justify-content: flex-end;
+// Замыкающий контрол (topRight) — глиф ЦЕНТРИРОВАН в своей 44-коробке (канон
+// 2026-07-25): правая кнопка, как правило, с подложкой, поэтому справа хедер
+// выравнивается по КРОМКЕ КНОПКИ — она и так сидит на --drawer-inset через
+// justify-content:flex-end самой trail-ячейки + padding-inline-end. Слева же
+// выравнивание идёт по ГЛИФУ креста (ghost, вес = глиф) — .leadingGlyph ниже.
+// Прежняя право-джастификация глифа (`.chromeCellTrail > * { justify-content:
+// flex-end }`, эпоха голых ghost-контролов) с подложкой давала децентровку —
+// снята глобально, консумерам (QuickView и т.п.) свои overrides не нужны.
+
+// Замыкающий контрол = фиксированный квадрат chrome-размера (--sys-size-control),
+// как ведущий крест (.leadingGlyph). Геометрию кнопки владеет LAYOUT, а не консумер:
+// раньше топ-райт слот сайзили вразнобой (кто size={44}, кто без размера → сжатие по
+// глифу ~18px, а ItemActionsDrawer тянул `height:100%` от слота → распухал в не-квадрат,
+// когда ряд рос под subtitle). Теперь распереть нечем и size передавать не нужно.
+// `:is(button, label)` целит саму интерактивную кнопку — и когда она прямой ребёнок
+// ячейки, и ВНУТРИ обёртки (QuickView оборачивает её в .pageLink span ради дуги ArcLabel;
+// HintButton — в PopoverTrigger): обёртка/дуга/поповер не тронуты. Компаунд (0,2,1) бьёт
+// одноклассовые consumer-правила слота.
+.chromeCell.chromeCellTrail :is(button, label) {
+    inline-size: var(--sys-size-control);
+    block-size: var(--sys-size-control);
 }
 
 // Центр-колонка (title / subtitle / кастомный header). auto-трек между двумя
@@ -654,6 +663,17 @@
 .dragHandleHeader .centerCell {
     justify-content: flex-start;
     padding-block-start: var(--drawer-chrome-pad-block);
+}
+
+// Двухэтажный chrome: заголовок выравнивается по ПЛИТКЕ боковых контролов, а не по
+// их глифу (2026-07-25, запрос — плитка topRight читалась «выше заголовка»).
+// Строка заголовка занимает полосу chrome − 2·pad ниже верхнего pad ⇒ её центр =
+// pad + (chrome − 2·pad)/2 = chrome/2 — ровно центр 44-плитки ведущего/замыкающего
+// (оба центрируются в min-height:chrome ячейке). line-height, а не flex — заголовок
+// гарантированно однострочный (nowrap + ellipsis), полу-интерлиньяж центрирует сам.
+.dragHandleStacked .titleStack .titleCenter {
+    /* typo-encapsulation-disable-next-line -- межстрочие тут не типографика, а выравнивание строки заголовка по центру chrome-полосы (плитки боковых контролов) */
+    line-height: calc(var(--sys-size-drawer-chrome) - 2 * var(--drawer-chrome-pad-block));
 }
 
 // Ведущий крест/стрелка — голый IconButton-shell (БЕЗ tone): холодный глиф
@@ -850,6 +870,12 @@
     @include scroll-edge-fade;
 }
 
+// Нижняя полоса snap-листа шириной в snap-offset висит под кромкой экрана (Base UI
+// держит попап на натуральной высоте и сдвигает вниз на --drawer-snap-point-offset).
+// Компенсация конца скролла живёт в DrawerLayout.tsx (инлайн padding-bottom по
+// измеренному rect попапа): через CSS-var это невозможно — Base UI регистрирует
+// --drawer-snap-point-offset с `inherits: false`, на скроллере он всегда 0px.
+
 // Нижняя snap-фаза: тело НЕ скроллится (компаунд `.scrollableContent.scrollLockedBase`
 // = (0,2,0) бьёт базовый overflow-y:auto). Base UI пускает свайп листа только по
 // нескроллящейся цели, поэтому здесь драг по контенту разворачивает лист в верхнюю
@@ -876,26 +902,17 @@
     --drawer-content-inset: var(--sys-inset-sheet);
 }
 
+// flushBodyPaddingTop: consumer сам владеет зазором «шапка → тело» — каноничный
+// верхний padding скроллера гасим через var (то же построение, что contentInset).
+.flushBodyPaddingTop {
+    --drawer-content-pad-top: 0;
+}
+
 // Pinned, non-scrolling footer slot — sits below the scroll area, always
 // visible. Used for content that must not require a scroll to reach (e.g. the
 // account drawer's «Опасная зона»).
 .footer {
     flex-shrink: 0;
-}
-
-// Декоративный штамп по ДУГЕ скруглённого верхнего-правого угла (DrawerLayout
-// `cornerLabel`): SVG-текст вдоль четверти окружности радиуса --sys-radius-drawer —
-// «повторяет скругление дровера». Absolute к .content (у нижнего дровера .panel =
-// display:contents, поэтому abs резолвится к .content = видимому листу). Поверх
-// chrome-ряда (z=21), тап проходит насквозь. Цвет — тихий холодный глиф-токен; сам
-// кегль/начертание живут SVG-атрибутами (геометрия, не типо-ярус приложения).
-.cornerLabel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 21;
-    color: var(--sys-color-icon);
-    pointer-events: none;
 }
 
 .srOnly {

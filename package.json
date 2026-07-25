@@ -7,6 +7,8 @@
     "dev": "turbo run dev",
     "dev:frontend": "pnpm --filter @disher/frontend run dev-network",
     "dev:backend": "pnpm --filter @disher/backend run dev:network",
+    "storybook": "pnpm --filter @disher/frontend run storybook",
+    "build-storybook": "pnpm --filter @disher/frontend run build-storybook",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",

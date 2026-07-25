@@ -39,6 +39,8 @@ type SectionProps = {
   as?: ElementType;
   /** Курсив лейбла секции — opt-in консумера; дефолт прямой (см. `.sectionLabelItalic`). */
   italicLabel?: boolean;
+  /** Выравнивание лейбла секции: дефолт `left`, `center` — по центру (дроверы действий). */
+  labelAlign?: 'left' | 'center';
   /**
    * Инлайн-ряд: заголовок и контент в ОДНУ строку (лейбл слева, контент прижат
    * вправо), а не столбцом. Для коротких секций-контролов вроде «Состав на» +
@@ -74,6 +76,7 @@ function Section({
   label,
   as = 'h2',
   italicLabel,
+  labelAlign = 'left',
   inline,
   flushTop,
   aside,
@@ -83,7 +86,12 @@ function Section({
     <Heading
       as={as}
       role="title"
-      className={clsx(styles.sectionLabel, italicLabel && styles.sectionLabelItalic, className)}
+      className={clsx(
+        styles.sectionLabel,
+        italicLabel && styles.sectionLabelItalic,
+        labelAlign === 'center' && styles.sectionLabelCenter,
+        className,
+      )}
     >
       {label}
     </Heading>

@@ -14,7 +14,7 @@ type Props = BaseDrawerProps<void> & {
 
 export function SectionInfoDrawer({ title, description }: Props) {
   return (
-    <DrawerLayout title={title}>
+    <DrawerLayout header={{ kind: 'compact', title }}>
       <Text role="body" className={s.description}>
         {description}
       </Text>

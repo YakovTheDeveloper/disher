@@ -218,6 +218,17 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
+
+  // Геометрия слота = back-кнопке: 40×40 круглая плитка, иначе ⓘ/урна пляшут
+  // по размеру от caller'а к caller'у. Прямые дети: button (IconButton,
+  // HeaderDeleteButton) и label (HintButton рендерит label). Inline-style от
+  // пропа size победил бы CSS, поэтому size тут не передают вовсе.
+  > button,
+  > label {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--sys-radius-indicator); // как у .backButton
+  }
 }
 
 // Кегль заголовка-полосы (28px) теперь несёт role="headline" самого <Heading>;

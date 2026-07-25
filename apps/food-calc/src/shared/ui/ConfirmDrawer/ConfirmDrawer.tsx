@@ -26,7 +26,7 @@ const ConfirmDrawer = ({
   tone = 'default',
   onClose,
 }: ConfirmDrawerProps) => (
-  <DrawerLayout title="Подтверждение">
+  <DrawerLayout header={{ kind: 'compact', title: 'Подтверждение' }}>
     <div className={s.body}>
       <Heading role="headline" as="h3" className={s.title}>
         {title}

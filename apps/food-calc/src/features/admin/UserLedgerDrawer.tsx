@@ -42,7 +42,7 @@ export function UserLedgerDrawer({ userId, email }: Props) {
   }, [userId]);
 
   return (
-    <DrawerLayout title="История" subtitle={email ?? undefined}>
+    <DrawerLayout header={{ kind: 'compact', title: 'История', subtitle: email ?? undefined }}>
       <div className={s.body}>
         {failed ? (
           <Text role="caption" as="p" className={s.hint}>

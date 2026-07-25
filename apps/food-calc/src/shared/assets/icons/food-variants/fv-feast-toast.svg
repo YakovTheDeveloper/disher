@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <!-- бейдж-плюс: дырка под кольцо -->
+      <circle cx="340" cy="740" r="181" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#m)">
+      <!-- тост: два крупных купе чокаются над центром, искры в точке удара -->
+      <g transform="rotate(12 400 660)">
+        <path d="M 300 480 A 100 112 0 0 0 500 480 Z"/>
+        <rect x="388" y="596" width="24" height="130" rx="12"/>
+        <ellipse cx="400" cy="736" rx="64" ry="16"/>
+      </g>
+      <g transform="rotate(-12 580 660)">
+        <path d="M 480 480 A 100 112 0 0 0 680 480 Z"/>
+        <rect x="568" y="596" width="24" height="130" rx="12"/>
+        <ellipse cx="580" cy="736" rx="64" ry="16"/>
+      </g>
+      <!-- искры -->
+      <rect x="492" y="180" width="16" height="70" rx="8"/>
+      <rect x="492" y="180" width="16" height="70" rx="8" transform="rotate(-50 500 215)"/>
+      <rect x="492" y="180" width="16" height="70" rx="8" transform="rotate(50 500 215)"/>
+    </g>
+    <!-- бейдж-плюс: нижний левый угол объекта, наползает ~30% -->
+    <circle cx="340" cy="740" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="318" y="665" width="44" height="150" rx="14"/>
+    <rect x="265" y="718" width="150" height="44" rx="14"/>
+  </g>
+</svg>

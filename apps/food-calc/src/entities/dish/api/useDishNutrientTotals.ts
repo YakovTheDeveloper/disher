@@ -7,7 +7,7 @@ export type DishNutrientResult = {
   totals: NutrientTotals;
   /**
    * Имена ингредиентов без нутриентных данных (user-продукт с пустыми nutrients
-   * или осиротевший productId). Пробрасывается в `FoodsNutrients`, чтобы поверхности
+   * или осиротевший productId). Пробрасывается в `NutrientsDrawer`, чтобы поверхности
    * блюда (страница + дровер) показывали «Нет данных…» вместо частичного тотала,
    * который выглядит полным — паритет с дневным разбором (`useScheduleNutrientTotals`).
    */

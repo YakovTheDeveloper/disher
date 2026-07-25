@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <!-- бейдж-плюс: дырка под кольцо -->
+      <circle cx="300" cy="830" r="181" fill="#000"/>
+      <!-- прорези плетения -->
+      <rect x="240" y="640" width="544" height="18" fill="#000"/>
+      <rect x="252" y="720" width="520" height="18" fill="#000"/>
+      <rect x="266" y="800" width="492" height="18" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <!-- ручка -->
+    <path d="M 330 520 A 145 190 0 0 1 620 520" fill="none" stroke="#fff" stroke-width="40"/>
+    <!-- содержимое: багет, яблоко, морковь -->
+    <rect x="300" y="300" width="70" height="240" rx="34" transform="rotate(-18 335 420)"/>
+    <circle cx="500" cy="440" r="72"/>
+    <path d="M 500 356 C 526 322 566 318 580 324 C 570 354 536 368 500 364 Z"/>
+    <path d="M 470 400 L 575 375 L 530 480 Z"/>
+    <g mask="url(#m)">
+      <!-- корзина -->
+      <path d="M 250 520 L 774 520 L 704 884 L 320 884 Z"/>
+    </g>
+    <!-- обод -->
+    <rect x="232" y="496" width="560" height="44" rx="22"/>
+    <!-- бейдж-плюс: нижний левый угол объекта, наползает ~30% -->
+    <circle cx="300" cy="830" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="278" y="755" width="44" height="150" rx="14"/>
+    <rect x="225" y="808" width="150" height="44" rx="14"/>
+  </g>
+</svg>

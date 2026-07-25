@@ -5,7 +5,7 @@ import '@testing-library/jest-dom/vitest';
 type SelectOpt = { value: string; label: string };
 type CapturedProps = {
   title: string;
-  kind: string;
+  subtitle: string;
   pageRoute: string;
   heroName?: string;
   portionOptions: SelectOpt[];
@@ -16,7 +16,7 @@ type CapturedProps = {
   loading?: boolean;
 };
 
-// Хойстед-спаи хуков блюда + холдер последних props, отданных QuickViewDrawer.
+// Хойстед-спаи хуков блюда + холдер последних props, отданных NutrientShowcaseDrawer.
 const { useDishWithStatus, useDishItemsWithProducts, useDishNutrientTotals, useDishPortions, h } =
   vi.hoisted(() => ({
     useDishWithStatus: vi.fn(),
@@ -33,10 +33,10 @@ vi.mock('@/entities/dish', () => ({
   useDishPortions,
 }));
 
-// QuickViewDrawer — заглушка: перехватывает props (адаптер лишь поставляет данные)
+// NutrientShowcaseDrawer — заглушка: перехватывает props (адаптер лишь поставляет данные)
 // и рендерит кнопку на каждый пункт порции, чтобы дёрнуть onSelectPortion в тесте.
 vi.mock('@/features/food/quick-view-drawer', () => ({
-  QuickViewDrawer: (props: CapturedProps) => {
+  NutrientShowcaseDrawer: (props: CapturedProps) => {
     h.props = props;
     return (
       <div>
@@ -52,7 +52,7 @@ vi.mock('@/features/food/quick-view-drawer', () => ({
 
 import { DishDrawer } from './DishDrawer';
 
-describe('DishDrawer (адаптер QuickViewDrawer)', () => {
+describe('DishDrawer (адаптер NutrientShowcaseDrawer)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     h.props = null as unknown as CapturedProps;
@@ -62,10 +62,10 @@ describe('DishDrawer (адаптер QuickViewDrawer)', () => {
     useDishPortions.mockReturnValue([]);
   });
 
-  it('передаёт имя / kind «dish» / маршрут страницы', () => {
+  it('передаёт имя / подзаголовок / маршрут страницы', () => {
     render(<DishDrawer dishId="d1" onClose={vi.fn()} />);
     expect(h.props.title).toBe('борщ');
-    expect(h.props.kind).toBe('dish');
+    expect(h.props.subtitle).toBe('Пищевая ценность');
     expect(h.props.pageRoute).toBe('/dish/d1');
     expect(h.props.heroName).toBe('борщ');
   });

@@ -11,7 +11,7 @@ type Props = BaseDrawerProps<boolean>;
 
 export function SuggestNutrientsConfirmDrawer({ onClose }: Props) {
   return (
-    <DrawerLayout title="Подтверждение">
+    <DrawerLayout header={{ kind: 'compact', title: 'Подтверждение' }}>
       <div className={s.body}>
         <Heading role="headline" as="h3" className={s.title}>
           Все прошлые нутриенты сотрутся. Продолжить?

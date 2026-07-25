@@ -30,7 +30,16 @@ const ALLOWED_PNG = new Set([
   'icon-512.png',
   'icon-512-maskable.png',
   'apple-touch-icon.png',
+  // Лого-маска поверх гравюры лоадера — рисуется на каждом холодном старте,
+  // приходит через includeAssets (см. комментарий в vite.config.ts).
+  'logo-white-no-fill.png',
 ]);
+
+// Точечные исключения из «картинки не прекешим» — см. комментарий у globPatterns в
+// vite.config.ts. Гравюра лоадера рисуется на каждом холодном старте (boot-splash,
+// Suspense-фолбэк), лежит в dist/assets с контент-хешем → прекешится одним файлом.
+const ALLOWED_GLOBS = ['assets/loader-analysis-*.webp'];
+const ALLOWED_MANIFEST_RE = /^assets\/loader-analysis-[\w-]+\.webp$/;
 
 const fail = (msg) => {
   console.error(`✗ precache: ${msg}`);
@@ -42,7 +51,10 @@ const config = await readFile(CONFIG, 'utf8');
 const globs = config.match(/globPatterns:\s*\[([^\]]*)\]/);
 if (!globs) fail(`не нашёл globPatterns в ${CONFIG} — переименовали или удалили?`);
 
-const leaked = RASTER.filter((ext) => new RegExp(`\\b${ext}\\b`).test(globs[1]));
+// Известные точечные исключения вычитаем перед поиском растровых форматов.
+const globsBody = ALLOWED_GLOBS.reduce((body, allowed) => body.replace(`'${allowed}'`, ''), globs[1]);
+
+const leaked = RASTER.filter((ext) => new RegExp(`\\b${ext}\\b`).test(globsBody));
 if (leaked.length) {
   fail(
     `растровые форматы вернулись в globPatterns: ${leaked.join(', ')}.\n` +
@@ -60,7 +72,7 @@ if (existsSync(SW)) {
   const offenders = urls.filter((u) => {
     const ext = u.split('.').pop()?.toLowerCase();
     if (!RASTER.includes(ext)) return false;
-    return !ALLOWED_PNG.has(u.split('/').pop());
+    return !ALLOWED_PNG.has(u.split('/').pop()) && !ALLOWED_MANIFEST_RE.test(u);
   });
 
   if (offenders.length) {

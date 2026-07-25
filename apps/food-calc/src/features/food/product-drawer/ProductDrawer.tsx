@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useProduct, useProductPortions, useProductNutrients } from '@/entities/product';
-import { QuickViewDrawer } from '@/features/food/quick-view-drawer';
+import { NutrientShowcaseDrawer } from '@/features/food/quick-view-drawer';
 import { RouterUrls } from '@/shared/config/routes';
-import { isCreatedByUser } from '@/shared/lib';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { buildQuantityOptions } from './buildQuantityOptions';
@@ -15,11 +14,11 @@ interface Props extends BaseDrawerProps {
 }
 
 /**
- * Тонкий адаптер быстрого просмотра продукта над `QuickViewDrawer`. Отдаёт
- * каркасу имя/kind, маршрут страницы, пункты селекта порции и нутриенты, УЖЕ
+ * Тонкий адаптер быстрого просмотра продукта над `NutrientShowcaseDrawer`.
+ * Отдаёт каркасу имя, маршрут страницы, пункты селекта порции и нутриенты, УЖЕ
  * отскейленные под выбранную порцию. Всё редактирование (имя/описание/порции/
  * нутриенты) уехало на `/product/:id` — сюда ведёт кнопка «Открыть страницу»
- * в шапке каркаса; норма — флажок в его шапке.
+ * в шапке каркаса; норма — чип-легенда внутри витрины.
  *
  * Открытие: `drawerStore.show(ProductDrawer, { productId, productName }, QUICK_VIEW_DRAWER_OPTIONS)`.
  */
@@ -33,7 +32,6 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
 
   const [selectedPortion, setSelectedPortion] = useState<string | null>(null);
 
-  const isUserCreated = isCreatedByUser(productId);
   const isSupplement = food?.servingBasis === 'serving';
 
   // Пункты селекта только у продукта-еды (basis '100g'). Пункт «Своё значение»
@@ -66,9 +64,10 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
   const name = food?.name ?? productName;
 
   return (
-    <QuickViewDrawer
+    <NutrientShowcaseDrawer
       title={name ?? 'Продукт'}
-      kind={isUserCreated ? 'my-product' : 'product'}
+      // Подзаголовок именует витрину (имя несёт заголовок) — одинаков для еды.
+      subtitle="Пищевая ценность"
       pageRoute={RouterUrls.getProduct(productId)}
       heroName={name}
       portionOptions={portionOptions}

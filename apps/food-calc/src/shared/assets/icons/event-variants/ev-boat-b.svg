@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- дуговая отсечка низа (сектор ±65° за r=340): кольцо под подпись медали -->
+      <path d="M 2325 1357 A 2000 2000 0 0 1 -1301 1357 L 204 656 A 340 340 0 0 0 820 656 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#b)">
+      <!-- спинакер: один огромный наполненный ветром парус — самая
+           лаконичная форма парусника, флажок на верхушке -->
+      <path d="M 460 370 Q 630 540 620 760 L 320 760 Q 310 540 460 370 Z"/>
+      <rect x="453" y="334" width="14" height="44" rx="7"/>
+      <path d="M 467 336 L 570 364 L 467 396 Z"/>
+      <!-- корпус лодки -->
+      <path d="M 310 784 L 630 784 C 600 862 340 862 310 784 Z"/>
+      <!-- вода -->
+      <rect x="200" y="890" width="620" height="16" rx="8"/>
+    </g>
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

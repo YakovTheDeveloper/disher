@@ -6,7 +6,7 @@
 .display,
 .edit {
   padding-block: var(--sys-tap-pad-block);
-  @include card-time-readout; // общий голос времени карточки (тон + body-кегль + tabular)
+  @include card-numeric-values; // общий голос числа карточки (тон + numeral-кегль + tabular)
 }
 
 // label-ветка (предложка) — без обёртки InlineTimeEditor, которая нормализует

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- дуговая отсечка низа (сектор ±65° за r=340): кольцо под подпись медали -->
+      <path d="M 2325 1357 A 2000 2000 0 0 1 -1301 1357 L 204 656 A 340 340 0 0 0 820 656 Z" fill="#000"/>
+      <!-- полосы тента -->
+      <rect x="262" y="300" width="26" height="180" fill="#000"/>
+      <rect x="352" y="300" width="26" height="180" fill="#000"/>
+      <rect x="442" y="300" width="26" height="180" fill="#000"/>
+      <rect x="532" y="300" width="26" height="180" fill="#000"/>
+      <!-- фестоны нижнего края -->
+      <circle cx="174" cy="470" r="34" fill="#000"/>
+      <circle cx="268" cy="470" r="34" fill="#000"/>
+      <circle cx="362" cy="470" r="34" fill="#000"/>
+      <circle cx="456" cy="470" r="34" fill="#000"/>
+      <circle cx="550" cy="470" r="34" fill="#000"/>
+      <circle cx="644" cy="470" r="34" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#b)">
+      <!-- рыночный навес: день на агоре — новости и продукты -->
+      <path d="M 200 300 L 640 300 L 700 470 L 140 470 Z"/>
+      <!-- опоры -->
+      <rect x="220" y="504" width="22" height="380"/>
+      <rect x="598" y="504" width="22" height="380"/>
+      <!-- прилавок -->
+      <rect x="280" y="660" width="280" height="24" rx="12"/>
+      <rect x="300" y="684" width="240" height="200"/>
+      <!-- амфора на прилавке -->
+      <rect x="512" y="530" width="16" height="30" rx="6"/>
+      <path d="M 520 556 C 552 578 556 632 520 660 C 484 632 488 578 520 556 Z"/>
+    </g>
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

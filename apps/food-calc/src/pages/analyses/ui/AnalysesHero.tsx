@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { FabricLoader } from '@/features/analysis/FabricLoader';
 import { formatWindowLabel } from '@/features/analysis/long';
 import { useWallpaperSrc } from '@/shared/lib/wallpaper';
+import loaderAnalysisArt from '@/shared/assets/art/loader-analysis.webp';
 import { WallpaperHero, WallpaperImage } from '@/features/wallpaper';
 import { useAnalysesFeedContext } from '../model/AnalysesFeedContext';
 import s from './AnalysesHero.module.scss';
@@ -27,7 +28,7 @@ const AnalysesHero = () => {
       (rest > 0 ? ` · и ещё ${rest}` : '');
     return (
       <div className={s.loaderWrap}>
-        <FabricLoader art="/art/loader-analysis.png" caption={caption} effect="scan" />
+        <FabricLoader art={loaderAnalysisArt} caption={caption} effect="scan" />
       </div>
     );
   }

@@ -1,31 +1,21 @@
-// NutrientsDrawer — store-driven nutrient breakdown drawer. Дровер не редактирует
-// норму внутри себя: он рендерит заголовок + чип-легенду нормы + FoodsNutrients, а
-// норма открывается модалкой (2026-07-23 — кнопка-мишень из хедера убрана, её роль
-// забрал NormLegendButton в теле). DrawerLayout / FoodsNutrients / NormLegendButton
-// застаблены; проверяем заголовок + viewTitle-override.
+// NutrientsDrawer — read-only обёртка над NutrientShowcaseDrawer (слияние
+// 2026-07-25): маппит totals/тексты шапки в пропы каркаса, сам ничего не
+// рисует. Каркас застаблен; проверяем маппинг title/subtitle и гейт пустоты.
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 import type { ReactNode } from 'react';
 
-vi.mock('@/shared/ui/DrawerLayout', () => ({
-  // Title now rides DrawerLayout's chrome row (the `title` prop). The real
-  // layout renders it as the drawer's <h2> Drawer.Title — mirror that so the
-  // heading-role assertions still exercise the visible title.
-  DrawerLayout: ({ title, children }: { title?: ReactNode; children: ReactNode }) => (
-    <div>
-      {title != null && <h2>{title}</h2>}
-      {children}
-    </div>
-  ),
+let captured: Record<string, unknown> = {};
+vi.mock('@/features/food/quick-view-drawer', () => ({
+  NutrientShowcaseDrawer: (props: Record<string, unknown>) => {
+    captured = props;
+    return <div data-testid="showcase">{String(props.title)}</div>;
+  },
 }));
 
-vi.mock('@/widgets/nutrients/FoodsNutrients', () => ({
-  FoodsNutrients: () => <div data-testid="foods-nutrients" />,
-}));
-
-vi.mock('@/features/dailyNorms/NormLegendButton', () => ({
-  NormLegendButton: () => <div data-testid="norm-legend" />,
+vi.mock('@/shared/ui/error/FeatureErrorBoundary', () => ({
+  FeatureErrorBoundary: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 const { NutrientsDrawer } = await import('./NutrientsDrawer');
@@ -33,17 +23,23 @@ const { NutrientsDrawer } = await import('./NutrientsDrawer');
 const noop = () => {};
 
 describe('NutrientsDrawer', () => {
-  it('shows the «Нутриенты» title and the nutrient list', () => {
-    render(<NutrientsDrawer onClose={noop} totals={{}} />);
+  it('проксирует totals в каркас с дефолтной шапкой «Нутриенты / За весь день»', () => {
+    render(<NutrientsDrawer onClose={noop} totals={{ '7': 100 }} />);
 
-    expect(screen.getByRole('heading', { name: 'Нутриенты' })).toBeInTheDocument();
-    expect(screen.getByTestId('foods-nutrients')).toBeInTheDocument();
+    expect(captured.title).toBe('Нутриенты');
+    expect(captured.subtitle).toBe('За весь день');
+    expect(captured.nutrients).toEqual({ '7': 100 });
+    expect(captured.hasNutrients).toBe(true);
+    expect(screen.getByTestId('showcase')).toBeInTheDocument();
   });
 
-  it('renders viewTitle instead of «Нутриенты» when provided (catalog product)', () => {
-    render(<NutrientsDrawer onClose={noop} totals={{}} viewTitle="абрикос" />);
+  it('viewTitle заменяет «Нутриенты», subtitle — контекст базиса', () => {
+    render(
+      <NutrientsDrawer onClose={noop} totals={{}} viewTitle="борщ" subtitle="За блюдо" />,
+    );
 
-    expect(screen.getByRole('heading', { name: 'абрикос' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Нутриенты' })).not.toBeInTheDocument();
+    expect(captured.title).toBe('борщ');
+    expect(captured.subtitle).toBe('За блюдо');
+    expect(captured.hasNutrients).toBe(false);
   });
 });

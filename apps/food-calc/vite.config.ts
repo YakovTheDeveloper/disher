@@ -181,11 +181,11 @@ export default defineConfig({
         'icon-512.png',
         'icon-512-maskable.png',
         'apple-touch-icon.png',
-        // Гравюра boot-splash (index.html) + Suspense-фолбэка (момент 4) + лого-маска
-        // поверх неё. Точечное исключение из «картинки не прекешим» (см. workbox ниже):
-        // оба рисуются на КАЖДОМ холодном старте, поэтому должны быть в кеше сразу и
-        // офлайн — как PWA-иконки. Каталожные миниатюры/обои остаются в runtimeCaching.
-        'art/loader-analysis.png',
+        // Гравюра boot-splash (index.html) + Suspense-фолбэка (момент 4) — импортируется
+        // из src как webp и прекешится точечным glob-паттерном (см. workbox ниже).
+        // Лого-маска поверх гравюры рисуется на КАЖДОМ холодном старте, поэтому должна
+        // быть в кеше сразу и офлайн — как PWA-иконки. Каталожные миниатюры/обои
+        // остаются в runtimeCaching.
         'logo/logo-white-no-fill.png',
       ],
       workbox: {
@@ -193,7 +193,11 @@ export default defineConfig({
         // (542 записи / 18 MB), конкурируя за канал с первым рендером. Они уходят в
         // runtimeCaching ниже — кешируются по факту показа. PWA-иконки не теряются:
         // они приходят через includeAssets, а не через globPatterns.
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        //
+        // Точечное исключение — гравюра лоадера: лежит в dist/assets с контент-хешем
+        // (импорт из src), рисуется на КАЖДОМ холодном старте (boot-splash + Suspense),
+        // поэтому прекешится одним файлом. check-precache.mjs знает про это исключение.
+        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'assets/loader-analysis-*.webp'],
         // wa-sqlite + powersync ship large wasm/worker bundles that we don't
         // want eagerly precached; they're loaded on demand.
         globIgnores: ['**/wa-sqlite*', '**/powersync*', '**/sql-wasm*'],

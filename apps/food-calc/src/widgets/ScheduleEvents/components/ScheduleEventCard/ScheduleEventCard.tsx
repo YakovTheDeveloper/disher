@@ -29,13 +29,22 @@ type Props = {
 };
 
 // Аспект = `label value/10` (0..10) — компактный read-only чип. Число живёт в
-// тексте события тоже, но здесь оно = сама оценка (не дубль). Значение рендерим
-// инлайн-<span> внутри caption-обёртки → ТОТ ЖЕ кегль, что лейбл (было <Numeral>
-// со своим numeral-размером → рассинхрон, чип смотрелся некрасиво). Формат `N/10`.
+// тексте события тоже, но здесь оно = сама оценка (не дубль). Значение — в общем
+// числовом голосе карточки (card-numeric-values, как qty/время), лейбл остаётся
+// тихим caption. Формат `N/10`.
 function formatAspectChip(atom: Atom, index: number) {
   return (
-    <Text as="span" role="card-caption" className={clsx(styles.chip, styles.chipScale)} key={`aspect-${index}`}>
-      {atom.label && <span>{atom.label}</span>}
+    <Text
+      as="span"
+      role="card-caption"
+      className={clsx(styles.chip, styles.chipScale)}
+      key={`aspect-${index}`}
+    >
+      {atom.label && (
+        <Text as="span" role="card-caption">
+          {atom.label}
+        </Text>
+      )}
       <span className={styles.aspectValue}>{atom.value}/10</span>
     </Text>
   );
@@ -101,7 +110,12 @@ export function ScheduleEventCard({
           атомах — иначе Meta отсутствует, нижний ряд схлопывается, время едет в title-ряд. */}
       {hasAtoms && (
         <Card.Meta>
-          <TapTarget as="label" htmlFor={atomsHtmlFor} className={styles.atomsZone} onClick={onEditAtoms}>
+          <TapTarget
+            as="label"
+            htmlFor={atomsHtmlFor}
+            className={styles.atomsZone}
+            onClick={onEditAtoms}
+          >
             {atoms.map((atom, i) => formatAspectChip(atom, i))}
           </TapTarget>
         </Card.Meta>

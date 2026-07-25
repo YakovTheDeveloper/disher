@@ -19,6 +19,7 @@ import {
 import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedule-food';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
+import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
 import {
   ItemActionsDrawer,
   buildInfoActions,
@@ -129,7 +130,7 @@ const FoodSchedule = ({
   const isEmpty = items.length === 0;
 
   // Тоталы дня для полосы-сводки (NutrientsBar) в конце списка. Кнопка полосы
-  // открывает тот же NutrientsDrawer слева, что и пилюля HomeTopBar.
+  // открывает ту же нижнюю витрину NutrientsDrawer, что и пилюля HomeTopBar.
   const {
     totals,
     missingNutrientNames,
@@ -139,7 +140,7 @@ const FoodSchedule = ({
     void drawerStore.show(
       NutrientsDrawer,
       { totals, missingNutrientNames, isLoading: nutrientsLoading },
-      { side: 'left', width: 'min(85vw, 360px)' }
+      QUICK_VIEW_DRAWER_OPTIONS
     );
   }, [totals, missingNutrientNames, nutrientsLoading]);
 

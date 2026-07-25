@@ -51,6 +51,7 @@ import { modalStore } from '@/shared/ui/modal-store';
 import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { SuggestIngredientsClarifyDrawer } from '@/features/food/food-free-text-parse/ui/SuggestIngredientsClarifyDrawer';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
+import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import { EntityPageShell } from '@/widgets/EntityPageShell';
 
@@ -107,13 +108,20 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
   const openNutrients = useCallback(() => {
     void drawerStore.show(
       NutrientsDrawer,
-      { totals: dishTotals, missingNutrientNames: dishMissing },
-      { side: 'left', width: 'min(85vw, 360px)' }
+      // Имя блюда — заголовком, базис — подзаголовком (раньше subtitle был
+      // захардкожен «За весь день» и врал на странице блюда).
+      {
+        totals: dishTotals,
+        missingNutrientNames: dishMissing,
+        viewTitle: dish?.name,
+        subtitle: 'За блюдо',
+      },
+      QUICK_VIEW_DRAWER_OPTIONS
     );
-  }, [dishTotals, dishMissing]);
+  }, [dishTotals, dishMissing, dish?.name]);
   // Сумма нутриентов блюда — 1:1 с HomePage: полоса-сводка (NutrientsBar) в
   // конце списка ингредиентов, а не пилюля верхнего бара (пилюлю убрали
-  // 2026-06-19). Тот же dishTotals открывает тот же NutrientsDrawer слева.
+  // 2026-06-19). Тот же dishTotals открывает ту же нижнюю витрину NutrientsDrawer.
   const editFlow = useFoodEntryFlow({ mode: 'edit', target: { kind: 'dish', dishId: id } });
   const createFlow = useFoodEntryFlow({ mode: 'create', target: { kind: 'dish', dishId: id } });
   const editIds = editFlow.inputIds;

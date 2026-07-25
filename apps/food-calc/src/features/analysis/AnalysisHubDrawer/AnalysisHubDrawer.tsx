@@ -89,7 +89,9 @@ const AnalysisHubDrawer = ({ date, onClose, hideDiscoveriesLink = false }: Props
 
   return (
     <DrawerLayout
-      title="Открытия"
+      // Крупный headline (prominent) — опт-ин: хаб «Открытия» = вход в целый раздел,
+      // а не транзиентная контекст-панель, поэтому заголовок оправданно большой.
+      header={{ kind: 'prominent', title: 'Открытия' }}
       // ⓘ стекает объяснялку ПОВЕРХ хаба (хаб не закрываем) — «что такое разборы,
       // инсайты, гипотезы и куда всё копится». Мягкая плитка-кнопка в chrome-слоте.
       topRight={

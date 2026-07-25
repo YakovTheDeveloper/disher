@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- дуговая отсечка низа (сектор ±65° за r=340): кольцо под подпись медали -->
+      <path d="M 2325 1357 A 2000 2000 0 0 1 -1301 1357 L 204 656 A 340 340 0 0 0 820 656 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#b)">
+      <!-- композиция референса: крыша с башенкой внизу, комета с длинным
+           хвостом от верхней кромки падает влево-вниз -->
+      <path d="M 318 484 L 282 518 L 640 90 Z"/>
+      <circle cx="300" cy="502" r="28"/>
+      <!-- звёзды -->
+      <path d="M 350 136 L 364 150 L 350 164 L 336 150 Z"/>
+      <circle cx="150" cy="200" r="8"/>
+      <circle cx="200" cy="400" r="7"/>
+      <circle cx="500" cy="250" r="7"/>
+      <circle cx="700" cy="600" r="8"/>
+      <circle cx="120" cy="600" r="7"/>
+      <!-- длинная крыша слева -->
+      <path d="M 30 950 L 280 740 L 530 950 Z"/>
+      <!-- башенка справа с пирамидальной крышей и шпилем -->
+      <rect x="470" y="620" width="120" height="330"/>
+      <path d="M 462 620 L 530 500 L 598 620 Z"/>
+      <rect x="526" y="416" width="8" height="90" rx="4"/>
+      <circle cx="530" cy="406" r="12"/>
+    </g>
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

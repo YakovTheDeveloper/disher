@@ -28,7 +28,7 @@ interface Props extends BaseDrawerProps {
 }
 
 /**
- * WallpaperDrawer — нижний дровер оформления ОДНОГО экрана («Стиль · <экран>»):
+ * WallpaperDrawer — нижний дровер оформления ОДНОГО экрана («Оформление экрана», subtitle = <экран>):
  * высота обложки + обои + цвет карточек секции. Открывается long-press'ом по
  * обложке (WallpaperHero). Первая группа «Масштабирование» (FormLayout.Group):
  * groupHeader = лейбл + «Сбросить» иконкой справа (WallpaperResetButton `iconOnly`),
@@ -42,11 +42,12 @@ export const WallpaperDrawer = ({ screen }: Props) => {
   const surface = SCREEN_TO_SURFACE[screen];
   return (
     <DrawerLayout
-      title={`Стиль · ${screenLabel(screen)}`}
+      header={{ kind: 'compact', title: 'Оформление экрана', subtitle: screenLabel(screen) }}
       scrollHints={false}
       topRight={
         <HintButton
           ariaLabel="Что здесь можно менять"
+          size={44}
           hint="Здесь — высота обложки, её кадр и цвет карточек этого экрана. Пока панель открыта, картинку можно приблизить и подвинуть двумя пальцами прямо на экране — как в галерее."
         />
       }

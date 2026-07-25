@@ -1,0 +1,6 @@
+// Плоская группа рядов (SettingRow): ряды стоят вплотную, их разделяет тающая
+// бровка внутри SettingRow, а не зазор — тот же канон, что в ProfileDrawer.
+.rows {
+  display: flex;
+  flex-direction: column;
+}

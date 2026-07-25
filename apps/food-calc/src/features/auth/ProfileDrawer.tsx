@@ -27,9 +27,11 @@ import DownloadIcon from '@/shared/assets/icons/download.svg?react';
 import LogoutIcon from '@/shared/assets/icons/logout.svg?react';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
 import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
+import ChartBarsIcon from '@/shared/assets/icons/chart-bars.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { useColorModeStore } from '@/shared/lib/color-mode';
+import { NutrientAppearanceSettings } from '@/entities/nutrient/ui/NutrientAppearanceSettings';
 import { SyncStatusBar } from '@/features/sync-status/SyncStatusBar';
 import { ReportProblemModal } from '@/features/feedback';
 
@@ -54,11 +56,12 @@ export function ProfileDrawer() {
   // Client gate for the «Админка» entry — UX only, the server guards /api/admin.
   // null (undecided) / false → row hidden; only a definite true shows it.
   const isAdmin = useIsAdmin();
-  // Один drawer, два экрана: корень (identity + компактные разделы) и под-экран
-  // «Внешний вид» (высокие пикеры Обои + Цвет карточек). Навигация — локальный
-  // стейт + DrawerLayout.onBack (крест → стрелка «Назад»). Свежий mount при
-  // каждом drawerStore.show сбрасывает в 'root' — between-opens не храним.
-  const [screen, setScreen] = useState<'root' | 'appearance'>('root');
+  // Один drawer, три экрана: корень (identity + компактные разделы) и под-экраны
+  // «Внешний вид» (высокие пикеры Обои + Цвет карточек) и «Нутриенты» (форма
+  // hero-секции + прогресс-трек карточек витрины нутриентов). Навигация —
+  // локальный стейт + DrawerLayout.onBack (крест → стрелка «Назад»). Свежий
+  // mount при каждом drawerStore.show сбрасывает в 'root' — between-opens не храним.
+  const [screen, setScreen] = useState<'root' | 'appearance' | 'nutrients'>('root');
   // «Сообщить о проблеме» — упрощённый прод-репорт (ModalByLabel, одно поле).
   // isExpanded гоняется отсюда по клику ряда; модалка накрывает дровер сверху.
   const [reportOpen, setReportOpen] = useState(false);
@@ -104,23 +107,33 @@ export function ProfileDrawer() {
   };
 
   return (
-    // «Аккаунт» rides in the drawer's chrome row (next to the Close cross); the
-    // email sits right under it as the chrome subtitle — together they form the
-    // identity header, replacing the old centered avatar block. A soft peach→rose
-    // ambient glow (`.surface`) sits behind that header, echoing HomeAmbient.
+    // «Настройки» rides in the drawer's chrome row (next to the Close cross); the
+    // subtitle beneath carries context — email on root (identity), «Визуальное
+    // оформление» on the appearance sub-screen. A soft peach→rose ambient glow
+    // (`.surface`) sits behind that header, echoing HomeAmbient.
     <DrawerLayout
-      title={screen === 'root' ? 'Аккаунт' : 'Декор'}
-      subtitle={screen === 'root' ? email : undefined}
+      header={{
+        kind: 'compact',
+        title: 'Настройки',
+        subtitle:
+          screen === 'root'
+            ? (email ?? undefined)
+            : screen === 'appearance'
+              ? 'Визуальное оформление'
+              : 'Нутриенты',
+      }}
       onBack={screen === 'root' ? undefined : () => setScreen('root')}
       className={styles.surface}
       contentInset="panel"
       // Быстрый тумблер темы живёт в chrome-слоте шапки (topRight) — светлая/тёмная
       // одним тапом, без раскрытия секции. Иконка показывает режим, в который
       // ПЕРЕКЛЮЧИШЬСЯ: луна на светлой теме, солнце на тёмной. Ось режима — см.
-      // lib/color-mode (ортогональна «Обои» / «Цвет карточек»).
+      // lib/color-mode (ортогональна «Обои» / «Цвет карточек»). Тон `soft` —
+      // канон 2026-07-25: замыкающая chrome-кнопка несёт подложку (выравнивание
+      // шапки справа идёт по кромке кнопки, глиф центрирован в плитке).
       topRight={
         <IconButton
-          tone="ghost"
+          tone="soft"
           onClick={() => setColorMode(colorMode === 'dark' ? 'light' : 'dark')}
           aria-label={colorMode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
           icon={
@@ -133,7 +146,12 @@ export function ProfileDrawer() {
         />
       }
     >
-      {screen === 'appearance' ? (
+      {screen === 'nutrients' ? (
+        // Под-экран «Нутриенты» — форма hero-секции витрины + прогресс-трек
+        // карточек. Контент — переиспользуемый NutrientAppearanceSettings (тот
+        // же живёт в аккордеоне «Оформление» в хвосте витрины NutrientTotals).
+        <NutrientAppearanceSettings className={styles.appearanceFlow} />
+      ) : screen === 'appearance' ? (
         // Под-экран «Внешний вид» — высокие пикеры Обои + Цвет карточек, ушедшие
         // с корня за одну nav-строку. Подписи — h3 (заголовок drawer = h2, тело
         // держит h3+ для корректного outline; см. DrawerLayout.title).
@@ -189,6 +207,13 @@ export function ProfileDrawer() {
                 trailing={<ChevronGlyph />}
                 onClick={() => setScreen('appearance')}
                 aria-label="Внешний вид: обои и цвет карточек"
+              />
+              <SettingRow
+                icon={<ChartBarsIcon width={18} height={18} />}
+                label="Нутриенты"
+                trailing={<ChevronGlyph />}
+                onClick={() => setScreen('nutrients')}
+                aria-label="Внешний вид: нутриенты"
               />
             </div>
           </ActionList.Section>

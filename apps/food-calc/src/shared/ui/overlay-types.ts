@@ -69,6 +69,15 @@ export interface DrawerOptions {
    */
   interactiveBehind?: boolean;
   /**
+   * Weaken the backdrop scrim to a third of the base opacity (same fraction as
+   * the click-through variant) while keeping it pointer-blocking: the sheet
+   * separates from the page, but the page stays readable — for content-heavy
+   * quick views (NutrientShowcaseDrawer «Пищевая ценность»). Unlike
+   * `interactiveBehind`, tap-on-scrim-to-close keeps working.
+   * @default false
+   */
+  softBackdrop?: boolean;
+  /**
    * Two-phase (snap-point) heights for a BOTTOM drawer — makes the sheet rest at
    * discrete heights the user drags between (e.g. a short quick-view phase + a
    * near-full phase). Base UI resolves each entry against the viewport: a number
@@ -93,6 +102,8 @@ export interface ResolvedDrawerOptions {
   trapFocus?: boolean;
   /** Undefined ⇒ dimmed + pointer-blocking backdrop (default). `true` ⇒ page behind stays live. */
   interactiveBehind?: boolean;
+  /** Undefined ⇒ full-strength scrim. `true` ⇒ scrim at a third of base opacity, still pointer-blocking. */
+  softBackdrop?: boolean;
   /** Bottom-drawer snap heights (see DrawerOptions). Undefined ⇒ single-phase sheet. */
   snapPoints?: (number | string)[];
   /** Opening snap point; undefined ⇒ first entry of `snapPoints`. */

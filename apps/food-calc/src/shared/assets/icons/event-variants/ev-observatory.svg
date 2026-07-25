@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="b" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- дуговая отсечка низа (сектор ±65° за r=340): кольцо под подпись медали -->
+      <path d="M 2325 1357 A 2000 2000 0 0 1 -1301 1357 L 204 656 A 340 340 0 0 0 820 656 Z" fill="#000"/>
+      <!-- щель купола -->
+      <rect x="448" y="470" width="44" height="190" fill="#000"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <g mask="url(#b)">
+      <!-- обсерватория: купол со щелью, труба смотрит в сторону плюса —
+           дом, где рождаются события ума -->
+      <path d="M 200 284 L 214 298 L 200 312 L 186 298 Z"/>
+      <path d="M 350 184 L 364 198 L 350 212 L 336 198 Z"/>
+      <circle cx="160" cy="460" r="8"/>
+      <circle cx="260" cy="120" r="7"/>
+      <circle cx="700" cy="560" r="8"/>
+      <!-- труба из щели купола -->
+      <path d="M 465 505 L 600 395 L 628 432 L 493 542 Z"/>
+      <!-- купол и стены -->
+      <path d="M 280 640 A 180 180 0 0 1 640 640 Z"/>
+      <rect x="270" y="630" width="380" height="26" rx="13"/>
+      <rect x="300" y="656" width="320" height="200"/>
+    </g>
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

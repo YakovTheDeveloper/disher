@@ -1,4 +1,4 @@
-import { useId, type CSSProperties } from 'react';
+import { type CSSProperties, useEffect, useRef } from 'react';
 import styles from './DrawerLayout.module.scss';
 import clsx from 'clsx';
 import { Drawer } from '@base-ui/react/drawer';
@@ -11,36 +11,41 @@ import { Heading, Text } from '@/shared/ui/atoms/Typography';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { useDrawerSide, useDrawerSnap } from './drawerSide';
 
+/**
+ * Форма шапки дровера — дискриминированный союз, делающий нелегальные комбинации
+ * НЕВЫРАЗИМЫМИ (в этом весь смысл: не дисциплина, а тип). Заголовок/подзаголовок
+ * канонических веток — строго `string` (типо-ярус кладёт сам DrawerLayout через
+ * примитивы Heading/Text; произвольный JSX туда протащить нельзя — это и был бы
+ * дрейф). Свободный узел живёт ТОЛЬКО за дверью `custom`, честно названной.
+ *
+ *  - `compact` — средний рунг заголовка (Heading role="title", ~17px) + опц. тихий
+ *    subtitle. Дом связки «имя + контекст» (эталон ProductDrawer/QuickView). Дефолт-
+ *    форма шапки: дровер обычно НЕ большой новый этап, а контекстная панель.
+ *  - `prominent` — каноничный крупный headline (28px), БЕЗ subtitle (тип запрещает).
+ *    Опт-ин для дроверов-«новых этапов» (хаб «Открытия», «Перейти»).
+ *  - `custom` — произвольный центр-узел (сегмент-контрол / месяц-пейджер), когда
+ *    строковые ветки не выражают шапку. Требует `a11yLabel` — sr-only имя диалога
+ *    (у узла нет строкового заголовка, который стал бы accessible name). Заменяет
+ *    прежний свободный `header`-узел.
+ */
+export type DrawerHeaderSpec =
+  | { kind: 'compact'; title: string; subtitle?: string }
+  | { kind: 'prominent'; title: string }
+  | { kind: 'custom'; node: React.ReactNode; a11yLabel: string };
+
 type Props = {
   children: React.ReactNode;
   /**
-   * Centered header title — sits between the Close cross and the topRight slot,
-   * on the same row. When the chrome row is visible, the title IS the single
-   * `Drawer.Title` (the dialog's `<h2>` AND its accessible name — see precedence
-   * on `a11yLabel`), styled with the canonical drawer-heading tokens (Source
-   * Serif italic, `--sys-heading-size-drawer`). Pass a plain string for canonical
-   * styling, or a custom node if you need a bespoke heading. Body headings
-   * inside the drawer should be `<h3>`+ to keep the document outline correct.
+   * Шапка дровера — ОДНА форма-объект (дискриминированный `DrawerHeaderSpec`),
+   * заменившая прежние `title` + `titleSize` + `subtitle` + свободный `header`-узел.
+   * Когда chrome-ряд виден, строковый заголовок веток `compact`/`prominent` И ЕСТЬ
+   * единственный `Drawer.Title` (h2 = видимый заголовок И accessible name). Ветка
+   * `custom` кладёт произвольный узел в центр и несёт собственный `a11yLabel`.
+   * Опусти проп целиком для дроверов без видимой шапки (`hideTopChrome` /
+   * `floatingClose`) — тогда sr-only имя берётся из `a11yLabel`. Заголовки тела
+   * держи `<h3>`+, чтобы не ломать document outline.
    */
-  title?: React.ReactNode;
-  /**
-   * Size of the visible title. Defaults to `'default'` (canonical drawer title,
-   * 28px headline). Pass `'title'` for the mid rung (`Heading role="title"`,
-   * ~17px) — entity-name headers that pair with a `subtitle` context line
-   * (QuickViewDrawer: имя еды + «Информация о продукте»), where the headline
-   * rung eats room the body wants and long names don't fit. Pass `'compact'`
-   * for a small quiet chrome title (13px) — e.g. product/dish drawers where
-   * the header carries the entity TYPE («Мой продукт» / «Блюдо») as context
-   * and the big name lives in the body.
-   */
-  titleSize?: 'default' | 'title' | 'compact';
-  /**
-   * Optional caption rendered directly beneath the centered `title`, inside the
-   * same chrome row (e.g. the account email under «Аккаунт»). Only shown when a
-   * visible title is present — it's a subtitle of that heading, never standalone.
-   * Styled as a small secondary caption; keep it short (it wraps/breaks).
-   */
-  subtitle?: React.ReactNode;
+  header?: DrawerHeaderSpec;
   topRight?: React.ReactNode;
   /**
    * When provided, the top-left chrome button becomes a back arrow that calls
@@ -66,8 +71,7 @@ type Props = {
   /**
    * Hide the 40px top drag-handle row (with the Close cross + topRight slot).
    * Closing is still available via edge-swipe handle (side drawers) and
-   * backdrop click. Used by NutrientsDrawer where the row eats vertical space
-   * the content needs.
+   * backdrop click.
    */
   hideTopChrome?: boolean;
   /**
@@ -82,22 +86,6 @@ type Props = {
    * aligned, center it (or inset it) so it doesn't sit under the corner cross.
    */
   floatingClose?: boolean;
-  /**
-   * Custom header content for the chrome row's CENTER slot (compound-slot
-   * pattern — shadcn/Radix `DrawerHeader`, Ant `title` node). Use when the
-   * built-in `title`/`subtitle` can't express your header (e.g. a segmented
-   * control / search row). DrawerLayout keeps owning the row geometry: the
-   * leading Close cross (or `onBack`) stays absolute-left, `topRight` stays
-   * absolute-right, and your node sits in a SYMMETRIC center band — equal
-   * `--sys-inset-panel + --sys-size-control` gutters on BOTH sides. That
-   * symmetry is what keeps the content geometrically centered on the row despite
-   * the left-only cross, so it never slides under it. The row grows for taller
-   * content but keeps the min chrome height, so a short header still looks like
-   * the default drawer. Takes precedence over `title`/`subtitle` (ignored); pass
-   * `a11yLabel` for the sr-only accessible name. For content that is NOT
-   * header-shaped and wants the full width edge-to-edge, use `floatingClose`.
-   */
-  header?: React.ReactNode;
   /**
    * Bottom scroll-fade hint on the scroll area — the `mask-image` dissolve that
    * fades the last rows into transparency to signal "more below" (see
@@ -126,6 +114,12 @@ type Props = {
    */
   contentInset?: 'panel' | 'sheet' | 'none';
   /**
+   * Убирает верхний padding скролл-области (`--drawer-content-pad-top` → 0) —
+   * когда consumer сам владеет зазором «шапка → тело» и каноничный отступ
+   * layout'а задваивал бы его.
+   */
+  flushBodyPaddingTop?: boolean;
+  /**
    * How the chrome header row reacts to body scroll (default `'collapse'`):
    *   - `'pin'` — stays PINNED at full size (legacy behaviour; opt out here).
    *   - `'collapse'` (default) — stays pinned but SHRINKS organically as you scroll down
@@ -146,24 +140,14 @@ type Props = {
    * дровер сел на `--sys-color-surface-1` (парящий лист) — тогда фон, вдавленный
    * «колодец» полей (`field-depth`) И парная тень (`surface-elevation(1)`) берутся
    * из ОДНОГО тира (промахнуться номером нельзя). Дом surface-1 — быстрый дровер еды
-   * из SearchFood (QuickViewDrawer).
+   * из SearchFood (NutrientShowcaseDrawer).
    */
   surface?: 1 | 2;
-  /**
-   * Декоративный микро-штамп в СКРУГЛЁННОМ верхнем-правом углу нижнего листа: короткая
-   * метка (тип сущности «Продукт»/«Блюдо»), чья базовая линия идёт ПО ДУГЕ угла — SVG
-   * text-on-path вдоль четверти окружности радиуса `--sys-radius-drawer`, буквально
-   * «повторяет скругление дровера». Голос декоративного штампа (visual-voice
-   * «натуралист»), не читаемый лейбл: на ~24px-дуге текст мелкий. Только нижний дровер.
-   */
-  cornerLabel?: string;
 };
 
 const DrawerLayout = ({
   children,
-  title,
-  titleSize = 'default',
-  subtitle,
+  header,
   topRight,
   onBack,
   backLabel,
@@ -172,17 +156,13 @@ const DrawerLayout = ({
   a11yLabel,
   hideTopChrome,
   floatingClose,
-  header,
   scrollHints = true,
   contentInset,
+  flushBodyPaddingTop,
   headerScroll = 'collapse',
   surface,
-  cornerLabel,
 }: Props) => {
   const { t } = useTranslation();
-  // Уникальный id дуги угла (textPath ссылается на него) — на случай нескольких
-  // дроверов в стеке, чтобы href не коллизился.
-  const cornerArcId = useId();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
   // delivered through DrawerManager → DrawerSideContext, so the drawer content
   // component itself never has to know or forward them.
@@ -213,6 +193,42 @@ const DrawerLayout = ({
   // работающий во всех браузерах → шов и fade больше не расходятся.
   const { topSentinelRef, bottomSentinelRef, scrolled, moreBelow } = useScrollEdges();
 
+  // ─── Компенсация скрытой полосы snap-листа (самоизмеряющаяся) ─────────────
+  // Snap-дровер стоит на НАТУРАЛЬНОЙ высоте контента и сдвинут вниз на snap-
+  // offset: нижняя полоса листа (и конец скроллера) висит ПОД кромкой экрана, и
+  // последние ряды недостижимы. Компенсировать через `--drawer-snap-point-offset`
+  // в CSS НЕЛЬЗЯ: Base UI регистрирует его `inherits: false` (DrawerPopup.js), на
+  // скроллере он всегда 0px. Меряем скрытую полосу сами: rect попапа (transform
+  // входит в getBoundingClientRect) против innerHeight, и пишем padding-bottom
+  // инлайном. Пересчёт: ResizeObserver (догрузка контента меняет высоту листа) +
+  // transitionend на попапе (приземление на фазу после свайпа) + смена фазы/resize.
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!isSnap) return;
+    const popup = popupRef.current;
+    const scroller = scrollerRef.current;
+    if (!popup || !scroller) return;
+    const update = () => {
+      const hidden = Math.max(
+        0,
+        Math.round(popup.getBoundingClientRect().bottom - window.innerHeight)
+      );
+      scroller.style.paddingBottom = `calc(var(--space-4) + ${hidden}px)`;
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(popup);
+    popup.addEventListener('transitionend', update);
+    window.addEventListener('resize', update);
+    return () => {
+      ro.disconnect();
+      popup.removeEventListener('transitionend', update);
+      window.removeEventListener('resize', update);
+      scroller.style.paddingBottom = '';
+    };
+  }, [isSnap, atTopSnap]);
+
   // The edge swipe-handle (side drawers) reads ModalShell's single fixed `mono`
   // field tokens (`--sys-field-*`) for its gradient + grip. Those tokens are now
   // published unconditionally on `:root` (ModalShell.module.scss), so the handle
@@ -220,10 +236,24 @@ const DrawerLayout = ({
   // old `data-modal-fields='mono'` attribute (a no-op single-position gate) was
   // removed 2026-06-22.
 
+  // Разбор формы-шапки (дискриминированный union) в плоские значения, которыми
+  // дальше живёт раскладка. Строковый заголовок только у веток title-типа; свободный
+  // узел — только у `custom` (бывший `header`-узел). Так «нелегальное невыразимо»
+  // держится на входе, а тело layout'а остаётся тем же.
+  // Discriminant-проверки идут ПО `header` напрямую (не через промежуточную
+  // `headerKind`-константу) — иначе TS не сузит union к ветке и `.title`/`.node`
+  // недоступны. `header.kind !== 'custom'` = title-типовые ветки (compact|prominent),
+  // у обеих есть строковый `title`.
+  const titleText = header && header.kind !== 'custom' ? header.title : undefined;
+  const subtitleText = header?.kind === 'compact' ? header.subtitle : undefined;
+  const customNode = header?.kind === 'custom' ? header.node : undefined;
+
   // The visible header title doubles as the single `Drawer.Title` (one <h2> =
-  // accessible name + visible heading) when the chrome row is on screen.
-  // `header` (custom center node) takes precedence over the built-in title path.
-  const showVisibleTitle = title != null && !hideTopChrome && !floatingClose && header == null;
+  // accessible name + visible heading) when the chrome row is on screen. A `custom`
+  // header (free node) takes precedence over the built-in title path (no visible
+  // Drawer.Title — it carries its own sr-only a11yLabel instead).
+  const showVisibleTitle =
+    !!header && header.kind !== 'custom' && !hideTopChrome && !floatingClose;
 
   // Chrome row exists (title/subtitle/custom header + leading control) unless the
   // consumer opted into a chromeless variant. `'scroll'` moves the row INTO the
@@ -238,7 +268,8 @@ const DrawerLayout = ({
   // 4px под тихим subtitle читались слипанием: граница «chrome → контент» оказывалась
   // МЕНЬШЕ внутрителовых section-швов (перевёрнутый ритм). Scroll-away исключён: там
   // ряд живёт ВНУТРИ скроллера, pad-top лёг бы НАД ним, а не под ним.
-  const stackedTitle = showVisibleTitle && subtitle != null && !scrollAwayHeader;
+  const hasSubtitle = showVisibleTitle && subtitleText != null;
+  const stackedTitle = hasSubtitle && !scrollAwayHeader;
 
   // Collapse progress (--header-collapse 0..1) is written on `.panel` from the
   // scroller's onScroll; the pinned chrome row reads it via CSS. Inert unless
@@ -275,24 +306,18 @@ const DrawerLayout = ({
       />
     );
 
-  // Заголовок хедера как один Drawer.Title (h2). `'compact'` рендерит его тихим
-  // caption-ярусом (13px) вместо каноничного headline (28px) — тип-контекст в
-  // шапке (продукт/блюдо), крупное имя живёт в теле. `'title'` — средний рунг
-  // (Heading role="title"): имя сущности + subtitle-строка контекста под ним.
-  // Типо-ярус несёт примитив (Heading/Text), НЕ сырой font-size в scss (гейт
-  // typo-encapsulation).
+  // Заголовок хедера как один Drawer.Title (h2). `prominent` — каноничный крупный
+  // headline (28px, «новый этап»); `compact` — средний рунг (Heading role="title",
+  // ~17px): имя сущности + опц. subtitle-строка контекста под ним. Типо-ярус несёт
+  // примитив Heading, НЕ сырой font-size в scss (гейт typo-encapsulation).
   const titleRender =
-    titleSize === 'compact' ? (
-      <Text as="h2" role="caption">
-        {title}
-      </Text>
-    ) : titleSize === 'title' ? (
-      <Heading as="h2" role="title">
-        {title}
+    header?.kind === 'prominent' ? (
+      <Heading as="h2" role="headline">
+        {titleText}
       </Heading>
     ) : (
-      <Heading as="h2" role="headline">
-        {title}
+      <Heading as="h2" role="title">
+        {titleText}
       </Heading>
     );
 
@@ -306,20 +331,20 @@ const DrawerLayout = ({
   const headerCenter = (
     <>
       <div className={styles.centerCell}>
-        {header != null && <div className={styles.headerSlot}>{header}</div>}
+        {customNode != null && <div className={styles.headerSlot}>{customNode}</div>}
         {showVisibleTitle &&
-          (subtitle != null ? (
+          (subtitleText != null ? (
             <div className={styles.titleStack}>
               <Drawer.Title className={styles.titleCenter} render={titleRender}>
-                {title}
+                {titleText}
               </Drawer.Title>
               <Text as="p" role="caption" className={styles.titleSubtitle}>
-                {subtitle}
+                {subtitleText}
               </Text>
             </div>
           ) : (
             <Drawer.Title className={styles.titleCenter} render={titleRender}>
-              {title}
+              {titleText}
             </Drawer.Title>
           ))}
       </div>
@@ -331,6 +356,7 @@ const DrawerLayout = ({
 
   return (
     <Drawer.Popup
+      ref={popupRef}
       className={clsx(styles.content, styles[`content_${side}`], isSnap && styles.contentSnap, surface === 1 && styles.surface1, stackedTitle && styles.stackedTitle, className)}
       style={style}
       id="drawer-content"
@@ -340,13 +366,14 @@ const DrawerLayout = ({
         it and renders it as <h2>). When a visible title shows in the chrome row
         it IS that Title (rendered below, in `.dragHandle`) — so the accessible
         name equals the on-screen label and there's no duplicate <h2>. Only when
-        there's no visible title (title-less, or hideTopChrome) do we emit a
-        sr-only Title carrying a11yLabel.
+        there's no visible title (custom header, title-less, or hideTopChrome) do
+        we emit a sr-only Title. Its name = the custom header's own a11yLabel, else
+        the top-level a11yLabel, else a default.
       */}
       {!showVisibleTitle && (
         <Drawer.Title className={styles.srOnly}>
-          {a11yLabel ??
-            (typeof title === 'string' ? title : undefined) ??
+          {(header?.kind === 'custom' ? header.a11yLabel : undefined) ??
+            a11yLabel ??
             t('overlay.drawer.defaultA11yLabel', 'Панель')}
         </Drawer.Title>
       )}
@@ -383,29 +410,6 @@ const DrawerLayout = ({
           />
         )}
         {/*
-          cornerLabel — декоративный штамп по ДУГЕ скруглённого верхнего-правого угла:
-          текст идёт вдоль четверти окружности радиуса --sys-radius-drawer (path r=17
-          внутри 24px-скругления), «повторяет скругление дровера». Absolute к .content
-          (у нижнего дровера .panel = display:contents). aria-hidden — тип уже звучит в
-          subtitle/контенте; штамп чисто декоративен, тап проходит насквозь.
-        */}
-        {cornerLabel && side === 'bottom' && (
-          <svg
-            className={styles.cornerLabel}
-            viewBox="0 0 48 48"
-            width="48"
-            height="48"
-            aria-hidden="true"
-          >
-            <path id={cornerArcId} d="M 24 7 A 17 17 0 0 1 41 24" fill="none" />
-            <text fill="currentColor" fontSize="7" letterSpacing="0.4">
-              <textPath href={`#${cornerArcId}`} startOffset="50%" textAnchor="middle">
-                {cornerLabel}
-              </textPath>
-            </text>
-          </svg>
-        )}
-        {/*
           floatingClose — chromeless layout: no drag-handle row, but the Close
           cross floats absolutely in the top-left corner over the body. Resolves
           against `.panel` (side drawers, position: relative) / `.content`
@@ -438,8 +442,8 @@ const DrawerLayout = ({
             className={clsx(
               styles.dragHandle,
               collapseHeader && styles.dragHandleCollapse,
-              showVisibleTitle && subtitle != null && styles.dragHandleStacked,
-              header != null && styles.dragHandleHeader
+              hasSubtitle && styles.dragHandleStacked,
+              customNode != null && styles.dragHandleHeader
               // Заголовок ВСЕХ дроверов (нижних И боковых) центрируется по chrome-ряду
               // (просьба 2026-07-10). В боковом дровере ряд живёт внутри `.panel`
               // (edge-handle — отдельный flex-сосед), поэтому центр приходится на
@@ -472,12 +476,14 @@ const DrawerLayout = ({
         )}
         <Drawer.Content
           id="drawer-content-scrollable"
+          ref={scrollerRef}
           className={clsx(
             styles.scrollableContent,
             lockBodyScroll && styles.scrollLockedBase,
             contentInset === 'none' && styles.contentInsetNone,
             contentInset === 'panel' && styles.contentInsetPanel,
-            contentInset === 'sheet' && styles.contentInsetSheet
+            contentInset === 'sheet' && styles.contentInsetSheet,
+            flushBodyPaddingTop && styles.flushBodyPaddingTop
           )}
           // Collapse-режим: прогресс сворочивания заголовка пишется из scrollTop
           // (enterAlways, useCollapsingHeader). Инертно в 'pin'/'scroll' — хук
@@ -513,8 +519,8 @@ const DrawerLayout = ({
               className={clsx(
                 styles.dragHandle,
                 styles.dragHandleScroll,
-                showVisibleTitle && subtitle != null && styles.dragHandleStacked,
-                header != null && styles.dragHandleHeader
+                hasSubtitle && styles.dragHandleStacked,
+                customNode != null && styles.dragHandleHeader
               )}
             >
               {headerCenter}

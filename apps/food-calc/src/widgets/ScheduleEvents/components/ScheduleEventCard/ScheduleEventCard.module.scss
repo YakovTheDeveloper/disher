@@ -2,6 +2,8 @@
 // только класс на подложку LongPressRow: гасим её декоративный паддинг И
 // wrapper-floor (паритет с едой: тап-пол приходит от padding-block <TapTarget>,
 // иначе событие выше еды + время плавает по центру).
+@import '@/shared/assets/style/mixin.scss';
+
 .row {
   --sys-row-pad-block: 0;
   --sys-row-min-h-touch: 0;
@@ -38,25 +40,26 @@
 
 .chip {
   display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: var(--sys-radius-container);
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  padding-inline-start: 0;
   white-space: nowrap;
 }
 
 // Chips / scale derive from the same `--text-*` foreground as the rest of the
 // card, published by the events `data-dv-v` anchor (пер-поверхностный выбор цвета
 // карточек в настройках — useCardPalette('events'); default `amber`).
+// tint-strong (14%) — чип на подложке карточки нуждается в чуть более плотной
+// заливке, чем tint (10%), иначе плашка растворяется в фоне строки.
 .chipScale {
-  background-color: var(--sys-color-chip-tint);
   color: var(--sys-color-text-secondary);
 }
 
-// Значение аспекта (0..10) — акцентный вес рядом с тихим лейблом.
+// Значение аспекта (0..10) — тот же числовой голос, что qty/время карточки
+// (card-numeric-values: холодный on-hue тон + numeral-кегль + tabular).
 .aspectValue {
-  font-weight: 600;
-  color: var(--sys-color-text-primary);
+  @include card-numeric-values;
 }
 
 // «Недавно добавлено» marker переехал в LongPressRow (правый жёлоб вне подложки,
