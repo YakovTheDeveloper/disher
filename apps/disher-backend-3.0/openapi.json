@@ -350,11 +350,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Suggested products for the dish.",
+            "description": "Suggested products for the dish. `unresolved[]` items additionally carry `nutrients` — the LLM's per-100 g estimate (keyed by nutrient english name, sanity-clamped). Resolved/ambiguous items don't: the catalog's values win there.",
             "content": {
               "application/json": {
                 "schema": {
-                  "description": "Suggested products for the dish."
+                  "description": "Suggested products for the dish. `unresolved[]` items additionally carry `nutrients` — the LLM's per-100 g estimate (keyed by nutrient english name, sanity-clamped). Resolved/ambiguous items don't: the catalog's values win there."
                 }
               }
             }
@@ -505,6 +505,10 @@
                         }
                       }
                     }
+                  },
+                  "details": {
+                    "description": "Prep method / peculiarity (e.g. \"вареная\"); empty string = absent.",
+                    "type": "string"
                   }
                 }
               }

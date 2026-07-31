@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 24 24">
+  <rect width="24" height="24" fill="#fff"/>
+  <g fill="#1a1712">
+    <mask id="abc">
+      <rect width="24" height="24" fill="#fff"/>
+      <text x="12" y="12.6" text-anchor="middle" font-size="6.2" font-weight="700" font-family="sans-serif" letter-spacing="0.3" fill="#000">ABC</text>
+    </mask>
+    <path d="M12 3c-5 0-9 3-9 7 0 2.2 1.2 4.1 3 5.4V20l3.6-2.7c.7.1 1.5.2 2.4.2 5 0 9-3 9-7s-4-7.5-9-7.5z" mask="url(#abc)"/>
+  </g>
+</svg>

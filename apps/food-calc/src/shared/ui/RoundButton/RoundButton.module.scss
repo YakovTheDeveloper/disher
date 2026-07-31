@@ -543,3 +543,23 @@
         fill: var(--sys-color-text-secondary);
     }
 }
+
+// Подпись под кругом (проп caption) — висит под медалью абсолютно, чтобы круглый
+// короб (фон/тень/радиус) не раздувать. pointer-events:none → тап по подписи уходит
+// в кнопку (caption остаётся частью зоны тапа). Роль caption цвет не несёт → secondary.
+.roundButtonCaption {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 50%;
+    z-index: 3;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: var(--sys-color-text-secondary);
+    pointer-events: none;
+
+    // Лейблы действий приходят в нижнем регистре («количество»), caption под
+    // медалью — с заглавной.
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}

@@ -48,4 +48,12 @@ describe('buildInfoActions — «Информация о…» guard (bug B1)', (
     actions[0].onClick();
     expect(pushNavigate).toHaveBeenCalledWith(navigate, '/product/ing-1', 'push');
   });
+
+  it('catalog product (sk-*) → NO info action: у каталога нет страницы (гейта isCatalogId)', () => {
+    // 'sk-1070' — реальный id из shared/data/catalog.json (build-route, read-only).
+    const actions = buildInfoActions({ type: 'food', productId: 'sk-1070', dishId: null }, navigate);
+
+    expect(actions).toEqual([]);
+    expect(pushNavigate).not.toHaveBeenCalled();
+  });
 });

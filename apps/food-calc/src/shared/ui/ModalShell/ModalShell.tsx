@@ -56,9 +56,18 @@ type Props = {
    * там header кладут ВНУТРЬ Body; здесь это pinned-режимы, что координирует шелл.)
    */
   headerScroll?: 'pin' | 'collapse';
+  /**
+   * Горизонтальный инсет контентной зоны (`padding-inline` wrapper'а):
+   *   - `'default'` (деф.) — `--sys-inset-modal-fullscreen`, как всегда;
+   *   - `'none'` — контент edge-to-edge (широкие скролл-таблицы: sticky-панели
+   *     прибиваются к кромке модалки, без отрицательных margin'ов у консумента).
+   * Хедер при `'none'` инсет СОХРАНЯЕТ (его раскладка завязана на wrapper'ный
+   * padding — компенсация в .wrapperFlush > header, ModalShell.module.scss).
+   */
+  contentPadding?: 'default' | 'none';
 };
 
-export const ModalShell = ({ children, className, headerScroll = 'collapse' }: Props) => {
+export const ModalShell = ({ children, className, headerScroll = 'collapse', contentPadding = 'default' }: Props) => {
   // Один useScrollEdges на весь шелл, роздан вниз через контекст: тело (.body)
   // берёт refs+moreBelow (нижний fade), хедер — scrolled (верхний divider-шов).
   // Хук поднят СЮДА, потому что хедер — сосед-выше скроллера и иначе не увидел бы
@@ -77,7 +86,7 @@ export const ModalShell = ({ children, className, headerScroll = 'collapse' }: P
     <ScrollEdgesProvider value={edges}>
       <HeaderCollapseProvider value={{ collapse, onScroll: onCollapseScroll }}>
       <FooterSlotContext.Provider value={footerSlot}>
-        <div ref={collapseRef} className={`${s.wrapper} ${className ?? ''}`}>
+        <div ref={collapseRef} className={`${s.wrapper} ${contentPadding === 'none' ? s.wrapperFlush : ''} ${className ?? ''}`}>
           {children}
           {/* Сиблинг .body: сюда портируется фикс-бар actions, минуя fade-маску тела.
               Класс несёт ярус над нижним скримом (ModalShell.module.scss). */}

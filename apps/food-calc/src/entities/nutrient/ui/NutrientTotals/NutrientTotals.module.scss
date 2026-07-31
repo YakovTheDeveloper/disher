@@ -225,12 +225,11 @@
 .dLeadRow {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1);
   margin-inline: calc(var(--drawer-content-inset, 0px) / -2);
   padding-block: var(--space-2);
 
   >.dLead+.dLead {
-    margin-inline-start: auto;
     padding-inline-start: var(--space-3);
     border-inline-start: 1px solid var(--sys-color-divider-card);
   }
@@ -395,6 +394,7 @@
 // Нулевая ячейка (value 0) приглушена целиком — и честно показывает «0 %».
 // Та же доктрина, что .rowEmpty у хвоста.
 .dCellEmpty {
+
   .dName,
   .dMass,
   .dLeadMass,
@@ -508,44 +508,13 @@
 }
 
 // Пустой ряд (value 0) приглушён целиком — и честно показывает «0 %».
+// (Имя гаснет внутри атома NutrientName — tone='muted'.)
 .rowEmpty {
 
-  .name,
   .value,
   .pctFlat {
     color: var(--sys-color-text-tertiary);
   }
-}
-
-// Имя — колонка-стек: основное имя + (у витаминов B) тихая подпись полного
-// названия. Стек центрируется по вертикали ряда, ellipsis работает на обеих
-// строках (min-width:0 по цепочке). Левый инсет (2026-07-25, запрос): название
-// не липнет к кромке карточки — воздух space-3, правая колонка на месте.
-.nameCell {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-inline-start: var(--space-1);
-}
-
-.name {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding-inline-end: var(--space-2);
-  color: var(--sys-color-text-primary);
-}
-
-// Подпись полного названия — меньше и тише имени, чтобы не шуметь в ряду.
-.nameSub {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  padding-inline-end: var(--space-2);
-  color: var(--sys-color-text-tertiary);
-  opacity: 0.72;
 }
 
 // Значение+юнит — средняя колонка, право-выровнена. Грамм — реальное содержание,

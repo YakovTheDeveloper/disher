@@ -75,6 +75,9 @@ export interface UseWriteFoodFlowResult {
   targetKind: ParseTarget['kind'];
   // Parse cycle
   state: WriteFoodFlowState;
+  /** Какой вход запустил текущий разбор ('text' — рукописная строка, 'dishName' —
+   *  «Предложить продукты»). Бару нужен для loading-заголовка «Изучаем блюдо…». */
+  intake: ParseIntake;
   parseResult: ParseResponse | null;
   inputText: string;
   errorMessage: string | null;
@@ -163,7 +166,10 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   const targetKeyRef = useRef<string>(`${target.kind}:${targetId(target)}`);
   // Which front-end produced the latest intake — so `retry` re-runs the right
   // one (text → head B, dishName → head A) instead of always re-parsing as text.
+  // Ref + state-mirror: ref — для колбэков без лишних deps, state — чтобы бар
+  // перерендерил loading-заголовок («Изучаем блюдо…») на смене входа.
   const lastIntakeRef = useRef<ParseIntake>('text');
+  const [intake, setIntake] = useState<ParseIntake>('text');
   // The «Уточнения» comment of the latest dishName intake — re-applied on retry.
   const lastCommentRef = useRef<string | undefined>(undefined);
 
@@ -376,6 +382,10 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
 
     // loading
     const age = Date.now() - persisted.startedAt;
+    // intake ресторим до веток ниже: grace-resubmit перезапускает fetch, а бару
+    // нужен правильный loading-заголовок (backward compat: → 'text').
+    setIntake(persisted.intake ?? 'text');
+    lastIntakeRef.current = persisted.intake ?? 'text';
     if (age >= STALE_LOADING_MS) {
       const updated: PersistedParseState = {
         ...persisted,
@@ -606,6 +616,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
       const trimmed = rawText.trim();
       if (!trimmed) return;
       lastIntakeRef.current = intake;
+      setIntake(intake);
       lastCommentRef.current = comment;
       abortActive();
       const requestId = reuseRequestId ?? makeRequestId();
@@ -932,6 +943,7 @@ export function useWriteFoodFlow(target: ParseTarget): UseWriteFoodFlowResult {
   return {
     targetKind: target.kind,
     state,
+    intake,
     parseResult,
     inputText,
     errorMessage,

@@ -1,0 +1,7 @@
+// Виджет-адаптер NutrientsDrawer: единственный свой стиль — зазор кнопки-входа
+// «Что доесть?» под витриной (слот footer каркаса). Остальное — обвязка
+// NutrientShowcaseDrawer.
+
+.suggestEntry {
+    margin-block-start: var(--space-4);
+}

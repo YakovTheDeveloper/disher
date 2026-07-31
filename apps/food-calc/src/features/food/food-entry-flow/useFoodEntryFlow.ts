@@ -5,6 +5,12 @@ import { addScheduleFood, updateScheduleFood } from '@/entities/schedule-food';
 import type { ScheduleFoodWithRelations } from '@/entities/schedule-food';
 import { addDishItem, updateDishItem, createDish, useDishPortions } from '@/entities/dish';
 import { createProduct, setProductNutrients, useProductPortions, useProducts } from '@/entities/product';
+import {
+  mapNutrientNamesToIds,
+  suggestProductNutrients,
+} from '@/features/food/product-drawer/suggestProductNutrients';
+import { useRichNutrientStore } from '@/features/food/food-search/model';
+import { diagLog } from '@/shared/lib/observability/diagLog';
 import { getQtyUnit } from '@/shared/lib/servingUnit';
 import { persistCustomTagsFromDetails } from '@/features/food/details-chips';
 import { safeMutate } from '@/shared/lib/safeMutate';
@@ -81,6 +87,9 @@ export type DraftState = {
   foodName: string | null;
   quantity: number;
   details: string;
+  /** LLM-профиль unresolved-ряда предложки (name-keyed, per 100 г) — автоподбор
+   *  состава при создании продукта из ряда «Не распознано». */
+  suggestedNutrients?: Record<string, number>;
 };
 
 // Строки редактирования: расписание отдаёт ScheduleFoodWithRelations, блюдо —
@@ -103,6 +112,8 @@ export type ProposalEditItem = {
   productId: string | null;
   dishId: string | null;
   foodName: string | null;
+  /** Только unresolved-ряд dish-products: LLM-профиль per 100 г (name-keyed). */
+  nutrients?: Record<string, number>;
 };
 export type FoodEntryEditItem = ScheduleEditItem | DishEditItem | ProposalEditItem;
 
@@ -131,6 +142,7 @@ const draftFromItem = (item: FoodEntryEditItem, kind: TargetKind): DraftState =>
       foodName: it.foodName,
       quantity: it.quantity,
       details: it.details,
+      suggestedNutrients: it.nutrients,
     };
   }
   if (kind === 'schedule') {
@@ -259,7 +271,13 @@ export function useFoodEntryFlow({
     } else {
       setEditingItem(null);
       setDraft(createEmptyDraft());
+      // sessionKey — key у SearchFood: бамп ремонтит его и сбрасывает введённый
+      // запрос, иначе в edit-флоу (предложка) текст поиска переживал закрытие.
+      setSessionKey((k) => k + 1);
     }
+    // richNutrient живёт в сторе НАД ремонтом SearchFood (бамп sessionKey его не
+    // сносит) — иначе фильтр «богатая нутриентом» переживал закрытие модалки.
+    useRichNutrientStore.getState().clearRichNutrient();
     setStep('idle');
   };
 
@@ -328,6 +346,10 @@ export function useFoodEntryFlow({
         isSupplement?: boolean;
         nutrients?: Record<string, number>;
         description?: string;
+        /** Автоподбор состава (rescue «+» предложки): приоритет — LLM-профиль
+         *  ряда (suggestedNutrients), иначе fire-and-forget suggest-ручка.
+         *  Ручной `nutrients` при этом игнорируется (редактор скрыт). */
+        autoNutrients?: boolean;
       },
     ) => {
       // Предложка — mode 'edit' (правит существующий ряд), но «Новая еда» ей
@@ -346,6 +368,8 @@ export function useFoodEntryFlow({
       const proposal = target.kind === 'proposal' ? target : null;
       const committedRow = proposal ? editingItem : null;
       const patch = draft;
+      // Профиль захватываем до сброса draft — автоподбор пишет его после createProduct.
+      const suggestedNutrients = draft.suggestedNutrients;
       if (proposal) {
         setStep('idle');
         setEditingItem(null);
@@ -396,12 +420,44 @@ export function useFoodEntryFlow({
             foodName: trimmed,
           });
         }
-        const n = opts?.nutrients;
+        const n = opts?.autoNutrients ? undefined : opts?.nutrients;
         if (variant === 'product' && n && Object.keys(n).length > 0) {
           void safeMutate(
             () => setProductNutrients(id, JSON.stringify(n)),
             'Не удалось сохранить нутриенты',
           );
+        }
+        // Автоподбор состава (чекбокс «Подобрать автоматически» на rescue-создании):
+        // профиль уже приехал с dish-products — пишем его; нет (WriteBar-флоу) —
+        // тихий fire-and-forget suggest по имени. Модалка уже закрыта, лоадера нет;
+        // ошибка оставляет продукт без состава (diag-log, без тоста). БАД исключён
+        // ещё в UI (базис 1 шт ≠ per 100 г), гард здесь — на прямой вызов.
+        if (variant === 'product' && opts?.autoNutrients && !opts?.isSupplement) {
+          if (suggestedNutrients !== undefined) {
+            // Профиль приехал, но usable-значений нет (всё отфильтровано) — бек
+            // уже ответил «нет данных»; платный suggest повторно не дёргаем.
+            const mapped = mapNutrientNamesToIds(suggestedNutrients);
+            if (Object.keys(mapped).length > 0) {
+              void safeMutate(
+                () => setProductNutrients(id, JSON.stringify(mapped)),
+                'Не удалось сохранить нутриенты',
+              );
+            }
+          } else {
+            void suggestProductNutrients(trimmed, crypto.randomUUID(), {
+              details: patch.details.trim() || undefined,
+            })
+              .then((record) => {
+                if (Object.keys(record).length === 0) return undefined;
+                return setProductNutrients(id, JSON.stringify(record));
+              })
+              .catch((err: unknown) => {
+                diagLog('[auto-nutrients] suggest failed', {
+                  name: trimmed,
+                  error: String(err),
+                });
+              });
+          }
         }
       });
     },
@@ -623,9 +679,13 @@ export function useFoodEntryFlow({
     }
   };
 
+  // 0/пусто (NumberInput отдаёт 0 на пустом поле) невалидно — занулит нутриенты.
+  // Подменяем дефолтом базиса: еда → 100 г, БАД → 1 доза. Паритет с инлайн-правкой
+  // карточки (EditableQuantity) — там fallback всегда 100.
+  const quantityFallback = selectedProduct?.servingBasis === 'serving' ? 1 : 100;
   const updateQuantity = useCallback(
-    (q: number) => setDraft((d) => ({ ...d, quantity: q })),
-    [],
+    (q: number) => setDraft((d) => ({ ...d, quantity: q > 0 ? q : quantityFallback })),
+    [quantityFallback],
   );
 
   const quantityContent = useMemo(

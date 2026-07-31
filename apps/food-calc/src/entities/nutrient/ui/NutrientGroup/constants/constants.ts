@@ -106,6 +106,28 @@ export const nutrientById: Record<string, Nutrient> = Object.fromEntries(
     allNutrientsList.map((n) => [n.id, n]),
 )
 
+/**
+ * Имя ряда нутриента для витрин: основное + опциональная тихая подпись.
+ * Витамины B: быстрое имя ряда — «Витамин B1» (читается мгновенно и держит
+ * ряд одинаковой длины), полное название («Тиамин») уходит в подпись под ним.
+ * A/C/D/E/K уже называются «Витамин X», каротины — не витамины, оба случая
+ * остаются как есть. Единое правило для NutrientTotals и матрицы дня.
+ * `short` (узкие колонки матрицы): у витаминов основное имя — голый символ
+ * («B1», «B12») без слова «Витамин »; subName не меняется. Сокращение структурное
+ * (символ из данных), не строковый хак у консумента.
+ */
+export const nutrientRowName = (
+    id: string,
+    opts?: { short?: boolean },
+): { name: string; subName?: string } => {
+    const n = nutrientById[id]
+    const displayName = n?.displayNameRu ?? id
+    if (n?.name.startsWith('vitaminB')) {
+        return { name: opts?.short ? n.symbol : `Витамин ${n.symbol}`, subName: displayName }
+    }
+    return { name: displayName }
+}
+
 // Курированный порядок ПЕРВОЙ группы (БЖУ) на витринах: protein/fats/carbs/fiber/
 // energy/sugar/water — БЕЗ starch и в явном доменном порядке (не `content[0]`,
 // где starch есть и порядок иной). Это доменные данные представления; вынесены

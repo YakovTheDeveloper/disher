@@ -1,0 +1,103 @@
+// Гейдж нормы — стили перенесены ВЕРБАТИМ из FoodActionCard.module.scss
+// (секция «Богатство нутриентом»), чтобы карточка и матрица делили один вид.
+
+// Заливка трека растёт 0 → уровень (scaleX, origin left). Композит-only — N
+// видимых строк анимируются дёшево. Конечный кадр читает --rich с элемента,
+// поэтому одни keyframes обслуживают любой уровень.
+@keyframes growFill {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(var(--rich, 0));
+    }
+}
+
+// 2×2 грид величины: колонка чисел (право-выровнены) + колонка маркеров (лево-
+// выровнены). Маркеры (единица, «%») стоят на ОДНОЙ вертикали — границе колонок,
+// как выровненный жёлоб дровера. justify-content:end прижимает пару колонок к
+// правому краю. Числа несут rich-text (наследуется ячейками-числами и маркерами),
+// процент — свой холодный акцент (см. .richCellPercent).
+.richNums {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    justify-content: end;
+    column-gap: 2px;
+    row-gap: 1px;
+    font-feature-settings: 'tnum' 1, 'lnum' 1;
+    color: var(--sys-card-rich-text);
+    line-height: 1.1;
+    // Над ghost-row-заливкой (та inset:0 кроет весь ряд и в DOM идёт после чисел).
+    // z-index на САМИХ числах, а не на обёртке: позиционируй мы обёртку — трек
+    // считал бы inset:0 от неё, а не от ряда/ячейки, и ghost сломался бы.
+    position: relative;
+    z-index: 1;
+}
+
+// Ячейки размещены ЯВНО, чтобы пропуск единицы (value=null) или процента
+// (нутриент без нормы) не сдвигал соседей по auto-flow. Числа — правый край
+// колонки 1, маркеры — левый край колонки 2 → маркеры на одной вертикали,
+// числа упираются правым краем в общий шов.
+.richCellValue {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.richCellUnit {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+}
+
+.richCellPercent {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    // Холодный почти-чёрный (cool-900) — процент нормы «выделяется» из тёплого
+    // rich-text абсолюта (% = ключевая цифра «сколько нормы покрывает»).
+    // Контекстный флип (plum/press карточки) приходит классом-якорем pctClassName.
+    color: var(--sys-color-text-cold-strong);
+}
+
+.richCellSign {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+}
+
+// Трек-заливка = «термометр»: заливается весь позиционированный предок слева
+// направо бледным холодным серым. Своей видимой полоски нет — фон прозрачный,
+// inset:0 кроет предка целиком. Углы квадратные (inherit=0) намеренно.
+.richTrack {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.richFill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform-origin: left;
+    // Уровень едет transform'ом, а не width — animation budget композит-only.
+    transform: scaleX(var(--rich, 0));
+    // Холодный серый дровера нутриентов, приглушённый до фонового шёпота
+    // ПРОЗРАЧНОСТЬЮ (не разбавленным цветом): заливка под числами, полный тон
+    // сделал бы их нечитаемыми; opacity композит-only и держит один sys-токен.
+    background: var(--sys-color-surface-fill);
+    opacity: 0.08;
+    animation: growFill 900ms cubic-bezier(0.33, 0, 0.18, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    // Entrance заливки гасим — базовый `transform: scaleX(var(--rich))`
+    // оставляет заливку сразу на своём уровне.
+    .richFill {
+        animation: none;
+    }
+}

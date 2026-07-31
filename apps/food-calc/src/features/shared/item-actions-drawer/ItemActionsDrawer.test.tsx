@@ -25,13 +25,13 @@ vi.mock('@/shared/ui/DrawerLayout', () => ({
 import { ItemActionsDrawer } from './ItemActionsDrawer';
 
 describe('ItemActionsDrawer', () => {
-  it('renders the title, a top-right delete and each action button', () => {
+  it('renders the title, a bottom delete row and the page action in the header', () => {
     render(
       <ItemActionsDrawer
         onClose={vi.fn()}
         title="Молоко"
         onDelete={vi.fn()}
-        actions={[{ label: 'Информация о продукте', onClick: vi.fn() }]}
+        pageAction={{ label: 'Информация о продукте', onClick: vi.fn() }}
       />,
     );
 
@@ -40,8 +40,16 @@ describe('ItemActionsDrawer', () => {
     expect(screen.getByRole('button', { name: 'Информация о продукте' })).toBeInTheDocument();
   });
 
-  it('orphan row (actions=[]) renders title + delete only, zero action buttons', () => {
-    render(<ItemActionsDrawer onClose={vi.fn()} title="Молоко" onDelete={vi.fn()} actions={[]} />);
+  it('deleteLabel overrides the delete row caption (e.g. «Убрать из списка»)', () => {
+    render(
+      <ItemActionsDrawer onClose={vi.fn()} title="Молоко" onDelete={vi.fn()} deleteLabel="Убрать из списка" />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Убрать из списка' })).toBeInTheDocument();
+  });
+
+  it('orphan row (no pageAction) renders title + delete only, zero other buttons', () => {
+    render(<ItemActionsDrawer onClose={vi.fn()} title="Молоко" onDelete={vi.fn()} />);
 
     expect(screen.getByText('Молоко')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Удалить' })).toBeInTheDocument();
@@ -54,7 +62,7 @@ describe('ItemActionsDrawer', () => {
     const onClose = vi.fn(() => order.push('close'));
     const onDelete = vi.fn(() => order.push('delete'));
 
-    render(<ItemActionsDrawer onClose={onClose} title="X" onDelete={onDelete} actions={[]} />);
+    render(<ItemActionsDrawer onClose={onClose} title="X" onDelete={onDelete} />);
     fireEvent.click(screen.getByRole('button', { name: 'Удалить' }));
 
     expect(onDelete).toHaveBeenCalledTimes(1);
@@ -62,9 +70,10 @@ describe('ItemActionsDrawer', () => {
     expect(order).toEqual(['close', 'delete']); // onClose before navigate/delete — see spec Edge cases
   });
 
-  it('editAction with htmlFor renders a <label for=…>, primes via onClick, does NOT close', () => {
-    // Label-делегация фокуса: onClick только праймит; дровер закрывается по уходу
-    // фокуса наружу, а НЕ из клика (иначе label размонтируется до делегирования).
+  it('editAction with htmlFor renders a <label for=…>, primes via onPointerDown, does NOT close', () => {
+    // Label-делегация фокуса: onPointerDown только праймит (ДО click, см. SettingRow);
+    // дровер закрывается по уходу фокуса наружу, а НЕ из клика (иначе label
+    // размонтируется до делегирования).
     const onClose = vi.fn();
     const prime = vi.fn();
 
@@ -73,7 +82,6 @@ describe('ItemActionsDrawer', () => {
         onClose={onClose}
         title="X"
         onDelete={vi.fn()}
-        actions={[]}
         editActions={[{ label: 'Кол-во', htmlFor: 'qty-input', onClick: prime }]}
       />,
     );
@@ -82,7 +90,7 @@ describe('ItemActionsDrawer', () => {
     expect(label).not.toBeNull();
     expect(label).toHaveAttribute('for', 'qty-input');
 
-    fireEvent.click(label!);
+    fireEvent.pointerDown(label!);
     expect(prime).toHaveBeenCalledTimes(1);
     expect(onClose).not.toHaveBeenCalled();
   });
@@ -97,7 +105,6 @@ describe('ItemActionsDrawer', () => {
         onClose={onClose}
         title="X"
         onDelete={vi.fn()}
-        actions={[]}
         editActions={[{ label: 'Время', onClick: run }]}
       />,
     );
@@ -106,7 +113,7 @@ describe('ItemActionsDrawer', () => {
     expect(order).toEqual(['close', 'run']);
   });
 
-  it('action: closes the drawer FIRST, then runs the action onClick', () => {
+  it('pageAction: closes the drawer FIRST, then runs the action onClick', () => {
     const order: string[] = [];
     const onClose = vi.fn(() => order.push('close'));
     const infoClick = vi.fn(() => order.push('info'));
@@ -116,11 +123,34 @@ describe('ItemActionsDrawer', () => {
         onClose={onClose}
         title="X"
         onDelete={vi.fn()}
-        actions={[{ label: 'Информация о продукте', onClick: infoClick }]}
+        pageAction={{ label: 'Информация о продукте', onClick: infoClick }}
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Информация о продукте' }));
 
     expect(order).toEqual(['close', 'info']);
+  });
+
+  it('nutrientsAction: ряд «Нутриенты» перед правками, closes-then-runs', () => {
+    const order: string[] = [];
+    const onClose = vi.fn(() => order.push('close'));
+    const peek = vi.fn(() => order.push('peek'));
+
+    render(
+      <ItemActionsDrawer
+        onClose={onClose}
+        title="Молоко"
+        onDelete={vi.fn()}
+        nutrientsAction={{ label: 'Нутриенты', onClick: peek }}
+        editActions={[{ label: 'Время', onClick: vi.fn() }]}
+      />,
+    );
+
+    const row = screen.getByRole('button', { name: 'Нутриенты' });
+    // Ряд стоит РАНЬШЕ первого ряда правок в DOM.
+    expect(row.compareDocumentPosition(screen.getByText('Время')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.click(row);
+    expect(order).toEqual(['close', 'peek']);
   });
 });

@@ -72,14 +72,14 @@ const AnalysesSlide = ({ topSlot }: Props) => {
     [analyses, addOptimistic]
   );
 
-  // Long-press → per-row action drawer (canon: delete in the top-right chrome,
-  // «Открыть разбор» as the primary action in the stack).
+  // Long-press → per-row action drawer: «Открыть разбор» — ↗ в хедере (pageAction),
+  // delete — danger-ряд внизу стека.
   const openActions = useCallback(
     (analysis: Analysis) => {
       void drawerStore.show(ItemActionsDrawer, {
         title: formatWindowLabel(analysis.windowStart, analysis.windowEnd),
         onDelete: () => deleteOne(analysis.id),
-        actions: [{ label: t('analyses.openAnalysis'), onClick: () => openDetail(analysis.id) }],
+        pageAction: { label: t('analyses.openAnalysis'), onClick: () => openDetail(analysis.id) },
       });
     },
     [deleteOne, openDetail, t]

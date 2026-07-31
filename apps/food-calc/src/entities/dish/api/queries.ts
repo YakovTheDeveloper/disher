@@ -112,3 +112,32 @@ export function useDishItemsByDishIds(dishIds: string[]): DishItem[] {
     return items.filter((r) => idSet.has(r.dishId));
   }, [items, dishIds]);
 }
+
+/**
+ * Batch-вариант useDishPortions: один liveQuery по dish_portions, фильтр по
+ * множеству dish_id (образец — useDishItemsByDishIds). Для оркестраторов,
+ * которым порции нужны сразу по всем блюдам (хуки в цикле нельзя).
+ */
+export function useDishPortionsByDishIds(dishIds: string[]): DishPortion[] {
+  const portions = useAllDishPortions();
+  return useMemo(() => {
+    if (dishIds.length === 0) return [];
+    const idSet = new Set(dishIds);
+    return portions.filter((r) => idSet.has(r.dishId));
+  }, [portions, dishIds]);
+}
+
+// Loading-флаги первого тика liveQuery (rows ещё undefined): оркестраторам,
+// которые не должны считать на полупустых входах (useSuggestions,
+// useScheduleNutrientTotals). Каждый флаг — своя лёгкая подписка на toArray.
+export function useDishesLoading(): boolean {
+  return useLiveQuery(() => db.dishes.toArray(), []) === undefined;
+}
+
+export function useDishItemsLoading(): boolean {
+  return useLiveQuery(() => db.dish_items.toArray(), []) === undefined;
+}
+
+export function useDishPortionsLoading(): boolean {
+  return useLiveQuery(() => db.dish_portions.toArray(), []) === undefined;
+}

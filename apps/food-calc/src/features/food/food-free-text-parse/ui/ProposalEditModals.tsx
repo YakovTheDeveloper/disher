@@ -121,7 +121,9 @@ export const ProposalEditModals = ({ flow }: Props) => {
         />
       </div>
 
-      <FoodEntryCreateModals flow={flow} position="fixed" />
+      {/* nutrientAssist: rescue-создание из unresolved-ряда — автоподбор состава
+          (LLM-профиль ряда или suggest-ручка), ручной редактор под чекбоксом. */}
+      <FoodEntryCreateModals flow={flow} position="fixed" nutrientAssist />
     </>
   );
 };

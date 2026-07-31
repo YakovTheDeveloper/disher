@@ -1,0 +1,117 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// ──────────────────────────────────────────────────────────────────────
+// NutrientSuggestionFoodCard — фичевые слоты поверх каркаса shared/ui/
+// FoodListRow. Зеркалит FoodActionCard.module.scss (тот же канон миниатюры,
+// числовой колонки и ⓘ), минус plum-выбор (ряд предложки не «выбирается» —
+// тап сразу добавляет) и ownerStripe/дуговые бейджи.
+// ──────────────────────────────────────────────────────────────────────
+
+// Якорь на корне <li> каркаса — контекстные селекторы висят на нём + data-pressed.
+.card {
+
+    // Каталожная миниатюра продукта — 1-в-1 канон FoodActionCard (framed-plate).
+    .thumb {
+        width: var(--rail-thumb, 36px);
+        height: var(--rail-thumb, 36px);
+        flex-shrink: 0;
+        border-radius: var(--sys-radius-control);
+        object-fit: cover;
+        @include framed-plate;
+    }
+
+    .name {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+        color: var(--sys-card-text-rest);
+        line-height: 1.2;
+    }
+
+    // Детализация под именем: порция + по строке на покрываемый дефицит.
+    // Многострочный блок (запрос 2026-07-31) — карточка предложки выше обычного
+    // 56px-ряда, строки не обрезаются ellipsis (их мало: топ-3 покрытия).
+    .details {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+        pointer-events: none;
+    }
+
+    .portionLine {
+        color: var(--sys-card-text-rest);
+    }
+
+    .coverLine {
+        color: var(--sys-card-text-faint);
+    }
+
+    // Правая колонка: score + подпись, заливка-трек за всем рядом (ghost-row).
+    .rich {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        flex-shrink: 0;
+        align-self: center;
+        min-width: 46px;
+    }
+
+    // Подпись «% остатка» под score — не часть NormGauge (шаг 3.2 плана).
+    .scoreCaption {
+        color: var(--sys-card-text-faint);
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    // Press-инверсия: на тёмной заливке имя/числа/ⓘ перекрашиваются в светлый,
+    // трек-заливка гаснет (паритет с FoodActionCard).
+    &[data-pressed] {
+
+        .name,
+        .portionLine,
+        .coverLine,
+        .scoreCaption,
+        .infoBtn,
+        .richNums {
+            color: var(--sys-card-press-fg);
+        }
+
+        .richTrack {
+            opacity: 0;
+        }
+
+        .infoBtn::before {
+            opacity: 0;
+        }
+    }
+
+    // Обёртка ⓘ, гасящая bubbling pointer-событий до <li> (см. stopRowPress).
+    .infoSlot {
+        display: contents;
+    }
+
+    .infoBtn {
+        position: relative;
+        z-index: 1;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            z-index: -1;
+            border-radius: var(--sys-radius-indicator);
+            background: var(--sys-color-surface-icon-tile);
+            pointer-events: none;
+        }
+
+        &:active {
+            color: var(--sys-card-text-active);
+            opacity: 1;
+            transform: scale(0.88);
+        }
+    }
+}

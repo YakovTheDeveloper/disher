@@ -106,6 +106,7 @@
 
   // ─── sys · dividers / borders ──────────────────────────────────
   --sys-color-divider: rgba(255, 255, 255, 0.1); // single source — all hairlines
+  --sys-color-grabber: color-mix(in srgb, #fff 10%, transparent); // тот же вес, что divider, — светлый вош поверх любой поверхности
   --sys-color-divider-card: rgba(255, 255, 255, 0.08); // bright-white seam → subtle
   --sys-color-border-default: rgba(255, 255, 255, 0.22); // middle rung, dark counterpart of 0.28 light
   --sys-color-border-strong: rgba(255, 255, 255, 0.7);

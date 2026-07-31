@@ -1,516 +1,233 @@
 @import '@/shared/assets/style/mixin.scss';
 
 // ──────────────────────────────────────────────────────────────────────
-// FoodActionCard — ряд-карточка результата поиска, token-driven по app-тону.
-// Surface-токены (--sys-card-*) приходят с живого варианта ModalShell на
-// `body[data-modal-fields]` (см. tds/modalshell-lawgiver-2026-06-13).
-// Облик ряда заинлайнен в `.wrapper` — бывший shared-миксин `stripe-fork-row()`
-// снят 2026-07-10: он был на ОДНОГО консумера и наполовину переопределялся
-// (тающий hairline → сплошной, скруглённая press-пилюля → во всю строку).
+// FoodActionCard — фичевые слоты поверх каркаса shared/ui/FoodListRow
+// (раскладка, divider ::after, plum-заливка, press-фон, reduced-motion переехали
+// в каркас 2026-07-31). Здесь: контент слотов (миниатюра, дуговой бейдж, имя,
+// подпись-вид, числовая колонка, ⓘ, ownerStripe) и их КОНТЕКСТНЫЕ флипы цвета,
+// ключованные по якорю .card + data-active / data-pressed каркаса (специфичность
+// сохранена 1-в-1 с прежними .wrapper:has(.item_active) / .wrapper[data-pressed]).
 // ──────────────────────────────────────────────────────────────────────
 
-.wrapper {
-    // Тело ряда (бывший stripe-fork-row(), заинлайнен 2026-07-10). Active-selection
-    // остаётся локальным ниже — он ключуется по своему `.item_active` ребёнку.
-    display: flex;
-    align-items: stretch;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
-
-    background: var(--sys-card-bg);
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    // Маркеры «выбрано» (amber-кромка + галочка-бейдж) убраны по запросу 2026-06-26:
-    // единственный фидбэк ряда — тёмная press-заливка ниже. Держим outline прозрачным.
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-
-    border-radius: var(--sys-radius-control);
-
-    // Градиенты-реликты сняты локально (просьба 2026-07-10 «градиенты = пережиток»).
-    // Переопределяем hover/press-заливку карточки на ПЛОСКИЕ токены — не трогая
-    // общий paper-mono-cards (--sys-card-hover/press-bg там ещё несут градиент для
-    // ScheduleNavigator/NutrientRow/RangeCalendar). hover = утопленный ink-wash,
-    // press = плоский near-black. Полюс «выбрано» (plum) уже плоский.
-    --sys-card-hover: var(--sys-card-bg-sunk);
-    --sys-card-press-bg: var(--sys-card-text-rest);
-
-    transition:
-        background var(--press-out) ease,
-        outline-color 0.18s ease,
-        transform var(--press-out) var(--easing-spring);
-
-    // Divider ряда: СПЛОШНОЙ в середине + лёгкое 20px-затухание строго по кончикам
-    // (запрос юзера). В плотном сканируемом списке глазу нужна твёрдая линия-рельс, а
-    // не воздушный fade — поэтому это НЕ канонический тающий hairline (18%/82%), а
-    // узкий 20px-фейд только у самых краёв. Это НЕ рамка вокруг ряда (анти-паттерн
-    // «Laboratory trap») — по-прежнему divider снизу на var(--sys-card-hairline).
-    //
-    // Левый край divider = НАЧАЛО ИМЕНИ, чтобы взгляд вёл воображаемую дугу от
-    // контента вниз к бордеру (iOS-сепаратор, aligned to text). Адаптивно:
-    //  • без миниатюры (блюда, свои продукты, режим «Мое») имя стартует от
-    //    рельсы ряда --rail-gutter → divider оттуда же (сведено на ОДНУ рельсу
-    //    2026-07-10; был рассинхрон --space-4(16) vs имя на rail-gutter);
-    //  • с миниатюрой имя уезжает за кружок, divider тянется от края карточки (0).
-    // До правого края — flush (карточка уже вжата рамой, отдельный right-инсет не нужен).
-    &::after {
-        content: '';
-        position: absolute;
-        left: var(--rail-gutter, var(--space-4));
-        right: 0;
-        bottom: 0;
-        height: 1px;
-        background: linear-gradient(90deg,
-                transparent 0,
-                var(--sys-card-hairline) 20px,
-                var(--sys-card-hairline) calc(100% - 20px),
-                transparent 100%);
-        pointer-events: none;
+// Якорь на корне <li> каркаса — все контекстные селекторы ниже висят на нём.
+.card {
+    // Каталожная миниатюра продукта (build-route поле `image`). Кадрируется
+    // по центру. Обрамление = канон framed-plate (@include, миксин в mixin.scss):
+    // белая рамка + мягкая тень + серый мат — фото «лежит на подложке» (голос
+    // «гравюра в дневнике натуралиста»), роднит полноцветный снимок с моно-карточкой
+    // лучше плоского канта. Рамка = box-shadow-ring (не border): не двигает кадр
+    // и рисуется поверх соседнего контента.
+    .thumb {
+        // Диаметр = общая --rail-thumb (fallback 36px, прежний литерал) — та же
+        // переменная задаёт ширину слота лупы в поле поиска, поэтому лупа центрируется
+        // ровно под этим кружком. Меняешь размер миниатюры тут — едет и лупа/рельса.
+        width: var(--rail-thumb, 36px);
+        height: var(--rail-thumb, 36px);
+        flex-shrink: 0;
+        // Малый радиус (8px, --sys-radius-control) вместо круга — миниатюра еды теперь
+        // «карточка-фото», отличимая от круглых кнопок-плиток (back/фильтр/ⓘ) в том же
+        // ряду. Рамка/тень/мат несёт framed-plate; на скруглённом квадрате смотрится ок.
+        border-radius: var(--sys-radius-control);
+        object-fit: cover;
+        @include framed-plate;
     }
 
-    &[data-has-thumb]::after {
-        left: 0;
+    // Дуговой вид-бейдж режима «Мое» — в слоте миниатюры (см. kindBadge в .tsx).
+    // Занимает тот же слот, что и .thumb (rail-thumb), поэтому имя сдвигается ровно
+    // так же (data-has-leading). Цвет несёт вид: блюдо = тёплый sepia, продукт =
+    // холодный indigo-accent — два контрастных чернильных штемпеля на бумаге.
+    .kindBadge {
+        width: var(--rail-thumb, 36px);
+        height: var(--rail-thumb, 36px);
+        flex-shrink: 0;
+        align-self: center;
     }
 
-    &:last-child::after {
-        display: none;
+    .kindBadge_dish {
+        color: var(--sys-color-text-sepia);
     }
 
-    // Верхний divider ПЕРВОГО ряда СНЯТ (2026-07-11): линия стыка «поле поиска ↔
-    // первый ряд» переехала на само поле — SearchFoodControls `.bar::after` несёт
-    // теперь СПЛОШНОЙ divider во всю ширину (full-bleed за боковой инсет рамы).
-    // Так линия ОДНА (без дубля поле+ряд) и тянется шире вжатой группы. Разделитель
-    // МЕЖДУ рядами держит `.wrapper::after` (нижний hairline) — он НЕ тронут.
-
-    &:hover {
-        background: var(--sys-card-hover);
+    .kindBadge_product {
+        color: var(--sys-color-text-accent);
     }
 
-    &:active {
-        transition-duration: var(--sys-duration-press-in);
-    }
-
-    // Press — заливка ВСЕЙ карточки в near-black (просьба 2026-07-11: «карточка
-    // темнеет ЦЕЛИКОМ, а не отдельной чёрной плиткой»). Раньше press рисовался
-    // скруглённой inset-плиткой ::before (inset 3px 6px) — читался как отдельный
-    // чёрный прямоугольник внутри ряда; выпилен. radius наследуется от .wrapper
-    // (--sys-radius-control) → тёмный фон скруглён по всему ряду. Тап по ⓘ сюда НЕ
-    // доходит: .infoSlot гасит bubbling pointer-событий до `<li>` (stopRowPress),
-    // поэтому data-pressed по кнопке инфо не ставится — карточка не темнеет.
-    &[data-pressed] {
-        background: var(--sys-card-press-bg);
-        transition-duration: var(--sys-duration-press-in);
-    }
-
-    // Нижний divider-::after прорезал бы тёмную заливку хайрлайном — гасим на press.
-    &[data-pressed]::after {
-        display: none;
-    }
-}
-
-// Заливка трека растёт 0 → уровень (scaleX, origin left). Композит-only — N
-// видимых строк анимируются дёшево. Конечный кадр читает --rich с элемента,
-// поэтому одни keyframes обслуживают любой уровень.
-@keyframes growFill {
-    from {
-        transform: scaleX(0);
-    }
-
-    to {
-        transform: scaleX(var(--rich, 0));
-    }
-}
-
-.item {
-    display: flex;
-    align-items: center;
-    // padding-left + gap = левый край рельсы имён (--rail-text). Читаем общие --rail-*
-    // (заданы на `.railHost` = ModalShell.wrapper в SearchFood.module.scss), fallback =
-    // прежние литералы — карточка, поле поиска и заголовок считаются из ОДНОГО источника
-    // и не рассинхронятся. rail-gutter=0 → миниатюра прижата к краю вжатой карточки.
-    // Вертикальный padding у .item НАМЕРЕННО снят — высоту ряда держит ⓘ-кнопка
-    // (IconButton size=56), поэтому ряд = 56px без своего padding.
-    flex-grow: 1;
-    min-width: 0;
-    overflow: hidden;
-    position: relative;
-
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-
-    cursor: pointer;
-    transition: background var(--press-out) ease;
-    gap: var(--rail-gap, 14px);
-    margin: 0;
-    border-radius: inherit;
-    z-index: 1; // держим контент в своём stacking-context — имя всегда читаемо
-}
-
-.categoryIcon {
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-    object-fit: contain;
-    opacity: 0.75;
-}
-
-// Каталожная миниатюра продукта (build-route поле `image`). Круглая, кадрируется
-// по центру. Обрамление = канон framed-plate (@include, миксин в mixin.scss):
-// белая рамка + мягкая тень + серый мат — фото «лежит на подложке» (голос
-// «гравюра в дневнике натуралиста»), роднит полноцветный снимок с моно-карточкой
-// лучше плоского канта. Раньше был 1px холодный hairline (--sys-color-divider);
-// ещё раньше — сырой stripe-warm box-shadow (остаток honey-палитры). Рамка =
-// box-shadow-ring (не border): не двигает кадр и рисуется поверх соседнего контента.
-.thumb {
-    // Диаметр = общая --rail-thumb (fallback 36px, прежний литерал) — та же
-    // переменная задаёт ширину слота лупы в поле поиска, поэтому лупа центрируется
-    // ровно под этим кружком. Меняешь размер миниатюры тут — едет и лупа/рельса.
-    width: var(--rail-thumb, 36px);
-    height: var(--rail-thumb, 36px);
-    flex-shrink: 0;
-    // Малый радиус (8px, --sys-radius-control) вместо круга — миниатюра еды теперь
-    // «карточка-фото», отличимая от круглых кнопок-плиток (back/фильтр/ⓘ) в том же
-    // ряду. Рамка/тень/мат несёт framed-plate; на скруглённом квадрате смотрится ок.
-    border-radius: var(--sys-radius-control);
-    object-fit: cover;
-    @include framed-plate;
-}
-
-// Дуговой вид-бейдж режима «Мое» — в слоте миниатюры (см. kindBadge в .tsx).
-// Занимает тот же слот, что и .thumb (rail-thumb), поэтому имя сдвигается ровно
-// так же (data-has-thumb). Цвет несёт вид: блюдо = тёплый sepia, продукт =
-// холодный indigo-accent — два контрастных чернильных штемпеля на бумаге.
-.kindBadge {
-    width: var(--rail-thumb, 36px);
-    height: var(--rail-thumb, 36px);
-    flex-shrink: 0;
-    align-self: center;
-}
-
-.kindBadge_dish {
-    color: var(--sys-color-text-sepia);
-}
-
-.kindBadge_product {
-    color: var(--sys-color-text-accent);
-}
-
-// «Выбрано» (plum-заливка ряда) → бейдж на светлый on-plum, иначе тёмная сепия/
-// индиго на плюме тонет.
-.wrapper:has(.item_active):not([data-pressed]) .kindBadge {
-    color: var(--sys-color-text-on-selected-plum);
-}
-
-// Press (тёмная заливка всего ряда) → бейдж на светлый press-fg, как имя/ⓘ.
-.wrapper[data-pressed] .kindBadge {
-    color: var(--sys-card-press-fg);
-}
-
-// «Выбрано» = канон-indicator (как выбранные чипы / Choice): плоский plum + флип
-// текста. Полюс «выбрано» = plum читается ПРЯМО из своей sys-пары
-// (--sys-color-bg-selected-plum / --sys-color-text-on-selected-plum), а НЕ через
-// scope-override семантического --sys-color-*-selected (тот остаётся глобально cool
-// для не-choice consumers).
-//
-// Форма: заливка ВСЕГО ряда plum. Ряд скруглён — .wrapper несёт border-radius:
-// --sys-radius-control (стр. 29), поэтому plum ложится скруглённым. Gated на
-// :not([data-pressed]) (2026-07-11): press теперь тоже полная заливка .wrapper той
-// же специфичности (0,2,0), поэтому без gate плюм (позже в файле) перебивал бы
-// тёмный press на выбранном ряду. Гейт снимает plum на время тапа → выбранный ряд
-// на press темнеет ЦЕЛИКОМ, как и любой другой (press-фидбэк виден).
-.wrapper:has(.item_active):not([data-pressed]) {
-    background: var(--sys-color-bg-selected-plum);
-}
-
-// Divider выбранного ряда гасим — plum-плитка сама держит край (иначе хайрлайн
-// ::after прорезал бы её снизу, см. press-::after выше).
-.wrapper:has(.item_active)::after {
-    display: none;
-}
-
-.wrapper:has(.item_active) .infoBtn {
-    color: var(--sys-color-text-on-selected-plum);
-}
-
-// «Выбрано» = plum-заливка ВСЕГО ряда → числа богатства флипаются на on-plum
-// (как имя/ⓘ), а трек гасим: плюм-плитка сама держит край, полоска-underline
-// прорезала бы её вторым тоном (симметрично divider-::after выше). Процент несёт
-// свой явный cold-strong → наследование его не перекроет, флипаем ячейку адресно.
-.wrapper:has(.item_active):not([data-pressed]) .richNums,
-.wrapper:has(.item_active):not([data-pressed]) .richCellPercent {
-    color: var(--sys-color-text-on-selected-plum);
-}
-
-.wrapper:has(.item_active) .richTrack {
-    opacity: 0;
-}
-
-.item_active {
-    .name {
+    // «Выбрано» (plum-заливка ряда) → бейдж на светлый on-plum, иначе тёмная сепия/
+    // индиго на плюме тонет.
+    &[data-active]:not([data-pressed]) .kindBadge {
         color: var(--sys-color-text-on-selected-plum);
     }
-}
 
-// Press-инверсия: на тёмном фоне имя/инфо-иконка перекрашиваются в светлый.
-// Специфичность (0,3,0) перебивает `.item_active`.
-.wrapper[data-pressed] {
-
-    // Имя + тихий вид-подпись под ним + ⓘ на тёмной press-заливке → светлые
-    // (faint kindLabel иначе исчез бы на dark).
-    .name,
-    .kindLabel,
-    .infoBtn {
+    // Press (тёмная заливка всего ряда) → бейдж на светлый press-fg, как имя/ⓘ.
+    &[data-pressed] .kindBadge {
         color: var(--sys-card-press-fg);
     }
 
-    // Числа богатства сидят теперь ПРЯМО на карточке (свой светлый фон ушёл
-    // вместе с квадратом-гейджем), поэтому на press они обязаны инвертироваться
-    // вместе с именем — иначе тёмный текст тонет в near-black заливке. Процент несёт
-    // свой явный cold-strong → флипаем ячейку адресно (наследование не перекроет).
-    .richNums,
-    .richCellPercent {
-        color: var(--sys-card-press-fg);
+    // Имя — главная строка текст-колонки каркаса.
+    .name {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+        color: var(--sys-card-text-rest);
+        line-height: 1.2;
     }
 
-    // Трек/заливка на тёмном ряду читались бы паразитным светлым пятном (а в
-    // ghost-row — светлой плашкой поверх press-фона). Гасим на время тапа.
-    .richTrack {
-        opacity: 0;
+    // «Выбрано» = plum-заливка ВСЕГО ряда → имя флипается на on-plum.
+    &[data-active] .name {
+        color: var(--sys-color-text-on-selected-plum);
     }
 
-    // Утопленная плашка гаснет на тёмной press-заливке — светлый 6% прямоугольник
-    // на dark читался бы паразитно.
-    .infoBtn::before {
-        opacity: 0;
-    }
-}
-
-// Текст-колонка: имя (главная строка) + тихий вид-подпись под ним. Column, чтобы
-// подпись стояла ПОД именем, а не в строку. flex:1 + min-width:0 забирает ширину
-// между миниатюрой и правым ⓘ-слотом → имя/подпись обрезаются ellipsis.
-.nameCol {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-    min-width: 0;
-    gap: 1px;
-}
-
-.name {
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    text-transform: capitalize;
-    color: var(--sys-card-text-rest);
-    line-height: 1.2;
-}
-
-// ─── Богатство нутриентом ────────────────────────────────────────────
-// Бывший левый квадрат-гейдж 48×44 (светлый трек + жёлто-зелёная заливка из
-// сырой рампы в .tsx) снят 2026-07-17: он перекликался с миниатюрой-плашкой в
-// том же ряду и нёс цвет, чужой палитре дровера нутриентов. Теперь величина =
-// тихая правая колонка чисел + бледная «термометр»-заливка ряда (ghost-row) на
-// заливке дровера нутриентов (--sys-color-surface-fill, холодный серый, БЕЗ
-// валентности).
-
-// Правая колонка: числа сверху, заливка-трек за всем рядом. Не растягивается по
-// высоте ряда — высоту держит ⓘ-слот (IconButton 56).
-.rich {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: center;
-    flex-shrink: 0;
-    align-self: center;
-    gap: 3px;
-    // min, а не фикс: значение (число+единица) шире процента у крупных мг —
-    // колонка подстраивается, но не схлопывается уже читаемого минимума.
-    min-width: 46px;
-}
-
-// 2×2 грид величины: колонка чисел (право-выровнены) + колонка маркеров (лево-
-// выровнены). Маркеры (единица, «%») стоят на ОДНОЙ вертикали — границе колонок,
-// как выровненный жёлоб дровера, но без absolute-свисания (у карточки справа ⓘ,
-// свисать некуда). justify-content:end прижимает пару колонок к правому краю.
-// Числа несут rich-text (наследуется ячейками-числами и маркерами), процент —
-// свой холодный акцент (см. .richCellPercent).
-.richNums {
-    display: grid;
-    grid-template-columns: auto auto;
-    align-items: baseline;
-    justify-content: end;
-    column-gap: 2px;
-    row-gap: 1px;
-    font-feature-settings: 'tnum' 1, 'lnum' 1;
-    color: var(--sys-card-rich-text);
-    line-height: 1.1;
-    // Над ghost-row-заливкой (та inset:0 кроет весь ряд и в DOM идёт после чисел).
-    // z-index на САМИХ числах, а не на .rich: позиционируй мы .rich — трек считал
-    // бы inset:0 от неё, а не от ряда, и ghost/underline сломались бы.
-    position: relative;
-    z-index: 1;
-}
-
-// Ячейки размещены ЯВНО, чтобы пропуск единицы (value=0) или процента (нутриент
-// без нормы) не сдвигал соседей по auto-flow. Числа — правый край колонки 1,
-// маркеры — левый край колонки 2 → маркеры на одной вертикали, числа упираются
-// правым краем в общий шов.
-.richCellValue {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: end;
-}
-
-.richCellUnit {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: start;
-}
-
-.richCellPercent {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: end;
-    // Холодный почти-чёрный (cool-900) — процент нормы «выделяется» из тёплого
-    // rich-text абсолюта (запрос владельца: % = ключевая цифра «сколько нормы
-    // покрывает»). Один язык с дровером — там .pctFlush тот же токен.
-    color: var(--sys-color-text-cold-strong);
-}
-
-.richCellSign {
-    grid-column: 2;
-    grid-row: 2;
-    justify-self: start;
-}
-
-// Трек-заливка = «термометр» ряда: заливается САМА строка слева направо бледным
-// холодным серым. Своей видимой полоски нет — фон прозрачный, inset:0 (без
-// позиционированного предка среди .rich разрешается относительно .wrapper) кроет
-// весь ряд. Углы квадратные (inherit=0) намеренно — принятый облик; при richness=1
-// правый край упирается в скруглённый угол ряда, но при opacity 0.08 незаметно.
-// Числа/имя/ⓘ подняты z-index:1 над заливкой.
-//
-// Раньше форма трека листалась 🎨-баром (якорь SearchFoodRichness: underline/meter/
-// ghost-row/nums-only) — ghost-row закреплён владельцем 2026-07-17, форки и якорь
-// сняты.
-.richTrack {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    border-radius: inherit;
-    pointer-events: none;
-}
-
-.richFill {
-    display: block;
-    width: 100%;
-    height: 100%;
-    transform-origin: left;
-    // Уровень едет transform'ом, а не width — animation budget композит-only.
-    transform: scaleX(var(--rich, 0));
-    // Холодный серый дровера нутриентов, приглушённый до фонового шёпота
-    // ПРОЗРАЧНОСТЬЮ (не разбавленным цветом): заливка под именем ряда, полный тон
-    // сделал бы имя нечитаемым; opacity композит-only и держит один sys-токен.
-    background: var(--sys-color-surface-fill);
-    opacity: 0.08;
-    animation: growFill 900ms cubic-bezier(0.33, 0, 0.18, 1) both;
-}
-
-// Единица/строчность/приглушённость маркеров («г», «%») несёт примитив
-// <NumeralMarker> (typo-дом голоса). Единицы теперь во ВСЕХ рядах (запрос
-// владельца: юнит — не шум), тише числа через opacity примитива — правило
-// `.wrapper:not(:first-child) .richUnit { display:none }` снято.
-
-// Тихий вид-подпись под именем («блюдо» / «мой продукт · добавка»). Второй строкой
-// в .nameCol, под именем. Обрезается ellipsis в узкой колонке (длинное «мой продукт
-// · добавка» не переливается за экран). Еле заметный серый курсив (QuietLabel).
-.kindLabel {
-    color: var(--sys-card-text-faint);
-    pointer-events: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-}
-
-// Маркер «своё» — нейтральная вертикальная полоска у самого правого края карточки
-// (свои продукты + блюда, в обоих фильтрах). Нейтральный ink-faint: это признак
-// владения, а не данные (данные несёт гейдж богатства — .richTrack + .richNums).
-// Absolute, с лёгким вертикальным инсетом. На тёмной press-заливке перекрашиваем
-// в светлый.
-.ownerStripe {
-    position: absolute;
-    top: 8px;
-    bottom: 8px;
-    right: 0;
-    width: 3px;
-    background: var(--sys-card-text-faint);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.wrapper[data-pressed] .ownerStripe {
-    background: var(--sys-card-press-fg);
-}
-
-// Обёртка ⓘ, гасящая bubbling pointer-событий до `<li>` (см. stopRowPress в
-// FoodActionCard.tsx). display:contents — span не создаёт бокс, flex-раскладка
-// ряда (.item grow + ⓘ-слот) не меняется, но узел остаётся в DOM-пути события.
-.infoSlot {
-    display: contents;
-}
-
-// Каркас кнопки (размер/flex/border/transition/press-scale) теперь несёт общий
-// примитив IconButton (bare-shell, `size={56}`); здесь остаётся ТОЛЬКО карточный
-// вид: цвет-токен ряда, круглая подложка-плитка ::before и press-инверсия ниже.
-.infoBtn {
-    // Цвет ТУСКЛОГО глифа приходит от emphasis="quiet" (класс .quiet у IconButton,
-    // --sys-color-icon-muted) — второстепенная кнопка, зеркалит back-кнопку шапки.
-    // Тут цвет НЕ задаём НАМЕРЕННО: .infoBtn (FoodActionCall.module) грузится ПОЗЖЕ
-    // .quiet (IconButton.module) и при равной 0,1,0 перебил бы его по source-order.
-    // active/press-инверсии ниже (0,3,0) и `:active` (0,1,1) перебивают quiet штатно.
-    position: relative;
-    z-index: 1; // stacking-context: утопленная плашка (::before z-index:-1) садится
-    //           ПОД глиф, но НАД фоном ряда.
-
-    // КРУГЛАЯ подложка-плитка (inset 8px в 56px-слоте → ~40px кружок), тот же токен
-    // --sys-color-surface-icon-tile, что у кнопки Назад/фильтра — ⓘ читается как та же
-    // круглая кнопка. Inset держит слот 56px (фильтр верхнего бара центрирован над ним),
-    // сама плитка не заполняет всю колонку. Обводка-кольцо в глифе (InfoIcon) — тихая
-    // (opacity 0.5) поверх этой плитки, «i» остаётся полной.
-    &::before {
-        content: '';
-        position: absolute;
-        inset: 8px;
-        z-index: -1;
-        border-radius: var(--sys-radius-indicator);
-        background: var(--sys-color-surface-icon-tile);
+    // Тихий вид-подпись под именем («блюдо» / «мой продукт · добавка»). Второй строкой
+    // в колонке, под именем. Обрезается ellipsis в узкой колонке (длинное «мой продукт
+    // · добавка» не переливается за экран). Еле заметный серый курсив (QuietLabel).
+    .kindLabel {
+        color: var(--sys-card-text-faint);
         pointer-events: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
     }
 
-    &:active {
-        color: var(--sys-card-text-active);
-        opacity: 1;
-        transform: scale(0.88);
-    }
-}
+    // ─── Богатство нутриентом ────────────────────────────────────────────
+    // Величина = тихая правая колонка чисел + бледная «термометр»-заливка ряда
+    // (ghost-row) на заливке дровера нутриентов (--sys-color-surface-fill,
+    // холодный серый, БЕЗ валентности).
 
-// ─── Reduced-motion ──────────────────────────────────────────────────
-// Press highlight (смена фона) остаётся — это не motion, а abrupt
-// luminance change. Гасим только transform-составляющую pop'а (scale строки).
-@media (prefers-reduced-motion: reduce) {
-    .wrapper:active {
-        transform: none;
+    // Правая колонка: числа сверху, заливка-трек за всем рядом. Не растягивается по
+    // высоте ряда — высоту держит ⓘ-слот (IconButton 56).
+    .rich {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        flex-shrink: 0;
+        align-self: center;
+        gap: 3px;
+        // min, а не фикс: значение (число+единица) шире процента у крупных мг —
+        // колонка подстраивается, но не схлопывается уже читаемого минимума.
+        min-width: 46px;
     }
 
-    // Entrance заливки: при выборе нутриента все видимые карточки проигрывают
-    // growFill. Гасим — базовый `transform: scaleX(var(--rich))` оставляет
-    // заливку сразу на своём уровне.
-    .richFill {
-        animation: none;
+    // 2×2 грид чисел (.richNums/.richCell*), трек (.richTrack) и заливка (.richFill)
+    // живут в shared/ui/NormGauge — карточка рендерит <NormFigure>/<GaugeFill>,
+    // здесь только карточная раскладка (.rich) и якорные переопределения цвета/
+    // видимости (plum/press ниже). Классы .richNums/.richCellPercent/.richTrack
+    // объявлены селекторами этого модуля = локальные якоря для слотов.
+
+    // Единица/строчность/приглушённость маркеров («г», «%») несёт примитив
+    // <NumeralMarker> (typo-дом голоса). Единицы теперь во ВСЕХ рядах (запрос
+    // владельца: юнит — не шум), тише числа через opacity примитива.
+
+    // «Выбрано» = plum-заливка ВСЕГО ряда → числа богатства флипаются на on-plum
+    // (как имя/ⓘ), а трек гасим: плюм-плитка сама держит край, полоска-underline
+    // прорезала бы её вторым тоном. Процент несёт свой явный тон → наследование его
+    // не перекроет, флипаем адресным якорем (pctClassName гейджа).
+    &[data-active]:not([data-pressed]) .richNums,
+    &[data-active]:not([data-pressed]) .richCellPercent {
+        color: var(--sys-color-text-on-selected-plum);
+    }
+
+    &[data-active] .richTrack {
+        opacity: 0;
+    }
+
+    &[data-active] .infoBtn {
+        color: var(--sys-color-text-on-selected-plum);
+    }
+
+    // Press-инверсия: на тёмном фоне имя/инфо-иконка/числа перекрашиваются в светлый.
+    &[data-pressed] {
+
+        // Имя + тихий вид-подпись под ним + ⓘ на тёмной press-заливке → светлые
+        // (faint kindLabel иначе исчез бы на dark).
+        .name,
+        .kindLabel,
+        .infoBtn {
+            color: var(--sys-card-press-fg);
+        }
+
+        // Числа богатства сидят ПРЯМО на карточке, поэтому на press они обязаны
+        // инвертироваться вместе с именем — иначе тёмный текст тонет в near-black
+        // заливке. Процент флипаем адресным якорем (см. plum-флип выше).
+        .richNums,
+        .richCellPercent {
+            color: var(--sys-card-press-fg);
+        }
+
+        // Трек/заливка на тёмном ряду читались бы паразитным светлым пятном (а в
+        // ghost-row — светлой плашкой поверх press-фона). Гасим на время тапа.
+        .richTrack {
+            opacity: 0;
+        }
+
+        // Утопленная плашка гаснет на тёмной press-заливке — светлый 6% прямоугольник
+        // на dark читался бы паразитно.
+        .infoBtn::before {
+            opacity: 0;
+        }
+
+        .ownerStripe {
+            background: var(--sys-card-press-fg);
+        }
+    }
+
+    // Маркер «своё» — нейтральная вертикальная полоска у самого правого края карточки
+    // (свои продукты + блюда, в обоих фильтрах). Нейтральный ink-faint: это признак
+    // владения, а не данные (данные несёт гейдж богатства — .richTrack + .richNums).
+    // Absolute относительно позиционированного <li> каркаса, с лёгким вертикальным
+    // инсетом.
+    .ownerStripe {
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        right: 0;
+        width: 3px;
+        background: var(--sys-card-text-faint);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    // Обёртка ⓘ, гасящая bubbling pointer-событий до `<li>` (см. stopRowPress в
+    // FoodActionCard.tsx). display:contents — span не создаёт бокс, flex-раскладка
+    // ряда (.item grow + ⓘ-слот) не меняется, но узел остаётся в DOM-пути события.
+    .infoSlot {
+        display: contents;
+    }
+
+    // Каркас кнопки (размер/flex/border/transition/press-scale) несёт общий
+    // примитив IconButton (bare-shell, `size={56}`); здесь остаётся ТОЛЬКО карточный
+    // вид: круглая подложка-плитка ::before и press-инверсия выше.
+    .infoBtn {
+        // Цвет ТУСКЛОГО глифа приходит от emphasis="quiet" (класс .quiet у IconButton,
+        // --sys-color-icon-muted) — второстепенная кнопка, зеркалит back-кнопку шапки.
+        // Тут цвет НЕ задаём НАМЕРЕННО: .infoBtn (этот модуль) грузится ПОЗЖЕ
+        // .quiet (IconButton.module) и при равной специфичности перебил бы его по
+        // source-order. active/press-инверсии выше перебивают quiet штатно.
+        position: relative;
+        z-index: 1; // stacking-context: утопленная плашка (::before z-index:-1) садится
+        //           ПОД глиф, но НАД фоном ряда.
+
+        // КРУГЛАЯ подложка-плитка (inset 8px в 56px-слоте → ~40px кружок), тот же токен
+        // --sys-color-surface-icon-tile, что у кнопки Назад/фильтра — ⓘ читается как та же
+        // круглая кнопка. Inset держит слот 56px (фильтр верхнего бара центрирован над ним),
+        // сама плитка не заполняет всю колонку. Обводка-кольцо в глифе (InfoIcon) — тихая
+        // (opacity 0.5) поверх этой плитки, «i» остаётся полной.
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            z-index: -1;
+            border-radius: var(--sys-radius-indicator);
+            background: var(--sys-color-surface-icon-tile);
+            pointer-events: none;
+        }
+
+        &:active {
+            color: var(--sys-card-text-active);
+            opacity: 1;
+            transform: scale(0.88);
+        }
     }
 }

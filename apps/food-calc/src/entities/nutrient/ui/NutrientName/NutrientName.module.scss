@@ -1,0 +1,41 @@
+// Стек имени нутриента — перенесён из NutrientTotals (.nameCell/.name/.nameSub),
+// чтобы матрица дня делила тот же вид. Стек центрируется по вертикали ряда,
+// ellipsis работает на обеих строках (min-width:0 по цепочке). Левый инсет:
+// название не липнет к кромке карточки — воздух space-1.
+.root {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline-start: var(--space-1);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-inline-end: var(--space-2);
+  color: var(--sys-color-text-primary);
+}
+
+// Подпись полного названия — меньше и тише имени, чтобы не шуметь в ряду.
+.nameSub {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-inline-end: var(--space-2);
+  color: var(--sys-color-text-tertiary);
+  opacity: 0.72;
+}
+
+// Приглушённый ряд (нулевое значение) — основное имя сдаётся до tertiary
+// (подпись и так tertiary, не меняется).
+.muted .name {
+  color: var(--sys-color-text-tertiary);
+}
+
+// Без левого инсета (матрица: первая колонка вплотную к краю ячейки).
+.flush {
+  padding-inline-start: 0;
+}

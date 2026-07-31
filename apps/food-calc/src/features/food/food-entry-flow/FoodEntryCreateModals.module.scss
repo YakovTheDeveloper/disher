@@ -50,6 +50,33 @@
   display: flex;
 }
 
+// ─── Автоподбор состава (nutrientAssist, rescue-создание из предложки) ──────
+// Ряд-галочка «Подобрать автоматически» — та же пилюля LabeledCheckbox.
+.autoNutrients {
+  display: flex;
+}
+
+// Включено = тёмный indigo (холодный AI-акцент): скоупленный оверрайд card-тонов —
+// LabeledCheckbox читает checked-заливку квадратика (--sys-card-text-active) и
+// цвет лейбла (--sys-card-text-rest) из каскада. Иконка наследует currentColor.
+.autoNutrientsOn {
+  --sys-card-text-active: var(--sys-color-text-accent);
+  --sys-card-text-rest: var(--sys-color-text-accent);
+}
+
+.autoNutrientsLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+// Разделитель «или» между автоподбором и ручным редактором — по центру.
+.autoNutrientsOr {
+  margin: 0;
+  text-align: center;
+  color: var(--sys-color-text-tertiary);
+}
+
 // Контейнер «Состав» = ОДНО вдавленное поле: галочка (верхний ряд) и панель групп
 // живут в одном well'е стола surface-0 (тот же тон, что у пилюль-полей). Красится
 // плоским field-градиентом (как AutoGrowSearch/LabeledCheckbox — едет по gradient-
@@ -71,15 +98,10 @@
 // контейнер). Раньше это делал внешний тип-селектор `.compositionBlock > label` —
 // хрупкая связь с тем, что root примитива = <label>; переехало внутрь примитива.
 
-// Панель групп внутри контейнера — плоская (well несёт контейнер), только раскладка.
-// Горизонтальный инсет читает системный `--sys-field-inset-x` — тот же рельс, что
-// несёт .container галочки (padding-inline из того же токена), поэтому весь контент
-// блока сидит на ОДНОМ левом рельсе by construction, без прыжка 16↔12.
+// Панель групп внутри контейнера — сам список переехал в NutrientCompositionEditor
+// (его .groups несёт раскладку/инсет); здесь остаётся только якорь для rail-шва.
 .supplementBlock {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 0 var(--sys-field-inset-x) 6px;
 }
 
 // Шов «галочка ↔ список групп» — rail-divider во всю ширину (как между рядами).
@@ -94,133 +116,10 @@
   pointer-events: none;
 }
 
-.nutrientsToggle {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 14px 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), opacity 0.15s ease;
-
-  // Цветной отклик: тинт-подсветка на касание (quiet section-toggle archetype)
-  &:active {
-    background: var(--sys-color-bg-press);
-    color: var(--sys-field-caret, var(--color-ink));
-    transition-duration: var(--sys-duration-press-in);
-  }
-}
-
-// Заголовок группы = uppercase-sans (канон «нутриентные подписи — uppercase-sans,
-// serif туда НЕ заводить»). Кликабельность несёт вращающийся шеврон (Accordion),
-// не типографика.
-.nutrientsToggleTitle {
-  text-transform: uppercase;
-  color: var(--sys-color-text-secondary);
-}
-
-.nutrientsToggleHint {
-  color: var(--sys-color-text-tertiary);
-}
-
-// Группа-ряд. Между рядами — rail-divider «на всю длину» (правило Divider в
-// плотном варианте); у последней снят. Список групп = прямые дети .supplementBlock
-// (тот уже flex-column) — отдельная обёртка .nutrientGroupsList снята как scaffolding.
-.nutrientGroupItem {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  --group-hairline: var(--sys-card-hairline);
-
-  &:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    @include rail-divider(var(--group-hairline));
-    pointer-events: none;
-    z-index: 1;
-  }
-}
-
-// Внутренний rail между тоглом и телом раскрытой группы — та же линия-рельс,
-// отделяет заголовок группы от её нутриент-полей.
-.nutrientGroupOpen .nutrientsToggle {
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    @include rail-divider(var(--group-hairline));
-    pointer-events: none;
-  }
-}
-
-.nutrientsGrid {
-  // Одна колонка: карточка NutrientCardEditor (product-edit variant)
-  // проектировалась под full-width ряд на ProductPage. На узком экране
-  // модалки 2-колоночная сетка обрезала label/значение. Ряды разделены
-  // rail-divider'ом (см. .inlineCard), поэтому gap нулевой — линия сама
-  // отбивает ряды.
-  display: flex;
-  flex-direction: column;
-  padding: 6px 0 10px;
-}
-
-// Override стилей NutrientCardEditor при использовании внутри warm-stripe
-// группы. Передаётся как className prop. Карточка сидит на общей подложке
-// группы — собственный bg/shadow/radius лишние. Также убираем uppercase у
-// label'а («Белки», «Сахар» и т.п.) — внутри открытой группы заголовок
-// «БЖУ» уже uppercase, повтор читался бы как scaffolding.
-// NutrientCardEditor `.card` теперь сам объявляет field-depth(--sys-color-surface-1)
-// (для standalone product-edit). В инлайне это перебило бы НАМЕРЕННО более глубокий
-// well нутриент-инпутов (юзер-решение «инпуты глубже»: field-depth(--panel-well) на
-// .compositionBlock = на шаг ниже панели). Восстанавливаем его на инлайн-карте:
-// селектор `.compositionBlock .inlineCard` (0,2,0) детерминированно бьёт `.card`
-// (0,1,0), не полагаясь на порядок загрузки CSS-модулей.
-.compositionBlock .inlineCard {
-  @include field-depth(--panel-well);
-}
-
-.inlineCard {
-  background: transparent !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  padding: 8px 0 !important;
-
-  // Ряды нутриентов отбиты rail-divider'ом (как SearchFood-карточки); у
-  // последнего в группе снят. Карточка = position:relative (NutrientCardEditor).
-  &:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 1px;
-    @include rail-divider(var(--group-hairline, var(--sys-card-hairline)));
-    pointer-events: none;
-  }
-
-  // span внутри product-edit карточки = .name (см. NutrientCardEditor.tsx).
-  // Hashed CSS module class не таргетируется, используем тип-селектор.
-  // Голос лейбла нутриента инкапсулирован в <Text role="caption"> внутри
-  // NutrientCardEditor — размер/tracking сюда НЕ выносим. Здесь оставляем
-  // только не-типографические оверрайды (transform/color) под warm-stripe.
-  >span {
-    text-transform: none !important;
-    color: var(--sys-color-text-system) !important;
-  }
-}
+// Стили списка групп/карточек нутриентов переехали в
+// nutrient-composition-editor/NutrientCompositionEditor.module.scss (вынос блока
+// состава для переиспользования в EditNutrientsModal). Глубокий well инпутов
+// (--panel-well) новый модуль читает через наследуемую переменную с .compositionBlock.
 
 .detailsOptIn {
   display: inline-flex;

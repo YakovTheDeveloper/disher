@@ -1,0 +1,57 @@
+// ─── Общая рельса списка (--rail-*), хост = ModalShell.wrapper ─────────────────
+// Тот же контракт, что SearchFood.module.scss `.railHost`: ряды FoodListRow и
+// заголовок ModalHeader встают на одну вертикаль. Значения зеркалят раскладку
+// ряда каркаса (gutter 0 + thumb 36 + gap 14 → текст-рельса 50 от края карточки).
+.railHost {
+    // Ряды прозрачные — лежат прямо на столе ModalShell (тот же приём, что
+    // SearchFood 2026-07-10): app-wide --sys-card-bg = white для standalone-рядов,
+    // здесь он давал бы белые плашки-карточки поверх тёплого стола.
+    --sys-card-bg: transparent;
+
+    --rail-gutter: 0;
+    --rail-thumb: 36px;
+    --rail-gap: 14px;
+    --rail-text: calc(var(--rail-gutter) + var(--rail-thumb) + var(--rail-gap));
+    --rail-icon: 18px;
+    --rail-icon-lg: calc(var(--rail-icon) * 1.5);
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.subtitle {
+    color: var(--sys-color-text-secondary);
+}
+
+// Баннер «норма не задана»: тихий текст + CTA. Список под ним считается по
+// дефолтным нормам (осознанно — см. SuggestFood.tsx).
+.normCta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.normCtaText {
+    color: var(--sys-color-text-secondary);
+}
+
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.empty {
+    color: var(--sys-color-text-secondary);
+    text-align: center;
+    padding: 24px 0;
+}
+
+.emptyHint {
+    color: var(--sys-color-text-faint);
+    margin-top: 8px;
+}

@@ -11,8 +11,8 @@ import {
   deleteProducts,
 } from '@/entities/product';
 import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientEditView } from '@/entities/nutrient/ui/NutrientEditView';
-import { FoodNutritionPanel } from '@/features/dailyNorms/FoodNutritionPanel';
+import { NutrientTotals } from '@/entities/nutrient/ui/NutrientTotals';
+import { NormLegendButton } from '@/features/dailyNorms/NormLegendButton';
 import {
   ChangeNameModal,
   CHANGE_NAME_INPUT_ID,
@@ -20,15 +20,17 @@ import {
   CHANGE_DESCRIPTION_INPUT_ID,
 } from '@/features/shared/change-name';
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer';
+import { EntityEditDrawer } from '@/features/shared/entity-edit-drawer';
 import { ProductHubDrawer } from '@/features/product-analysis';
 // Прямой импорт файлов product-drawer (не barrel): переиспользуем AI-подбор
-// состава + confirm-дровер, не втягивая сам ProductDrawer.
+// состава + confirm-дровер + модалку ручного ввода, не втягивая сам ProductDrawer.
 import { SuggestNutrientsConfirmDrawer } from '@/features/food/product-drawer/SuggestNutrientsConfirmDrawer';
 import { suggestProductNutrients } from '@/features/food/product-drawer/suggestProductNutrients';
+import { EditNutrientsModal } from '@/features/food/product-drawer/EditNutrientsModal';
 import { EntityPageShell } from '@/widgets/EntityPageShell';
 import { SuggestActionButton } from '@/shared/ui/SuggestActionButton';
 import { EmptyState } from '@/shared/ui/EmptyState';
-import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { drawerStore } from '@/shared/ui/drawer-store';
@@ -71,9 +73,6 @@ const ProductPageInner = ({ id }: { id: string }) => {
 
   const [renameOpen, setRenameOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
-  // Пустой состав своего продукта показывает empty-state; «Ввести вручную» /
-  // «Редактировать нутриенты» раскрывают редактор даже на нулях.
-  const [manualEntry, setManualEntry] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
 
   // X-Request-Id для оплаты подбора: чеканится один раз, ПЕРЕИСПОЛЬЗУЕТСЯ на
@@ -135,16 +134,31 @@ const ProductPageInner = ({ id }: { id: string }) => {
   const massWarningGrams =
     isUserCreated && food.servingBasis === '100g' && massExceeds100 ? totalGramMass : null;
 
-  // Правка одного нутриента (blur) — whole-array replace как в ProductDrawer;
-  // 0 удаляет ключ, чтобы состав не разбухал нулями.
-  const handleNutrientValueChange = (nutrientId: string, value: number) => {
-    const current: Record<string, number> = {};
-    for (const n of nutrientsRaw) current[n.nutrientId] = n.quantity;
-    current[nutrientId] = value;
-    if (value === 0) delete current[nutrientId];
-    void safeMutate(
-      () => setProductNutrients(food.id, JSON.stringify(current)),
-      'Не удалось сохранить нутриент'
+  // Ручной ввод состава — fullscreen-модалка через modalStore (2026-07-29:
+  // инлайн-редактор уехал со страницы). AI-переподбор живёт внутри неё же;
+  // draft+confirm, massWarning и спиннер подбора модалка считает сама.
+  const openEditNutrients = () => {
+    void modalStore.show(EditNutrientsModal, {
+      productId: food.id,
+      onResuggest: () => runSuggest(nutrientValueMap.size > 0),
+    });
+  };
+
+  // Карандаш в хедере → нижний дровер действий (замена DropdownMenu-поповера,
+  // 2026-07-29). trapFocus:false — ряды названия/описания делегируют фокус
+  // инпутам chrome-модалок ВНЕ портала дровера (iOS focus-канон).
+  const openEditDrawer = () => {
+    void drawerStore.show(
+      EntityEditDrawer,
+      {
+        title: food.name,
+        nameInputId: CHANGE_NAME_INPUT_ID,
+        descriptionInputId: CHANGE_DESCRIPTION_INPUT_ID,
+        onEditNutrients: openEditNutrients,
+        onDelete: () => void handleDeleteProduct(),
+        deleteLabel: 'Удалить продукт',
+      },
+      { trapFocus: false }
     );
   };
 
@@ -224,7 +238,6 @@ const ProductPageInner = ({ id }: { id: string }) => {
     void drawerStore.show(ItemActionsDrawer, {
       title: label || 'Порция',
       onDelete: () => deletePortion(label),
-      actions: [],
     });
   };
 
@@ -250,39 +263,16 @@ const ProductPageInner = ({ id }: { id: string }) => {
     </Heading>
   );
 
-  // Карандаш-меню правки — только свой продукт (каталог read-only). Имя/описание —
-  // `<label htmlFor>` (focus-делегация на input chrome-модалки, iOS-канон);
-  // нутриенты/удаление — обычные пункты.
+  // Карандаш правки — только свой продукт (каталог read-only). Открывает нижний
+  // дровер действий (EntityEditDrawer): название/описание — label-делегация на
+  // chrome-модалки, нутриенты — modalStore, удаление — confirm.
   const editMenu = isUserCreated ? (
-    <DropdownMenu
-      triggerClassName={styles.editIconBtn}
-      triggerAriaLabel="Редактировать продукт"
-      trigger={<EditIcon width={20} height={20} />}
-    >
-      <DropdownMenuItem closeOnClick={false} render={<label htmlFor={CHANGE_NAME_INPUT_ID} />}>
-        <Text as="span" role="body">
-          Изменить название
-        </Text>
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        closeOnClick={false}
-        render={<label htmlFor={CHANGE_DESCRIPTION_INPUT_ID} />}
-      >
-        <Text as="span" role="body">
-          Изменить описание
-        </Text>
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setManualEntry(true)}>
-        <Text as="span" role="body">
-          Редактировать нутриенты
-        </Text>
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => void handleDeleteProduct()}>
-        <Text as="span" role="body">
-          Удалить
-        </Text>
-      </DropdownMenuItem>
-    </DropdownMenu>
+    <IconButton
+      className={styles.editIconBtn}
+      aria-label="Редактировать продукт"
+      onClick={openEditDrawer}
+      icon={<EditIcon width={20} height={20} />}
+    />
   ) : undefined;
 
   const descriptionBlock = food.description ? (
@@ -291,17 +281,27 @@ const ProductPageInner = ({ id }: { id: string }) => {
     </Text>
   ) : null;
 
-  // Тело первого слайда: свой продукт → редактируемый состав (empty-state на
-  // нулях), каталожный → read-only разбор (FoodNutritionPanel на базовом значении).
+  // Тело первого слайда: read-only витрина `NutrientTotals` (та же, что в
+  // дровере «Пищевая ценность» / на HomePage, 2026-07-29) для своего и
+  // каталожного продукта; правка состава — в EditNutrientsModal. Свой продукт
+  // с пустым составом — empty-state с AI-подбором и ручным вводом.
+  const basisBadge = (
+    <Text as="span" role="caption">
+      {isSupplement ? 'за порцию' : 'на 100 г'}
+    </Text>
+  );
+
   let firstSlideBody;
   if (!isUserCreated) {
     firstSlideBody = (
       <div className={styles.body}>
-        <FoodNutritionPanel type="Продукт" getValue={getNutrientValue} insetContent />
+        <NutrientTotals getValue={getNutrientValue} normControl={<NormLegendButton />}>
+          {basisBadge}
+        </NutrientTotals>
         {descriptionBlock}
       </div>
     );
-  } else if (nutrientValueMap.size === 0 && !manualEntry) {
+  } else if (nutrientValueMap.size === 0) {
     firstSlideBody = (
       <div className={styles.body}>
         {descriptionBlock}
@@ -315,11 +315,7 @@ const ProductPageInner = ({ id }: { id: string }) => {
                 onClick={() => void runSuggest(false)}
                 disabled={suggesting || !food.name.trim()}
               />
-              <button
-                type="button"
-                className={styles.manualLink}
-                onClick={() => setManualEntry(true)}
-              >
+              <button type="button" className={styles.manualLink} onClick={openEditNutrients}>
                 <Text as="span" role="caption">
                   Ввести вручную
                 </Text>
@@ -334,14 +330,8 @@ const ProductPageInner = ({ id }: { id: string }) => {
       <div className={styles.body}>
         <div className={styles.suggestRow}>
           <SuggestActionButton
-            label={
-              suggesting
-                ? 'Подбираем…'
-                : nutrientValueMap.size === 0
-                  ? 'Предложить состав'
-                  : 'Переподобрать состав'
-            }
-            onClick={() => void runSuggest(nutrientValueMap.size > 0)}
+            label={suggesting ? 'Подбираем…' : 'Переподобрать состав'}
+            onClick={() => void runSuggest(true)}
             disabled={suggesting || !food.name.trim()}
           />
         </div>
@@ -352,7 +342,9 @@ const ProductPageInner = ({ id }: { id: string }) => {
             </Text>
           </p>
         )}
-        <NutrientEditView getValue={getNutrientValue} onValueChange={handleNutrientValueChange} />
+        <NutrientTotals getValue={getNutrientValue} normControl={<NormLegendButton />}>
+          {basisBadge}
+        </NutrientTotals>
         {descriptionBlock}
       </div>
     );

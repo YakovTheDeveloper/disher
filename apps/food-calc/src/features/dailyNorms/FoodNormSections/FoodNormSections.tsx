@@ -21,8 +21,7 @@ type Props = {
  * Общий заголовочный блок Nutrients-разбора продукта и блюда: секция меры
  * нутриентов (`ActionList.Section` — тот же примитив-секции, что держит корень
  * «Аккаунта»). Кнопка нормы переехала в хедер дроверов (NormFlagButton, 2026-07-22),
- * монеты-`DailyNormButton` здесь больше нет. Контрол основы количества живёт в
- * шапке панели (FoodNutritionPanel → ряд типа еды).
+ * монеты-`DailyNormButton` здесь больше нет.
  */
 export function FoodNormSections({ nutrients, insetContent = false }: Props) {
   const inset = (node: ReactNode) =>

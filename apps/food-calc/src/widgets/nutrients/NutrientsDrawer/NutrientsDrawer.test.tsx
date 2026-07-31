@@ -42,4 +42,25 @@ describe('NutrientsDrawer', () => {
     expect(captured.subtitle).toBe('За блюдо');
     expect(captured.hasNutrients).toBe(false);
   });
+
+  it('вход «Что доесть?» (footer) — только у дневной витрины (date передан)', () => {
+    render(<NutrientsDrawer onClose={noop} totals={{ '7': 100 }} date="2026-07-31" />);
+    expect(captured.footer).toBeDefined();
+
+    render(<NutrientsDrawer onClose={noop} totals={{ '7': 100 }} />);
+    expect(captured.footer).toBeUndefined();
+  });
+
+  it('клик по кнопке footer → modalStore.show(SuggestFood, { date })', async () => {
+    const { modalStore } = await import('@/shared/ui/modal-store');
+    const { SuggestFood } = await import('@/features/food/food-suggest');
+    const spy = vi.spyOn(modalStore, 'show').mockResolvedValue(undefined as never);
+
+    render(<NutrientsDrawer onClose={noop} totals={{ '7': 100 }} date="2026-07-31" />);
+    const { getByRole } = render(<>{captured.footer as ReactNode}</>);
+    getByRole('button').click();
+
+    expect(spy).toHaveBeenCalledWith(SuggestFood, { date: '2026-07-31' });
+    spy.mockRestore();
+  });
 });

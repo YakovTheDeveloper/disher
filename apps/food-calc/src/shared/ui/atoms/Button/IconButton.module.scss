@@ -95,6 +95,13 @@
     color: var(--sys-color-icon-muted);
 }
 
+// Рамка БЕЗ подложки (фон остаётся прозрачным). Цвет рамки — тихий 3%-ink
+// (--sys-color-surface-icon-tile). Каноничная связка — tone="ghost" bordered
+// (chrome-крест/назад в хедерах дроверов: холодный глиф + тихий контур).
+.bordered {
+    border: 1px solid var(--sys-color-surface-icon-tile);
+}
+
 // Угловая accent-точка (opt-in `dot`): сигнальный маркер «требует внимания».
 // Absolute → не влияет на центрированный глиф. Круг через radius-indicator
 // (radius-full). Цвет — accent-заливка действия.

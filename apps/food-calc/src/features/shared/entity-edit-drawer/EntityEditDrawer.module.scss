@@ -1,0 +1,8 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Ряды действий (SettingRow) — стоят вплотную, их делит тающая бровка внутри
+// самого ряда (`.row::after`), а не зазор (1:1 с ItemActionsDrawer).
+.rows {
+  display: flex;
+  flex-direction: column;
+}

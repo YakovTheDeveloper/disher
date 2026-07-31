@@ -21,7 +21,9 @@ export function StoragePressureBanner() {
       <button
         type="button"
         className={styles.action}
-        onClick={() => void drawerStore.show(ProfileDrawer, {}, { side: 'left' })}
+        onClick={() =>
+          void drawerStore.show(ProfileDrawer, {}, { side: 'left', width: 'min(85vw, 360px)' })
+        }
       >
         <Text as="span" role="label">Открыть данные</Text>
       </button>

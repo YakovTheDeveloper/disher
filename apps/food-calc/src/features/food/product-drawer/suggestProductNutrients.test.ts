@@ -68,4 +68,15 @@ describe('suggestProductNutrients', () => {
       }),
     );
   });
+
+  it('forwards optional details in the body; omits the key when absent', async () => {
+    authedFetchMock.mockResolvedValue(okResponse({ values: {} }));
+    await suggestProductNutrients('киноа', 'req-d', { details: 'от бабушки' });
+    let body = JSON.parse((authedFetchMock.mock.calls[0] as [string, RequestInit])[1].body as string);
+    expect(body.details).toBe('от бабушки');
+
+    await suggestProductNutrients('киноа', 'req-d2');
+    body = JSON.parse((authedFetchMock.mock.calls[1] as [string, RequestInit])[1].body as string);
+    expect('details' in body).toBe(false);
+  });
 });

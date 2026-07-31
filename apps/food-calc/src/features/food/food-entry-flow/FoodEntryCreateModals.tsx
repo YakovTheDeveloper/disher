@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ModalByLabel } from '@/features/shared/components/ModalByLabel';
 import { ModalByLabelDetails } from '@/features/shared/components/ModalByLabelDetails';
 import { SearchFood, useSearchHeaderContent, searchFoodStyles } from '@/features/food/food-search';
@@ -10,10 +11,9 @@ import { ChoiceGroup, ChoiceItem } from '@/shared/ui/atoms/Choice';
 import { FormLayout } from '@/shared/ui/form/FormLayout';
 import { HintButton } from '@/shared/ui/HintButton';
 import LabeledCheckbox from '@/shared/ui/LabeledCheckbox/LabeledCheckbox';
-import { nutrientGroups } from '@/entities/nutrient/ui/NutrientGroup/constants';
-import { NutrientCardEditor } from '@/entities/nutrient/ui/NutrientCard';
+import { AiSparkleIcon } from '@/shared/ui/atoms/icons/AiSparkleIcon';
 import { DetailsStep, useHasDetailsHints } from '@/features/food/details-chips';
-import { Accordion } from '@/shared/ui/Accordion';
+import { NutrientCompositionEditor } from '@/features/food/nutrient-composition-editor';
 import { Text } from '@/shared/ui/atoms/Typography';
 import {
   type FoodEntryFlow,
@@ -38,9 +38,17 @@ type Props = {
    * бы против панели и уезжал вместе с её скроллом.
    */
   position?: 'absolute' | 'fixed';
+  /**
+   * Автоподбор состава на шаге «Создать еду» (rescue-создание из unresolved-ряда
+   * предложки): чекбокс «Подобрать автоматически» (дефолт ON) взаимоисключает
+   * ручной редактор — ON прячет блок «Указать состав», сабмит пишет LLM-профиль
+   * ряда или тихо дёргает suggest-ручку. Не передавать вне предложки.
+   */
+  nutrientAssist?: boolean;
 };
 
-const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
+const FoodEntryCreateModals = ({ flow, position = 'absolute', nutrientAssist = false }: Props) => {
+  const { t } = useTranslation();
   const {
     kind,
     host,
@@ -132,22 +140,30 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
   // Состав создаваемого продукта: nutrient-id → количество на базис. Базис задаёт
   // галочка «Таблетка»: снята → на 100 г (еда), стоит → на 1 шт (приём). Блок
   // общий для любого продукта — состав больше НЕ привязан к таблетке (2026-07-11).
-  // Аккордеоны групп single-open.
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  // Сам список групп — переиспользуемый NutrientCompositionEditor (тот же едет в
+  // EditNutrientsModal).
   const [draftNutrients, setDraftNutrients] = useState<Record<string, number>>({});
   // Опт-ин раскрытия блока состава: секция нутриентов не громоздится всегда, а
   // появляется по галочке «Указать состав» (прогрессивное раскрытие).
   const [wantComposition, setWantComposition] = useState(false);
+  // Автоподбор состава (nutrientAssist): дефолт ON, взаимоисключает ручной редактор.
+  const [autoNutrients, setAutoNutrients] = useState(true);
 
-  const toggleGroup = (name: string) => {
-    setOpenGroup((prev) => (prev === name ? null : name));
+  // БАД несовместим с автоподбором: LLM-профиль per 100 г, а базис БАД — 1 шт.
+  // Включение «Таблетка» прячет чекбокс автоподбора и возвращает его в дефолт ON,
+  // чтобы при снятии галочки состояние было предсказуемым.
+  const handleToggleSupplement = (next: boolean) => {
+    setIsSupplement(next);
+    if (next) setAutoNutrients(true);
   };
+  // Автоподбор реально активен только для еды per 100 г — при БАД выключен и на
+  // сабмите, и в раскладке (ручной редактор в режиме БАД работает как раньше).
+  const assistActive = nutrientAssist && autoNutrients && !isSupplement;
 
   const handleToggleComposition = (next: boolean) => {
     setWantComposition(next);
     if (!next) {
       setDraftNutrients({});
-      setOpenGroup(null);
     }
   };
   const prevStepRef = useRef(step);
@@ -156,9 +172,9 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
       setCreateName(draft.foodName ?? '');
       setCreateDescription('');
       setIsSupplement(false);
-      setOpenGroup(null);
       setDraftNutrients({});
       setWantComposition(false);
+      setAutoNutrients(true);
     }
     prevStepRef.current = step;
   }, [step, draft.foodName]);
@@ -179,8 +195,16 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
     handleConfirmCreate(createName, {
       isSupplement,
       // Состав пишется для любого продукта (базис задаёт isSupplement: 100 г /
-      // 1 шт), не только для БАД.
-      nutrients: Object.keys(draftNutrients).length > 0 ? draftNutrients : undefined,
+      // 1 шт), не только для БАД. При включённом автоподборе ручной ввод не
+      // передаём — редактор скрыт, приоритет у LLM-профиля / suggest-ручки. БАД
+      // автоподбор не поддерживает (базис 1 шт ≠ per 100 г) — чекбокс скрыт.
+      nutrients:
+        assistActive
+          ? undefined
+          : Object.keys(draftNutrients).length > 0
+            ? draftNutrients
+            : undefined,
+      autoNutrients: assistActive ? true : undefined,
       description: createDescription.trim() || undefined,
     });
   // БАД-блок — только в РАСПИСАНИИ при создании продукта. В блюде БАД запрещён:
@@ -206,7 +230,6 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
     setDraft((d) => ({ ...d, variant, productId: null, dishId: null }));
     setIsSupplement(false);
     setDraftNutrients({});
-    setOpenGroup(null);
     setWantComposition(false);
   };
 
@@ -339,12 +362,41 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                   <div className={styles.createSupplementRow}>
                     <LabeledCheckbox
                       checked={isSupplement}
-                      onChange={setIsSupplement}
+                      onChange={handleToggleSupplement}
                       label="Таблетка / лекарство / БАД"
                     />
                   </div>
                 )}
-                {canComposition && (
+                {nutrientAssist && canComposition && !isSupplement && (
+                  // Автоподбор состава: ON (дефолт) — чекбокс один, ручной редактор
+                  // скрыт; OFF — caption «или» + блок «Указать состав» как обычно.
+                  // БАД (базис 1 шт) несовместим с per-100 г профилем — чекбокс не
+                  // рендерится, пока стоит галочка «Таблетка».
+                  // Включённое состояние красится тёмным indigo (оверрайд card-тонов
+                  // скоуплен на обёртке — LabeledCheckbox читает их из каскада).
+                  <>
+                    <div
+                      className={`${styles.autoNutrients} ${autoNutrients ? styles.autoNutrientsOn : ''}`}
+                    >
+                      <LabeledCheckbox
+                        checked={autoNutrients}
+                        onChange={setAutoNutrients}
+                        label={
+                          <span className={styles.autoNutrientsLabel}>
+                            <AiSparkleIcon size={16} aria-hidden />
+                            {t('food.create.autoNutrients')}
+                          </span>
+                        }
+                      />
+                    </div>
+                    {!autoNutrients && (
+                      <Text as="p" role="caption" className={styles.autoNutrientsOr}>
+                        {t('food.create.or')}
+                      </Text>
+                    )}
+                  </>
+                )}
+                {canComposition && !assistActive && (
                   // Галочка + панель состава = ОДНО целое: единый well-контейнер,
                   // галочка = его верхний ряд (без своей пилюли), список групп течёт
                   // ниже через rail-шов, без зазора. Базис («на 100 г» / «1 шт») — в
@@ -361,60 +413,10 @@ const FoodEntryCreateModals = ({ flow, position = 'absolute' }: Props) => {
                     />
                     {wantComposition && (
                       <div className={styles.supplementBlock}>
-                        {nutrientGroups.map((group) => {
-                          const isOpen = openGroup === group.name;
-                          const filledCount = group.content.filter(
-                            (n) => (draftNutrients[n.id] ?? 0) > 0
-                          ).length;
-                          return (
-                            // Примитив Accordion. lazyMount — тело монтируется только
-                            // пока открыто: групп 4 (до 19 карточек каждая) и always-
-                            // mount всех сразу зря крутил бы ~54 NutrientCardEditor;
-                            // iOS-делегация тут не страдает (тоггл — button, label→
-                            // input самодостаточны внутри карточки), поэтому lazy
-                            // безопасен. Кликабельность несёт вращающийся шеврон.
-                            <Accordion
-                              key={group.name}
-                              open={isOpen}
-                              onToggle={() => toggleGroup(group.name)}
-                              lazyMount
-                              className={`${styles.nutrientGroupItem} ${isOpen ? styles.nutrientGroupOpen : ''}`}
-                              headerClassName={styles.nutrientsToggle}
-                              bodyClassName={styles.nutrientsGrid}
-                              title={
-                                <Text
-                                  as="span"
-                                  role="label"
-                                  className={styles.nutrientsToggleTitle}
-                                >
-                                  {group.displayName}
-                                </Text>
-                              }
-                              trailing={
-                                filledCount > 0 ? (
-                                  <Text
-                                    as="span"
-                                    role="caption"
-                                    className={styles.nutrientsToggleHint}
-                                  >
-                                    {filledCount} запис.
-                                  </Text>
-                                ) : null
-                              }
-                            >
-                              {group.content.map((nutrientData) => (
-                                <NutrientCardEditor
-                                  key={nutrientData.id}
-                                  content={nutrientData}
-                                  variant="product-edit"
-                                  className={styles.inlineCard}
-                                  editValue={draftNutrients[nutrientData.id] ?? 0}
-                                  onValueChange={handleNutrientChange}
-                                />
-                              ))}
-                            </Accordion>
-                          );
-                        })}
+                        <NutrientCompositionEditor
+                          values={draftNutrients}
+                          onChange={handleNutrientChange}
+                        />
                       </div>
                     )}
                   </div>

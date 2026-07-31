@@ -31,6 +31,10 @@ export interface UnresolvedItem {
   details: string;
   quantity: number;
   time: string;
+  // Head A (suggestions/dish-products) only: LLM-estimated profile per 100 g,
+  // keyed by nutrient english `name` (see allNutrientsList). Never present on
+  // resolved/ambiguous items — the catalog's values win there.
+  nutrients?: Record<string, number>;
 }
 
 export interface ParseResponse {

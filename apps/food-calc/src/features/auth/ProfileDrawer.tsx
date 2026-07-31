@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from './auth-store';
 import { authProvider } from '@/shared/lib/auth/authProvider';
 import toaster from '@/shared/lib/toaster/toaster';
 import { defaultUserMessage } from '@/shared/lib/errors/classify';
+import { safeMutate } from '@/shared/lib/safeMutate';
 import { useIsAdmin } from '@/features/admin/useIsAdmin';
 import { RouterLinks } from '@/shared/config/routes';
 import styles from './ProfileDrawer.module.scss';
@@ -11,6 +13,8 @@ import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { WallpaperPicker } from '@/features/wallpaper';
 import { CardPalettePicker } from '@/features/card-palette';
 import { dump } from '@/shared/lib/snapshot';
+import { useBlacklistedProducts, removeFromBlacklist } from '@/entities/product-blacklist';
+import { useProducts } from '@/entities/product';
 import { BalanceSection } from './BalanceSection';
 import { TelegramLinkRow } from './TelegramLinkRow';
 import { SettingRow } from '@/shared/ui/atoms/SettingRow';
@@ -28,6 +32,8 @@ import LogoutIcon from '@/shared/assets/icons/logout.svg?react';
 import FlagIcon from '@/shared/assets/icons/flag.svg?react';
 import SettingsIcon from '@/shared/assets/icons/settings.svg?react';
 import ChartBarsIcon from '@/shared/assets/icons/chart-bars.svg?react';
+import LightbulbIcon from '@/shared/assets/icons/lightbulb.svg?react';
+import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
 import { useColorModeStore } from '@/shared/lib/color-mode';
@@ -48,6 +54,7 @@ const downloadJson = (name: string, obj: unknown) => {
 // Closed via the DrawerLayout handle / swipe, or by `signOut` resetting the
 // overlay stores — so it never reads the injected `onClose`.
 export function ProfileDrawer() {
+  const { t } = useTranslation();
   const email = useAuthStore((s) => s.email);
   const signOut = useAuthStore((s) => s.signOut);
   const colorMode = useColorModeStore((s) => s.mode);
@@ -56,12 +63,29 @@ export function ProfileDrawer() {
   // Client gate for the «Админка» entry — UX only, the server guards /api/admin.
   // null (undecided) / false → row hidden; only a definite true shows it.
   const isAdmin = useIsAdmin();
-  // Один drawer, три экрана: корень (identity + компактные разделы) и под-экраны
-  // «Внешний вид» (высокие пикеры Обои + Цвет карточек) и «Нутриенты» (форма
-  // hero-секции + прогресс-трек карточек витрины нутриентов). Навигация —
+  // Blacklist предложки «Что доесть?» — под-экран 'blacklist'. Имена продуктов
+  // резолвятся здесь (feature-side): row хранит только product_id, а связка
+  // entities/product-blacklist → entities/product по FSD не ходит сама.
+  const blacklistedRows = useBlacklistedProducts();
+  // Дедуп по product_id: дубли одного продукта конвергируют с двух устройств
+  // (натуральный ключ, И-12) — показываем одну строку на продукт; разбан
+  // (removeFromBlacklist) снимает ВСЕ дубли разом.
+  const blacklisted = useMemo(
+    () => [...new Map(blacklistedRows.map((r) => [r.productId, r])).values()],
+    [blacklistedRows],
+  );
+  const allProducts = useProducts();
+  const productNameById = useMemo(
+    () => new Map(allProducts.map((p) => [p.id, p.name])),
+    [allProducts],
+  );
+  // Один drawer, четыре экрана: корень (identity + компактные разделы) и
+  // под-экраны «Внешний вид» (высокие пикеры Обои + Цвет карточек), «Нутриенты»
+  // (форма hero-секции + прогресс-трек карточек витрины нутриентов) и
+  // «Не предлагаемые продукты» (blacklist предложки). Навигация —
   // локальный стейт + DrawerLayout.onBack (крест → стрелка «Назад»). Свежий
   // mount при каждом drawerStore.show сбрасывает в 'root' — between-opens не храним.
-  const [screen, setScreen] = useState<'root' | 'appearance' | 'nutrients'>('root');
+  const [screen, setScreen] = useState<'root' | 'appearance' | 'nutrients' | 'blacklist'>('root');
   // «Сообщить о проблеме» — упрощённый прод-репорт (ModalByLabel, одно поле).
   // isExpanded гоняется отсюда по клику ряда; модалка накрывает дровер сверху.
   const [reportOpen, setReportOpen] = useState(false);
@@ -120,7 +144,9 @@ export function ProfileDrawer() {
             ? (email ?? undefined)
             : screen === 'appearance'
               ? 'Визуальное оформление'
-              : 'Нутриенты',
+              : screen === 'nutrients'
+                ? 'Нутриенты'
+                : t('suggest.blacklist.title', 'Не предлагаемые продукты'),
       }}
       onBack={screen === 'root' ? undefined : () => setScreen('root')}
       className={styles.surface}
@@ -146,7 +172,46 @@ export function ProfileDrawer() {
         />
       }
     >
-      {screen === 'nutrients' ? (
+      {screen === 'blacklist' ? (
+        // Под-экран «Не предлагаемые продукты» — управление blacklist'ом
+        // предложки «Что доесть?» (шаг 5 плана tds/task_spec/ЧтоЕщеСъесть.md).
+        // Крестик в trailing снимает бан по product_id (все дубли разом,
+        // tombstone'ы уезжают в снапшот — разбан синкается на другие
+        // устройства). Имя — из entities/product (каталог + юзерские);
+        // удалённый продукт — заглушка.
+        <ActionList className={styles.container}>
+          <ActionList.Section label={t('suggest.blacklist.title', 'Не предлагаемые продукты')}>
+            {blacklisted.length === 0 ? (
+              <Text role="caption">{t('suggest.blacklist.empty', 'Список пуст')}</Text>
+            ) : (
+              <div className={styles.rows}>
+                {blacklisted.map((row) => (
+                  <SettingRow
+                    key={row.id}
+                    label={
+                      productNameById.get(row.productId) ??
+                      t('suggest.blacklist.unknownProduct', 'Продукт удалён')
+                    }
+                    trailing={
+                      <IconButton
+                        tone="soft"
+                        icon={<CrossIcon width={18} height={18} />}
+                        aria-label={t('suggest.blacklist.remove', 'Убрать из списка')}
+                        onClick={() =>
+                          void safeMutate(
+                            () => removeFromBlacklist(row.productId),
+                            t('suggest.blacklist.removeFailed', 'Не удалось убрать продукт'),
+                          )
+                        }
+                      />
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </ActionList.Section>
+        </ActionList>
+      ) : screen === 'nutrients' ? (
         // Под-экран «Нутриенты» — форма hero-секции витрины + прогресс-трек
         // карточек. Контент — переиспользуемый NutrientAppearanceSettings (тот
         // же живёт в аккордеоне «Оформление» в хвосте витрины NutrientTotals).
@@ -230,6 +295,20 @@ export function ProfileDrawer() {
             {/* Штамп последней синхронизации + кнопка «обновить» — служебная
                 строка секции «Данные», под экспортом. */}
             <SyncStatusBar />
+          </ActionList.Section>
+
+          {/* Вход в управление blacklist'ом предложки «Что доесть?» — список
+              продуктов, скрытых пунктом «Не предлагать» (long-press в
+              предложке). Под-экран этого же дровера. */}
+          <ActionList.Section label={t('suggest.blacklist.section', 'Предложки')}>
+            <div className={styles.rows}>
+              <SettingRow
+                icon={<LightbulbIcon width={18} height={18} />}
+                label={t('suggest.blacklist.title', 'Не предлагаемые продукты')}
+                trailing={<ChevronGlyph />}
+                onClick={() => setScreen('blacklist')}
+              />
+            </div>
           </ActionList.Section>
 
           {/* Админка — единственный вход в /admin (топап баланса). Виден ТОЛЬКО

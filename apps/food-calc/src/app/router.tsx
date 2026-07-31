@@ -5,6 +5,7 @@ import HomePage from '@/pages/home-page/HomePage.tsx';
 import { format } from 'date-fns';
 import RouteError from '@/shared/ui/error/RouteError.tsx';
 import { RouterLinks } from '@/shared/config/routes';
+import { registerRoutePreload } from '@/shared/lib/routing/preloadRoute';
 
 // Route-level code-splitting: secondary pages ship as their own chunk, pulled on
 // navigation instead of riding the initial bundle. The <Suspense> boundary that
@@ -14,11 +15,19 @@ import { RouterLinks } from '@/shared/config/routes';
 // LANDING screen (every session redirects to /schedule/:today), so making it lazy
 // only adds a second network round-trip + spinner before the first paint people
 // actually wait on.
-const DishBuilderPage = lazy(() => import('@/pages/dish/DishBuilderPage.tsx'));
-const ProductPage = lazy(() => import('@/pages/product/ProductPage.tsx'));
+const importDishBuilderPage = () => import('@/pages/dish/DishBuilderPage.tsx');
+const importProductPage = () => import('@/pages/product/ProductPage.tsx');
+const DishBuilderPage = lazy(importDishBuilderPage);
+const ProductPage = lazy(importProductPage);
 const AnalysesPage = lazy(() => import('@/pages/analyses/AnalysesPage.tsx'));
 const AdminPage = lazy(() => import('@/pages/admin/AdminPage.tsx'));
 const VerifyEmailPage = lazy(() => import('@/pages/auth/VerifyEmailPage.tsx'));
+
+// Warm-up hooks for view-transition navigations (see preloadRoute.ts): the
+// quick-view drawers preload these chunks on open so the VT commit can't
+// suspend on a cold lazy import.
+registerRoutePreload(RouterLinks.Dish, importDishBuilderPage);
+registerRoutePreload(RouterLinks.Product, importProductPage);
 
 // Standalone dev-«предложки» (/suggestion_<id>) — top-level sibling <App>, вне
 // AuthGate. Автодискавери эфемерных папок s_*/ через glob; на чистом чекауте

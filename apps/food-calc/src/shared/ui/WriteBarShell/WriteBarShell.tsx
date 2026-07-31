@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type CSSProperties, type ReactNode } 
 import clsx from 'clsx';
 import { AutoGrowSearch } from '@/shared/ui/atoms/input/AutoGrowSearch';
 import Spinner from '@/shared/ui/atoms/Spinner/Spinner';
-import { InfoButton } from '@/shared/ui/atoms/Button';
+import { IconButton, InfoButton } from '@/shared/ui/atoms/Button';
+import CrossIcon from '@/shared/assets/icons/cross.svg?react';
 import { HintButton } from '@/shared/ui/HintButton';
 import { Heading } from '@/shared/ui/atoms/Typography';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
@@ -373,10 +374,29 @@ export const WriteBarShell = ({
           // снимаем well-заливку/тень/хайрлайн: утопленный слот под заголовком
           // читался бы как текст в поиске. See `.writeBarRow[data-field-override]`.
           data-field-override={fieldOverride ? '' : undefined}
+          // ✕ очистки слева от текста — только на фокусе и при непустом поле
+          // (просьба 2026-07-29); атрибут снимает левый инсет поля, чтобы текст
+          // вставал с гармоничным зазором после монеты, а не двойным паддингом.
+          data-has-clear={expanded && hasText ? '' : undefined}
         >
           {/* На фокусе боковые слоты НЕ рендерятся (2026-06-27) — поле забирает всю
               ширину пилюли. Send-монета остаётся (она не боковой слот). */}
           {!expanded && leftSlot}
+          {/* Крестик очистки внутри пилюли СЛЕВА от текста (зеркало send-монеты
+              справа): tone="soft" = круглая ink-плитка + холодный глиф, один облик
+              с кнопками SearchFood. preventDefault на pointerdown обёртки держит
+              фокус на поле — без него тап блюрил бы инпут до onClick. */}
+          {expanded && hasText ? (
+            <div className={s.clearCoin} onPointerDown={(e) => e.preventDefault()}>
+              <IconButton
+                tone="soft"
+                size={32}
+                aria-label="Очистить"
+                icon={<CrossIcon width={12} height={12} />}
+                onClick={() => onChange('')}
+              />
+            </div>
+          ) : null}
           {fieldOverride ?? (
             <div
               className={clsx(s.writeField, s.writeBarInput)}

@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { isMatcherReady } from "../food-matcher.js";
 import { logLLMOutput } from "../llm-output-log.js";
 import { getLLMModel } from "../build-info.js";
-import { resolveNames, type LLMItem, LLM_ITEMS_JSON_SCHEMA } from "../resolve-names.js";
+import { resolveNames, type LLMItem } from "../resolve-names.js";
 import { chargeOr402, resolveRequestId } from "../../billing/http.js";
 import { refund } from "../../billing/wallet.js";
 import { aiProviderError } from "../errors.js";
@@ -63,7 +63,10 @@ const CACHE_MAX = 200;
 // contract can't leak through (mirrors free-text-food's PROMPT_VERSION).
 // v2 (2026-06-05): added "include the dish base, not just sauce/dressing" rule
 // (цезарь was returning only the dressing).
-const PROMPT_VERSION = 2;
+// v3 (2026-07-31): per-item `nutrients` estimate — cached v2 items lack it.
+// v4 (2026-07-31): nutrients expanded from the 8-nutrient БЖУ group to the
+// full profile (mirror of the frontend's allNutrientsList) — schema change.
+const PROMPT_VERSION = 4;
 
 const llmCache = new Map<string, { items: LLMItem[]; expiresAt: number }>();
 
@@ -103,10 +106,13 @@ const SYSTEM_PROMPT = `Ты — кулинарный помощник. Поль�
       "name": "каноничное название продукта на русском",
       "details": "способ приготовления / особенность через запятую, или пустая строка",
       "quantity": число_в_граммах,
-      "time": null
+      "time": null,
+      "nutrients": { "protein": число, "fats": число, "carbohydrates": число }
     }
   ]
 }
+
+(в примере выше nutrients сокращён — верни ВСЕ нутриенты из схемы, их ~54)
 
 Правила:
 - Перечисли ВСЕ ингредиенты, включая соль, специи, масло, воду — пользователь сам уберёт лишнее.
@@ -117,6 +123,11 @@ const SYSTEM_PROMPT = `Ты — кулинарный помощник. Поль�
 - Предлагай 5-15 продуктов в зависимости от блюда.
 - quantity: граммы на одну типичную порцию блюда (например свёкла в борще ≈ 80г).
 - time: всегда null — для блюда время приёма не нужно.
+- nutrients: ПОЛНЫЙ профиль на 100 г съедобной части продукта — верни ВСЕ
+  нутриенты, перечисленные в схеме ответа (БЖУ, минералы, витамины,
+  аминокислоты). Если нутриента в продукте практически нет или значение
+  неизвестно — 0. Единицы по ключу схемы: g — граммы, mg — миллиграммы,
+  μg — микрограммы, energy — ккал. Это справочная оценка, не лабораторный анализ.
 - details: способ приготовления или особенность продукта ИМЕННО в этом блюде,
   через запятую, lowercase, или пустая строка. Не угадывай — только очевидное.
     "борщ" → name: "свекла", details: "вареная"
@@ -137,6 +148,107 @@ interface LLMCallResult {
   completionTokens?: number;
   totalCost?: number;
 }
+
+// Per-item nutrient estimate: the FULL profile the frontend sends to head C —
+// the user decided unresolved items should carry a complete profile, so head A
+// duplicates the frontend's catalog statically (head C builds its schema from
+// the request body, head A needs a compile-time constant).
+// ⚠️ Зеркало фронтового allNutrientsList
+// (apps/food-calc/src/entities/nutrient/ui/NutrientGroup/constants/constants.ts):
+// name = `name`, label = `displayNameRu`, unit = `unit`. Держать в синке.
+const DISH_NUTRIENT_SPEC: NutrientSpec[] = [
+  // main (БЖУ)
+  { name: "protein", label: "Белки", unit: "g" },
+  { name: "sugar", label: "Сахар", unit: "g" },
+  { name: "fats", label: "Жиры", unit: "g" },
+  { name: "starch", label: "Крахмал", unit: "g" },
+  { name: "carbohydrates", label: "Углеводы", unit: "g" },
+  { name: "fiber", label: "Клетчатка", unit: "g" },
+  { name: "energy", label: "Энергия", unit: "kcal" },
+  { name: "water", label: "Вода", unit: "g" },
+  // minerals
+  { name: "iron", label: "Железо", unit: "mg" },
+  { name: "magnesium", label: "Магний", unit: "mg" },
+  { name: "phosphorus", label: "Фосфор", unit: "mg" },
+  { name: "calcium", label: "Кальций", unit: "mg" },
+  { name: "potassium", label: "Калий", unit: "mg" },
+  { name: "sodium", label: "Натрий", unit: "mg" },
+  { name: "zinc", label: "Цинк", unit: "mg" },
+  { name: "copper", label: "Медь", unit: "μg" },
+  { name: "manganese", label: "Марганец", unit: "μg" },
+  { name: "selenium", label: "Селен", unit: "μg" },
+  { name: "iodine", label: "Йод", unit: "μg" },
+  // vitamins
+  { name: "vitaminA", label: "Витамин A", unit: "μg" },
+  { name: "vitaminB1", label: "Тиамин", unit: "mg" },
+  { name: "vitaminB2", label: "Рибофлавин", unit: "mg" },
+  { name: "vitaminB3", label: "Ниацин", unit: "mg" },
+  { name: "vitaminB4", label: "Холин", unit: "mg" },
+  { name: "vitaminB5", label: "Пантотеновая кислота", unit: "mg" },
+  { name: "vitaminB6", label: "Пиридоксин", unit: "mg" },
+  { name: "vitaminB7", label: "Биотин", unit: "mg" },
+  { name: "vitaminB9", label: "Фолиевая кислота", unit: "μg" },
+  { name: "vitaminB12", label: "Кобаламин", unit: "μg" },
+  { name: "vitaminC", label: "Витамин C", unit: "mg" },
+  { name: "vitaminD", label: "Витамин D", unit: "μg" },
+  { name: "vitaminE", label: "Витамин E", unit: "mg" },
+  { name: "vitaminK", label: "Витамин K", unit: "μg" },
+  { name: "betaCarotene", label: "β-каротин", unit: "μg" },
+  { name: "alphaCarotene", label: "α-каротин", unit: "μg" },
+  // amino acids
+  { name: "tryptophan", label: "Триптофан", unit: "g" },
+  { name: "threonine", label: "Треонин", unit: "g" },
+  { name: "isoleucine", label: "Изолейцин", unit: "g" },
+  { name: "leucine", label: "Лейцин", unit: "g" },
+  { name: "lysine", label: "Лизин", unit: "g" },
+  { name: "methionine", label: "Метионин", unit: "g" },
+  { name: "cystine", label: "Цистин", unit: "g" },
+  { name: "phenylalanine", label: "Фенилаланин", unit: "g" },
+  { name: "tyrosine", label: "Тирозин", unit: "g" },
+  { name: "valine", label: "Валин", unit: "g" },
+  { name: "arginine", label: "Аргинин", unit: "g" },
+  { name: "histidine", label: "Гистидин", unit: "g" },
+  { name: "alanine", label: "Аланин", unit: "g" },
+  { name: "asparticAcid", label: "Аспарагиновая к-та", unit: "g" },
+  { name: "glutamicAcid", label: "Глутаминовая к-та", unit: "g" },
+  { name: "glycine", label: "Глицин", unit: "g" },
+  { name: "proline", label: "Пролин", unit: "g" },
+  { name: "serine", label: "Серин", unit: "g" },
+  { name: "hydroxyproline", label: "Гидроксипролин", unit: "g" },
+];
+
+// Head A's json_schema: the shared items envelope PLUS a per-item `nutrients`
+// object. Deliberately NOT LLM_ITEMS_JSON_SCHEMA — head B (free-text-food)
+// stays nutrient-free. `nutrients` goes LAST in property order so the model
+// finishes name/quantity before estimating — putting it earlier degrades the
+// ingredient list itself.
+const DISH_ITEMS_JSON_SCHEMA = {
+  name: "dish_items",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      items: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            type: { type: "string", enum: ["product", "dish"] },
+            name: { type: "string" },
+            details: { type: "string" },
+            quantity: { type: ["number", "null"] },
+            time: { type: ["string", "null"] },
+            nutrients: nutrientValuesSchema(DISH_NUTRIENT_SPEC),
+          },
+          required: ["type", "name", "details", "quantity", "time", "nutrients"],
+        },
+      },
+    },
+    required: ["items"],
+  },
+} as const;
 
 async function callLLM(dishName: string, comment?: string): Promise<LLMCallResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -167,8 +279,11 @@ async function callLLM(dishName: string, comment?: string): Promise<LLMCallResul
         ],
         // temp 0.3: same as head B — stabler recipes + cache (canon 2026-06-04).
         temperature: 0.3,
-        // Strict structured output (shared schema, same as head B).
-        response_format: { type: "json_schema", json_schema: LLM_ITEMS_JSON_SCHEMA },
+        // Full 54-key profile × 5–15 items: the cap guards against runaway
+        // while leaving room for the largest recipe.
+        max_tokens: 8000,
+        // Strict structured output (head-A schema: shared envelope + nutrients).
+        response_format: { type: "json_schema", json_schema: DISH_ITEMS_JSON_SCHEMA },
         provider: { require_parameters: true },
       }),
     });
@@ -195,7 +310,21 @@ async function callLLM(dishName: string, comment?: string): Promise<LLMCallResul
 
   const parsed = JSON.parse(jsonStr);
   const rawItems: LLMItem[] = Array.isArray(parsed?.items) ? parsed.items : [];
-  const items = rawItems.filter((i) => typeof i?.name === "string" && i.name.trim());
+  const items = rawItems
+    .filter((i) => typeof i?.name === "string" && i.name.trim())
+    .map((i) => {
+      // Clamp the estimate at the edge so the cache stores only sane values.
+      // resolveNames forwards them to unresolved items only.
+      const nutrients =
+        i.nutrients && typeof i.nutrients === "object"
+          ? clampNutrientValues(i.nutrients, DISH_NUTRIENT_SPEC)
+          : {};
+      // Strip the RAW nutrients first: when the clamp drops every value
+      // (e.g. {protein: 150}), returning `i` as-is would leak the unclamped
+      // blob through resolveNames into the unresolved response.
+      const { nutrients: _raw, ...rest } = i;
+      return Object.keys(nutrients).length ? { ...rest, nutrients } : rest;
+    });
 
   const usage = (data as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_cost?: number; cost?: number } }).usage;
   return {
@@ -229,9 +358,14 @@ interface NutrientSpec {
 interface SuggestProductNutrientsRequest {
   productName: string;
   nutrients: NutrientSpec[];
+  // Prep method / peculiarity (e.g. "вареная") — same semantics as LLMItem's
+  // `details`. Empty string = absent. Folded into the prompt and the cache key
+  // so «гречка» and «гречка вареная» don't share a cached profile.
+  details?: string;
 }
 
 const MAX_NUTRIENTS = 100;
+const MAX_DETAILS_LEN = 200;
 
 // Bump when NUTRIENT_SYSTEM_PROMPT meaningfully changes so values cached under
 // the old contract can't leak through.
@@ -239,12 +373,14 @@ const NUTRIENT_PROMPT_VERSION = 1;
 const NUTRIENT_CACHE_TTL_MS = 60 * 60 * 1000;
 const NUTRIENT_CACHE_MAX = 200;
 
-// Cache the estimated values keyed by normalized product name. The nutrient
-// catalog is stable across requests, so it's not part of the key.
+// Cache the estimated values keyed by normalized product name + details (prep
+// changes the profile — «гречка» vs «гречка вареная»). The nutrient catalog is
+// stable across requests, so it's not part of the key.
 const nutrientCache = new Map<string, { values: Record<string, number>; expiresAt: number }>();
 
-function normalizeNutrientKey(name: string): string {
-  return `${name.toLowerCase().trim()}|nv${NUTRIENT_PROMPT_VERSION}`;
+function normalizeNutrientKey(name: string, details?: string): string {
+  const d = details?.trim().toLowerCase() ?? "";
+  return `${name.toLowerCase().trim()}|d:${d}|nv${NUTRIENT_PROMPT_VERSION}`;
 }
 
 function getCachedNutrients(key: string): Record<string, number> | null {
@@ -279,9 +415,20 @@ const NUTRIENT_SYSTEM_PROMPT = `Ты — нутрициолог со справ�
 - Это разумная оценка по типичным справочным значениям, не лабораторный анализ.
 - Не добавляй комментариев, пояснений, markdown — только чистый JSON.`;
 
-function buildNutrientSchema(nutrients: NutrientSpec[]) {
+// The strict `{ <nutrientName>: number }` object — head C's top-level `values`
+// and head A's per-item `nutrients` share it.
+function nutrientValuesSchema(nutrients: NutrientSpec[]) {
   const properties: Record<string, { type: "number" }> = {};
   for (const n of nutrients) properties[n.name] = { type: "number" };
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties,
+    required: nutrients.map((n) => n.name),
+  } as const;
+}
+
+function buildNutrientSchema(nutrients: NutrientSpec[]) {
   return {
     name: "product_nutrients",
     strict: true,
@@ -289,16 +436,35 @@ function buildNutrientSchema(nutrients: NutrientSpec[]) {
       type: "object",
       additionalProperties: false,
       properties: {
-        values: {
-          type: "object",
-          additionalProperties: false,
-          properties,
-          required: nutrients.map((n) => n.name),
-        },
+        values: nutrientValuesSchema(nutrients),
       },
       required: ["values"],
     },
   };
+}
+
+// Shared sanity filter for LLM nutrient values (heads A and C). Keep only
+// numbers for the keys we actually asked about — drop anything the model
+// invented or returned non-numeric/non-positive. Plus a magnitude
+// sanity-clamp: a 'g' nutrient can't exceed 100 g per 100 g of product, and
+// energy can't realistically exceed ~900 kcal/100 g (pure fat) — drop absurd
+// values (wrong unit / scale) rather than corrupt the product's profile.
+function clampNutrientValues(
+  rawValues: Record<string, unknown>,
+  nutrients: NutrientSpec[],
+): Record<string, number> {
+  const unitByName = new Map(nutrients.map((n) => [n.name, n.unit]));
+  const values: Record<string, number> = {};
+  for (const [k, v] of Object.entries(rawValues)) {
+    if (!unitByName.has(k)) continue;
+    const num = typeof v === "number" ? v : Number(v);
+    if (!Number.isFinite(num) || num <= 0) continue;
+    const unit = unitByName.get(k);
+    if (unit === "g" && num > 100) continue;
+    if (unit === "kcal" && num > 1000) continue;
+    values[k] = num;
+  }
+  return values;
 }
 
 interface NutrientLLMResult {
@@ -312,6 +478,7 @@ interface NutrientLLMResult {
 async function callNutrientLLM(
   productName: string,
   nutrients: NutrientSpec[],
+  details?: string,
 ): Promise<NutrientLLMResult> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error("OPENROUTER_API_KEY not set");
@@ -320,7 +487,11 @@ async function callNutrientLLM(
   const nutrientLines = nutrients
     .map((n) => `${n.name} — ${n.unit} — ${n.label}`)
     .join("\n");
-  const userContent = `Продукт: "${productName}"\nНутриенты (ключ — единица — название):\n${nutrientLines}`;
+  const trimmedDetails = details?.trim();
+  const userContent =
+    `Продукт: "${productName}"\n` +
+    (trimmedDetails ? `Особенность: ${trimmedDetails}\n` : "") +
+    `Нутриенты (ключ — единица — название):\n${nutrientLines}`;
 
   const MAX_RETRIES = 3;
   let response!: Response;
@@ -368,23 +539,7 @@ async function callNutrientLLM(
 
   const parsed = JSON.parse(jsonStr);
   const rawValues = (parsed?.values ?? {}) as Record<string, unknown>;
-
-  // Keep only numbers for the keys we actually asked about — drop anything the
-  // model invented or returned non-numeric/non-positive. Plus a magnitude
-  // sanity-clamp: a 'g' nutrient can't exceed 100 g per 100 g of product, and
-  // energy can't realistically exceed ~900 kcal/100 g (pure fat) — drop absurd
-  // values (wrong unit / scale) rather than corrupt the product's profile.
-  const unitByName = new Map(nutrients.map((n) => [n.name, n.unit]));
-  const values: Record<string, number> = {};
-  for (const [k, v] of Object.entries(rawValues)) {
-    if (!unitByName.has(k)) continue;
-    const num = typeof v === "number" ? v : Number(v);
-    if (!Number.isFinite(num) || num <= 0) continue;
-    const unit = unitByName.get(k);
-    if (unit === "g" && num > 100) continue;
-    if (unit === "kcal" && num > 1000) continue;
-    values[k] = num;
-  }
+  const values = clampNutrientValues(rawValues, nutrients);
 
   const usage = (data as { usage?: { prompt_tokens?: number; completion_tokens?: number; total_cost?: number; cost?: number } }).usage;
   return {
@@ -425,6 +580,9 @@ const PRODUCT_NUTRIENTS_BODY_SCHEMA = Type.Object(
         },
         { additionalProperties: false, title: "NutrientSpec" },
       ),
+    ),
+    details: Type.Optional(
+      Type.String({ description: "Prep method / peculiarity (e.g. \"вареная\"); empty string = absent." }),
     ),
   },
   { additionalProperties: false, title: "SuggestProductNutrientsRequest" },
@@ -553,7 +711,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
       },
     },
     async (req, reply) => {
-      const { productName, nutrients } = req.body ?? {};
+      const { productName, nutrients, details } = req.body ?? {};
 
       if (!productName || typeof productName !== "string" || !productName.trim()) {
         return reply.status(400).send({ error: "productName is required" });
@@ -578,6 +736,14 @@ export async function suggestionsRoutes(app: FastifyInstance) {
       if (!valid) {
         return reply.status(400).send({ error: "each nutrient needs {name,label,unit}" });
       }
+      if (details !== undefined && typeof details !== "string") {
+        return reply.status(400).send({ error: "details must be a string" });
+      }
+      if (typeof details === "string" && details.length > MAX_DETAILS_LEN) {
+        return reply
+          .status(400)
+          .send({ error: `details too long (max ${MAX_DETAILS_LEN} chars)` });
+      }
 
       if (!checkRateLimit(`nut:${req.ip}`)) {
         return reply.status(429).send({
@@ -586,7 +752,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
       }
 
       const requestId = resolveRequestId(req);
-      const cacheKey = normalizeNutrientKey(productName);
+      const cacheKey = normalizeNutrientKey(productName, details);
       let charged = false;
 
       try {
@@ -601,7 +767,7 @@ export async function suggestionsRoutes(app: FastifyInstance) {
             if (!(await chargeOr402(req, reply, "nutrient_suggestions", requestId))) return;
             charged = true;
           }
-          const result = await callNutrientLLM(productName, nutrients);
+          const result = await callNutrientLLM(productName, nutrients, details);
           values = result.values;
           setCachedNutrients(cacheKey, values);
           app.log.info(

@@ -22,6 +22,21 @@ interface SuggestResponse {
 }
 
 /**
+ * name-keyed LLM answer → id-keyed Record, which `setProductNutrients` expects.
+ * Shared with the proposal-rescue flow: dish-products rides the same name keys.
+ */
+export function mapNutrientNamesToIds(
+  values: Record<string, number>,
+): Record<string, number> {
+  const record: Record<string, number> = {};
+  for (const [name, v] of Object.entries(values ?? {})) {
+    const id = NAME_TO_ID.get(name);
+    if (id && typeof v === 'number' && v > 0) record[id] = v;
+  }
+  return record;
+}
+
+/**
  * Ask the backend to estimate a product's full nutrient profile (per 100 g) from
  * its name. Returns a Record keyed by nutrient ID — ready to JSON.stringify into
  * `setProductNutrients`. Throws `PaymentRequiredError` on 402.
@@ -29,7 +44,7 @@ interface SuggestResponse {
 export async function suggestProductNutrients(
   productName: string,
   requestId: string,
-  signal?: AbortSignal,
+  options?: { signal?: AbortSignal; details?: string },
 ): Promise<Record<string, number>> {
   const res = await authedFetch(`${API_BASE}/api/suggestions/product-nutrients`, {
     method: 'POST',
@@ -39,17 +54,16 @@ export async function suggestProductNutrients(
       // a lost response doesn't double-debit the 0.5 ₽ suggest charge.
       'X-Request-Id': requestId,
     },
-    body: JSON.stringify({ productName, nutrients: NUTRIENT_SPEC }),
-    signal,
+    body: JSON.stringify({
+      productName,
+      nutrients: NUTRIENT_SPEC,
+      ...(options?.details ? { details: options.details } : {}),
+    }),
+    signal: options?.signal,
   });
 
   if (!res.ok) await throwApiError(res); // throws PaymentRequiredError on 402
 
   const { values } = (await res.json()) as SuggestResponse;
-  const record: Record<string, number> = {};
-  for (const [name, v] of Object.entries(values ?? {})) {
-    const id = NAME_TO_ID.get(name);
-    if (id && typeof v === 'number' && v > 0) record[id] = v;
-  }
-  return record;
+  return mapNutrientNamesToIds(values ?? {});
 }

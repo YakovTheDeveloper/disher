@@ -7,8 +7,8 @@
 // Numeral/NumeralMarker — scss их не трогает, варьируется только раскладка.
 import clsx from 'clsx';
 import {
-  nutrientById,
   nutrientDisplayGroups,
+  nutrientRowName,
 } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { useNutrientReadout, type NutrientReadout } from '@/entities/nutrient/model';
 import {
@@ -19,6 +19,7 @@ import {
 import { Text, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
 import { Accordion } from '@/shared/ui/Accordion';
 import { NutrientAppearanceSettings } from '@/entities/nutrient/ui/NutrientAppearanceSettings';
+import { NutrientName } from '@/entities/nutrient/ui/NutrientName';
 import { formatNutrientMass, formatPctDisplay } from '@/shared/lib/formatNumber';
 import s from './NutrientTotals.module.scss';
 
@@ -82,22 +83,12 @@ const MACRO_HUE: Record<string, Hue> = {
 // подпись полного названия (только у витаминов группы B, см. ниже).
 type Cell = NutrientReadout & { name: string; subName?: string; mass: string; pctText: string };
 
-// Витамины B: быстрое имя ряда — «Витамин B1» (читается мгновенно и держит
-// ряд одинаковой длины), полное название («Тиамин») уходит в малую подпись
-// под ним. A/C/D/E/K уже называются «Витамин X», каротины — не витамины,
-// оба случая остаются как есть.
+// Имена рядов — общий хелпер `nutrientRowName` (витамины B: «Витамин B1» +
+// подпись полного названия; правило одно на все витрины).
 const toCell = (r: NutrientReadout, id: string): Cell => {
-  const n = nutrientById[id];
-  let name = n?.displayNameRu ?? id;
-  let subName: string | undefined;
-  if (n?.name.startsWith('vitaminB')) {
-    subName = name;
-    name = `Витамин ${n.symbol}`;
-  }
   return {
     ...r,
-    name,
-    subName,
+    ...nutrientRowName(id),
     mass: formatNutrientMass(r.value, r.unit),
     pctText: formatPctDisplay(r.pctRaw),
   };
@@ -300,16 +291,7 @@ function DenseRow({ r, track }: { r: Cell; track: NutrientTrackVariant }) {
           : undefined
       }
     >
-      <span className={s.nameCell}>
-        <Text as="span" role="body" weight="semibold" className={s.name}>
-          {r.name}
-        </Text>
-        {r.subName != null && (
-          <Text as="span" role="caption" className={s.nameSub}>
-            {r.subName}
-          </Text>
-        )}
-      </span>
+      <NutrientName name={r.name} subName={r.subName} tone={empty ? 'muted' : 'default'} />
       <span className={s.value}>
         <Mass r={r} />
       </span>

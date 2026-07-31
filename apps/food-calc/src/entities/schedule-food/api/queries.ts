@@ -13,6 +13,12 @@ function useAllScheduleFoods(): ScheduleFood[] {
   return useMemo(() => (rows ?? []).map(mapScheduleFoodRow), [rows]);
 }
 
+/** True на первом тике liveQuery (строки ещё undefined) — гейт загрузки для
+ *  useScheduleNutrientTotals / оркестраторов. */
+export function useScheduleFoodsLoading(): boolean {
+  return useLiveQuery(() => db.schedule_foods.toArray(), []) === undefined;
+}
+
 type ProductLite = {
   id: string;
   name: string;

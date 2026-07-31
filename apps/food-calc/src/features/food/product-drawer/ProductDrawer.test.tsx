@@ -26,7 +26,8 @@ vi.mock('@/features/food/quick-view-drawer', () => ({
   },
 }));
 vi.mock('@/entities/product', () => ({
-  useProduct: () => h.product,
+  // Зеркало useDishWithStatus: undefined-строка продукта = ghost-загрузка.
+  useProductWithStatus: () => ({ product: h.product ?? null, loading: h.product === undefined }),
   useProductPortions: () => h.portions,
   useProductNutrients: () => ({ results: h.nutrients }),
 }));
@@ -73,6 +74,8 @@ describe('ProductDrawer — NutrientShowcaseDrawer adapter', () => {
     render(<ProductDrawer productId="p1" productName="яблоко" onClose={() => {}} />);
     expect(qv.props!.title).toBe('яблоко');
     expect(qv.props!.hasNutrients).toBe(false);
+    // Ghost-гейт: каркас покажет скелетон вместо ложного «нет нутриентов».
+    expect(qv.props!.loading).toBe(true);
   });
 
   it('selecting a named portion rescales the nutrients', () => {

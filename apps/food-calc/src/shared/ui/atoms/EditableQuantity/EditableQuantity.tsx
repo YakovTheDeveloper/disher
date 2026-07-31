@@ -5,7 +5,7 @@ import { NumberInput } from '@/shared/ui/atoms/input/NumberInput';
 interface EditableQuantityProps {
   /** Authoritative quantity from the data layer (props/Dexie). */
   value: number;
-  /** Вызывается на РЕАЛЬНОЕ изменение (draft !== value && > 0) при blur. */
+  /** Вызывается на РЕАЛЬНОЕ изменение при blur; 0/пусто превращается в дефолт 100. */
   onCommit: (next: number) => void;
   /**
    * Opt-in: ставит `data-entity-edit` на стопку, чтобы Screen прятал свой нижний
@@ -28,7 +28,9 @@ interface EditableQuantityProps {
  * EditableQuantity — простой инпут количества (QtyStack + NumberInput). Поле
  * ВСЕГДА отрендерено как инпут (без морфа текст↔поле); в покое читается как
  * текст — QtyStack.module.scss делает `.value input` прозрачным/безрамочным.
- * Коммитит в дата-слой на blur, если значение реально поменялось и > 0.
+ * Коммитит в дата-слой на blur, если значение реально поменялось; 0/пусто
+ * невалидно (нутриенты зануляются) — подменяется дефолтом 100, как в
+ * `useFoodEntryFlow.updateQuantity`.
  *
  * Локальный `draft` обязателен: NumberInput ре-синкается на проп `value` на
  * КАЖДОМ рендере, поэтому кормим его НАШИМ draft (а не закоммиченным value) —
@@ -66,7 +68,10 @@ export function EditableQuantity({
   }
 
   const commit = () => {
-    if (draft !== value && draft > 0) onCommit(draft);
+    // 0/пусто занулит нутриенты и оставит поле расходящимся с данными — дефолт 100.
+    const next = draft > 0 ? draft : 100;
+    if (next !== value) onCommit(next);
+    if (next !== draft) setDraft(next);
   };
 
   return (

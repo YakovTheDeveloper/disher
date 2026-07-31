@@ -1,4 +1,5 @@
-import { useMemo, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useMemo, type PointerEvent as ReactPointerEvent } from 'react';
+import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { InfoButton } from '@/shared/ui/atoms/Button';
 import styles from './FoodActionCard.module.scss';
@@ -6,17 +7,18 @@ import { deleteProducts } from '@/entities/product';
 import { deleteDishes } from '@/entities/dish';
 import { isCreatedByUser } from '@/shared/lib';
 import { findCatalogProduct } from '@/shared/data/catalog';
-import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
-import { useLongPress } from '@/shared/lib/hooks/useLongPress';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { drawerStore } from '@/shared/ui/drawer-store';
+import { FoodListRow } from '@/shared/ui/FoodListRow';
 import { ProductDrawer } from '@/features/food/product-drawer';
 import { DishDrawer } from '@/features/food/dish-drawer';
 import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
 // Конкретные файлы, не barrel — barrel тянет buildInfoActions → ProductDrawer
 // (см. defensive-импорт в ProductDrawer/buildInfoActions).
 import { ItemActionsDrawer } from '@/features/shared/item-actions-drawer/ItemActionsDrawer';
-import { Text, QuietLabel, Numeral, NumeralMarker } from '@/shared/ui/atoms/Typography';
+import { buildInfoActions } from '@/features/shared/item-actions-drawer/buildInfoActions';
+import { Text, QuietLabel } from '@/shared/ui/atoms/Typography';
+import { GaugeFill, NormFigure } from '@/shared/ui/NormGauge';
 import { ArcLabel } from '@/shared/ui/ArcLabel/ArcLabel';
 import { formatAmount, formatPercent } from '@/shared/lib/formatNumber';
 
@@ -55,6 +57,12 @@ type Props = {
   mineFilter?: boolean;
 };
 
+// Карточка результата поиска — адаптер на скелете shared/ui/FoodListRow
+// (2026-07-31, шаг 3 плана tds/task_spec/ЧтоЕщеСъесть.md): раскладка, divider,
+// plum/press-состояния и жесты (usePressFeedback + useLongPress) — в каркасе;
+// здесь остаётся фичевая начинка слотов (каталог, дроверы, удаление, бейджи).
+// Контекстные флипы цвета (plum/press) висят на якоре .card + data-атрибуты
+// каркаса — см. .module.scss.
 const FoodActionCard = ({
   variant,
   item,
@@ -68,15 +76,15 @@ const FoodActionCard = ({
   htmlFor,
   mineFilter = false,
 }: Props) => {
-  const { pressed, pressProps } = usePressFeedback();
+  const navigate = useNavigate();
   const userCreated = variant === 'dish' ? true : isCreatedByUser(item.id);
 
   // Тап по ⓘ — самостоятельное действие (нижний quick-view ProductDrawer/
   // DishDrawer), НЕ выбор ряда. Гасим bubbling pointer-событий до `<li>`: без этого press-визуал
-  // (usePressFeedback) и long-press (useLongPress), висящие на обёртке, ловят
-  // pointerdown кнопки и весь ряд чернеет под пальцем при нажатии на ⓘ (фикс
-  // 2026-07-10). Оборачивающий span = display:contents — не ломает flex-раскладку
-  // ряда, но остаётся в DOM-пути события, поэтому stopPropagation работает.
+  // и long-press каркаса, висящие на обёртке, ловят pointerdown кнопки и весь ряд
+  // чернеет под пальцем при нажатии на ⓘ (фикс 2026-07-10). Оборачивающий span =
+  // display:contents — не ломает flex-раскладку ряда, но остаётся в DOM-пути
+  // события, поэтому stopPropagation работает.
   const stopRowPress = (e: ReactPointerEvent) => e.stopPropagation();
 
   // Каталожные продукты могут нести миниатюру (build-route поле `image`); резолвим
@@ -119,12 +127,11 @@ const FoodActionCard = ({
     }
   };
 
-  // Долгий клик (~450мс, общий useLongPress: move-cancel 10px + click-suppression,
-  // безопасен в скроллируемом role="option") → ItemActionsDrawer. «Информация» в
-  // карточке SearchFood открывает тот же быстрый нижний дровер, что и ⓘ (единый
-  // SearchFood-контекст — оба «подглядывают», не уходят на страницу; переход на
-  // страницу — уже из самого дровера). Удаление = удаление ПРОДУКТА/блюда, только
-  // для своих (каталог → onDelete не передаём, дровер показывает только «инфо»).
+  // Долгий клик → ItemActionsDrawer. Ряд «Нутриенты» открывает тот же
+  // быстрый нижний дровер, что и ⓘ (витрина read-only, доступна и каталогу).
+  // Кнопка ↗ в хедере — переход на СТРАНИЦУ сущности: только свои продукты и блюда
+  // (у каталожных страницы нет — гейта isCatalogId внутри buildInfoActions, как
+  // pageRoute в ProductDrawer). Удаление = удаление ПРОДУКТА/блюда, только для своих.
   const openInfo = () => {
     if (variant === 'dish') {
       void drawerStore.show(DishDrawer, { dishId: item.id, dishName: item.name }, QUICK_VIEW_DRAWER_OPTIONS);
@@ -133,50 +140,25 @@ const FoodActionCard = ({
     }
   };
   const openActions = () => {
-    const infoAction = {
-      label: variant === 'dish' ? 'Информация о блюде' : 'Информация о продукте',
-      onClick: openInfo,
-    };
     void drawerStore.show(ItemActionsDrawer, {
       title: item.name,
-      actions: [infoAction],
+      pageAction: buildInfoActions(
+        variant === 'dish'
+          ? { type: 'dish', dishId: item.id }
+          : { type: 'food', productId: item.id },
+        navigate,
+      )[0],
+      nutrientsAction: { label: 'Нутриенты', onClick: openInfo },
       ...(userCreated ? { onDelete: handleDelete } : {}),
     });
-  };
-
-  // Жест на самой карточке (`<li>`). Press-визуал даёт usePressFeedback (вспышка
-  // с MIN_HOLD на мгновенном тапе, важно для htmlFor-переходов); жест — useLongPress.
-  // Оба слушают pointer на ОДНОМ узле (`<li>`): useLongPress ставит pointer-capture
-  // на него, поэтому release-события usePressFeedback должны прийти туда же —
-  // склеиваем перекрывающиеся хендлеры (move/clickCapture/contextMenu — из press).
-  const press = useLongPress(openActions);
-  const liHandlers = {
-    ...press,
-    onPointerDown: (e: ReactPointerEvent) => {
-      pressProps.onPointerDown();
-      press.onPointerDown(e);
-    },
-    onPointerUp: (e: ReactPointerEvent) => {
-      pressProps.onPointerUp();
-      press.onPointerUp(e);
-    },
-    onPointerCancel: (e: ReactPointerEvent) => {
-      pressProps.onPointerCancel();
-      press.onPointerCancel(e);
-    },
-    onPointerLeave: (e: ReactPointerEvent) => {
-      pressProps.onPointerLeave();
-      press.onPointerLeave(e);
-    },
   };
 
   // Подпись-вид под названием: блюдо → «блюдо» (блюда всегда созданы юзером),
   // свой продукт → «мой продукт», каталожный продукт → ничего. Добавка (продукт
   // с serving-basis) дописывается в ту же строку через серединную точку:
-  // «мой продукт · добавка» (раньше «добавка» висела отдельной плашкой справа).
-  // В фильтре «Мое» список целиком свой → префикс «мой» избыточен, оставляем
-  // только сам вид («продукт»). В «Все» свой продукт остаётся «мой продукт»,
-  // чтобы отличаться от каталожных. Блюдо всегда «блюдо» (всегда своё).
+  // «мой продукт · добавка». В фильтре «Мое» список целиком свой → префикс «мой»
+  // избыточен, оставляем только сам вид («продукт»). В «Все» свой продукт остаётся
+  // «мой продукт», чтобы отличаться от каталожных. Блюдо всегда «блюдо» (всегда своё).
   const kindLabel =
     variant === 'product' ? (mineFilter ? 'продукт' : 'мой продукт') : 'блюдо';
   // В «Мое» вид переехал на дуговой бейдж (kindBadge) в слоте миниатюры, а тихую
@@ -188,11 +170,6 @@ const FoodActionCard = ({
     .filter(Boolean)
     .join(' · ');
 
-  // Правый слот = ВСЕГДА тихий ⓘ (ровная info-колонка; встаёт под кнопку фильтра
-  // верхнего бара). Вид-подпись («мой продукт» / «блюдо · добавка») живёт тихой
-  // строкой ПОД именем (см. .kindLabel в nameCol). Раньше подпись подменяла ⓘ в
-  // слоте у своих рядов — в режиме «Мое», где ВСЕ ряды свои, это давало колонку
-  // курсива, переливавшуюся за экран (запрос юзера пофиксить).
   const showSubtitleUnderName = Boolean(subtitle) && !mineFilter;
 
   const richNutrientValue =
@@ -216,150 +193,105 @@ const FoodActionCard = ({
       : null;
 
   return (
-    <li
-      className={styles.wrapper}
+    <FoodListRow
+      className={styles.card}
       role="option"
-      aria-selected={active || undefined}
-      aria-haspopup="menu"
-      data-pressed={pressed || undefined}
-      // Есть миниатюра ИЛИ дуговой бейдж «Мое» → имя уезжает за слот, divider
-      // стартует от края (0); без них — от page-gutter. См. .module.scss.
-      data-has-thumb={imageSrc || kindBadge ? '' : undefined}
-      {...liHandlers}
-    >
-      {htmlFor ? (
-        <label
-          htmlFor={htmlFor}
-          className={clsx(styles.item, active && styles.item_active)}
-          onClick={() => {
-            onClick?.();
-          }}
-        >
-          {thumb ?? kindBadge}
-          <span className={styles.nameCol}>
-            <Text as="span" role="label" className={styles.name}>
-              {item.name}
-            </Text>
-            {showSubtitleUnderName && (
-              <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
-            )}
+      active={active}
+      onClick={onClick}
+      onLongPress={openActions}
+      htmlFor={htmlFor}
+      leading={thumb ?? kindBadge}
+      title={
+        <Text as="span" role="label" className={styles.name}>
+          {item.name}
+        </Text>
+      }
+      subtitle={
+        showSubtitleUnderName ? (
+          <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
+        ) : undefined
+      }
+      meta={
+        // Богатство нутриентом = тихая правая колонка чисел + «термометр»-заливка
+        // ряда (ghost-row). Трек absolute внутри непозиционированной `.rich`
+        // разрешается относительно позиционированного <li> каркаса → бледная
+        // заливка кроет весь ряд слева направо на долю богатства.
+        richNutrientValue !== null ? (
+          <span className={styles.rich}>
+            {/* Гейдж — общий shared/ui/NormGauge; карточные классы richNums/
+                richTrack висят якорями на его корнях: plum/press-флипы цветов
+                остаются в модуле карточки. */}
+            <NormFigure
+              className={styles.richNums}
+              pctClassName={styles.richCellPercent}
+              value={richNutrientValue > 0 ? formatAmount(richNutrientValue) : null}
+              unit={richNutrientUnit}
+              pct={normPercent}
+            />
+            <GaugeFill className={styles.richTrack} level={richness} />
           </span>
-        </label>
-      ) : (
-        <p
-          className={clsx(styles.item, active && styles.item_active)}
-          onClick={() => {
-            onClick?.();
-          }}
-        >
-          {thumb ?? kindBadge}
-          <span className={styles.nameCol}>
-            <Text as="span" role="label" className={styles.name}>
-              {item.name}
-            </Text>
-            {showSubtitleUnderName && (
-              <QuietLabel className={styles.kindLabel}>{subtitle}</QuietLabel>
-            )}
-          </span>
-        </p>
-      )}
-      {/* Богатство нутриентом = тихая правая колонка чисел + «термометр»-заливка
-          ряда (ghost-row). Трек absolute внутри непозиционированной `.rich`
-          разрешается относительно `.wrapper` → бледная заливка кроет весь ряд
-          слева направо на долю богатства. См. .module.scss. */}
-      {richNutrientValue !== null && (
-        <span className={styles.rich}>
-          {/* 2×2 грид: колонка чисел (право-выровнены) + колонка маркеров (лево-
-              выровнены). Единицы и «%» садятся на ОДНУ вертикаль — границу колонок
-              грида (как выровненный жёлоб дровера, но без absolute-свисания: у
-              карточки справа стоит ⓘ, свисать некуда). Ячейки размещены явно
-              (grid-column/row), поэтому пропуск единицы/процента не смещает
-              соседей. */}
-          <span className={styles.richNums}>
-            <Numeral size="sm" weight="semibold" className={styles.richCellValue}>
-              {richNutrientValue > 0 ? formatAmount(richNutrientValue) : '—'}
-            </Numeral>
-            {richNutrientValue > 0 && richNutrientUnit && (
-              <NumeralMarker kind="unit" className={styles.richCellUnit}>
-                {richNutrientUnit}
-              </NumeralMarker>
-            )}
-            {normPercent && (
-              <>
-                <Numeral size="sm" weight="semibold" className={styles.richCellPercent}>
-                  {normPercent}
-                </Numeral>
-                <NumeralMarker kind="sign" className={styles.richCellSign}>
-                  %
-                </NumeralMarker>
-              </>
-            )}
-          </span>
-          <span className={styles.richTrack} aria-hidden>
-            {/* Re-key по нутриенту → заливка растёт заново при смене фильтра.
-                Уровень едет через --rich (scaleX), а не width — композит-only. */}
-            {richness > 0 && (
-              <span
-                key={`fill-${richNutrientId}`}
-                className={styles.richFill}
-                style={{ '--rich': richness } as CSSProperties}
+        ) : undefined
+      }
+      trailing={
+        // Правый слот = ВСЕГДА тихий ⓘ (ровная info-колонка; встаёт под кнопку
+        // фильтра верхнего бара). Кнопка 56px держит высоту ряда (см. FoodListRow).
+        onInfoClick ? (
+          <span
+            className={styles.infoSlot}
+            onPointerDown={stopRowPress}
+            onPointerUp={stopRowPress}
+            onPointerCancel={stopRowPress}
+          >
+            {variant === 'product' ? (
+              // Продукт (свой ИЛИ каталожный) → нижний quick-view ProductDrawer
+              // (две фазы snap). Редактирование живёт на странице /product/:id
+              // (стрелка в шапке дровера); ProductDrawer сам ветвит каталог/свой
+              // по isCreatedByUser, точке входа ветвиться не нужно.
+              <InfoButton
+                className={styles.infoBtn}
+                emphasis="quiet"
+                size={56}
+                aria-label="Информация о продукте"
+                onClick={() => {
+                  drawerStore.show(
+                    ProductDrawer,
+                    { productId: item.id, productName: item.name },
+                    QUICK_VIEW_DRAWER_OPTIONS,
+                  );
+                }}
+              />
+            ) : (
+              // Блюдо → нижний quick-view DishDrawer (read-only превью: состав +
+              // суммарные нутриенты, стрелка в шапке → страница /dish/:id). Оверлей
+              // вместо навигации сохраняет скролл SearchFood + открытую модалку Home
+              // (симметрия с продуктом).
+              <InfoButton
+                className={styles.infoBtn}
+                emphasis="quiet"
+                size={56}
+                aria-label="Информация о блюде"
+                onClick={() => {
+                  drawerStore.show(
+                    DishDrawer,
+                    { dishId: item.id, dishName: item.name },
+                    QUICK_VIEW_DRAWER_OPTIONS,
+                  );
+                }}
               />
             )}
           </span>
-        </span>
-      )}
-      {onInfoClick && (
-        <span
-          className={styles.infoSlot}
-          onPointerDown={stopRowPress}
-          onPointerUp={stopRowPress}
-          onPointerCancel={stopRowPress}
-        >
-          {variant === 'product' ? (
-            // Продукт (свой ИЛИ каталожный) → нижний quick-view ProductDrawer
-            // (две фазы snap). Редактирование живёт на странице /product/:id
-            // (стрелка в шапке дровера); ProductDrawer сам ветвит каталог/свой
-            // по isCreatedByUser, точке входа ветвиться не нужно.
-            <InfoButton
-              className={styles.infoBtn}
-              emphasis="quiet"
-              size={56}
-              aria-label="Информация о продукте"
-              onClick={() => {
-                drawerStore.show(
-                  ProductDrawer,
-                  { productId: item.id, productName: item.name },
-                  QUICK_VIEW_DRAWER_OPTIONS,
-                );
-              }}
-            />
-          ) : (
-            // Блюдо → нижний quick-view DishDrawer (read-only превью: состав +
-            // суммарные нутриенты, стрелка в шапке → страница /dish/:id). Оверлей
-            // вместо навигации сохраняет скролл SearchFood + открытую модалку Home
-            // (симметрия с продуктом).
-            <InfoButton
-              className={styles.infoBtn}
-              emphasis="quiet"
-              size={56}
-              aria-label="Информация о блюде"
-              onClick={() => {
-                drawerStore.show(
-                  DishDrawer,
-                  { dishId: item.id, dishName: item.name },
-                  QUICK_VIEW_DRAWER_OPTIONS,
-                );
-              }}
-            />
-          )}
-        </span>
-      )}
-      {/* Маркер «своё»: нейтральная вертикальная полоска у правого края карточки.
-          Не цветная — это признак владения, а не данные (цвет несёт левый квадрат-
-          гейдж богатства). В режиме «Мое» список целиком свой → маркер избыточен,
-          гасим (карточки читаются как обычные, вид несёт дуговой бейдж слева). */}
-      {userCreated && !mineFilter && <span className={styles.ownerStripe} aria-hidden />}
-    </li>
+        ) : undefined
+      }
+      overlay={
+        // Маркер «своё»: нейтральная вертикальная полоска у правого края карточки.
+        // Не цветная — это признак владения, а не данные (цвет несёт гейдж
+        // богатства). В режиме «Мое» список целиком свой → маркер избыточен,
+        // гасим (карточки читаются как обычные, вид несёт дуговой бейдж слева).
+        userCreated && !mineFilter ? (
+          <span className={styles.ownerStripe} aria-hidden />
+        ) : undefined
+      }
+    />
   );
 };
 

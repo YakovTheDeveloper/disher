@@ -14,6 +14,7 @@ function makeFlow(overrides: Partial<UseWriteFoodFlowResult> = {}): UseWriteFood
   return {
     targetKind: 'schedule',
     state: 'ready',
+    intake: 'text',
     parseResult: null,
     inputText: '',
     errorMessage: null,

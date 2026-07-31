@@ -1,0 +1,195 @@
+// Матрица «позиции дня × нутриенты». Липкая шапка (имена позиций) + липкая
+// первая колонка (имена нутриентов) внутри общего скролл-враппера: sticky
+// работает от .scroller, не от body модалки.
+
+.scroller {
+    overflow: auto;
+    // Единственный скролл-контейнер; инсет контента снят шеллом
+    // (ModalShell contentPadding="none") — отрицательные margin'ы и их
+    // scroll-chaining с обрезкой sticky-колонки больше не нужны.
+    // contain — жест не утекает родителю.
+    overscroll-behavior: contain;
+}
+
+.table {
+    // fixed-layout: ширины колонок берутся из <colgroup> (единый источник),
+    // контент ячеек на ширину не влияет — узкие 5.5ch реально режут имена.
+    // max-content = сумме колонок: исключает растяжение таблицы и распределение
+    // излишка по колонкам (оно раздувало первую колонку); широкая таблица
+    // переполняет scroller и скроллится. Пустое место справа при малом числе
+    // позиций — принято.
+    table-layout: fixed;
+    inline-size: max-content;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    th,
+    td {
+        // Компактный ритм (~28-32px на ряд): данные матрицы плотнее рядов дровера.
+        padding-block: 4px;
+        padding-inline: 8px;
+        // Полная сетка: тёмные горизонтали И вертикали (правое правило каждой
+        // ячейки — двойных линий нет, у соседей своих левых бордеров нет).
+        border-bottom: 1px solid color-mix(in srgb, var(--sys-color-divider), var(--sys-color-text-primary) 70%);
+        border-inline-end: 1px solid color-mix(in srgb, var(--sys-color-divider), var(--sys-color-text-primary) 70%);
+        text-align: start;
+        vertical-align: bottom;
+    }
+
+    tbody th,
+    tbody td {
+        vertical-align: middle;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: var(--sys-color-surface-0);
+        // Sticky + separate: непрозрачный фон ячейки по умолчанию красится ПОД её
+        // бордером и наезжает на бордеры прокручиваемых ячеек — линии «исчезают»
+        // местами. padding-box оставляет бордер видимым (каноничный фикс).
+        background-clip: padding-box;
+    }
+
+    // Первая колонка (имена нутриентов) прилеплена к inline-start кромке.
+    tbody th[scope='row'] {
+        position: sticky;
+        inset-inline-start: 0;
+        z-index: 1;
+        background: var(--sys-color-surface-0);
+        background-clip: padding-box; // см. thead th выше
+    }
+
+    // Угловая ячейка поверх обеих липких осей (специфичность выше `thead th`).
+    // Правое правило — из базового th/td (сетка вертикалей на всех ячейках).
+    thead th.corner {
+        inset-inline-start: 0;
+        z-index: 3;
+    }
+
+    // Кегль заголовка колонки НИЖЕ body-роли <Text> (запрос 2026-07-31: тише
+    // шапку еды). Вложенность — ради специфичности над классом примитива Text,
+    // чтобы не зависеть от порядка инжекта CSS-модулей. Токен — t-shirt escape
+    // --sys-text-size-sm (12.8), единственный санкционированный рунг ниже body.
+    .colHeadName {
+        /* typo-encapsulation-disable-next-line -- bespoke-кегль шапки колонки матрицы: уникален для этого места, в role-примитив не переносится */
+        font-size: var(--sys-text-size-sm);
+    }
+}
+
+// Ширины колонок — ТОЛЬКО здесь (fixed-layout читает colgroup). `width`, а не
+// logical-проп: у <col> самая надёжная поддержка физического width.
+.colFirst {
+    width: 6.5rem;
+}
+
+.colFood {
+    // 8.25ch = 5.5ch × 1.5 (запрос 2026-07-31: увеличить ячейку еды на 50 %).
+    width: 8.25ch;
+}
+
+.colHeadName {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    // Ячейки шапки — ПЕРВАЯ строка таблицы: их nowrap-контент задаёт min-content
+    // колонки даже при table-layout:fixed (Blink: col/первая строка — лишь пол,
+    // доказано репродукцией scratchpad/matrix-repro.mjs — колонка «Грецкий орех»
+    // раздувалась до 122px вместо 46px). Капаем интринсик нулём: ширина из
+    // colgroup, текст заполняет ячейку и режется ellipsis.
+    inline-size: 0;
+    min-inline-size: 100%;
+    color: var(--sys-color-text-primary);
+}
+
+.colHeadTime {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    // См. комментарий у .colHeadName (нулевой интринсик против раздувания колонки).
+    inline-size: 0;
+    min-inline-size: 100%;
+    color: var(--sys-color-text-secondary);
+}
+
+.rowHead {
+    // Ширина колонки — из colgroup (.colFirst); ellipsis даёт атом NutrientName.
+    // Правое правило — из базового th/td (единая сетка).
+    padding-inline-end: 0;
+}
+
+// Blink при auto/max-content ширине таблицы считает колонку как max(col-ширина,
+// min-content ВСЕХ ячеек колонки) — nowrap-имена («Витамин B12» ≈118px) раздували
+// первую колонку поверх 6.5rem. Нулевой интринсик: ширина строго из colgroup,
+// текст заполняет ячейку и режется ellipsis атома (репродукция — см. .colHeadName).
+.rowHeadName {
+    inline-size: 0;
+    min-inline-size: 100%;
+}
+
+// Шапка группы — та же интонация, что `.rowHeadLeft` дровера (caption tertiary),
+// с естественным межгрупповым зазором хвоста (.tailGroup: space-2 + space-4),
+// переложенным в паддинг ячейки; у первой группы зазора нет. Прилеплена к левой
+// кромке наравне с первой колонкой (colSpan на всю ширину не конфликтует со
+// sticky-left — ширина ячейки и так вся таблица).
+.groupHead {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background: var(--sys-color-surface-0);
+    background-clip: padding-box; // см. thead th выше
+    padding-block-start: calc(var(--space-2) + var(--space-4));
+    text-align: start;
+}
+
+.groupHeadFirst {
+    padding-block-start: 4px;
+}
+
+.groupHeadText {
+    color: var(--sys-color-text-tertiary);
+}
+
+.cell {
+    // Позиционированный предок для GaugeFill (трек inset:0 кроет ячейку);
+    // isolation — z-index:1 чисел гейджа не выскакивает над sticky-шапку.
+    position: relative;
+    isolation: isolate;
+    text-align: end;
+    // Колонка 5.5ch узкая: переполнение чисел режем, nowrap — фигура не
+    // переносится; tnum локально (NormFigure не трогаем).
+    white-space: nowrap;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
+}
+
+// Тот же нулевой интринсик, что .rowHeadName: nowrap-фигура («654 к» + «33 %»)
+// иначе раздувает колонку поверх col-ширины (см. комментарий у .rowHeadName).
+.cellFigure {
+    inline-size: 0;
+    min-inline-size: 100%;
+    overflow: hidden;
+}
+
+.empty {
+    margin: 0;
+    padding-block: var(--sys-stack-section);
+    text-align: center;
+    color: var(--sys-color-text-secondary);
+}
+
+.visuallyHidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}

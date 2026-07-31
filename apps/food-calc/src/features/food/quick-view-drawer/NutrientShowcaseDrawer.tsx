@@ -1,11 +1,17 @@
+import { useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { NormLegendButton } from '@/features/dailyNorms/NormLegendButton';
+import { NutrientMatrixModal } from '@/features/dailyNorms/NutrientMatrixModal';
 import { NutrientTotals } from '@/entities/nutrient/ui/NutrientTotals';
 import { OpenPageGlyph } from '@/shared/ui/atoms/OpenPageGlyph';
+import ListIcon from '@/shared/assets/icons/list.svg?react';
+import { modalStore } from '@/shared/ui';
 import { IconButton } from '@/shared/ui/atoms/Button';
 import { Select, type SelectOption } from '@/shared/ui/atoms/Select';
 import { Text } from '@/shared/ui/atoms/Typography';
 import { useViewTransitionNavigate } from '@/shared/lib/viewTransition';
+import { preloadRoute } from '@/shared/lib/routing/preloadRoute';
 import { useNutrientTotals } from '@/shared/lib/useNutrientTotals';
 import { capitalizeFirst } from '@/shared/lib/text/capitalizeFirst';
 // Тип карты нутриентов алиасим: имя `NutrientTotals` заняла витрина из entities.
@@ -93,6 +99,18 @@ interface NutrientShowcaseDrawerProps extends BaseDrawerProps {
    * страницу сущности; read-only витрины передают свою нейтральную.
    */
   emptyHint?: string;
+  /**
+   * День расписания (YYYY-MM-DD). Передан → в topRight появляется кнопка
+   * матрицы «позиции дня × нутриенты» (NutrientMatrixModal). Не передают
+   * витрины сущностей (продукт/блюдо) — у них нет «дня».
+   */
+  date?: string;
+  /**
+   * Необязательный футер ПОД витриной (вход в смежную фичу — напр. кнопка
+   * «Что доесть?» у дневной витрины). Каркас его не знает и не стилизует:
+   * консумер отдаёт готовый узел, витрины сущностей слот не передают.
+   */
+  footer?: ReactNode;
 }
 
 /**
@@ -128,9 +146,19 @@ export function NutrientShowcaseDrawer({
   loading,
   missingNutrientNames,
   emptyHint = 'Добавить нутриенты можно на странице',
+  date,
+  footer,
   onClose,
 }: NutrientShowcaseDrawerProps) {
+  const { t } = useTranslation();
   const displayName = capitalizeFirst(title);
+
+  // Прогрев lazy-чанка целевой страницы сразу при открытии дровера: клик
+  // «Открыть страницу» — VT-навигация, а саспенд на холодном чанке внутри
+  // VT update callback обрывает переход (4s paused-rendering budget в Blink).
+  useEffect(() => {
+    if (pageRoute) preloadRoute(pageRoute);
+  }, [pageRoute]);
 
   // Контрол базиса (2026-07-25, запрос): у еды — селект порции, у супплемента —
   // тихий статичный бейдж (нет граммовых опор → менять нечего, но базис показать
@@ -174,27 +202,49 @@ export function NutrientShowcaseDrawer({
     <DrawerLayout
       header={{ kind: 'compact', title: displayName, subtitle }}
       topRight={
-        pageRoute ? (
-          // Кнопка «уйти на страницу»: глиф ↗ (OpenPageGlyph — понятнее тихого
-          // шеврона, что это ПЕРЕХОД на страницу, а не «следующий шаг»). Тон `soft`
-          // — покойная ink-подложка (запрос 2026-07-25: голый ghost-глиф терялся
-          // без опоры). 44 тап-арея (= --sys-size-control); справа выравнивание по
-          // КРОМКЕ плитки (слева — по глифу креста), глиф центрирован в плитке.
-          // Глиф — явные 24×24 на самом svg (а не named-size): на номинале
-          // chrome(16) стрелка оптически проигрывала плотному кресту.
-          <span className={s.pageLink}>
-            <IconButton
-              className={s.pageLinkBtn}
-              tone="soft"
-              size={44}
-              onClick={handleOpenPage}
-              aria-label={`Открыть страницу: ${displayName}`}
-              icon={<OpenPageGlyph width={24} height={24} />}
-            />
-          </span>
+        date || pageRoute ? (
+          <>
+            {date && (
+              // Матрица «позиции дня × нутриенты» (2026-07-31, прототип): тот же
+              // topRight-слот и тон `soft`, что у кнопки страницы. Кнопка объявлена
+              // здесь же — отдельного компонента нет. Рендерится только когда день
+              // передан (витрины сущностей date не передают).
+              <span className={s.pageLink}>
+                <IconButton
+                  className={s.pageLinkBtn}
+                  tone="soft"
+                  size={44}
+                  onClick={() => void modalStore.show(NutrientMatrixModal, { date })}
+                  aria-label={t('nutrientMatrix.open', 'Матрица: продукты × нутриенты')}
+                  icon={<ListIcon width={24} height={24} />}
+                />
+              </span>
+            )}
+            {pageRoute && (
+              // Кнопка «уйти на страницу»: глиф ↗ (OpenPageGlyph — понятнее тихого
+              // шеврона, что это ПЕРЕХОД на страницу, а не «следующий шаг»). Тон `soft`
+              // — покойная ink-подложка (запрос 2026-07-25: голый ghost-глиф терялся
+              // без опоры). 44 тап-арея (= --sys-size-control); справа выравнивание по
+              // КРОМКЕ плитки (слева — по глифу креста), глиф центрирован в плитке.
+              // Глиф — явные 24×24 на самом svg (а не named-size): на номинале
+              // chrome(16) стрелка оптически проигрывала плотному кресту.
+              <span className={s.pageLink}>
+                <IconButton
+                  className={s.pageLinkBtn}
+                  tone="soft"
+                  size={44}
+                  onClick={handleOpenPage}
+                  aria-label={`Открыть страницу: ${displayName}`}
+                  icon={<OpenPageGlyph width={24} height={24} />}
+                />
+              </span>
+            )}
+          </>
         ) : undefined
       }
-      surface={1}
+      // Хват-пилюля на верхней кромке убрана (запрос 2026-07-29 — «уродует»):
+      // драг листа между фазами работает и без неё, клавиатурный тап-путь — крест.
+      hideGrabHandle
     >
       <div className={s.body}>
         {/* Витрина нутриентов (2026-07-25): hero-ведомость макро — 6 боксов
@@ -251,6 +301,7 @@ export function NutrientShowcaseDrawer({
             Нет данных о нутриентах: {missingNutrientNames.join(', ')}
           </Text>
         )}
+        {footer}
       </div>
     </DrawerLayout>
   );

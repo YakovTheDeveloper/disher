@@ -30,6 +30,12 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   tone?: IconButtonTone;
   /** Визуальный вес (ортогонален tone). `quiet` — тусклее глиф. По умолч. default. */
   emphasis?: IconButtonEmphasis;
+  /**
+   * Рамка БЕЗ подложки (фон прозрачный), цвет — тихий 3%-ink
+   * (--sys-color-surface-icon-tile). Каноничная связка — tone="ghost" bordered
+   * (chrome-кнопки хедера дроверов: крест/назад).
+   */
+  bordered?: boolean;
   /** Сторона квадратного тап-таргета (px). Без фикс-пресетов — прокидывается. */
   size?: number;
   /**
@@ -53,7 +59,7 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // он прокидывает ref на каркас для focus-менеджмента. В label-режиме (`htmlFor`)
 // ref не форвардится (Base UI этот путь не использует).
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { icon, tone, emphasis, size, dot, className, style, type = 'button', htmlFor, disabled, ...props },
+  { icon, tone, emphasis, bordered, size, dot, className, style, type = 'button', htmlFor, disabled, ...props },
   ref
 ) {
   const { pressed, pressProps } = usePressFeedback();
@@ -64,6 +70,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
     tone === 'ghost' && s.ghost,
     tone === 'soft' && s.soft,
     emphasis === 'quiet' && s.quiet,
+    bordered && s.bordered,
     className
   );
   const mergedStyle = size != null ? { ...style, width: size, height: size } : style;

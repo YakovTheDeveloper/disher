@@ -116,6 +116,9 @@ export const InlineWriteFoodReview = ({ flow }: InlineWriteFoodReviewProps) => {
         productId: row.choice ? row.choice.productId : matcherId,
         dishId: row.choice?.dishId ?? null,
         foodName: displayName,
+        // LLM-профиль unresolved-ряда (dish-products) едет в draft — автоподбор
+        // состава на шаге «Создать еду» пишет его без лишнего запроса.
+        nutrients: 'nutrients' in row ? row.nutrients : undefined,
       };
     },
     [resolved, ambiguous, unresolved]

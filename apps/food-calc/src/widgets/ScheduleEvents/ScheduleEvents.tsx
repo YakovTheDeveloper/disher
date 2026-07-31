@@ -59,7 +59,7 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
     setEditingStep(step);
   };
 
-  // Праймит item БЕЗ шага (шаг ставит focus-делегация медали) — модалка монтируется
+  // Праймит item БЕЗ шага (шаг ставит focus-делегация ряда) — модалка монтируется
   // свёрнутой, её always-input'ы существуют для `<label htmlFor>`. Синхронный setStep
   // здесь размонтировал бы label дровера до делегирования (CLAUDE.md «Label focus
   // delegation»); шаг флипает handleFocusCapture модалки, оно же закрывает дровер.
@@ -68,9 +68,9 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
     setEditingStep('idle');
   };
 
-  // Long-press → per-item action drawer: delete (top-right) + ряд из трёх круглых
-  // медалей (тот же RoundButton, что у еды): Особенности · Описание · Время. У
-  // события нет detail-страницы, поэтому ряд заменяет «info»-действие.
+  // Long-press → per-item action drawer: danger-ряд удаления внизу + секция
+  // «Поменять» из трёх рядов SettingRow: Особенности · Описание · Время. У
+  // события нет detail-страницы, поэтому секция заменяет «info»-действие.
   const openActionsDrawer = (item: ScheduleEvent) => {
     void drawerStore.show(
       ItemActionsDrawer,
@@ -83,10 +83,9 @@ const ScheduleEvents = ({ date, events, topSlot, topContent, topBarHide }: Props
           const res = await safeMutate(() => removeScheduleEvents([item.id]), 'Не удалось удалить');
           if (res.ok) toaster.success('Удалено');
         },
-        actions: [],
         editActions: buildEventEditActions(() => primeEditEvent(item)),
       },
-      // trapFocus:false — иначе focus-trap дровера завернул бы делегацию медали
+      // trapFocus:false — иначе focus-trap дровера завернул бы делегацию label-ряда
       // назад, и фокус не дошёл бы до input'а edit-модалки (он вне портала дровера).
       { trapFocus: false }
     );

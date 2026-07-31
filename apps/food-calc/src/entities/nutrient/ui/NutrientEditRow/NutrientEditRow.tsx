@@ -51,6 +51,7 @@ export function NutrientEditRow({ name, unit, value, onValueChange, compact, dat
               onChange={setDraft}
               onBlur={handleBlur}
               className={s.editInput}
+              allowDecimals
             />
             <Text as="span" role="label" className={s.unitProminent}>{unit}</Text>
           </div>

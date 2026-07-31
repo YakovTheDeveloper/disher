@@ -146,6 +146,18 @@ export interface CustomTagRow {
   updated_at: string;
 }
 
+// Products the user never wants the suggest feature («Что доесть?») to offer.
+// Same shape as custom_tags: keyed by product_id (catalog id or user
+// products.id), one row per banned product by construction in the writer. The
+// ban applies to suggestions only — the product stays visible in search and in
+// already-planned meals.
+export interface ProductBlacklistRow {
+  id: string;
+  product_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // A tombstone for a hard-deleted row. Written (alongside the row's removal, in
 // one rw-tx) by the deleteRow/deleteRows write contract; read by merge() to
 // suppress revival of a row another device still holds. Keyed by the deleted
@@ -184,6 +196,7 @@ export class DisherDB extends Dexie {
   hypotheses!: Table<HypothesisRow, string>;
   insights!: Table<InsightRow, string>;
   custom_tags!: Table<CustomTagRow, string>;
+  product_blacklist!: Table<ProductBlacklistRow, string>;
   tombstones!: Table<TombstoneRow, string>;
 
   constructor() {
@@ -300,6 +313,14 @@ export class DisherDB extends Dexie {
     // DOMAIN_TABLES so it LWW-merges and rides the backup snapshot.
     this.version(8).stores({
       insights: 'id',
+    });
+
+    // v9 (2026-07-31): add the `product_blacklist` store — products excluded
+    // from the «Что доесть?» suggestions. Same shape as custom_tags (v5):
+    // existing stores untouched, index on product_id for the id lookup; it
+    // joins DOMAIN_TABLES so it LWW-merges and rides the backup snapshot.
+    this.version(9).stores({
+      product_blacklist: 'id, product_id',
     });
   }
 }

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <!-- отсечка под бейдж-плюс: кольцевой зазор, как у грозди -->
+      <circle cx="770" cy="300" r="181" fill="#000"/>
+      <!-- негативная прорезь-пульс через сердце -->
+      <polyline points="250,470 350,470 400,385 465,560 515,470 630,470"
+                fill="none" stroke="#000" stroke-width="42"
+                stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g fill="#fff">
+    <!-- сердце: органика-силуэт -->
+    <path mask="url(#cut)" d="M 415 476
+      C 415 401 378 314 297 296
+      C 217 277 142 339 136 426
+      C 130 531 229 624 415 748
+      C 601 624 700 531 694 426
+      C 688 339 613 277 533 296
+      C 452 314 415 401 415 476 Z"/>
+    <!-- бейдж-плюс: строгая геометрия поверх органики -->
+    <circle cx="770" cy="300" r="135" fill="none" stroke="#fff" stroke-width="40"/>
+    <rect x="748" y="225" width="44" height="150" rx="14"/>
+    <rect x="695" y="278" width="150" height="44" rx="14"/>
+  </g>
+</svg>

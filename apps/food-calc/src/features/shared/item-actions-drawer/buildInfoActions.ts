@@ -2,6 +2,7 @@ import type { NavigateFunction } from 'react-router-dom';
 import type { ItemAction } from './ItemActionsDrawer';
 import { RouterUrls } from '@/shared/config/routes';
 import { pushNavigate } from '@/shared/lib/viewTransition';
+import { isCatalogId } from '@/shared/data/catalog';
 
 type InfoItem = {
   type: string;
@@ -13,7 +14,9 @@ type InfoItem = {
  * «Информация о продукте/блюде» action for the per-item drawer — present ONLY
  * when the row points at a real entity. An orphan / unresolved row (no
  * productId and no dishId) returns an empty list, so the drawer shows delete
- * only and we never navigate for a null entity.
+ * only and we never navigate for a null entity. Каталожный продукт страницы
+ * НЕ имеет (build-route, read-only) → тоже пустой список, кнопки ↗ в хедере
+ * не будет (та же гейта, что `pageRoute` в ProductDrawer).
  *
  * Both product and dish navigate to the full entity page (`/product/:id`,
  * `/dish/:id`) — this is the deep «Информация» affordance. The quick-peek bottom
@@ -34,7 +37,7 @@ export function buildInfoActions(item: InfoItem, navigate: NavigateFunction): It
       },
     ];
   }
-  if (item.type === 'food' && item.productId) {
+  if (item.type === 'food' && item.productId && !isCatalogId(item.productId)) {
     const productId = item.productId;
     return [
       {

@@ -28,6 +28,29 @@ export function useProduct(productId: string | undefined): Product | null {
   }, [products, productId]);
 }
 
+/**
+ * Как `useProduct`, но различает «ещё грузится из Dexie» и «продукта нет»
+ * (удалён / осиротевший id). `useProduct` коалесит первый undefined-тик
+ * liveQuery в `[]`, поэтому там оба случая неотличимы — вечный `null`. Здесь
+ * пока user-строки не приехали и в каталоге (sync build-артефакт) продукта нет —
+ * `loading: true`. Так ProductDrawer отличает ghost-загрузку от «продукт не
+ * найден» (зеркало `useDishWithStatus`).
+ */
+export function useProductWithStatus(
+  productId: string | undefined,
+): { product: Product | null; loading: boolean } {
+  const userRows = useLiveQuery(() => db.products.toArray(), []);
+  const catalogProducts = useMemo(() => catalog.map(mapProductRow), []);
+  return useMemo(() => {
+    if (!productId) return { product: null, loading: false };
+    const userProduct = userRows?.map(mapProductRow).find((p) => p.id === productId);
+    if (userProduct) return { product: userProduct, loading: false };
+    const catalogHit = catalogProducts.find((p) => p.id === productId);
+    if (catalogHit) return { product: catalogHit, loading: false };
+    return { product: null, loading: userRows === undefined };
+  }, [catalogProducts, userRows, productId]);
+}
+
 export function useProducts(search?: string): Product[] {
   const products = useAllProducts();
   return useMemo(() => {
@@ -35,6 +58,12 @@ export function useProducts(search?: string): Product[] {
     const lower = search.toLowerCase();
     return products.filter((r) => r.name?.toLowerCase().includes(lower));
   }, [products, search]);
+}
+
+/** True на первом тике liveQuery (user-строки ещё undefined) — гейт для
+ *  оркестраторов, которые не должны считать на полупустом каталоге. */
+export function useProductsLoading(): boolean {
+  return useLiveQuery(() => db.products.toArray(), []) === undefined;
 }
 
 export function useProductsByIds(productIds: string[]): Product[] {

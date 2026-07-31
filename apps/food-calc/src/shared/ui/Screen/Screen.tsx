@@ -141,7 +141,7 @@ const Screen = ({
   topBarHide,
 }: Props) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const { sentinelRef, hasMoreBelow } = useScrollBottomIndicator(scrollContainerRef);
+  const { sentinelRef, hasMoreBelow, canScroll } = useScrollBottomIndicator(scrollContainerRef);
 
   // Направление-зависимое скрытие кнопок бара (Headroom-канон). Активный экран
   // — тот, что реально скроллят; смена слайда сбрасывает бар через
@@ -246,7 +246,10 @@ const Screen = ({
                 {sheetDateLabel != null && (
                   <QuietLabel className={styles.sheetBandDay}>{sheetDateLabel}</QuietLabel>
                 )}
-                <span className={styles.sheetGrabber} />
+                {/* Хват-пилюля только когда контент реально скроллится
+                    (canScroll = sentinel под вьюпортом, без pre-trigger margin):
+                    на экране, где скроллить нечего, «лист, который тянется» врёт. */}
+                {canScroll && <span className={styles.sheetGrabber} />}
               </div>
               {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
               {topRow}

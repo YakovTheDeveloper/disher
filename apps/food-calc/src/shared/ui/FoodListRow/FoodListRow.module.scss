@@ -1,0 +1,162 @@
+// ──────────────────────────────────────────────────────────────────────
+// FoodListRow — скелет ряда-карточки еды (выделен из FoodActionCard 2026-07-31).
+// Каркас несёт раскладку и состояния (hover/press/plum), контент — через слоты;
+// контекстные флипы контента живут в модулях консумеров и ключуются по якорю
+// className + data-active / data-pressed на корне.
+// Surface-токены (--sys-card-*) приходят с живого варианта ModalShell на
+// `body[data-modal-fields]` (см. tds/modalshell-lawgiver-2026-06-13).
+// --rail-* (gutter/gap/thumb) — контракт хоста; fallbacks встроены, каркас
+// самодостаточен без хоста.
+// ──────────────────────────────────────────────────────────────────────
+
+.wrapper {
+    // Тело ряда (бывший stripe-fork-row(), заинлайнен 2026-07-10).
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+
+    background: var(--sys-card-bg);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    // Маркеры «выбрано» (amber-кромка + галочка-бейдж) убраны по запросу 2026-06-26:
+    // единственный фидбэк ряда — тёмная press-заливка ниже. Держим outline прозрачным.
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+
+    border-radius: var(--sys-radius-control);
+
+    // Градиенты-реликты сняты локально (просьба 2026-07-10 «градиенты = пережиток»).
+    // Переопределяем hover/press-заливку карточки на ПЛОСКИЕ токены — не трогая
+    // общий paper-mono-cards (--sys-card-hover/press-bg там ещё несут градиент для
+    // ScheduleNavigator/NutrientRow/RangeCalendar). hover = утопленный ink-wash,
+    // press = плоский near-black. Полюс «выбрано» (plum) уже плоский.
+    --sys-card-hover: var(--sys-card-bg-sunk);
+    --sys-card-press-bg: var(--sys-card-text-rest);
+
+    transition:
+        background var(--press-out) ease,
+        outline-color 0.18s ease,
+        transform var(--press-out) var(--easing-spring);
+
+    // Divider ряда: СПЛОШНОЙ в середине + лёгкое 20px-затухание строго по кончикам
+    // (запрос юзера). В плотном сканируемом списке глазу нужна твёрдая линия-рельс, а
+    // не воздушный fade — поэтому это НЕ канонический тающий hairline (18%/82%), а
+    // узкий 20px-фейд только у самых краёв. Это НЕ рамка вокруг ряда (анти-паттерн
+    // «Laboratory trap») — по-прежнему divider снизу на var(--sys-card-hairline).
+    //
+    // Левый край divider = НАЧАЛО ИМЕНИ, чтобы взгляд вёл воображаемую дугу от
+    // контента вниз к бордеру (iOS-сепаратор, aligned to text). Адаптивно:
+    //  • без leading-слота имя стартует от рельсы ряда --rail-gutter → divider
+    //    оттуда же;
+    //  • с leading имя уезжает за слот, divider тянется от края карточки (0).
+    // До правого края — flush (карточка уже вжата рамой, отдельный right-инсет не нужен).
+    &::after {
+        content: '';
+        position: absolute;
+        left: var(--rail-gutter, var(--space-4));
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg,
+                transparent 0,
+                var(--sys-card-hairline) 20px,
+                var(--sys-card-hairline) calc(100% - 20px),
+                transparent 100%);
+        pointer-events: none;
+    }
+
+    &[data-has-leading]::after {
+        left: 0;
+    }
+
+    &:last-child::after {
+        display: none;
+    }
+
+    &:hover {
+        background: var(--sys-card-hover);
+    }
+
+    &:active {
+        transition-duration: var(--sys-duration-press-in);
+    }
+
+    // Press — заливка ВСЕЙ карточки в near-black (просьба 2026-07-11: «карточка
+    // темнеет ЦЕЛИКОМ, а не отдельной чёрной плиткой»). Radius наследуется от
+    // .wrapper (--sys-radius-control) → тёмный фон скруглён по всему ряду.
+    &[data-pressed] {
+        background: var(--sys-card-press-bg);
+        transition-duration: var(--sys-duration-press-in);
+    }
+
+    // Нижний divider-::after прорезал бы тёмную заливку хайрлайном — гасим на press.
+    &[data-pressed]::after {
+        display: none;
+    }
+}
+
+// «Выбрано» = канон-indicator (как выбранные чипы / Choice): плоский plum + флип
+// текста. Полюс «выбрано» = plum читается ПРЯМО из своей sys-пары
+// (--sys-color-bg-selected-plum / --sys-color-text-on-selected-plum), а НЕ через
+// scope-override семантического --sys-color-*-selected.
+//
+// Форма: заливка ВСЕГО ряда plum. Gated на :not([data-pressed]) (2026-07-11):
+// press теперь тоже полная заливка .wrapper, поэтому без gate плюм перебивал бы
+// тёмный press на выбранном ряду. Гейт снимает plum на время тапа → выбранный
+// ряд на press темнеет ЦЕЛИКОМ, как и любой другой (press-фидбэк виден).
+.wrapper[data-active]:not([data-pressed]) {
+    background: var(--sys-color-bg-selected-plum);
+}
+
+// Divider выбранного ряда гасим — plum-плитка сама держит край (иначе хайрлайн
+// ::after прорезал бы её снизу, см. press-::after выше).
+.wrapper[data-active]::after {
+    display: none;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    // padding-left + gap = левый край рельсы имён (--rail-text). Читаем общие --rail-*
+    // (заданы хостом), fallback = прежние литералы — карточка, поле поиска и заголовок
+    // считаются из ОДНОГО источника и не рассинхронятся.
+    // Вертикальный padding у .item НАМЕРЕННО снят — высоту ряда держит trailing-кнопка
+    // (56px), поэтому ряд = 56px без своего padding.
+    flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+
+    cursor: pointer;
+    transition: background var(--press-out) ease;
+    gap: var(--rail-gap, 14px);
+    margin: 0;
+    border-radius: inherit;
+    z-index: 1; // держим контент в своём stacking-context — имя всегда читаемо
+}
+
+// Текст-колонка: имя (главная строка) + тихий вид-подпись под ним. Column, чтобы
+// подпись стояла ПОД именем, а не в строку. flex:1 + min-width:0 забирает ширину
+// между leading-слотом и правым trailing → имя/подпись обрезаются ellipsis.
+.nameCol {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
+    gap: 1px;
+}
+
+// ─── Reduced-motion ──────────────────────────────────────────────────
+// Press highlight (смена фона) остаётся — это не motion, а abrupt
+// luminance change. Гасим только transform-составляющую pop'а (scale строки).
+@media (prefers-reduced-motion: reduce) {
+    .wrapper:active {
+        transform: none;
+    }
+}

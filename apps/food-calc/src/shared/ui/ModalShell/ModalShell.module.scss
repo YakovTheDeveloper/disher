@@ -25,6 +25,19 @@
   padding-inline: var(--sys-inset-modal-fullscreen);
 }
 
+// `contentPadding="none"`: контентная зона edge-to-edge (широкие скролл-таблицы).
+// Хедер завязан на wrapper'ный инсет (сам горизонтального padding не несёт —
+// см. ModalHeader.module.scss), поэтому при flush он получает тот же инсет
+// своим паддингом: стрелка/заголовок остаются на колее, инсет снимается только
+// с контента.
+.wrapperFlush {
+  padding-inline: 0;
+
+  > header {
+    padding-inline: var(--sys-inset-modal-fullscreen);
+  }
+}
+
 // ── ModalShell ambient background — single monochrome tone ───────────────────
 // После «великой унификации» (2026-06-19) ModalShell несёт один фиксированный тон
 // `mono`, запечённый прямо на `.wrapper` (dev-форк `data-dv='ModalShell'` снят

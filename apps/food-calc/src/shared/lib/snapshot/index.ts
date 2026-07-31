@@ -26,8 +26,9 @@ const URL = `${API_BASE}/api/backup`;
 
 export type Snapshot = Record<string, unknown[]>;
 
-// The ten user-owned domain tables merge() reconciles (tombstones ride their
-// own track; `periods` was dropped in schema v7, `insights` added in v8).
+// The eleven user-owned domain tables merge() reconciles (tombstones ride their
+// own track; `periods` was dropped in schema v7, `insights` added in v8,
+// `product_blacklist` in v9).
 // Single source of truth for "which tables hold user rows that LWW-merge".
 export const DOMAIN_TABLES = [
   'products',
@@ -40,6 +41,7 @@ export const DOMAIN_TABLES = [
   'hypotheses',
   'insights',
   'custom_tags',
+  'product_blacklist',
 ] as const;
 
 // Minimal row lens merge() needs: the id and the LWW key. updated_at/created_at

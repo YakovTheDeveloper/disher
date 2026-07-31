@@ -2,6 +2,7 @@ import { useId, type CSSProperties, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { usePressFeedback } from '@/shared/lib/hooks/usePressFeedback';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { Text } from '@/shared/ui/atoms/Typography';
 import s from './RoundButton.module.scss';
 
 export interface RoundButtonProps {
@@ -35,6 +36,12 @@ export interface RoundButtonProps {
   arcTop?: string;
   /** Lower arc caption. */
   arcBottom?: string;
+  /**
+   * Подпись ПОД кругом (без дуги) — тихий `Text role="caption"`, висящий под медалью.
+   * Часть кликабельной области (рендерится внутри button/label). Альтернатива дуговому
+   * тексту для standalone-медалей вне бара (бывший ряд правок дровера действий).
+   */
+  caption?: string;
   /**
    * Тихий шеврон › на ПРАВОМ краю медали, по вертикали в центре — affordance
    * «откроет / следующий шаг» (FAB «Новая еда» в поиске). Наследует цвет глифа
@@ -110,6 +117,7 @@ export const RoundButton = ({
   centerNode,
   arcTop,
   arcBottom,
+  caption,
   sideChevron,
   dimmed,
   lifted,
@@ -169,6 +177,11 @@ export const RoundButton = ({
         <span className={s.roundButtonChevron} aria-hidden>
           <ChevronGlyph />
         </span>
+      )}
+      {caption && (
+        <Text as="span" role="caption" className={s.roundButtonCaption}>
+          {caption}
+        </Text>
       )}
     </>
   );

@@ -162,6 +162,19 @@ const SearchFoodControls = ({
     // the right. Bar scrolls away with the list; the ModalHeader stays put.
     <div className={clsx(styles.bar, className)}>
       <div className={styles.pill}>
+        {/* Крестик очистки — в НАЧАЛЕ поля (просьба 2026-07-29): в конце он слипался
+            с соседней кнопкой-фильтром. Стиль = tone="soft" IconButton (круглая
+            ink-плитка + холодный глиф), один облик с ⓘ/фильтром. */}
+        {searchQuery.length > 0 && (
+          <IconButton
+            tone="soft"
+            size={32}
+            className={styles.clearButton}
+            onClick={() => onSearchChange('')}
+            aria-label="Очистить поиск"
+            icon={<CrossIcon width={12} height={12} />}
+          />
+        )}
         <div className={styles.searchIcon}>
           <SearchIcon />
         </div>
@@ -178,14 +191,6 @@ const SearchFoodControls = ({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
         />
-        {searchQuery.length > 0 && (
-          <IconButton
-            className={styles.clearButton}
-            onClick={() => onSearchChange('')}
-            aria-label="Очистить поиск"
-            icon={<CrossIcon />}
-          />
-        )}
       </div>
 
       {showFilterButton && (

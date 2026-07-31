@@ -5,18 +5,26 @@ const mockUseScheduleFoods = vi.fn();
 const mockUseDishItemsByDishIds = vi.fn();
 const mockUseNutrientsByProductIds = vi.fn();
 const mockUseBasisByProductIds = vi.fn();
+const mockScheduleFoodsLoading = vi.fn();
+const mockDishesLoading = vi.fn();
+const mockDishItemsLoading = vi.fn();
+const mockProductsLoading = vi.fn();
 
 vi.mock('./queries', () => ({
   useScheduleFoods: (...args: unknown[]) => mockUseScheduleFoods(...args),
+  useScheduleFoodsLoading: () => mockScheduleFoodsLoading(),
 }));
 
 vi.mock('@/entities/dish', () => ({
   useDishItemsByDishIds: (...args: unknown[]) => mockUseDishItemsByDishIds(...args),
+  useDishesLoading: () => mockDishesLoading(),
+  useDishItemsLoading: () => mockDishItemsLoading(),
 }));
 
 vi.mock('@/entities/product', () => ({
   useNutrientsByProductIds: (...args: unknown[]) => mockUseNutrientsByProductIds(...args),
   useBasisByProductIds: (...args: unknown[]) => mockUseBasisByProductIds(...args),
+  useProductsLoading: () => mockProductsLoading(),
 }));
 
 import { useScheduleNutrientTotals } from './useScheduleNutrientTotals';
@@ -68,6 +76,10 @@ function setupMocks(opts: {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockScheduleFoodsLoading.mockReturnValue(false);
+  mockDishesLoading.mockReturnValue(false);
+  mockDishItemsLoading.mockReturnValue(false);
+  mockProductsLoading.mockReturnValue(false);
   setupMocks({});
 });
 
@@ -78,6 +90,19 @@ describe('useScheduleNutrientTotals', () => {
       expect(result.current.totals).toEqual({});
       expect(result.current.missingNutrientNames).toEqual([]);
       expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('isLoading — гейт первого тика', () => {
+    it.each([
+      ['schedule_foods', mockScheduleFoodsLoading],
+      ['products', mockProductsLoading],
+      ['dishes', mockDishesLoading],
+      ['dish_items', mockDishItemsLoading],
+    ])('%s ещё грузятся → isLoading: true', (_label, mock) => {
+      mock.mockReturnValue(true);
+      const { result } = renderHook(() => useScheduleNutrientTotals('2026-01-01'));
+      expect(result.current.isLoading).toBe(true);
     });
   });
 

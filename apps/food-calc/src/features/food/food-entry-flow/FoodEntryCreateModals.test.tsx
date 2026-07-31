@@ -1,9 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- lightweight test-mock props */
 import { render, screen, fireEvent, waitFor, renderHook, act } from '@testing-library/react';
+import { useEffect } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 import FoodEntryCreateModals from './FoodEntryCreateModals';
-import { useFoodEntryFlow, type FoodEntryTarget } from './useFoodEntryFlow';
+import {
+  useFoodEntryFlow,
+  type FoodEntryTarget,
+  type FoodEntryFlow,
+  type ProposalEditItem,
+} from './useFoodEntryFlow';
+import { allNutrientsList } from '@/entities/nutrient/ui/NutrientGroup/constants';
 import { foodEntryInputIds } from './inputIds';
 import { isJustAdded, takeJustAdded } from '@/shared/model/recentlyAddedStore';
 
@@ -48,6 +55,18 @@ const mockToasterSuccess = vi.fn();
 vi.mock('@/shared/lib/toaster/toaster', () => ({
   default: { success: (...a: any[]) => mockToasterSuccess(...a) },
 }));
+
+// Suggest-ручка (fallback автоподбора) — сетевая; маппер name→id оставляем
+// настоящим, его и валидируем на LLM-профиле ряда.
+const mockSuggestNutrients = vi.fn();
+vi.mock('@/features/food/product-drawer/suggestProductNutrients', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/food/product-drawer/suggestProductNutrients')>();
+  return {
+    ...actual,
+    suggestProductNutrients: (...a: any[]) => mockSuggestNutrients(...a),
+  };
+});
 
 let hasHintsValue = false;
 const setHasHints = (v: boolean) => {
@@ -457,5 +476,211 @@ describe('FoodEntryCreateModals — header back steps to previous step', () => {
     clickActiveBack();
     expect(mockAddDishItem).not.toHaveBeenCalled();
     expect(screen.getByTestId('search-food')).toBeInTheDocument();
+  });
+});
+
+// ── nutrientAssist: автоподбор состава при rescue-создании из предложки ──────
+// Форма открыта из unresolved-ряда (target 'proposal', mode 'edit', проп
+// nutrientAssist): чекбокс «Подобрать автоматически» (дефолт ON) прячет ручной
+// редактор, сабмит пишет LLM-профиль ряда (name→id) или дёргает suggest-ручку.
+describe('FoodEntryCreateModals — nutrientAssist (proposal rescue)', () => {
+  const nameToId = (name: string) =>
+    allNutrientsList.find((n) => n.name === name)?.id ?? `?${name}`;
+
+  const flowRef: { current: FoodEntryFlow | null } = { current: null };
+  const ProposalHarness = ({ onCommit }: { onCommit: (uid: string, patch: any) => void }) => {
+    const flow = useFoodEntryFlow({
+      mode: 'edit',
+      target: { kind: 'proposal', host: 'schedule', onCommit },
+    });
+    useEffect(() => {
+      flowRef.current = flow;
+    });
+    return <FoodEntryCreateModals flow={flow} nutrientAssist />;
+  };
+
+  const openRescueCreate = (
+    onCommit: (uid: string, patch: any) => void,
+    nutrients?: Record<string, number>,
+    details = '',
+  ) => {
+    render(<ProposalHarness onCommit={onCommit} />);
+    const item: ProposalEditItem = {
+      id: 'uid-1',
+      time: '10:00',
+      quantity: 150,
+      details,
+      variant: 'product',
+      productId: null,
+      dishId: null,
+      foodName: 'Киноа',
+      nutrients,
+    };
+    act(() => {
+      flowRef.current!.startEdit(item, 'create');
+    });
+  };
+
+  beforeEach(() => {
+    mockSuggestNutrients.mockReset();
+    flowRef.current = null;
+  });
+
+  it('чекбокс по умолчанию включён и прячет ручной редактор; OFF возвращает его', () => {
+    openRescueCreate(vi.fn(), { protein: 14 });
+    // ON: автоподбор виден, «Указать состав» скрыт.
+    expect(screen.getByText('Подобрать автоматически')).toBeInTheDocument();
+    expect(screen.queryByText('Указать состав')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Подобрать автоматически'));
+    // OFF: caption «или» + ручной блок вернулись.
+    expect(screen.getByText('или')).toBeInTheDocument();
+    expect(screen.getByText('Указать состав')).toBeInTheDocument();
+  });
+
+  it('без пропа nutrientAssist чекбокса нет (обычные create-флоу не тронуты)', () => {
+    render(<Harness target={SCHEDULE} />);
+    focusInput(SCH_IDS.SEARCH_INPUT);
+    fireEvent.click(screen.getByTestId('pick-create-product'));
+    focusInput(SCH_IDS.CREATE_INPUT);
+    expect(screen.queryByText('Подобрать автоматически')).not.toBeInTheDocument();
+    expect(screen.getByText('Указать состав')).toBeInTheDocument();
+  });
+
+  it('LLM-профиль ряда маппится name→id и пишется в setProductNutrients без suggest-запроса', async () => {
+    const { setProductNutrients } = await import('@/entities/product');
+    const onCommit = vi.fn();
+    openRescueCreate(onCommit, { protein: 14, fats: 6, bogusName: 3 });
+
+    clickActiveByText('Создать');
+
+    await waitFor(() => expect(setProductNutrients).toHaveBeenCalledTimes(1));
+    const [, json] = (setProductNutrients as any).mock.calls[0];
+    expect(JSON.parse(json)).toEqual({
+      [nameToId('protein')]: 14,
+      [nameToId('fats')]: 6,
+    });
+    expect(mockSuggestNutrients).not.toHaveBeenCalled();
+    // Ряд предложки получил productId, как раньше.
+    await waitFor(() =>
+      expect(onCommit).toHaveBeenCalledWith(
+        'uid-1',
+        expect.objectContaining({ variant: 'product', productId: expect.any(String) }),
+      ),
+    );
+  });
+
+  it('без профиля — fire-and-forget suggest по имени, результат пишется в продукт', async () => {
+    const { setProductNutrients } = await import('@/entities/product');
+    mockSuggestNutrients.mockResolvedValue({ [nameToId('protein')]: 9 });
+    const onCommit = vi.fn();
+    openRescueCreate(onCommit);
+
+    clickActiveByText('Создать');
+
+    await waitFor(() => expect(mockSuggestNutrients).toHaveBeenCalledTimes(1));
+    expect(mockSuggestNutrients.mock.calls[0][0]).toBe('Киноа');
+    await waitFor(() =>
+      expect(setProductNutrients).toHaveBeenCalledWith(
+        expect.any(String),
+        JSON.stringify({ [nameToId('protein')]: 9 }),
+      ),
+    );
+  });
+
+  it('ошибка suggest — тихо: продукт создан, состав не пишется, без тоста', async () => {
+    const { setProductNutrients, createProduct } = await import('@/entities/product');
+    mockSuggestNutrients.mockRejectedValue(new Error('network'));
+    openRescueCreate(vi.fn());
+
+    clickActiveByText('Создать');
+
+    await waitFor(() => expect(mockSuggestNutrients).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(createProduct).toHaveBeenCalled());
+    // Даём промису-catch отработать.
+    await act(async () => {});
+    expect(setProductNutrients).not.toHaveBeenCalled();
+    expect(mockToasterSuccess).not.toHaveBeenCalled();
+  });
+
+  it('выключенный чекбокс — ручной состав уходит как раньше, suggest не зовётся', async () => {
+    const { setProductNutrients } = await import('@/entities/product');
+    openRescueCreate(vi.fn(), { protein: 14 });
+    fireEvent.click(screen.getByText('Подобрать автоматически'));
+    // Открыть ручной редактор и ввести белок.
+    fireEvent.click(screen.getByText('Указать состав'));
+
+    clickActiveByText('Создать');
+
+    // Ручной draft пуст (ничего не вводили) → setProductNutrients не зовётся,
+    // suggest тоже — автоподбор выключен, LLM-профиль ряда игнорируется.
+    await act(async () => {});
+    expect(mockSuggestNutrients).not.toHaveBeenCalled();
+    expect(setProductNutrients).not.toHaveBeenCalled();
+  });
+
+  // Фикс 2: профиль приехал, но mapped пуст (все ключи отфильтрованы) — бек уже
+  // ответил «нет usable-данных»; платный suggest повторно НЕ дёргаем.
+  it('профиль без usable-значений — suggest не вызывается, продукт без состава', async () => {
+    const { setProductNutrients, createProduct } = await import('@/entities/product');
+    openRescueCreate(vi.fn(), { bogusName: 5 });
+
+    clickActiveByText('Создать');
+
+    await waitFor(() => expect(createProduct).toHaveBeenCalled());
+    await act(async () => {});
+    expect(mockSuggestNutrients).not.toHaveBeenCalled();
+    expect(setProductNutrients).not.toHaveBeenCalled();
+  });
+
+  // Фикс 3: fallback-suggest получает details из unresolved-ряда.
+  it('fallback-suggest прокидывает details ряда в тело запроса', async () => {
+    mockSuggestNutrients.mockResolvedValue({});
+    openRescueCreate(vi.fn(), undefined, 'от бабушки, домашняя');
+
+    clickActiveByText('Создать');
+
+    await waitFor(() => expect(mockSuggestNutrients).toHaveBeenCalledTimes(1));
+    expect(mockSuggestNutrients.mock.calls[0][2]).toEqual({
+      details: 'от бабушки, домашняя',
+    });
+  });
+
+  // Фикс 1: БАД (базис 1 шт) несовместим с per-100 г автоподбором — чекбокс
+  // скрыт, suggest не зовётся, suggestedNutrients не пишутся; ручной редактор
+  // при этом доступен как раньше. Снятие «Таблетка» возвращает чекбокс в ON.
+  it('БАД скрывает автоподбор: suggest и профиль не пишутся, редактор на месте', async () => {
+    const { setProductNutrients, createProduct } = await import('@/entities/product');
+    openRescueCreate(vi.fn(), { protein: 14 });
+
+    fireEvent.click(screen.getByText('Таблетка / лекарство / БАД'));
+
+    expect(screen.queryByText('Подобрать автоматически')).not.toBeInTheDocument();
+    // Ручной редактор в режиме БАД работает как раньше.
+    expect(screen.getByText('Указать состав')).toBeInTheDocument();
+
+    clickActiveByText('Создать');
+
+    await waitFor(() =>
+      expect(createProduct).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Киноа', isSupplement: true }),
+      ),
+    );
+    await act(async () => {});
+    expect(mockSuggestNutrients).not.toHaveBeenCalled();
+    expect(setProductNutrients).not.toHaveBeenCalled();
+  });
+
+  it('снятие «Таблетка» возвращает чекбокс автоподбора включённым', () => {
+    openRescueCreate(vi.fn(), { protein: 14 });
+
+    fireEvent.click(screen.getByText('Подобрать автоматически')); // OFF
+    fireEvent.click(screen.getByText('Таблетка / лекарство / БАД')); // БАД ON → чекбокс скрыт
+    expect(screen.queryByText('Подобрать автоматически')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Таблетка / лекарство / БАД')); // БАД OFF → дефолт ON
+
+    expect(screen.getByText('Подобрать автоматически')).toBeInTheDocument();
+    // ON → ручной блок снова скрыт.
+    expect(screen.queryByText('Указать состав')).not.toBeInTheDocument();
   });
 });

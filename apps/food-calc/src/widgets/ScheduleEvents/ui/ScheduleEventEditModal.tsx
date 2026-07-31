@@ -179,7 +179,7 @@ const ScheduleEventEditModal = ({ item, initialStep = 'idle', onClose }: Props) 
           <ModalShell>
             <ModalShell.Header title="Оценки" onBack={handleClose} />
             <ModalShell.Body>
-              {/* `<label htmlFor>` с карточки/медали делегирует фокус сюда — readOnly-
+              {/* `<label htmlFor>` ряда дровера делегирует фокус сюда — readOnly-
                   прокси лишь раскрывает шаг (клавиатуры нет). */}
               <input
                 id={EDIT_MODAL_INPUT_IDS.ATOMS_INPUT}

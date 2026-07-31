@@ -1,0 +1,138 @@
+@import '@/shared/assets/style/mixin.scss';
+
+// Стили списка групп нутриентов — переехали из FoodEntryCreateModals.module.scss
+// вместе с выносом блока состава в переиспользуемый NutrientCompositionEditor
+// (консумеры: шаг создания продукта и EditNutrientsModal). Раскладка/линейка те же.
+
+// Панель групп — плоская (well, если нужен, несёт контейнер консумера), только
+// раскладка. Горизонтальный инсет читает системный `--sys-field-inset-x`.
+.groups {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sys-field-inset-x) 6px;
+}
+
+.nutrientsToggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--press-out) var(--easing-default), color var(--press-out) var(--easing-default), opacity 0.15s ease;
+
+  // Цветной отклик: тинт-подсветка на касание (quiet section-toggle archetype)
+  &:active {
+    background: var(--sys-color-bg-press);
+    color: var(--sys-field-caret, var(--color-ink));
+    transition-duration: var(--sys-duration-press-in);
+  }
+}
+
+// Заголовок группы = uppercase-sans (канон «нутриентные подписи — uppercase-sans,
+// serif туда НЕ заводить»). Кликабельность несёт вращающийся шеврон (Accordion),
+// не типографика.
+.nutrientsToggleTitle {
+  text-transform: uppercase;
+  color: var(--sys-color-text-secondary);
+}
+
+.nutrientsToggleHint {
+  color: var(--sys-color-text-tertiary);
+}
+
+// Группа-ряд. Между рядами — rail-divider «на всю длину» (правило Divider в
+// плотном варианте); у последней снят.
+.nutrientGroupItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  --group-hairline: var(--sys-card-hairline);
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    @include rail-divider(var(--group-hairline));
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+// Внутренний rail между тоглом и телом раскрытой группы — та же линия-рельс,
+// отделяет заголовок группы от её нутриент-полей.
+.nutrientGroupOpen .nutrientsToggle {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    @include rail-divider(var(--group-hairline));
+    pointer-events: none;
+  }
+}
+
+.nutrientsGrid {
+  // Одна колонка: карточка NutrientCardEditor (product-edit variant)
+  // проектировалась под full-width ряд. Ряды разделены rail-divider'ом
+  // (см. .inlineCard), поэтому gap нулевой — линия сама отбивает ряды.
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0 10px;
+}
+
+// Override стилей NutrientCardEditor при использовании внутри warm-stripe
+// группы. Передаётся как className prop. Карточка сидит на общей подложке
+// группы — собственный bg/shadow/radius лишние. Также убираем uppercase у
+// label'а («Белки», «Сахар» и т.п.) — внутри открытой группы заголовок
+// «БЖУ» уже uppercase, повтор читался бы как scaffolding.
+.inlineCard {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 8px 0 !important;
+  // Ряды нутриентов отбиты rail-divider'ом (как SearchFood-карточки); у
+  // последнего в группе снят. Карточка = position:relative (NutrientCardEditor).
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    @include rail-divider(var(--group-hairline, var(--sys-card-hairline)));
+    pointer-events: none;
+  }
+
+  // span внутри product-edit карточки = .name (см. NutrientCardEditor.tsx).
+  // Hashed CSS module class не таргетируется, используем тип-селектор.
+  > span {
+    text-transform: none !important;
+    color: var(--sys-color-text-system) !important;
+  }
+}
+
+// NutrientCardEditor `.card` сам объявляет field-depth(--sys-color-surface-1)
+// (standalone product-edit). Внутри well-контейнера консумера (compositionBlock
+// формы создания) это перебило бы НАМЕРЕННО более глубокий well нутриент-инпутов
+// (юзер-решение «инпуты глубже»). Переопределяем только bg-переменные глубины:
+// источник — наследуемая --panel-well консумера, иначе дефолт карточки. Hairline/
+// shadow у field-depth от поверхности не зависят — наследуются от `.card` как были.
+// Компаунд (0,2,0) детерминированно бьёт `.card` (0,1,0).
+.groups .inlineCard {
+  --sys-field-bg-from: color-mix(in oklch, var(--panel-well, var(--sys-color-surface-1)), var(--sys-field-well-shade) var(--sys-field-well-depth));
+  --sys-field-bg-mid: var(--sys-field-bg-from);
+  --sys-field-bg-to: var(--sys-field-bg-from);
+}

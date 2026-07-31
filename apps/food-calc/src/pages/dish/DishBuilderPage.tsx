@@ -30,7 +30,6 @@ import { useWallpaperStore } from '@/shared/lib/wallpaper';
 import { useCardPalette } from '@/shared/lib/cardPalette';
 import { FoodEntryCard } from '@/shared/ui/atoms/FoodEntryCard';
 import { Heading } from '@/shared/ui/atoms/Typography/Heading';
-import { Text } from '@/shared/ui/atoms/Typography';
 import toaster from '@/shared/lib/toaster/toaster';
 import { safeMutate } from '@/shared/lib/safeMutate';
 import { markAdded } from '@/shared/model/recentlyAddedStore';
@@ -44,7 +43,8 @@ import {
 import { DishHubDrawer } from '@/features/dish-analysis';
 import { useDishNutrientTotals } from '@/entities/dish';
 import { ItemActionsDrawer, buildInfoActions } from '@/features/shared/item-actions-drawer';
-import { DropdownMenu, DropdownMenuItem } from '@/shared/ui/DropdownMenu';
+import { EntityEditDrawer } from '@/features/shared/entity-edit-drawer';
+import { IconButton } from '@/shared/ui/atoms/Button';
 import EditIcon from '@/shared/assets/icons/edit.svg?react';
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { modalStore } from '@/shared/ui/modal-store';
@@ -52,6 +52,7 @@ import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import { SuggestIngredientsClarifyDrawer } from '@/features/food/food-free-text-parse/ui/SuggestIngredientsClarifyDrawer';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
+import { ProductDrawer } from '@/features/food/product-drawer';
 import { NutrientsBar } from '@/widgets/FoodSchedule/NutrientsBar';
 import { EntityPageShell } from '@/widgets/EntityPageShell';
 
@@ -219,7 +220,6 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     void drawerStore.show(ItemActionsDrawer, {
       title: label,
       onDelete: () => deletePortion(label),
-      actions: [],
     });
   };
 
@@ -256,35 +256,34 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
     </Heading>
   );
 
-  // Карандаш-edit в правом верхнем слоте листа (topContentRight) → dropdown-меню
-  // «Изменить название / описание» (паритет с ProductDrawer). Пункты —
-  // `<label htmlFor>` с `closeOnClick={false}`: focus-делегация на input нужной
-  // chrome-модалки (ради iOS-клавиатуры, feedback_ios_focus) → handleChromeFocusCapture
-  // раскрывает её; меню закроется focus-out'ом после делегации.
+  // Карандаш-edit в правом верхнем слоте листа (topContentRight) → нижний
+  // дровер действий (EntityEditDrawer, замена DropdownMenu-поповера 2026-07-29,
+  // паритет с ProductPage). Ряды названия/описания — `<label htmlFor>`-
+  // делегация на инпуты chrome-модалок (iOS focus-канон) → handleChromeFocusCapture
+  // раскрывает их; дровер закрывается сам по уходу фокуса наружу (trapFocus:false).
+  const openEditDrawer = () => {
+    void drawerStore.show(
+      EntityEditDrawer,
+      {
+        title: dish.name,
+        nameInputId: CHANGE_NAME_INPUT_ID,
+        descriptionInputId: CHANGE_DESCRIPTION_INPUT_ID,
+      },
+      { trapFocus: false }
+    );
+  };
+
   const editMenu = (
-    <DropdownMenu
-      triggerClassName={styles.editIconBtn}
-      triggerAriaLabel="Редактировать блюдо"
-      trigger={<EditIcon width={20} height={20} />}
-    >
-      <DropdownMenuItem closeOnClick={false} render={<label htmlFor={CHANGE_NAME_INPUT_ID} />}>
-        <Text as="span" role="body">
-          Изменить название
-        </Text>
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        closeOnClick={false}
-        render={<label htmlFor={CHANGE_DESCRIPTION_INPUT_ID} />}
-      >
-        <Text as="span" role="body">
-          Изменить описание
-        </Text>
-      </DropdownMenuItem>
-    </DropdownMenu>
+    <IconButton
+      className={styles.editIconBtn}
+      aria-label="Редактировать блюдо"
+      onClick={openEditDrawer}
+      icon={<EditIcon width={20} height={20} />}
+    />
   );
 
-  // Long-press → per-item action drawer: delete (top-right) + «Информация о
-  // продукте» → product page.
+  // Long-press → per-item action drawer: «Убрать из списка» (danger-ряд внизу) +
+  // «Информация о продукте» (↗ в хедере) → product page.
   const openActionsDrawer = (item: DishItemWithProduct) => {
     void drawerStore.show(ItemActionsDrawer, {
       title: item.product?.name ?? 'Продукт',
@@ -292,8 +291,20 @@ const DishBuilderPageInner = ({ id }: { id: string }) => {
         const res = await safeMutate(() => removeDishItem(item.id), 'Не удалось удалить');
         if (res.ok) toaster.success('Удалено');
       },
+      deleteLabel: 'Убрать из списка',
       // Dish ingredients are always products → reuse the shared guard.
-      actions: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }, navigate),
+      pageAction: buildInfoActions({ type: 'food', productId: item.productId, dishId: null }, navigate)[0],
+      // «Нутриенты» — быстрая нижняя витрина продукта; доступна и
+      // каталожному ингредиенту (страницы у него нет, витрина — его «информация»).
+      nutrientsAction: {
+        label: 'Нутриенты',
+        onClick: () =>
+          void drawerStore.show(
+            ProductDrawer,
+            { productId: item.productId, productName: item.product?.name ?? undefined },
+            QUICK_VIEW_DRAWER_OPTIONS,
+          ),
+      },
     });
   };
 

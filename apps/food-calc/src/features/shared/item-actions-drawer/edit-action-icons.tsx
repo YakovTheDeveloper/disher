@@ -1,62 +1,74 @@
-// Тематические глифы для ряда правок ItemActionsDrawer — по одному на смысл
-// действия (количество · уточнения · время). Семантику маппит консумер
-// (FoodSchedule кладёт нужный icon в свой ItemAction), дровер лишь рисует его в
-// углу чипа. Пришли на смену единому карандашу (uniform pencil). Стиль — 26px,
-// currentColor, stroke 1.5 round (как урна/крест дровера).
+// Тематические глифы для рядов правок ItemActionsDrawer — по одному на смысл
+// действия (количество · уточнения · время · особенности). Семантику маппит
+// консумер (FoodSchedule/ScheduleEvents кладут нужный icon в свой ItemAction),
+// дровер рисует его в икон-слоте SettingRow.
+//
+// Стиль — жирный ЗАЛИТЫЙ силуэт с редкими прорезями (fill-rule evenodd), калька
+// канона гравюр WriteBar (food-variants/event-variants: плотная масса, минимум
+// тонких штрихов) — рядом со строчными глифами (урна, колба) читается плотным
+// чёрным монохромом. fill=currentColor → красит слот SettingRow (cold-icon).
 
 const ICON_PROPS = {
-  width: 26,
-  height: 26,
+  width: 24,
+  height: 24,
   viewBox: '0 0 24 24',
   fill: 'none',
   xmlns: 'http://www.w3.org/2000/svg',
   'aria-hidden': true,
 } as const;
 
-// Тонкий изящный штрих. `non-scaling-stroke` держит обводку константной в
-// экранных px, невзирая на 1.5× scale медали (иначе штрих толстел бы вместе с
-// глифом). Цвет — currentColor (медаль bare красит центр в ink `--sys-color-text-system`).
-const STROKE = {
-  stroke: 'currentColor',
-  strokeWidth: 1.1,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-  vectorEffect: 'non-scaling-stroke',
-} as const;
+const FILL = { fill: 'currentColor' } as const;
 
-/** Количество — гиря (вес/граммы). */
+/** Количество — торговые весы (мотив fv-scale из DesignBar): стойка, коромысло,
+ *  две чаши на подвесах, база-трапеция. Минималистично: без товара на чашах и
+ *  без бейджа-плюса оригинала. Подвесы — тонкие stroke-треугольники, как в
+ *  fv-scale (единственное место, где канон заливки уступает штриху). */
 export const QuantityIcon = () => (
   <svg {...ICON_PROPS}>
-    <path d="M9 8a3 3 0 1 1 6 0" {...STROKE} />
-    <path d="M6.5 8h11l1.2 11.4a1 1 0 0 1-1 1.1H6.3a1 1 0 0 1-1-1.1z" {...STROKE} />
+    {/* стойка + набалдашник */}
+    <path d="M12 3.6a1 1 0 1 0 .01 0 1 1 0 0 0-.01 0z" {...FILL} />
+    <path d="M11.3 5h1.4v11h-1.4z" {...FILL} />
+    {/* коромысло */}
+    <path d="M5 6.4h14a.6.6 0 0 1 0 1.2H5a.6.6 0 0 1 0-1.2z" {...FILL} />
+    {/* подвесы — треугольники-штрихи (как stroke 16 в fv-scale) */}
+    <path d="M4.6 7.6L7 11.4L9.4 7.6" fill="none" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M14.6 7.6L17 11.4L19.4 7.6" fill="none" stroke="currentColor" strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round" />
+    {/* чаши — полукупола */}
+    <path d="M3.5 11.4a3.5 2 0 0 0 7 0z" {...FILL} />
+    <path d="M13.5 11.4a3.5 2 0 0 0 7 0z" {...FILL} />
+    {/* база-трапеция */}
+    <path d="M8.6 16h6.8l1.7 3.6a.6.6 0 0 1-.54.86H7.44a.6.6 0 0 1-.54-.86L8.6 16z" {...FILL} />
   </svg>
 );
 
-/** Уточнения — реплика-выноска со строчками (аннотация/детали). */
+/** Уточнения — плотная реплика-выноска со строчками-прорезями (аннотация). */
 export const NoteIcon = () => (
   <svg {...ICON_PROPS}>
     <path
-      d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v8A1.5 1.5 0 0 1 18.5 15H10l-4 4v-4H5.5A1.5 1.5 0 0 1 4 13.5z"
-      {...STROKE}
+      fillRule="evenodd"
+      d="M12 3c-5 0-9 3-9 7 0 2.2 1.2 4.1 3 5.4V20l3.6-2.7c.7.1 1.5.2 2.4.2 5 0 9-3 9-7s-4-7.5-9-7.5z M7.5 8.3h9v1.6h-9z M7.5 11h6v1.6h-6z"
+      {...FILL}
     />
-    <path d="M8 8h8M8 11h5" {...STROKE} />
   </svg>
 );
 
-/** Время — циферблат со стрелками. */
+/** Время — монолитный циферблат, стрелки выкушены прорезью. */
 export const ClockIcon = () => (
   <svg {...ICON_PROPS}>
-    <circle cx="12" cy="12" r="8.5" {...STROKE} />
-    <path d="M12 7.5V12l3 1.8" {...STROKE} />
+    <path
+      fillRule="evenodd"
+      d="M12 3.5a8.5 8.5 0 1 0 .01 0 8.5 8.5 0 0 0-.01 0z M11.2 7.2h1.6v5h-1.6z M11.4 11.1l4.5 1.7-.6 1.5-4.4-1.7z"
+      {...FILL}
+    />
   </svg>
 );
 
-/** Особенности — ползунки-регуляторы (три дорожки с бегунками): «параметры события». */
+/** Особенности — три жирные дорожки-ползунка с кольцевыми бегунками. */
 export const FeaturesIcon = () => (
   <svg {...ICON_PROPS}>
-    <path d="M4 7h4M12 7h8M4 12h10M18 12h2M4 17h6M14 17h6" {...STROKE} />
-    <circle cx="10" cy="7" r="2" {...STROKE} />
-    <circle cx="16" cy="12" r="2" {...STROKE} />
-    <circle cx="12" cy="17" r="2" {...STROKE} />
+    <path d="M3 5.2h18v1.6H3zM3 11.2h18v1.6H3zM3 17.2h18v1.6H3z" {...FILL} />
+    <path fillRule="evenodd" d="M8 3.6a2.4 2.4 0 1 0 .01 0 2.4 2.4 0 0 0-.01 0z M8 5a1 1 0 1 0 .01 0A1 1 0 0 0 8 5z" {...FILL} />
+    <path fillRule="evenodd" d="M15 9.6a2.4 2.4 0 1 0 .01 0 2.4 2.4 0 0 0-.01 0z M15 11a1 1 0 1 0 .01 0 1 1 0 0 0-.01 0z" {...FILL} />
+    <path fillRule="evenodd" d="M9 15.6a2.4 2.4 0 1 0 .01 0 2.4 2.4 0 0 0-.01 0z M9 17a1 1 0 1 0 .01 0A1 1 0 0 0 9 17z" {...FILL} />
   </svg>
 );

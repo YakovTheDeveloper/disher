@@ -22,6 +22,7 @@ const NutrientInput = forwardRef<HTMLInputElement, NutrientInputProps>(
         value={value}
         onChange={onChange}
         className={styles.input}
+        allowDecimals
       />
       <Text as="span" role="caption" className={styles.unit}>{unit}</Text>
     </div>

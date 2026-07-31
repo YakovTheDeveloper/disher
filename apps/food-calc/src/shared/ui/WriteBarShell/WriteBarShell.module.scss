@@ -243,6 +243,12 @@
         }
     }
 
+    // ✕ очистки слева (на фокусе) занял левый край — поле отдаёт свой левый инсет,
+    // зазор до текста несёт сама монета (margin-right), симметрично send справа.
+    &[data-has-clear] .writeBarInput {
+        padding-left: 0;
+    }
+
     // press-свотча НЕТ — пилюля = стандартное поле (AutoGrowSearch), отклик несут
     // focus-хайрлайн + углублённая внутренняя тень, не button-style перекрас фона.
 
@@ -283,6 +289,20 @@
             display: none;
         }
     }
+}
+
+// ─── ✕ очистки слева на фокусе ──────────────────────────────────────────────
+// Круглая soft-монета (стиль — IconButton tone="soft"), зеркалит send-монету:
+// те же боковые зазоры (--space-2 от кромки и до текста). Видна только на
+// фокусе с непустым полем (гейт в TSX: data-has-clear).
+.clearCoin {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--space-2);
+    margin-right: var(--space-2);
+    animation: sendCoinIn 0.22s ease;
 }
 
 // ─── Trailing slot — in-flow affordance right of the pill (food «Список») ──────

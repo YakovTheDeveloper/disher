@@ -61,9 +61,15 @@ function setMatches(
   matcher.__state.matches.set(key.toLowerCase().trim(), candidates);
 }
 
-// Head A returns the same item shape as head B (name + quantity + details/time).
+// Head A returns the same item shape as head B (name + quantity + details/time)
+// plus a per-item `nutrients` estimate.
 function mockLLM(
-  items: Array<{ name: string; quantity?: number | null; details?: string }>
+  items: Array<{
+    name: string;
+    quantity?: number | null;
+    details?: string;
+    nutrients?: Record<string, number>;
+  }>
 ) {
   const fetchMock = vi.fn(async () =>
     new Response(
@@ -78,6 +84,7 @@ function mockLLM(
                   details: i.details ?? "",
                   quantity: i.quantity ?? null,
                   time: null,
+                  nutrients: i.nutrients ?? {},
                 })),
               }),
             },
@@ -214,6 +221,108 @@ describe("POST /api/suggestions/dish-products — pipeline", () => {
     const app = await buildApp();
     const res = await app.inject({ method: "POST", url, payload: { dishName: "омлет" } });
     expect(res.json().resolved[0].quantity).toBe(100);
+  });
+});
+
+describe("POST /api/suggestions/dish-products — per-item nutrients", () => {
+  it("asks the LLM for a per-item nutrients object (strict schema, nutrients last)", async () => {
+    setAlias("рис", { id: "p-rice", name: "Рис" });
+    const fetchMock = mockLLM([{ name: "рис", quantity: 150 }]);
+
+    const app = await buildApp();
+    const res = await app.inject({ method: "POST", url, payload: { dishName: "плов нутриенты схема" } });
+    expect(res.statusCode).toBe(200);
+
+    const calls = fetchMock.mock.calls as unknown as Array<[string, { body: string }]>;
+    const sentBody = JSON.parse(calls[0][1].body);
+    const itemSchema =
+      sentBody.response_format.json_schema.schema.properties.items.items;
+    const nutrientProps = Object.keys(itemSchema.properties.nutrients.properties);
+    // Full profile — mirror of the frontend's allNutrientsList (54 nutrients).
+    expect(nutrientProps).toEqual([
+      // main (БЖУ)
+      "protein", "sugar", "fats", "starch", "carbohydrates", "fiber", "energy", "water",
+      // minerals
+      "iron", "magnesium", "phosphorus", "calcium", "potassium", "sodium", "zinc",
+      "copper", "manganese", "selenium", "iodine",
+      // vitamins
+      "vitaminA", "vitaminB1", "vitaminB2", "vitaminB3", "vitaminB4", "vitaminB5",
+      "vitaminB6", "vitaminB7", "vitaminB9", "vitaminB12", "vitaminC", "vitaminD",
+      "vitaminE", "vitaminK", "betaCarotene", "alphaCarotene",
+      // amino acids
+      "tryptophan", "threonine", "isoleucine", "leucine", "lysine", "methionine",
+      "cystine", "phenylalanine", "tyrosine", "valine", "arginine", "histidine",
+      "alanine", "asparticAcid", "glutamicAcid", "glycine", "proline", "serine",
+      "hydroxyproline",
+    ]);
+    expect(itemSchema.properties.nutrients.required).toEqual(nutrientProps);
+    expect(itemSchema.properties.nutrients.additionalProperties).toBe(false);
+    // nutrients is generated AFTER name/quantity so the list itself doesn't degrade.
+    const keys = Object.keys(itemSchema.properties);
+    expect(keys[keys.length - 1]).toBe("nutrients");
+    expect(itemSchema.required).toContain("nutrients");
+  });
+
+  it("unresolved items carry the clamped LLM estimate per 100 g", async () => {
+    setMatches("экзотика", [{ id: "p-x", name: "Нечто", score: 0.5 }]); // below floor → unresolved
+    mockLLM([
+      {
+        name: "экзотика",
+        quantity: 20,
+        nutrients: { protein: 150, fats: 12, energy: 5000, bogus: 9, fiber: 3 },
+      },
+    ]);
+
+    const app = await buildApp();
+    const res = await app.inject({ method: "POST", url, payload: { dishName: "экзотика блюдо клэмп" } });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.unresolved).toHaveLength(1);
+    // protein 150g (>100) and energy 5000 (>1000) dropped; bogus not in spec.
+    expect(body.unresolved[0].nutrients).toEqual({ fats: 12, fiber: 3 });
+  });
+
+  it("unresolved item has NO nutrients key when the clamp drops every value", async () => {
+    setMatches("экзотика", [{ id: "p-x", name: "Нечто", score: 0.5 }]); // below floor → unresolved
+    mockLLM([
+      {
+        name: "экзотика",
+        quantity: 20,
+        // Every value either absurd (150g protein) or unknown (not in spec).
+        nutrients: { protein: 150, bogus: 9 },
+      },
+    ]);
+
+    const app = await buildApp();
+    const res = await app.inject({ method: "POST", url, payload: { dishName: "экзотика пустой клэмп" } });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.unresolved).toHaveLength(1);
+    // Regression: the RAW unclamped blob must not leak into the response.
+    expect("nutrients" in body.unresolved[0]).toBe(false);
+  });
+
+  it("resolved and ambiguous items do NOT carry LLM nutrients (catalog wins)", async () => {
+    setAlias("картофель", { id: "p-potato", name: "Картофель" });
+    setMatches("морковь", [
+      { id: "p-carrot", name: "Морковь", score: 0.9 },
+      { id: "p-carrot2", name: "Морковь молодая", score: 0.899 }, // margin 0.001 → ambiguous
+    ]);
+    mockLLM([
+      { name: "картофель", quantity: 100, nutrients: { protein: 2, energy: 77 } },
+      { name: "морковь", quantity: 50, nutrients: { protein: 1, energy: 41 } },
+    ]);
+
+    const app = await buildApp();
+    const res = await app.inject({ method: "POST", url, payload: { dishName: "рагу нутриенты resolved" } });
+
+    const body = res.json();
+    expect(body.resolved).toHaveLength(1);
+    expect(body.ambiguous).toHaveLength(1);
+    expect(body.resolved[0]).not.toHaveProperty("nutrients");
+    expect(body.ambiguous[0]).not.toHaveProperty("nutrients");
   });
 });
 
@@ -431,6 +540,69 @@ describe("POST /api/suggestions/product-nutrients — pipeline", () => {
     expect(r2.statusCode).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(r1.json()).toEqual(r2.json());
+  });
+
+  it("passes details to the LLM user message", async () => {
+    const fetchMock = mockNutrientLLM({ protein: 6, fats: 1 });
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка details промпт", nutrients: SPEC, details: "вареная" },
+    });
+    expect(res.statusCode).toBe(200);
+    const calls = fetchMock.mock.calls as unknown as Array<[string, { body: string }]>;
+    const sentBody = JSON.parse(calls[0][1].body);
+    const userMsg = sentBody.messages.find((m: { role: string }) => m.role === "user");
+    expect(userMsg.content).toContain("Особенность: вареная");
+  });
+
+  it("omits the details line when details is empty", async () => {
+    const fetchMock = mockNutrientLLM({ protein: 6, fats: 1 });
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка без details", nutrients: SPEC, details: "  " },
+    });
+    expect(res.statusCode).toBe(200);
+    const calls = fetchMock.mock.calls as unknown as Array<[string, { body: string }]>;
+    const sentBody = JSON.parse(calls[0][1].body);
+    const userMsg = sentBody.messages.find((m: { role: string }) => m.role === "user");
+    expect(userMsg.content).not.toContain("Особенность");
+  });
+
+  it("segments the cache by details (same product, different details → second LLM call)", async () => {
+    const fetchMock = mockNutrientLLM({ protein: 6, fats: 1 });
+    const app = await buildApp();
+    await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка кэш details", nutrients: SPEC },
+    });
+    await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка кэш details", nutrients: SPEC, details: "вареная" },
+    });
+    await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка кэш details", nutrients: SPEC, details: "вареная" },
+    });
+    // 1st (no details) + 2nd (new details) miss; 3rd (repeat) is a hit.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("400 when details exceeds the max length", async () => {
+    const app = await buildApp();
+    const res = await app.inject({
+      method: "POST",
+      url: nutUrl,
+      payload: { productName: "гречка", nutrients: SPEC, details: "д".repeat(201) },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error).toMatch(/details too long/);
   });
 });
 

@@ -20,6 +20,8 @@ import { removeScheduleFood, useScheduleNutrientTotals } from '@/entities/schedu
 import { drawerStore } from '@/shared/ui/drawer-store';
 import { NutrientsDrawer } from '@/widgets/nutrients/NutrientsDrawer';
 import { QUICK_VIEW_DRAWER_OPTIONS } from '@/features/food/quick-view-drawer';
+import { ProductDrawer } from '@/features/food/product-drawer';
+import { DishDrawer } from '@/features/food/dish-drawer';
 import {
   ItemActionsDrawer,
   buildInfoActions,
@@ -139,10 +141,10 @@ const FoodSchedule = ({
   const openNutrients = useCallback(() => {
     void drawerStore.show(
       NutrientsDrawer,
-      { totals, missingNutrientNames, isLoading: nutrientsLoading },
+      { totals, missingNutrientNames, isLoading: nutrientsLoading, date },
       QUICK_VIEW_DRAWER_OPTIONS
     );
-  }, [totals, missingNutrientNames, nutrientsLoading]);
+  }, [totals, missingNutrientNames, nutrientsLoading, date]);
 
   const navigate = useNavigate();
 
@@ -160,37 +162,63 @@ const FoodSchedule = ({
             const res = await safeMutate(() => removeScheduleFood(item.id), 'Не удалось удалить');
             if (res.ok) toaster.success('Удалено');
           },
-          actions: buildInfoActions(item, navigate),
-          // Ряд правок под «Информация…» = три голые медали (RoundButton): дуговая
-          // подпись + иконка по центру. Каждая — `<label htmlFor>` на свой edit-input.
+          // Удаляется ЗАПИСЬ в расписании, продукт/блюдо живут дальше.
+          deleteLabel: 'Убрать из списка',
+          pageAction: buildInfoActions(item, navigate)[0],
+          // «Нутриенты» — быстрая нижняя витрина сущности (та же, что
+          // по ⓘ в SearchFood). В отличие от pageAction доступна и каталожному
+          // продукту (страницы у него нет, витрина — его единственная «информация»).
+          nutrientsAction: item.dishId
+            ? {
+                label: 'Нутриенты',
+                onClick: () =>
+                  void drawerStore.show(
+                    DishDrawer,
+                    { dishId: item.dishId!, dishName: item.dish?.name },
+                    QUICK_VIEW_DRAWER_OPTIONS,
+                  ),
+              }
+            : item.productId
+              ? {
+                  label: 'Нутриенты',
+                  onClick: () =>
+                    void drawerStore.show(
+                      ProductDrawer,
+                      { productId: item.productId!, productName: item.product?.name },
+                      QUICK_VIEW_DRAWER_OPTIONS,
+                    ),
+                }
+              : undefined,
+          // Ряд правок = три ряда SettingRow с глифами. Каждый — `<label htmlFor>`
+          // на свой edit-input.
           // Тап делегирует фокус → onFocusCapture FoodEntryEditModals флипает шаг и iOS
           // поднимает клавиатуру (императивный startEdit её не поднимал); handleEdit-
           // FocusCapture закрывает этот дровер. onClick только праймит (primeEdit ставит
           // editingItem + draft, БЕЗ setStep — шаг ставит focus-событие; синхронный
-          // setStep/close размонтировал бы label до делегирования). Подпись = arcTop
-          // (строчными на дуге). Ряд только у расписания — у ингредиента блюда «Время» нет.
+          // setStep/close размонтировал бы label до делегирования). Ряд только у
+          // расписания — у ингредиента блюда «Время» нет.
           editActions: [
             {
-              label: 'количество',
+              label: 'Количество',
               icon: <QuantityIcon />,
               htmlFor: editIds.QUANTITY_INPUT,
               onClick: () => primeEdit(item),
             },
             {
-              label: 'уточнения',
+              label: 'Уточнения',
               icon: <NoteIcon />,
               htmlFor: editIds.DETAILS_INPUT,
               onClick: () => primeEdit(item),
             },
             {
-              label: 'время',
+              label: 'Время',
               icon: <ClockIcon />,
               htmlFor: editIds.TIME_INPUT,
               onClick: () => primeEdit(item),
             },
           ],
         },
-        // trapFocus:false — иначе focus-trap дровера завернул бы делегацию медали
+        // trapFocus:false — иначе focus-trap дровера завернул бы делегацию label-ряда
         // назад, и фокус не дошёл бы до edit-инпута (он вне портала дровера).
         { trapFocus: false }
       );

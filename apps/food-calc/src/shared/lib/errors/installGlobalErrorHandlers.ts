@@ -50,8 +50,26 @@ function shouldToast(kind: ErrorKind, nowMs: number): boolean {
   return true;
 }
 
+// View Transition aborts are cosmetic by design: Blink rejects the transition's
+// `ready`/`updateCallbackDone` promises when a newer transition supersedes it or
+// the 4s paused-rendering budget expires, and the spec surfaces those rejections
+// as unhandledrejection even though the DOM update itself already happened (or
+// fell back to a plain navigation). RR keeps its internal ViewTransition object
+// private, so this filter is the only place they can be silenced — without it an
+// aborted animation toasts a lying «Сервер не отвечает» (TimeoutError name).
+const VT_ABORT_RE = /^Transition was (aborted|skipped)/;
+
+function isViewTransitionAbort(reason: unknown): boolean {
+  return (
+    reason instanceof DOMException &&
+    (reason.name === 'AbortError' || reason.name === 'TimeoutError') &&
+    VT_ABORT_RE.test(reason.message)
+  );
+}
+
 /** Classify + throttled-toast a leaked async error. Exported for tests. */
 export function handleGlobalError(reason: unknown): void {
+  if (isViewTransitionAbort(reason)) return;
   const kind = classifyError(reason);
   const now = Date.now();
   if (!shouldToast(kind, now)) return;

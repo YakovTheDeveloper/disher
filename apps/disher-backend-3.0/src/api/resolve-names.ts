@@ -29,6 +29,10 @@ export interface LLMItem {
   details?: string;
   quantity: number | null;
   time: string | null;
+  // Head A only: LLM-estimated profile per 100 g (already clamped). Carried
+  // through to the response ONLY if the item lands unresolved — resolved and
+  // ambiguous items use the catalog's (more precise) values.
+  nutrients?: Record<string, number>;
 }
 
 export interface ResolvedItem {
@@ -54,6 +58,9 @@ export interface UnresolvedItem {
   details: string;
   quantity: number;
   time: string;
+  // LLM-estimated profile per 100 g (head A dish-products only), keyed by
+  // nutrient english name. Present only when the LLM produced usable values.
+  nutrients?: Record<string, number>;
 }
 
 export interface ParseResponse {
@@ -170,6 +177,16 @@ export async function resolveNames(
     const rawQty = typeof item.quantity === "number" && isFinite(item.quantity) ? item.quantity : 0;
     const quantity = rawQty <= 0 ? QUANTITY_FALLBACK_G : Math.round(rawQty);
 
+    // Head A's LLM nutrient estimate follows the item ONLY into the unresolved
+    // bucket — resolved/ambiguous take the catalog's (more precise) values.
+    const unresolvedEntry = (): UnresolvedItem => ({
+      originalName: item.name,
+      details,
+      quantity,
+      time,
+      ...(item.nutrients ? { nutrients: item.nutrients } : {}),
+    });
+
     const normalizedName = normalizeForEmbedding(item.name);
     const logBase = {
       requestId,
@@ -221,7 +238,7 @@ export async function resolveNames(
         aliasHit: false,
       });
       console.error(`resolveNames: matchOne failed for "${item.name}": ${reason}`);
-      unresolved.push({ originalName: item.name, details, quantity, time });
+      unresolved.push(unresolvedEntry());
       continue;
     }
     const top = candidates[0];
@@ -235,12 +252,7 @@ export async function resolveNames(
         margin: null,
         aliasHit: false,
       });
-      unresolved.push({
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-      });
+      unresolved.push(unresolvedEntry());
       continue;
     }
 
@@ -291,12 +303,7 @@ export async function resolveNames(
         candidates,
       });
     } else {
-      unresolved.push({
-        originalName: item.name,
-        details,
-        quantity,
-        time,
-      });
+      unresolved.push(unresolvedEntry());
     }
   }
 

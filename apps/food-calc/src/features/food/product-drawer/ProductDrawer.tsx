@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useProduct, useProductPortions, useProductNutrients } from '@/entities/product';
+import { useProductWithStatus, useProductPortions, useProductNutrients } from '@/entities/product';
 import { NutrientShowcaseDrawer } from '@/features/food/quick-view-drawer';
 import { RouterUrls } from '@/shared/config/routes';
+import { isCatalogId } from '@/shared/data/catalog';
 import type { NutrientTotals } from '@/shared/lib/nutrients';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { buildQuantityOptions } from './buildQuantityOptions';
@@ -23,10 +24,10 @@ interface Props extends BaseDrawerProps {
  * Открытие: `drawerStore.show(ProductDrawer, { productId, productName }, QUICK_VIEW_DRAWER_OPTIONS)`.
  */
 export function ProductDrawer({ productId, productName, onClose }: Props) {
-  // `food`/нутриенты — undefined-then-value первый тик useLiveQuery: каркас
-  // деградирует по `?.` (имя-«призрак» из productName), отдельный loading-бранч
-  // не нужен.
-  const food = useProduct(productId);
+  // `food` — ghost-тик useLiveQuery: имя-«призрак» из productName держит шапку,
+  // `loading` гейтит ложное «нет нутриентов» на непустом продукте (симметрия
+  // с DishDrawer).
+  const { product: food, loading } = useProductWithStatus(productId);
   const portionsRaw = useProductPortions(productId);
   const { results: nutrientsRaw } = useProductNutrients(productId);
 
@@ -68,7 +69,9 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       title={name ?? 'Продукт'}
       // Подзаголовок именует витрину (имя несёт заголовок) — одинаков для еды.
       subtitle="Пищевая ценность"
-      pageRoute={RouterUrls.getProduct(productId)}
+      // Каталожные продукты — build-артефакт, read-only: страницы у них нет,
+      // кнопку «Открыть страницу» не показываем (только у продуктов юзера/блюд).
+      pageRoute={isCatalogId(productId) ? undefined : RouterUrls.getProduct(productId)}
       heroName={name}
       portionOptions={portionOptions}
       selectedPortion={selectedValue}
@@ -76,9 +79,11 @@ export function ProductDrawer({ productId, productName, onClose }: Props) {
       // Супплемент: граммовых опор нет, числа — на порцию. Показываем базис бейджем.
       basisLabel={isSupplement ? 'за порцию' : undefined}
       nutrients={nutrients}
-      // Пока строка продукта не подгрузилась — только «призрак» шапки, без
-      // полу-состояния метра (порция/скейл ещё дефолтные): нутриентов «нет».
+      // Пока строка продукта не подгрузилась — «призрак» шапки + ghost-скелетон
+      // вместо витрины (loading-гейт): порция/скейл ещё дефолтные, показывать
+      // полу-состояние метра или ложное «нет нутриентов» нельзя.
       hasNutrients={!!food && nutrientsRaw.length > 0}
+      loading={loading}
       onClose={onClose}
     />
   );

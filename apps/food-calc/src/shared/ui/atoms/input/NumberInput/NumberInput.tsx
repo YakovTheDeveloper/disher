@@ -16,6 +16,14 @@ type Props = {
   min?: number;
   maxLength?: number;
   /**
+   * Разрешить дробный ввод (нутриенты: «1.5» / «1,5»). По умолчанию поле
+   * целочисленное: нецифры вырезаются, точка теряется («1.5» → «15»).
+   * Дробный режим: inputMode=decimal, запятая нормализуется в точку,
+   * вторая точка игнорируется, хвостовая точка («1.») живёт в draft и
+   * эмитит уже набранную целую часть.
+   */
+  allowDecimals?: boolean;
+  /**
    * Inline validation message. When set (truthy), the field wires
    * `aria-invalid` + `aria-describedby` to a rendered <FieldError> below the
    * input (see useFieldError for the paired hook). When absent, the field stays
@@ -37,6 +45,7 @@ const NumberInput = ({
   size,
   disabled,
   maxLength,
+  allowDecimals,
   error,
   ref,
 }: Props) => {
@@ -72,8 +81,8 @@ const NumberInput = ({
       autoFocus={autoFocus}
       ref={inputRef}
       id={id}
-      inputMode="numeric"
-      pattern="[0-9]*"
+      inputMode={allowDecimals ? 'decimal' : 'numeric'}
+      pattern={allowDecimals ? undefined : '[0-9]*'}
       maxLength={maxLength}
       data-base-ui-swipe-ignore=""
       aria-invalid={error ? true : undefined}
@@ -83,9 +92,17 @@ const NumberInput = ({
       value={draft}
       placeholder={placeholder}
       onChange={(e) => {
-        let val = e.target.value.replace(/\D/g, '');
+        let val = allowDecimals
+          ? // Дробный ввод: запятая → точка, мусор прочь, точка одна (первая).
+            e.target.value
+              .replace(',', '.')
+              .replace(/[^\d.]/g, '')
+              .replace(/(\..*)\./g, '$1')
+          : e.target.value.replace(/\D/g, '');
         if (maxLength != null) val = val.slice(0, maxLength);
         setDraft(val);
+        // Хвостовая точка («1.») — промежуточный draft: Number отбросит её и
+        // эмитит целую часть, поле при этом не дёргается.
         onChange?.(val === '' ? 0 : Number(val));
       }}
       onBlur={handleBlur}

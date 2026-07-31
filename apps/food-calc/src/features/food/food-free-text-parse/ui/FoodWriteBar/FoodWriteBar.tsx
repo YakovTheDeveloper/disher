@@ -101,7 +101,11 @@ const PLACEHOLDER = 'Напишите, что Вы ели';
 // Плейсхолдер на время разбора: панель предложки во время `loading` НЕ
 // монтируется (спиннер в баре — единственный фидбэк), поэтому статус
 // «идёт разбор» несёт сам бар — пустое поле + этот плейсхолдер + спиннер-монета.
+// Для входа «Предложить продукты» (intake 'dishName') вместо плейсхолдера —
+// заголовок «Изучаем блюдо…» (см. loadingHeader): без него не было понятно,
+// что бар вообще что-то анализирует.
 const LOADING_PLACEHOLDER = 'Распознаём…';
+const LOADING_DISH_TITLE = 'Изучаем блюдо…';
 
 // Примеры-подсказки для пустого бара (карусель в WriteBarShell): крутятся, пока
 // в инпуте пусто И список ещё пуст — онбординг свежего экрана. Вшиты в компонент:
@@ -240,7 +244,7 @@ export const FoodWriteBar = ({
   // поле-слоте.
   const readyHeader = (
     <div className={s.readyHeader}>
-      <Heading as="h2" role="headline" className={s.readyHeaderTitle}>
+      <Heading as="h2" role="title" className={s.readyHeaderTitle}>
         Все верно?
       </Heading>
       {/* ⓘ top-right — тот же канон-примитив, что подсказка в шапке модалки еды
@@ -251,6 +255,21 @@ export const FoodWriteBar = ({
       </span>
     </div>
   );
+
+  // Loading «Предложить продукты»: голый спиннер-монета не читался как «идёт
+  // анализ» (запрос 2026-07-29) → подменяем поле заголовком по тому же
+  // fieldOverride-паттерну, что readyHeader. Спиннер НЕ гасится (showSpinner =
+  // busy рендерится вне fieldOverride) — заголовок + монета вместе несут статус.
+  // Только для intake 'dishName': рукописный разбор остаётся на плейсхолдере
+  // «Распознаём…» (текст юзера в поле — уже контекст происходящего).
+  const loadingHeader =
+    isLoading && flow.intake === 'dishName' ? (
+      <div className={s.readyHeader}>
+        <Heading as="h2" role="headline" className={s.readyHeaderTitle}>
+          {LOADING_DISH_TITLE}
+        </Heading>
+      </div>
+    ) : undefined;
 
   const handleSubmit = useCallback(
     (text: string) => {
@@ -301,8 +320,9 @@ export const FoodWriteBar = ({
         computeSend={computeSend}
         busy={isLoading}
         readOnly={isLoading}
-        // На ready подменяем инпут заголовком «Предложения» (см. readyHeader).
-        fieldOverride={panelOpen ? readyHeader : undefined}
+        // На ready подменяем инпут заголовком «Предложения» (см. readyHeader),
+        // на loading «Предложить продукты» — «Изучаем блюдо…» (см. loadingHeader).
+        fieldOverride={panelOpen ? readyHeader : loadingHeader}
         // Пока предложка открыта — держим тёмный дим-бэкдроп на странице, чтобы
         // подсветить нижний док (бар + панель). `fieldOverride` схлопывает
         // `expanded`, поэтому фокус сам дим не удержит — форсим его флагом.

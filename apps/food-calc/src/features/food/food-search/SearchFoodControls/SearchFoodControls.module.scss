@@ -184,29 +184,12 @@
     }
 }
 
+// ✕ очистки — стиль целиком несёт tone="soft" IconButton (круглая ink-плитка +
+// холодный глиф); здесь только позиционирование в начале пилюли: небольшой инсет
+// от левой кромки + зазор до лупы.
 .clearButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: none;
-    border-radius: var(--sys-radius-indicator);
-    background: var(--sys-field-hairline-focus, rgba(124, 65, 15, 0.36));
-    color: var(--sys-color-text-on-accent); // white ×-глиф на тёплой полупрозрачной заливке (был text-on-selected по конфляции, M4 2026-06-25)
-    cursor: pointer;
-    transition: background 0.15s ease;
-    flex-shrink: 0;
-
-    &:active {
-        background: var(--sys-field-caret, #b76d1a);
-    }
-
-    svg {
-        width: 10px;
-        height: 10px;
-    }
+    margin-left: var(--space-1);
+    margin-right: var(--space-1);
 }
 
 // ─── Controls column (поиск-ряд + нутриент-ряд) ──────────────────────────────

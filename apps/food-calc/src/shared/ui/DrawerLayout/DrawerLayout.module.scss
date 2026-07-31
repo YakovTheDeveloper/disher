@@ -21,19 +21,6 @@
     pointer-events: auto;
     background-color: var(--sys-color-surface-2);
 
-    // ─── Единый инсет-контракт chrome-ряда ──────────────────────────────────
-    // ОДНА точка правды для отступов ЛЮБОГО хедера дровера — встроенного
-    // (`title` / `subtitle`) И переданного через проп (`header`). Раньше
-    // жёлоб «56» жил тремя несвязанными выражениями (магическое `56px` в
-    // .dragHandleStacked, `calc(...)` в .headerSlot, неявные 12+44 у контролов) —
-    // они совпадали случайно и разъезжались при правке. Теперь оба хедер-пути
-    // читают эти два токена, так что боковой жёлоб и вертикальный ритм у них
-    // идентичны по построению.
-    //
-    // Боковой жёлоб = хит-арея ведущего/замыкающего контрола (--sys-size-control)
-    // + его инсет от кромки (--sys-inset-panel). Центрированный контент хедера
-    // ровно на нём расходится с крестом/правым слотом и не заезжает под них.
-    --drawer-chrome-gutter: calc(var(--sys-inset-panel) + var(--sys-size-control));
     // ─── Единый краевой инсет дровера ───────────────────────────────────────
     // ОДНА точка правды для бокового отступа кромки: и ведущий крест
     // (.chromeCellLead `padding-inline-start` / .floatingClose `left`), и
@@ -61,10 +48,15 @@
     // contentInset ('none'/'panel'/'sheet') переопределяет боковой точечно.
     --drawer-content-inset: 0;
     --drawer-content-pad-top: 0;
-    // Верх/низ дыхание, когда хедер перерастает высоту chrome-ряда (двухстрочный
-    // title+subtitle / кастомный header). Роднит верхний инсет обоих путей с
-    // ~центровкой однострочного title в 56px-ряду.
-    --drawer-chrome-pad-block: var(--space-4);
+
+    // Размер chrome-контролов дровера (крест/стрелка/topRight) — 36
+    // (--sys-size-control-sm, новый рунг шкалы, запрос 2026-07-31): визуальная
+    // плитка тише и ниже, хедер не давит на контент. Хит-арея при этом остаётся
+    // рекомендованной 44 (--sys-size-control, touch-floor HIG/WCAG 2.5.5) — добирается
+    // псевдоэлементом-расширителем (hit-slop), см. правило под .chromeCell ниже.
+    // Общий --sys-size-control = 44 — глобальный floor, его читают модалки и прочий
+    // chrome, он не тронут.
+    --drawer-control-size: var(--sys-size-control-sm);
     // Всплывающий лист (drawer) = surface-2 (белый) → surface-aware глубина поля
     // (стратегия C): на белом лунка узнаётся бровкой + inset-тенью.
     @include field-depth(--sys-color-surface-2);
@@ -93,50 +85,35 @@
     }
 
     // ─── Chrome-ряд = 3-колоночный грид [ведущий | центр | замыкающий] ──────────
-    // Крайние треки СИММЕТРИЧНЫ (обе minmax(gutter,1fr)) → центр-колонка по
-    // геометрическому центру ряда ПО ПОСТРОЕНИЮ, а не через absolute-края +
-    // justify-center. Поэтому крест физически не может уехать к центру, даже когда
-    // заголовка/topRight нет (пустая колонка = пустой трек, симметрия цела). Это
-    // сменило прежнюю схему «абсолютные крест/topRight + justify-content:center у
-    // середины», которая держалась на порядке загрузки CSS-модулей: `.chromeSlot
-    // {position:absolute}` (0,1,0) проигрывал `.iconButton{position:relative}`
-    // (0,1,0, грузится позже) → крест падал в поток и центрировался. Грид убирает
-    // и гонку каскада, и симметричные жёлоба-костыли.
+    // Хедер всегда «кнопка — заголовок — кнопка» ОДИНАКОВОГО размера (40,
+    // --drawer-control-size; DrawerLayout кладёт заглушку .chromeSpacer, когда
+    // topRight не задан). Поэтому крайние треки — просто `auto`, а центр-колонка
+    // (1fr) сидит по геометрическому центру ряда по построению.
     //
-    // gutter = хит-арея контрола (--sys-size-control) + его инсет от кромки
-    // (--drawer-inset, через --drawer-chrome-gutter) — центр-контент расходится с
-    // крестом/правым слотом и не заезжает под них. align-items:start + собственная
-    // min-height ячеек: глиф ведущего/замыкающего пинится к средней линии ПЕРВОЙ
-    // (chrome-высотной) строки — при выросшем ряде (title+subtitle / кастомный
-    // header) он не уезжает в межстрочье.
+    // Вертикаль: ОДИН padding ряда, никаких паддингов у вложенных ячеек. Верхний
+    // 12 (удвоен, запрос 2026-07-31 — воздух над шапкой), нижний 6. Верх букв
+    // заголовка совпадает с верхом плиток кнопок (см. .content .titleCenter:
+    // line-height:1 + text-box-trim), а стек «заголовок + гэп + подзаголовок»
+    // (17 + 2 + 18 ≈ 37) по высоте равен 40px-плитке. align-items:start пинит
+    // кнопки к верхней строке, когда центр перерастает её.
     .dragHandle {
         // Containing block для затухающего шва (`::after`, position:absolute).
         position: relative;
         display: grid;
-        grid-template-columns:
-            [lead] minmax(var(--drawer-chrome-gutter), 1fr)
-            [center] minmax(0, auto)
-            [trail] minmax(var(--drawer-chrome-gutter), 1fr);
+        grid-template-columns: [lead] auto [center] minmax(0, 1fr) [trail] auto;
         align-items: start;
         flex-shrink: 0;
         width: 100%;
-        // min-height (не жёсткий height): одностроч­ный заголовок сидит ровно в
-        // chrome-высоте, но ряд МОЖЕТ подрасти (2-строчный wrap / subtitle).
-        min-height: var(--sys-size-drawer-chrome);
+        padding-block-start: var(--space-3); // 12 — удвоенный верх (запрос 2026-07-31)
+        padding-block-end: calc(var(--space-3) / 2); // 6
+        padding-inline: var(--drawer-inset);
         background-color: transparent;
         z-index: 20;
     }
 
-    // Two-line chrome row (title + subtitle, «Аккаунт» + email) и кастомный
-    // `header` — центр-контент перерастает chrome-высоту. Верхнее дыхание живёт на
-    // ячейке центра (.centerCell ниже), ведущий/замыкающий держат min-height =
-    // chrome и центрируют глиф в ней → пин к линии заголовка. Классы остаются
-    // маркерами режима для collapse-гашения (см. .dragHandleCollapse.* ниже).
-    .dragHandleStacked,
-    .dragHandleHeader {
-        height: auto;
-        min-height: var(--sys-size-drawer-chrome);
-    }
+    // Классы .dragHandleStacked (title+subtitle) / .dragHandleHeader (кастомный
+    // header) — маркеры режима для центр-ячейки и collapse-гашения (см. ниже);
+    // высотой ряда они больше не управляют — тот content-driven от общего padding.
 
 
     // &:has(input[id=search-input]:focus) .header {
@@ -177,25 +154,14 @@
     @include scroll-seam(var(--drawer-inset), $tip: 8px, $color: var(--sys-color-border-default));
 }
 
-// ─── Surface-1 дровер (парный тир) ──────────────────────────────────────────
-// Проп surface={1} сажает дровер на surface-1 (парящий лист) вместо дефолтного
-// surface-2 (лист над листом). Фон + вдавленный «колодец» полей (field-depth) —
-// из ОДНОГО тира (тот же контракт, что у field-depth: передал номер — промахнуться
-// нельзя). Компаунд `.content.surface1` (0,2,0) бьёт базовый `.content` (0,1,0).
-// Дом: быстрый дровер еды из SearchFood (NutrientShowcaseDrawer передаёт surface={1}).
-.content.surface1 {
-    background-color: var(--sys-color-surface-1);
-    @include field-depth(--sys-color-surface-1);
-}
-
-// Тень — ТОЛЬКО нижнему surface-1-дроверу: восходящая парная тень (float-bottom),
-// заметнее glint'а, отделяет видимый ВЕРХНИЙ край листа от страницы на прозрачной
-// peek-фазе (см. токен в tokens.scss). surface-elevation(1) сюда НЕ годится — та
-// направлена ВНИЗ (под лист). Компаунд `.content_bottom.surface1` (0,2,0) бьёт
-// базовый `.content_bottom` (0,1,0, glint). Боковые surface-1 (если появятся)
-// сохранят свой glint-{side}.
-.content_bottom.surface1 {
-    box-shadow: var(--sys-elevation-drawer-float-bottom);
+// ─── Постоянный шов под chrome-рядом (ТОЛЬКО нижние дроверы) ─────────────────
+// Запрос 2026-07-31: у нижних дроверов тот же затухающий-по-кончикам rail-seam
+// виден ПО УМОЛЧАНИЮ (не только на скролле) — лист сразу читается как «шапка +
+// контент». Боковые дроверы держат прежнее поведение (шов проявляется по
+// data-scrolled). Цвет/затухание — те же, что у scroll-варианта (border-default,
+// фейд 8px у кончиков), просто opacity снят с триггера.
+.content_bottom .dragHandle::after {
+    opacity: 1;
 }
 
 // ─── Grab-handle (нижний snap-дровер) ────────────────────────────────────────
@@ -215,7 +181,7 @@
     align-items: flex-start;
     justify-content: center;
     width: 64px;
-    height: var(--sys-size-control);
+    height: var(--drawer-control-size);
     padding: 0;
     padding-top: var(--space-2);
     border: 0;
@@ -223,14 +189,15 @@
     cursor: grab;
     -webkit-tap-highlight-color: transparent;
 
-    // Сама пилюля — тихий divider-цвет; на нажатие/разворот темнеет и растёт (как
-    // грип боковых дроверов). Композитные свойства (transform не трогаем).
+    // Сама пилюля — тихий grabber-вош (примешивается к поверхности); на нажатие/
+    // разворот темнеет и растёт (как грип боковых дроверов). Композитные свойства
+    // (transform не трогаем).
     &::before {
         content: '';
         width: 36px;
         height: 4px;
         border-radius: var(--sys-radius-indicator);
-        background: var(--sys-color-border-default);
+        background: var(--sys-color-grabber);
         transition: background 140ms ease, width 140ms ease;
     }
 
@@ -253,35 +220,16 @@
 // ─── Non-sticky (scroll-away) header row ─────────────────────────────────────
 // headerScroll="scroll": the chrome row is rendered INSIDE the scroller (so it
 // scrolls out of view) instead of pinned above it. The leading control floats
-// (`.floatingClose`), so no in-row leading cell exists — the grid's empty lead
-// track still balances the trailing one, so the center stays centered. The
-// trailing cell drops its own `--drawer-inset` because the scroller's
-// `padding-inline` already insets the whole row from the panel edge (otherwise
-// topRight would double-inset). The seam never fires here — the row leaves rather
+// (`.floatingClose`); its grid cell keeps a same-size spacer (.chromeSpacer), so
+// the side tracks stay equal and the center stays centered. Ряд сбрасывает свой
+// padding в 0: по горизонтали его уже даёт `padding-inline` скроллера (иначе
+// двойной инсет), а по вертикали не sticky ряд не резервирует chrome-высоту (56)
+// — пусть хугает СВОЙ крест-контрол (44, min-height .centerCell), а не держит
+// пустой низ 56-ряда (просьба 2026-07-19). Плавающий крест (top:0) центрируется
+// на той же середине. The seam never fires here — the row leaves rather
 // than shadowing a pinned bar, so `data-scrolled` is intentionally not set in TSX.
-.dragHandleScroll {
-    .chromeCellTrail {
-        padding-inline-end: 0;
-    }
-}
-
-// Не sticky → ряд НЕ резервирует chrome-высоту (--sys-size-drawer-chrome, 56): она
-// нужна прилепленной обвязке, чтобы контент не прыгал под ней. Здесь ряд скроллится
-// прочь — пусть хугает СВОЙ крест-контрол (--sys-size-control, 44), а не держит
-// пустой низ 56-ряда (просьба 2026-07-19). Ровно высота креста, не больше: заголовок
-// центрируется в ней СИММЕТРИЧНО (без верхнего инсет-«зазора», который читался как
-// лишний padding), плавающий крест (top:0) центрируется на той же середине — крест и
-// строка не расходятся, и коробка креста не свисает в ряд «Продукта» снизу.
-// Компаунд `.dragHandle.dragHandleScroll` (0,2,0) бьёт базовый `.content .dragHandle`
-// min-height (0,2,0) порядком в бандле. Ячейки центра/замыкающего тоже жмутся до
-// высоты креста, иначе их базовый min-height: chrome раздул бы ряд обратно до 56.
 .dragHandle.dragHandleScroll {
-    min-height: var(--sys-size-control);
-
-    .centerCell,
-    .chromeCell {
-        min-height: var(--sys-size-control);
-    }
+    padding: 0;
 }
 
 // ─── Collapsing (shrinking) header — transform-only, косметический ────────────
@@ -346,7 +294,9 @@
     // Верхний зазор «заголовок → контент» несёт --drawer-content-pad-top ниже.
     --drawer-inset: var(--sys-bottom-drawer-inset);
     --drawer-content-inset: var(--drawer-inset);
-    --drawer-content-pad-top: var(--space-1);
+    // Зазор «хедер → тело» = верхний padding хедера (space-3): симметрия воздуха
+    // над и под chrome-рядом (запрос 2026-07-31). Тихий space-1 снят.
+    --drawer-content-pad-top: var(--space-3);
     // Скругление верхних углов = --sys-radius-drawer (24), НЕ листовое --sys-radius-sheet
     // (40). Метафора: дровер «система тебя спрашивает» — транзиентная панель поверх
     // листа, отделена от него меньшим радиусом. Боковые дроверы (left/right) держат тот
@@ -378,9 +328,7 @@
     // specificity, later source order).
     &.contentSnap {
         height: var(--drawer-height, auto);
-        transform: translateY(
-            calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px))
-        );
+        transform: translateY(calc(var(--drawer-snap-point-offset, 0px) + var(--drawer-swipe-movement-y, 0px)));
     }
 
     // Base UI sets [data-starting-style] on the first frame after mount, then
@@ -593,100 +541,110 @@
 }
 
 // ─── Ячейки chrome-грида ─────────────────────────────────────────────────────
-// Ведущая / замыкающая ячейки — обычные grid-items (НЕ absolute). Каждая держит
-// собственную min-height = chrome и центрирует контрол по вертикали; при выросшем
-// ряде align-items:start прижимает их к ПЕРВОЙ строке (пин к линии заголовка).
-// Ведущий крест джастифицируется к левой кромке своей колонки + инсет от кромки
-// панели; замыкающий — к правой. Их content-ширина (inset + контрол 44) ровно
-// равна --drawer-chrome-gutter = минимуму крайнего трека, поэтому центр-колонка с
-// ними не пересекается по построению.
+// Ведущая / замыкающая ячейки — обычные grid-items (НЕ absolute), content-sized:
+// высоту и инсеты ряда несёт ОБЩИЙ padding .dragHandle, ячейки только именуют
+// колонки. Обе несут ОДИН контрол 44 (--sys-size-control) → крайние auto-треки
+// грида равны, центр по построению.
 .chromeCell {
     grid-row: 1;
     display: flex;
     align-items: center;
-    min-height: var(--sys-size-drawer-chrome);
 }
 
 .chromeCellLead {
     grid-column: lead;
-    justify-content: flex-start;
-    padding-inline-start: var(--drawer-inset);
 }
 
 .chromeCellTrail {
     grid-column: trail;
     justify-content: flex-end;
-    padding-inline-end: var(--drawer-inset);
 }
 
-// Замыкающий контрол (topRight) — глиф ЦЕНТРИРОВАН в своей 44-коробке (канон
-// 2026-07-25): правая кнопка, как правило, с подложкой, поэтому справа хедер
-// выравнивается по КРОМКЕ КНОПКИ — она и так сидит на --drawer-inset через
-// justify-content:flex-end самой trail-ячейки + padding-inline-end. Слева же
-// выравнивание идёт по ГЛИФУ креста (ghost, вес = глиф) — .leadingGlyph ниже.
-// Прежняя право-джастификация глифа (`.chromeCellTrail > * { justify-content:
-// flex-end }`, эпоха голых ghost-контролов) с подложкой давала децентровку —
-// снята глобально, консумерам (QuickView и т.п.) свои overrides не нужны.
-
-// Замыкающий контрол = фиксированный квадрат chrome-размера (--sys-size-control),
-// как ведущий крест (.leadingGlyph). Геометрию кнопки владеет LAYOUT, а не консумер:
-// раньше топ-райт слот сайзили вразнобой (кто size={44}, кто без размера → сжатие по
-// глифу ~18px, а ItemActionsDrawer тянул `height:100%` от слота → распухал в не-квадрат,
-// когда ряд рос под subtitle). Теперь распереть нечем и size передавать не нужно.
-// `:is(button, label)` целит саму интерактивную кнопку — и когда она прямой ребёнок
-// ячейки, и ВНУТРИ обёртки (QuickView оборачивает её в .pageLink span ради дуги ArcLabel;
-// HintButton — в PopoverTrigger): обёртка/дуга/поповер не тронуты. Компаунд (0,2,1) бьёт
-// одноклассовые consumer-правила слота.
-.chromeCell.chromeCellTrail :is(button, label) {
-    inline-size: var(--sys-size-control);
-    block-size: var(--sys-size-control);
+// Невидимая заглушка размера контрола — подставляется DrawerLayout вместо
+// topRight (или вместо ведущей кнопки в scroll-away ряду), чтобы хедер оставался
+// «кнопка — заголовок — кнопка» одинакового размера и центр не уплывал.
+.chromeSpacer {
+    inline-size: var(--drawer-control-size);
+    block-size: var(--drawer-control-size);
 }
 
-// Центр-колонка (title / subtitle / кастомный header). auto-трек между двумя
-// симметричными minmax(gutter,1fr) → сидит по геометрическому центру ряда. Верхнее
-// дыхание для выросшего ряда добавляют .dragHandleStacked/.dragHandleHeader ниже.
+// Замыкающий chrome-слот (topRight) — фиксированный квадрат --drawer-control-size
+// (36, как ведущий крест); кнопка и любые обёртки (QuickView .pageLink span,
+// HintButton PopoverTrigger) заполняют слот на 100%. Геометрию владеет LAYOUT:
+// консумерский `size={44}` у IconButton пишет width/height ИНЛАЙНОМ и раньше бил
+// CSS слота — отсюда «правая кнопка больше креста». Теперь `!important` на 100%
+// перебивает инлайн, а размерный ряд у консумера в этом слоте не читается вовсе.
+// (0,2,1) у обёртки бьёт одноклассовые consumer-правила (напр. .pageLink 44).
+.chromeCell.chromeCellTrail {
+    inline-size: var(--drawer-control-size);
+    block-size: var(--drawer-control-size);
+
+    > * {
+        inline-size: 100%;
+        block-size: 100%;
+    }
+
+    :is(button, label) {
+        inline-size: 100% !important;
+        block-size: 100% !important;
+    }
+}
+
+// Hit-slop: визуальная плитка chrome-кнопок 36 (--sys-size-control-sm), а
+// кликабельная область остаётся рекомендованной 44 (--sys-size-control, HIG /
+// WCAG 2.5.5). Псевдоэлемент раздувает хит-зону на пол-разницы (4px) в каждую
+// сторону; псевдоэлемент входит в собственную хит-область кнопки, отдельных
+// обработчиков не нужно. Пустой контент — визуально невидим.
+.chromeCell :is(button, label),
+.content .floatingClose {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: calc((var(--sys-size-control) - var(--drawer-control-size)) / -2);
+    }
+}
+
+// Центр-колонка (title / subtitle / кастомный header). 1fr-трек между двумя
+// равными auto-треками → сидит по геометрическому центру ряда. Вертикаль единая
+// для всех форм шапки: контент прижат к верху (grid `align-items: start`) → верх
+// заголовка совпадает с верхом плиток боковых контролов без per-режимных
+// паддингов. min-height = контрол (--drawer-control-size) держит высоту
+// scroll-away ряда под плавающий крест (.floatingCloseChrome, top:0).
 .centerCell {
     grid-column: center;
     min-width: 0;
-    min-height: var(--sys-size-drawer-chrome);
+    min-height: var(--drawer-control-size);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
 }
 
-// Верхнее дыхание центр-контента, когда он перерастает chrome-ряд (title+subtitle
-// / кастомный header) — тот же --drawer-chrome-pad-block, что нёс прежний padding
-// ряда. Ведущий/замыкающий остаются пришпилены к первой строке (min-height:chrome
-// на ячейке + align-items:start на гриде).
-.dragHandleStacked .centerCell,
-.dragHandleHeader .centerCell {
-    justify-content: flex-start;
-    padding-block-start: var(--drawer-chrome-pad-block);
+// Верх БУКВ = верх плитки кнопки (канон 2026-07-31, все формы шапки). text-box-trim
+// срезает внутришрифтовой воздух над
+// капителями (Onest: hhea-asc 970 vs cap 707 → 0.263em ≈ 4.5px на 17px — это и
+// есть остаточная ошибка фолбэка там, где trim не поддержан: Firefox <154).
+// Трим ТОЛЬКО сверху (trim-start): подрезка снизу до `alphabetic` в связке с
+// overflow:hidden (ellipsis) зрительно отрубала выносные элементы («р», «у»).
+// (0,2,0) бьёт line-height типо-роли Heading (0,1,0) независимо от порядка модулей.
+.content .titleCenter {
+    text-box-trim: trim-start;
+    text-box-edge: cap text;
 }
 
-// Двухэтажный chrome: заголовок выравнивается по ПЛИТКЕ боковых контролов, а не по
-// их глифу (2026-07-25, запрос — плитка topRight читалась «выше заголовка»).
-// Строка заголовка занимает полосу chrome − 2·pad ниже верхнего pad ⇒ её центр =
-// pad + (chrome − 2·pad)/2 = chrome/2 — ровно центр 44-плитки ведущего/замыкающего
-// (оба центрируются в min-height:chrome ячейке). line-height, а не flex — заголовок
-// гарантированно однострочный (nowrap + ellipsis), полу-интерлиньяж центрирует сам.
-.dragHandleStacked .titleStack .titleCenter {
-    /* typo-encapsulation-disable-next-line -- межстрочие тут не типографика, а выравнивание строки заголовка по центру chrome-полосы (плитки боковых контролов) */
-    line-height: calc(var(--sys-size-drawer-chrome) - 2 * var(--drawer-chrome-pad-block));
-}
-
-// Ведущий крест/стрелка — голый IconButton-shell (БЕЗ tone): холодный глиф
-// --sys-color-icon, 44 хит-арея (touch-floor), глиф ЛЕВО-джастифицирован, чтобы его
-// оптическая кромка легла на --drawer-inset = линию тела (contentInset). Компаунд
-// `.chromeCell .leadingGlyph` (0,2,0) перебивает `.iconButton{justify-content:
-// center}` (0,1,0, грузится позже) — та же причина, по которой прежней схеме
-// приходилось поднимать специфичность.
+// Ведущий крест/стрелка — глиф в цвет рамки плитки (запрос 2026-07-31: глиф и
+// контур одним тоном), размер тот же, что у замыкающего контрола. Здесь только
+// геометрия: 40 хит-арея + размер глифа из токен-шкалы. (0,2,0) бьёт tone-цвет
+// IconButton (.ghost = 0,1,0). Токен плитки локально поднят до 6% ink (запрос —
+// глобальные 3% читались невидимкой); локальный оверрайд двигает И рамку
+// (.bordered читает тот же токен), И глиф разом, глобальный токен не тронут.
 .chromeCell .leadingGlyph {
-    width: var(--sys-size-control);
-    height: var(--sys-size-control);
-    justify-content: flex-start;
-    color: var(--sys-color-icon);
+    --sys-color-surface-icon-tile: color-mix(in srgb, var(--color-ink) 6%, transparent);
+
+    width: var(--drawer-control-size);
+    height: var(--drawer-control-size);
+    color: var(--sys-color-surface-icon-tile);
 
     // Размер САМОГО глифа — из токен-шкалы (--sys-icon-size-chrome, 16), НЕ из inline
     // width на иконке (крест/стрелка рендерятся без размерных пропов). Один токен = один
@@ -695,30 +653,20 @@
         width: var(--sys-icon-size-chrome);
         height: var(--sys-icon-size-chrome);
     }
-
-    // Тихая обвязка: крест/стрелка БЕЗ press-подложки и БЕЗ сжатия (просьба
-    // 2026-06-27 — заливка+scale на кресте читались как «жесть»). Глобальный
-    // `button:active { transform: scale(.96) }` (0,1,1) перетёрт этим (0,2,1).
-    &:active,
-    &[data-pressed] {
-        transform: none;
-        background: transparent;
-    }
 }
 
-// «Тишина формой»: утоньшённый штрих ведущего глифа (крест/стрелка — оба stroke-
+// «Тишина формой»: утоньшённый штрих chrome-глифов (крест/стрелка — оба stroke-
 // based). Целимся в САМИ штрих-элементы (`[stroke]`): их презентационный
-// `stroke-width="2"` перебивается только правилом НА них. Только ведущая кнопка +
-// плавающий крест — consumer-глифы правого слота (карандаш/урна) не трогаем.
+// `stroke-width="2"` перебивается только правилом НА них.
 .chromeCell .leadingGlyph svg [stroke],
 .content .floatingClose svg [stroke],
 .chromeCellTrail svg [stroke] {
     stroke-width: 1.5px;
 }
 
-// Centered header title — lives in the grid's CENTER column, which sits between
-// two symmetric side tracks, so it centers on the row by construction. The center
-// track is `minmax(0, auto)`, so the column shrinks to `≤ ширина ряда − 2*gutter`;
+// Centered header title — lives in the grid's CENTER column (1fr between two
+// equal `auto` side tracks), so it centers on the row by construction. The track
+// is `minmax(0, 1fr)`, so the column shrinks to the space between the controls;
 // a long name then truncates to ONE line with an ellipsis (nowrap + text-overflow)
 // instead of wrapping to two (2026-07-23). The full name stays in the accessible
 // name — this element IS the Drawer.Title (<h2>). Styling mirrors the canonical
@@ -751,14 +699,23 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
+    flex-grow: 1;
     gap: 2px;
     min-width: 0;
     max-width: 100%;
 
-    // Inside the stack the title spans the (already gutter-bounded) column
-    // width rather than the lone-title 60% clamp.
+    // Inside the stack the title spans the full center-column width (bounded only
+    // by the side controls).
     .titleCenter {
         max-width: 100%;
+        // Верхний заголовок стака — курсив (запрос 2026-07-31). font-style
+        // осознанно вне typo-гейта (v1 не покрывает нативные курсивы).
+        font-style: italic;
+        // Курсивный глиф выносится за правую кромку em-бокса (overhang) и
+        // overflow:hidden+ellipsis его зрительно отрезал — компенсируем
+        // правым padding в em, чтобы вынос оставался внутри элемента.
+        padding-inline-end: 0.1em;
     }
 }
 
@@ -772,9 +729,8 @@
 }
 
 // Центр-слот кастомного `header` (DrawerLayout `header`) — просто центрирует свой
-// контент внутри центр-колонки грида. Боковой жёлоб под крест/topRight держат
-// симметричные крайние треки грида (minmax(gutter,1fr)), а не padding здесь —
-// поэтому прежний дублирующий `padding-inline: --drawer-chrome-gutter` снят.
+// контент внутри центр-колонки грида. Боковое место под крест/topRight держат
+// крайние auto-треки грида (по 44 + inset), а не padding здесь.
 // min-width:0 разрешает контенту ужиматься (ellipsis и т.п.).
 .headerSlot {
     width: 100%;
@@ -787,44 +743,36 @@
 // Плавающий крестик (DrawerLayout `floatingClose`). Chrome-ряд не рендерится —
 // контент идёт от самого верха, а Drawer.Close висит абсолютом в левом верхнем
 // углу поверх него (консумент кладёт свою конструкцию на освободившееся место).
-// Крепимся к верх-лево видимой панели через inset-токен. Тихая обвязка, как у
-// ведущего креста: холодный глиф, без press-подложки и без сжатия (глобальный
-// button:active scale перетёрт `transform: none`, иначе крест «прыгал» бы).
+// Крепимся к верх-лево видимой панели через inset-токен. Облик — тот же холодный
+// глиф + рамка без подложки (tone="ghost" bordered), что и ведущий контрол chrome-ряда.
 .floatingClose {
     top: var(--drawer-inset);
     left: var(--drawer-inset);
     z-index: 21; // над scrollableContent fade-хинтами (z-index:2) и chrome-рядом (20)
-    width: var(--sys-size-control);
-    height: var(--sys-size-control);
-    // Канонный холодный тинт глифа (--sys-color-icon, 4.5:1 на белом — проходит
-    // WCAG 1.4.11 non-text). «Тишина» несётся ФОРМОЙ (утоньшённый штрих, .leadingGlyph
-    // / floatingClose svg выше), а не заниженным контрастом (решение 2026-07-03).
-    color: var(--sys-color-icon);
-
-    &:active,
-    &[data-pressed] {
-        background: transparent;
-        transform: none;
-    }
+    width: var(--drawer-control-size);
+    height: var(--drawer-control-size);
 }
 
-// position:absolute + лево-джастификация глифа — ОБА на (0,2,0), чтобы перебить
-// `.iconButton { position:relative; justify-content:center }` (0,1,0, IconButton.
-// module.scss грузится позже). Без (0,2,0) на position крест упал бы в поток
+// position:absolute на (0,2,0), чтобы перебить `.iconButton { position:relative }`
+// (0,1,0, IconButton.module.scss грузится позже). Без (0,2,0) крест упал бы в поток
 // панели-колонки и толкал контент — та же гонка каскада, что уводила ведущий крест
 // к центру (теперь ведущий на гриде, а этот — единственный оставшийся absolute).
-// Лево-джастификация кладёт оптическую кромку глифа на --drawer-inset = линию тела.
+// Глиф + рамка — как у ведущего контрола chrome-ряда (.leadingGlyph): цвет рамки,
+// токен плитки локально поднят до 6% ink.
 .content .floatingClose {
+    --sys-color-surface-icon-tile: color-mix(in srgb, var(--color-ink) 6%, transparent);
+
     position: absolute;
-    justify-content: flex-start;
+    color: var(--sys-color-surface-icon-tile);
 }
 
 // Плавающий крест в режиме scroll-away (headerScroll="scroll"): в ОТЛИЧИЕ от
 // chromeless-floatingClose тут ЕСТЬ ряд заголовка (`.dragHandleScroll`), который
-// скроллится под крестом. Ряд теперь ровно высотой креста (--sys-size-control) и
-// центрирует заголовок, поэтому крест просто садится в тот же верх (top:0) — его
-// 44-коробка совпадает с рядом, и середина глифа ложится на середину строки. Дефолт
-// `.floatingClose` (top:--drawer-inset, 12) увёл бы центр на 34px — ниже строки.
+// скроллится под крестом. Ряд ровно высотой креста (--drawer-control-size,
+// min-height .centerCell) и прижимает заголовок к верху, поэтому крест садится в
+// тот же верх (top:0) — его верхняя кромка совпадает с верхом букв. Дефолт
+// `.floatingClose` (top:--drawer-inset, 12) увёл бы крест на 12px ниже строки
+// заголовка.
 .floatingCloseChrome {
     top: 0;
 }

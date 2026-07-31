@@ -209,7 +209,11 @@ const RESPONSES: Record<string, Record<string, unknown>> = {
 
   // --- paid LLM routes ----------------------------------------------------
   suggestDishProducts: {
-    200: opaque("Suggested products for the dish."),
+    200: opaque(
+      "Suggested products for the dish. `unresolved[]` items additionally carry `nutrients` — " +
+        "the LLM's per-100 g estimate (keyed by nutrient english name, sanity-clamped). " +
+        "Resolved/ambiguous items don't: the catalog's values win there.",
+    ),
     400: BAD_REQUEST,
     ...AUTHED,
     402: insufficientBalance(),

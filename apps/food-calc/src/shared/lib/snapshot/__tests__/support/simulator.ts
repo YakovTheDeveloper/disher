@@ -145,6 +145,17 @@ export class World {
     this.log.push(`D${d} putInsight ${id}=${content}`);
   }
 
+  async putBlacklist(d: number, id: string, productId: string): Promise<void> {
+    await this.activate(d);
+    this.autoTick();
+    await putRow(db.product_blacklist, {
+      id,
+      product_id: productId,
+      created_at: new Date().toISOString(),
+    });
+    this.log.push(`D${d} putBlacklist ${id}=${productId}`);
+  }
+
   /** Total interpreter: deleting an absent row is a no-op, not a throw. Keeps
    *  generated op sequences shrink-friendly. */
   async del(d: number, id: string): Promise<void> {

@@ -8,7 +8,8 @@ const AccountPanel = () => {
   const email = useAuthStore((s) => s.email);
 
   const openDrawer = () => {
-    drawerStore.show(ProfileDrawer, {}, { side: 'left' });
+    // Комфортная мобильная ширина — канон side-дровера (как у SearchFood).
+    drawerStore.show(ProfileDrawer, {}, { side: 'left', width: 'min(85vw, 360px)' });
   };
 
   return (

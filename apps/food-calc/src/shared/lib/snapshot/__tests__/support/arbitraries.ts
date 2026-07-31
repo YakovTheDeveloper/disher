@@ -3,19 +3,21 @@ import type {
   ProductRow,
   InsightRow,
   CustomTagRow,
+  ProductBlacklistRow,
   TombstoneRow,
 } from '@/shared/lib/dexie/schema';
 import type { Snapshot } from '@/shared/lib/snapshot';
 
 // Generators for merge() property tests.
 //
-// Three representative domain tables, chosen for what they exercise rather than
+// Four representative domain tables, chosen for what they exercise rather than
 // for coverage: `products` (the fat row, carries the non-indexed `description`
 // that И-6 is about), `insights` (joined DOMAIN_TABLES late, in schema v8 — the
 // И-5 schema-lag table), `custom_tags` (the thin row with a natural key that LWW
-// cannot enforce — И-12).
+// cannot enforce — И-12), `product_blacklist` (the newest table, schema v9 — a
+// second natural-keyed thin row, same LWW shape as custom_tags).
 //
-// The id pool is deliberately TINY (4 ids over 3 tables). Merge conflicts are
+// The id pool is deliberately TINY (4 ids per table). Merge conflicts are
 // the entire subject; a wide id space would generate disjoint snapshots that
 // merge trivially and prove nothing.
 
@@ -31,6 +33,7 @@ const IDS_BY_TABLE = {
   products: ['p1', 'p2', 'p3', 'p4'],
   insights: ['i1', 'i2', 'i3', 'i4'],
   custom_tags: ['c1', 'c2', 'c3', 'c4'],
+  product_blacklist: ['b1', 'b2', 'b3', 'b4'],
 } as const;
 
 /** Distinct stamps, one per minute. Sampling two rows from this pool almost
@@ -103,6 +106,15 @@ export function customTagRow(
   return { id, product_id: 'prod-1', tag: content, created_at, updated_at };
 }
 
+export function productBlacklistRow(
+  id: string,
+  content: string,
+  updated_at: string,
+  created_at = '2026-01-01T00:00:00.000Z',
+): ProductBlacklistRow {
+  return { id, product_id: content, created_at, updated_at };
+}
+
 const BUILDERS = {
   products: productRow,
   insights: insightRow as (
@@ -117,6 +129,12 @@ const BUILDERS = {
     u: string | undefined,
     cr?: string,
   ) => CustomTagRow,
+  product_blacklist: productBlacklistRow as (
+    id: string,
+    c: string,
+    u: string | undefined,
+    cr?: string,
+  ) => ProductBlacklistRow,
 } as const;
 
 export type TableName = keyof typeof BUILDERS;

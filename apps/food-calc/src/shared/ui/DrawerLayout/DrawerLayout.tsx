@@ -135,14 +135,13 @@ type Props = {
    */
   headerScroll?: 'pin' | 'collapse' | 'scroll';
   /**
-   * Тир поверхности дровера. По умолчанию (не задан) — `surface-2` (белый лист над
-   * листом, каноничный дом modal/drawer), с glint-тенью края. Передай `1`, чтобы
-   * дровер сел на `--sys-color-surface-1` (парящий лист) — тогда фон, вдавленный
-   * «колодец» полей (`field-depth`) И парная тень (`surface-elevation(1)`) берутся
-   * из ОДНОГО тира (промахнуться номером нельзя). Дом surface-1 — быстрый дровер еды
-   * из SearchFood (NutrientShowcaseDrawer).
+   * Убрать видимую хват-пилюлю (grab-handle) у нижнего snap-дровера. По умолчанию
+   * она рисуется у ЛЮБОГО bottom-дровера с ≥2 snap-фазами как аффорданс «лист
+   * тянется» + клавиатурный путь ко второй фазе. Opt-out для витрин, где пилюля
+   * читается как визуальный шум (NutrientShowcaseDrawer «Пищевая ценность»);
+   * свайп-драг листа при этом остаётся — снимается только декоративная пилюля.
    */
-  surface?: 1 | 2;
+  hideGrabHandle?: boolean;
 };
 
 const DrawerLayout = ({
@@ -160,7 +159,7 @@ const DrawerLayout = ({
   contentInset,
   flushBodyPaddingTop,
   headerScroll = 'collapse',
-  surface,
+  hideGrabHandle = false,
 }: Props) => {
   const { t } = useTranslation();
   // Side/width are decided at `drawerStore.show(..., { side })` call time and
@@ -181,7 +180,7 @@ const DrawerLayout = ({
   // Grab-handle рисуем автоматически у ЛЮБОГО нижнего дровера с ≥2 snap-фазами —
   // видимый аффорданс «лист тянется» + клавиатурный/скринридерный путь ко второй
   // фазе (drag доступен не всем; NN/g/M3: не полагаться только на жест).
-  const showGrabHandle = side === 'bottom' && canExpand;
+  const showGrabHandle = side === 'bottom' && canExpand && !hideGrabHandle;
 
   // ─── Единый детектор краёв прокрутки (верхний шов + нижний fade) ───────────
   // ОДИН механизм (useScrollEdges, IntersectionObserver на двух сентинелах)
@@ -279,11 +278,15 @@ const DrawerLayout = ({
 
   // Leading control (Close cross / `onBack` arrow) — ONE factory, so the pinned
   // chrome-row slot and the floating (scroll-away) placement stay identical apart
-  // from their class. `.floatingClose` carries the corner geometry + quiet glyph.
+  // from their class. Облик — холодный глиф + тихая рамка без подложки (ghost
+  // bordered); размер тот же, что у замыкающего контрола (40, --drawer-control-size):
+  // хедер всегда «кнопка — заголовок — кнопка».
   const renderLeading = (className: string) =>
     onBack ? (
       <IconButton
         className={className}
+        tone="ghost"
+        bordered
         onClick={(e) => {
           e.stopPropagation();
           onBack();
@@ -299,6 +302,8 @@ const DrawerLayout = ({
         render={
           <IconButton
             className={className}
+            tone="ghost"
+            bordered
             aria-label={t('overlay.drawer.close', 'Закрыть')}
             icon={<CrossIcon />}
           />
@@ -324,10 +329,9 @@ const DrawerLayout = ({
   // Center + trailing cells of the chrome grid (custom `header` / title / subtitle
   // in the CENTER column; `topRight` in the TRAILING column). Shared by both
   // placements — only the leading control differs (in-row cell when pinned,
-  // floating when scroll-away), so the center content never forks. The leading
-  // cell is prepended separately by the pinned path; in the scroll-away row it's
-  // absent (the control floats) and the grid's symmetric side tracks keep the
-  // center visually centered regardless.
+  // floating when scroll-away), so the center content never forks. Крайние
+  // треки грида равны по построению (обе кнопки 40; без topRight — заглушка
+  // .chromeSpacer) → центр-колонка на геометрическом центре ряда.
   const headerCenter = (
     <>
       <div className={styles.centerCell}>
@@ -348,7 +352,15 @@ const DrawerLayout = ({
             </Drawer.Title>
           ))}
       </div>
-      <div className={clsx(styles.chromeCell, styles.chromeCellTrail)}>{topRight}</div>
+      <div className={clsx(styles.chromeCell, styles.chromeCellTrail)}>
+        {/*
+          Хедер всегда «кнопка — заголовок — кнопка»: когда topRight не задан,
+          кладём невидимую заглушку того же размера (40, --drawer-control-size),
+          чтобы крайние колонки грида были равны и заголовок сидел ровно по
+          центру по построению (фикс-треки вместо прежнего gutter-minmax).
+        */}
+        {topRight ?? <span className={styles.chromeSpacer} aria-hidden="true" />}
+      </div>
     </>
   );
 
@@ -357,7 +369,7 @@ const DrawerLayout = ({
   return (
     <Drawer.Popup
       ref={popupRef}
-      className={clsx(styles.content, styles[`content_${side}`], isSnap && styles.contentSnap, surface === 1 && styles.surface1, stackedTitle && styles.stackedTitle, className)}
+      className={clsx(styles.content, styles[`content_${side}`], isSnap && styles.contentSnap, stackedTitle && styles.stackedTitle, className)}
       style={style}
       id="drawer-content"
     >
@@ -423,6 +435,8 @@ const DrawerLayout = ({
             render={
               <IconButton
                 className={styles.floatingClose}
+                tone="ghost"
+                bordered
                 aria-label={t('overlay.drawer.close', 'Закрыть')}
                 icon={<CrossIcon width={16} height={16} />}
               />
@@ -454,13 +468,10 @@ const DrawerLayout = ({
             data-scrolled={scrolled ? '' : undefined}
           >
             {/*
-              Крест/стрелка/урна — ОДИН примитив IconButton в ведущей ячейке грида.
-              Видимый глиф намеренно мельче тап-ареи (16) — «тихость» несёт размер +
-              тонкий штрих (form), а не заниженный контраст; хит-арея держится 44
-              (touch floor) через .leadingGlyph. Оптическая кромка глифа ложится на
-              линию тела лево-джастификацией в коробке (.chromeCell .leadingGlyph).
-              Ячейка — обычный grid-item (НЕ absolute), поэтому центр-колонка не
-              зависит от неё и крест не может уехать к центру в безымянном ряду.
+              Крест/стрелка — ОДИН примитив IconButton (tone="soft" bordered) в
+              ведущей ячейке грида, тот же облик и размер (40), что у замыкающего
+              контрола: хедер всегда «кнопка — заголовок — кнопка». Ячейка —
+              обычный grid-item (НЕ absolute).
             */}
             <div className={clsx(styles.chromeCell, styles.chromeCellLead)}>
               {renderLeading(styles.leadingGlyph)}
@@ -523,6 +534,14 @@ const DrawerLayout = ({
                 customNode != null && styles.dragHandleHeader
               )}
             >
+              {/*
+                Ведущий контрол здесь плавает (.floatingCloseChrome), но его
+                колонка должна остаться — заглушка того же размера, чтобы
+                крайние auto-треки были равны и заголовок держал центр.
+              */}
+              <div className={clsx(styles.chromeCell, styles.chromeCellLead)}>
+                <span className={styles.chromeSpacer} aria-hidden="true" />
+              </div>
               {headerCenter}
             </div>
           )}

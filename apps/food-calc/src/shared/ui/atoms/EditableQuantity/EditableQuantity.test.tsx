@@ -39,14 +39,25 @@ describe('EditableQuantity', () => {
     expect(onCommit).not.toHaveBeenCalled();
   });
 
-  it('does NOT commit a zero/empty value', async () => {
+  it('commits the default 100 when the entered value is zero/empty', async () => {
     const user = userEvent.setup();
-    const { onCommit, input } = renderQty({ value: 100 });
+    const { onCommit, input } = renderQty({ value: 250 });
 
     await user.clear(input); // → 0
     await user.tab();
 
+    expect(onCommit).toHaveBeenCalledWith(100);
+  });
+
+  it('resets the field to 100 without committing when the value already is 100', async () => {
+    const user = userEvent.setup();
+    const { onCommit, input } = renderQty({ value: 100 });
+
+    await user.clear(input);
+    await user.tab();
+
     expect(onCommit).not.toHaveBeenCalled();
+    expect(input).toHaveValue('100');
   });
 
   it('Enter commits the edited value (blurs the field)', async () => {

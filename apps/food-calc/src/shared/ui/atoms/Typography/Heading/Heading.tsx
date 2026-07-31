@@ -8,10 +8,18 @@ import styles from './Heading.module.scss';
  *  Это ЕДИНСТВЕННЫЙ API заголовка — legacy-`size` схлопнут в роли 2026-06-23. */
 type HeadingRole = 'display' | 'headline' | 'title';
 
+/** Ось ВЕСА (опц.) — перекрывает вес роли. Зеркалит ось <Text> (та же шкала
+ *  <Numeral>): роль даёт размер/семантику, weight — начертание поверх неё.
+ *  Дом произвольного веса — примитив, не сырой font-weight в компонентном scss
+ *  (typo-encapsulation gate). */
+type HeadingWeight = 'thin' | 'light' | 'regular' | 'semibold' | 'bold';
+
 type Props = {
   children: ReactNode;
   /** Семантическая роль — задаёт весь типографический композит. */
   role: HeadingRole;
+  /** Опц. ортогональный модификатор начертания поверх роли (не заменяет её). */
+  weight?: HeadingWeight;
   /**
    * DOM-тег — полиморфно (как у `Text`). По умолч. `h2`; `span` — инлайновый
    * заголовок (подпись активного таба); `h4` — глубокая секция (AtomList);
@@ -37,10 +45,13 @@ type Props = {
  * через `as` (как `Text`): заголовок может быть `<label htmlFor>` / кликабельным
  * без лишней обёртки — extra DOM-пропсы форвардятся на тег.
  */
-const Heading = ({ children, role, as, masthead, className, ...rest }: Props) => {
+const Heading = ({ children, role, weight, as, masthead, className, ...rest }: Props) => {
   const Tag = (as ?? 'h2') as ElementType;
   const heading = (
-    <Tag className={clsx(styles.heading, styles[role], className)} {...rest}>
+    <Tag
+      className={clsx(styles.heading, styles[role], weight && styles[weight], className)}
+      {...rest}
+    >
       {children}
     </Tag>
   );

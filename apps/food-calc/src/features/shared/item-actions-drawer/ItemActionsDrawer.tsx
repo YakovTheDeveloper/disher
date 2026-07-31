@@ -1,12 +1,10 @@
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
-import { IconButton } from '@/shared/ui/atoms/Button';
-import { RoundButton } from '@/shared/ui/RoundButton';
-import { Well } from '@/shared/ui/Well';
 import { ActionList } from '@/shared/ui/ActionList';
 import { SettingRow } from '@/shared/ui/atoms/SettingRow';
 import { ChevronGlyph } from '@/shared/ui/atoms/ChevronGlyph';
+import { IconButton } from '@/shared/ui/atoms/Button';
+import { OpenPageGlyph } from '@/shared/ui/atoms/OpenPageGlyph';
 import type { BaseDrawerProps } from '@/shared/ui';
-import InfoGlyph from '@/shared/assets/icons/cirlceInfo.svg?react';
 import s from './ItemActionsDrawer.module.scss';
 
 export type ItemAction = {
@@ -34,23 +32,44 @@ interface Props extends BaseDrawerProps<void> {
   /** Тихая строка под title. По умолчанию «Действия»; `null` — без subtitle
    *  (событие: заголовок уже несёт весь контекст, вторая строка шумит). */
   subtitle?: string | null;
-  /** Destructive — rendered in DrawerLayout's top-right chrome slot, opposite the
-   *  top-left close cross and away from the action stack, so a casual tap toward
-   *  the actions can't hit it. One tap deletes (no extra confirm — placement is
-   *  the guard). Omit for non-deletable entities (e.g. catalog foods) → the trash
-   *  chrome button is dropped and the drawer shows actions only. */
+  /** Destructive — rendered as a danger row at the BOTTOM of the action stack
+   *  (канон: деструктив в конце списка действий, не в chrome — верхний правый
+   *  угол зарезервирован за навигацией, иначе один слот несёт противоположные
+   *  смыслы и ломает моторную память). One tap deletes (no extra confirm). Omit
+   *  for non-deletable entities (e.g. catalog foods) → the row is dropped. */
   onDelete?: () => void;
-  /** Навигационные действия секции «Перейти» (напр. «Информация о продукте»).
-   *  Пусто → секция не рендерится (у события нет detail-страницы). */
-  actions: ItemAction[];
-  /** Действия секции «Редактировать» — ряд круглых медалей (RoundButton). */
+  /** Подпись danger-ряда удаления. Дефолт «Удалить» (сама сущность, напр. свой
+   *  продукт в поиске); «Убрать из списка» — когда удаляется ЗАПИСЬ в списке
+   *  (приём пищи в расписании, ингредиент блюда), а сущность живёт дальше. */
+  deleteLabel?: string;
+  /** Переход на страницу сущности («Информация о продукте») — кнопка ↗ в
+   *  topRight хедера (как в NutrientShowcaseDrawer), НЕ ряд в стеке: навигация
+   *  живёт в chrome, действия над сущностью — в теле. Опусти, если detail-
+   *  страницы нет (событие, порция, КАТАЛОЖНЫЙ продукт — гейта `isCatalogId`
+   *  в buildInfoActions, та же что `pageRoute` в ProductDrawer). */
+  pageAction?: ItemAction;
+  /** «Нутриенты» — ряд SettingRow ПЕРЕД секцией редактирования:
+   *  открывает быструю нижнюю витрину (ProductDrawer/DishDrawer). В отличие от
+   *  pageAction доступен и каталожным продуктам (витрина read-only, она у них
+   *  единственная «информация»). Опусти для не-еды (событие, порция, анализ). */
+  nutrientsAction?: ItemAction;
+  /** Действия секции «Поменять» — плоские ряды SettingRow с глифами. */
   editActions?: ItemAction[];
 }
 
 // Each handler closes the drawer FIRST, then runs the callback. Order matters:
 // an info-action that navigates must not leave the drawer mounted over the new
 // page (see spec Edge cases).
-export const ItemActionsDrawer = ({ onClose, title, subtitle, onDelete, actions, editActions }: Props) => {
+export const ItemActionsDrawer = ({
+  onClose,
+  title,
+  subtitle,
+  onDelete,
+  deleteLabel = 'Удалить',
+  pageAction,
+  nutrientsAction,
+  editActions,
+}: Props) => {
   const handleDelete = () => {
     onClose();
     onDelete?.();
@@ -69,89 +88,94 @@ export const ItemActionsDrawer = ({ onClose, title, subtitle, onDelete, actions,
       // держит a11yLabel.
       header={
         title
-          ? { kind: 'compact', title, subtitle: subtitle === undefined ? 'Действия' : (subtitle ?? undefined) }
+          ? {
+              kind: 'compact',
+              title,
+              subtitle: subtitle === undefined ? 'Действия' : (subtitle ?? undefined),
+            }
           : undefined
       }
       a11yLabel="Действия"
+      flushBodyPaddingTop
       topRight={
-        onDelete ? (
-          // tone="soft" даёт постоянную ink-подложку (плитка) под глифом урны —
-          // раньше danger был без idle-фона. Разрушительность держит placement
-          // (угол, вне стека действий), не цвет — доп. confirm нет. Размер квадрата
-          // несёт chrome-слот DrawerLayout (--sys-size-control) — тут его не задаём.
+        pageAction ? (
+          // Кнопка «уйти на страницу»: глиф ↗ (OpenPageGlyph), тон soft — как в
+          // NutrientShowcaseDrawer. Размер квадрата несёт chrome-слот DrawerLayout.
           <IconButton
             tone="soft"
-            onClick={handleDelete}
-            aria-label="Удалить"
-            icon={<TrashIcon />}
+            onClick={() => handleAction(pageAction)}
+            aria-label={pageAction.label}
+            icon={<OpenPageGlyph width={24} height={24} />}
           />
         ) : undefined
       }
     >
-      {/* Тело дровера = ActionList: секция «Редактировать» (ряд медалей) + секция
-          «Перейти» (нав-ряды SettingRow). Секции = h3 (заголовок дровера h2 → тело
+      {/* Тело дровера = ActionList: секция «Поменять» (ряды SettingRow) +
+          danger-ряд удаления внизу. Секции = h3 (заголовок дровера h2 → тело
           держит следующий ярус, корректный outline). */}
       <ActionList>
-        {editActions && editActions.length > 0 && (
-          <ActionList.Section as="h3" label="Редактировать" italicLabel labelAlign="center">
-            {/* Ряд медалей (RoundButton look="raised"): приподнятые surface-2 плитки
-                в утопленном лотке Well (variant="round") — паттерн «вдавленность +
-                приподнятые круглые плитки», един с монетами навигации. НЕ конвертируем
-                в SettingRow — медаль несёт htmlFor-делегацию фокуса edit-флоу. */}
-            <div className={s.editSection}>
-              <Well variant="round">
-                <div className={s.editRow}>
-                {editActions.map((action, i) =>
-                  action.htmlFor ? (
-                    // Медаль = `<label htmlFor>`: тап фокусирует целевой edit-input,
-                    // хостовый onFocusCapture флипает шаг (iOS поднимает клавиатуру) и
-                    // закрывает дровер. onClick только праймит — НЕ closes/setStep,
-                    // иначе label размонтируется до делегирования (CLAUDE.md «Label
-                    // focus delegation»). Дровер открыт с trapFocus:false, иначе
-                    // focus-trap завернул бы делегацию назад.
-                    <RoundButton
-                      key={`${action.label}-${i}`}
-                      look="raised"
-                      floating={false}
-                      htmlFor={action.htmlFor}
-                      onClick={action.onClick}
-                      ariaLabel={action.label}
-                      arcTop={action.label}
-                      centerNode={action.icon}
-                    />
-                  ) : (
-                    // Без htmlFor — обычная кнопка-медаль: закрыть-и-выполнить.
-                    <RoundButton
-                      key={`${action.label}-${i}`}
-                      look="raised"
-                      floating={false}
-                      onClick={() => handleAction(action)}
-                      ariaLabel={action.label}
-                      arcTop={action.label}
-                      centerNode={action.icon}
-                    />
-                  )
-                )}
-                </div>
-              </Well>
+        {nutrientsAction && (
+          // Быстрый просмотр нутриентов — ПЕРВЫМ рядом, до правок: «подглядеть»
+          // чаще нужно, чем «менять». Переход к витрине, а не правка сущности —
+          // секция без заголовка (как danger-ряд).
+          <ActionList.Section as="h3" flushTop>
+            <div className={s.rows}>
+              <SettingRow
+                icon={<NutrientsIcon />}
+                label={nutrientsAction.label}
+                onClick={() => handleAction(nutrientsAction)}
+                trailing={<ChevronGlyph />}
+              />
             </div>
           </ActionList.Section>
         )}
 
-        {actions.length > 0 && (
-          <ActionList.Section as="h3" label="Перейти" italicLabel labelAlign="center">
+        {editActions && editActions.length > 0 && (
+          <ActionList.Section as="h3" label="Поменять">
+            {/* Правки — плоские ряды SettingRow с тематическими глифами
+                (edit-action-icons), как прочие ряды дровера; группу отличают
+                лейбл секции и монохромные иконки. Шеврон › справа — все ряды
+                секции ведут на шаг edit-флоу (как и ряд нутриентов выше; без
+                шеврона только danger-ряд удаления — он выполняет, а не ведёт).
+                Ряд несёт htmlFor-делегацию
+                фокуса edit-флоу (label-режим): onPointerDown только праймит —
+                НЕ closes/setStep, иначе label размонтируется до делегирования
+                (CLAUDE.md «Label focus delegation»). Без htmlFor — обычная
+                кнопка: закрыть-и-выполнить. */}
+            <div className={`${s.rows} ${s.editRows}`}>
+              {editActions.map((action, i) =>
+                action.htmlFor ? (
+                  <SettingRow
+                    key={`${action.label}-${i}`}
+                    icon={action.icon}
+                    label={action.label}
+                    htmlFor={action.htmlFor}
+                    onPointerDown={action.onClick}
+                    trailing={<ChevronGlyph />}
+                  />
+                ) : (
+                  <SettingRow
+                    key={`${action.label}-${i}`}
+                    icon={action.icon}
+                    label={action.label}
+                    onClick={() => handleAction(action)}
+                    trailing={<ChevronGlyph />}
+                  />
+                )
+              )}
+            </div>
+          </ActionList.Section>
+        )}
+
+        {onDelete && (
+          // Деструктив — ПОСЛЕДНИМ рядом стека, в danger-тоне (канон action-sheet:
+          // удаление внизу списка действий, а не в chrome-угол). Без заголовка
+          // секции — красный тон + глагол в лейбле несут смысл сами, подпись вида
+          // «Необратимые действия» была бы шумом (ни HIG, ни Material таких
+          // групповых лейблов не делают).
+          <ActionList.Section as="h3">
             <div className={s.rows}>
-              {actions.map((action, i) => (
-                <SettingRow
-                  key={`${action.label}-${i}`}
-                  // Дефолт-глиф — кольцо-ⓘ: единственный консумер (buildInfoActions)
-                  // не шлёт свой icon, ряд всегда «Информация о…».
-                  icon={action.icon ?? <InfoGlyph width={18} height={18} />}
-                  label={action.label}
-                  trailing={<ChevronGlyph />}
-                  onClick={() => handleAction(action)}
-                />
-              ))}
+              <SettingRow danger icon={<TrashIcon />} label={deleteLabel} onClick={handleDelete} />
             </div>
           </ActionList.Section>
         )}
@@ -170,5 +194,20 @@ const TrashIcon = () => (
       strokeLinejoin="round"
     />
     <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+// Нутриенты — лабораторная колба с линией жидкости: «состав/анализ» одним
+// силуэтом. Тот же строчный канон, что и урна (24×24, stroke 1.5, currentColor).
+const NutrientsIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M9.5 3h5M10.5 3v5.1L5.9 16.9A2.2 2.2 0 0 0 7.9 20.4h8.2a2.2 2.2 0 0 0 2-3.5L13.5 8.1V3"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M7.6 13.5h8.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );

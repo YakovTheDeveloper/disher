@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
-import { useScheduleFoods } from './queries';
-import { useDishItemsByDishIds } from '@/entities/dish';
-import { useNutrientsByProductIds, useBasisByProductIds } from '@/entities/product';
+import { useScheduleFoods, useScheduleFoodsLoading } from './queries';
+import {
+  useDishItemsByDishIds,
+  useDishesLoading,
+  useDishItemsLoading,
+} from '@/entities/dish';
+import {
+  useNutrientsByProductIds,
+  useBasisByProductIds,
+  useProductsLoading,
+} from '@/entities/product';
 import {
   calculateProductNutrients,
   calculateDishNutrients,
@@ -17,6 +25,16 @@ export type ScheduleNutrientResult = {
 
 export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult {
   const sfItems = useScheduleFoods(date);
+
+  // Гейт первого тика: НИ один liveQuery-вход (schedule_foods, продукты,
+  // dishes, dish_items) не должен молча коалесцировать в [] до загрузки —
+  // иначе первый рендер показывает нулевые тоталы как «ничего не съедено».
+  const scheduleLoading = useScheduleFoodsLoading();
+  const productsLoading = useProductsLoading();
+  const dishesLoading = useDishesLoading();
+  const dishItemsLoading = useDishItemsLoading();
+  const isLoading =
+    scheduleLoading || productsLoading || dishesLoading || dishItemsLoading;
 
   const foodItems = sfItems.filter((sf) => sf.type === 'food' && sf.productId);
   const dishItems = sfItems.filter((sf) => sf.type === 'dish' && sf.dishId);
@@ -93,7 +111,7 @@ export function useScheduleNutrientTotals(date: string): ScheduleNutrientResult 
     return {
       totals: sumNutrients(...totalsArray),
       missingNutrientNames: missingNames,
-      isLoading: false,
+      isLoading,
     };
-  }, [dataKey, allDishItems, nutrientsMap, basisMap]);
+  }, [dataKey, allDishItems, nutrientsMap, basisMap, isLoading]);
 }

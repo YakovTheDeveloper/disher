@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { addMonths, startOfMonth, subMonths } from 'date-fns';
-import clsx from 'clsx';
 import type { BaseDrawerProps } from '@/shared/ui';
 import { DrawerLayout } from '@/shared/ui/DrawerLayout';
 import { AllDaysHeader, ScheduleNavigator } from './ScheduleNavigator';
@@ -48,9 +47,7 @@ export const ScheduleNavigatorDrawer = ({ onClose, selectedDate }: Props) => {
             }
       }
       onBack={screen === 'root' ? undefined : () => setScreen('root')}
-      // .sheetDays центрирует ряд помесячной навигации (40px-плитки) в chrome-полосе,
-      // чтобы back-стрелка DrawerLayout (пришпилена к chrome/2) с ним совпала по высоте.
-      className={clsx(s.sheet, screen === 'days' && s.sheetDays)}
+      className={s.sheet}
     >
       <ScheduleNavigator
         screen={screen}

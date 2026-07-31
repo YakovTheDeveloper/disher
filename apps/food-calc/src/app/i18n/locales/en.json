@@ -7,6 +7,15 @@
             "defaultA11yLabel": "Drawer"
         }
     },
+    "nutrientMatrix": {
+        "open": "Matrix: foods × nutrients",
+        "title": "Foods × nutrients",
+        "caption": "Percent of the daily norm each nutrient gets from each food or dish of the day",
+        "regionLabel": "Nutrient table by the day's foods",
+        "nutrientColumn": "Nutrient",
+        "empty": "No foods for this day",
+        "loading": "Loading…"
+    },
     "schedule": {
         "empty": {
             "food": {
@@ -92,9 +101,43 @@
         },
         "product": {
             "emptyComposition": "The product has no composition yet"
+        },
+        "create": {
+            "autoNutrients": "Fill in automatically",
+            "or": "or"
         }
     },
     "bugReport": {
         "placeholder": "What's wrong? Steps, expected, actual…"
+    },
+    "suggest": {
+        "title": "What to eat next?",
+        "subtitle": "Today's top deficits: {{names}}",
+        "loading": "Loading…",
+        "normComplete": "Daily norm complete — no deficits left.",
+        "empty": "Nothing to suggest.",
+        "emptyBlacklisted": "Some products are hidden by you — the «Don't suggest» list can be managed in the profile.",
+        "noNormHint": "No personal norm set — suggestions use average values. Set yours for better accuracy.",
+        "card": {
+            "grams": "g",
+            "coverLine": "{{name}} — covers {{pct}}%",
+            "scoreCaption": "% of remainder",
+            "productInfo": "Product info",
+            "dishInfo": "Dish info"
+        },
+        "actions": {
+            "subtitle": "Actions",
+            "viewNutrients": "Nutrients",
+            "dontSuggest": "Don't suggest",
+            "blacklistFailed": "Couldn't hide the product"
+        },
+        "blacklist": {
+            "section": "Suggestions",
+            "title": "Products we don't suggest",
+            "empty": "The list is empty",
+            "remove": "Remove from the list",
+            "removeFailed": "Couldn't remove the product",
+            "unknownProduct": "Product deleted"
+        }
     }
 }

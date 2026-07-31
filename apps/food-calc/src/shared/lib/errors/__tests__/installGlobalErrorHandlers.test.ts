@@ -56,6 +56,17 @@ describe('handleGlobalError', () => {
     handleGlobalError({ status: 500 });
     expect(mockError).toHaveBeenCalledTimes(2);
   });
+
+  it('silences view-transition aborts (cosmetic by spec, not a server timeout)', () => {
+    handleGlobalError(new DOMException('Transition was aborted because of timeout in DOM update', 'TimeoutError'));
+    handleGlobalError(new DOMException('Transition was skipped because of duplicate view-transition-name', 'AbortError'));
+    expect(mockError).not.toHaveBeenCalled();
+  });
+
+  it('still toasts a genuine fetch AbortError (not a view-transition message)', () => {
+    handleGlobalError(new DOMException('The user aborted a request.', 'AbortError'));
+    expect(mockError).toHaveBeenCalledOnce();
+  });
 });
 
 describe('installGlobalErrorHandlers', () => {
